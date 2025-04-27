@@ -21,6 +21,23 @@ A collection of coding rules, templates, MCP servers and examples for working wi
 
 - [Cline Rules](./Cline/Rules/)
 
+![clinerules setting](clinerules-setting.png)
+
+#### [sams-clinerules.md](./Cline/Rules/sams-clinerules.md)
+
+- My global clinerules.
+- Always enabled across different projects.
+
+#### [new-task-rules.md](./Cline/Rules/new-task-rules.md)
+
+- Implements Cline's ['new task tool'](https://docs.cline.bot/exploring-clines-tools/new-task-tool).
+- Always enabled across different projects.
+
+#### [Repo Specific Rules](./Cline/repo-specific-rules/)
+
+- [mcp-server-repo-example.md](./Cline/repo-specific-rules/mcp-server-repo-example.md)
+  - Example of rules I have for a MCP server repository.
+
 ---
 
 ## Links

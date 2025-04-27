@@ -30,6 +30,7 @@
     <GENERAL_CODING_RULES>
       <RULE>Do not add mock/placeholder code where there should be real functionality.</RULE>
       <RULE>Always ensure code is properly indented and formatted.</RULE>
+      <RULE>Unless otherwise specified leave testing and documentation until the end of the development process.</RULE>
     </GENERAL_CODING_RULES>
   </CRITICAL_CODING_RULES>
 
