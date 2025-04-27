@@ -1,0 +1,108 @@
+{
+  "mcpServers": {
+    "chrome-browser-use": {
+      "disabled": true,
+      "timeout": 60,
+      "command": "npx",
+      "args": [
+        "-y",
+        "@browsermcp/mcp@latest"
+      ],
+      "transportType": "stdio"
+    },
+    "markdownify": {
+      "autoApprove": [
+        "get-markdown-file",
+        "image-to-markdown",
+        "pdf-to-markdown",
+        "pptx-to-markdown",
+        "webpage-to-markdown",
+        "xlsx-to-markdown",
+        "youtube-to-markdown",
+        "audio-to-markdown",
+        "bing-search-to-markdown",
+        "docx-to-markdown"
+      ],
+      "disabled": true,
+      "timeout": 300,
+      "command": "node",
+      "args": [
+        "/PATH/TO/markdownify-mcp/dist/index.js"
+      ],
+      "env": {
+        "UV_PATH": "/PATH/TO/bin/uv"
+      },
+      "transportType": "stdio"
+    },
+    "searxng": {
+      "autoApprove": [
+        "search"
+      ],
+      "disabled": true,
+      "timeout": 60,
+      "command": "uvx",
+      "args": [
+        "mcp-searxng"
+      ],
+      "transportType": "stdio"
+    },
+    "@21st-dev/magic": {
+      "timeout": 60,
+      "command": "npx",
+      "args": [
+        "-y",
+        "@21st-dev/magic@latest",
+        "API_KEY=\"REDACTED\""
+      ],
+      "transportType": "stdio"
+    },
+    "memory-bank": {
+      "autoApprove": [
+        "memory_bank_read",
+        "memory_bank_write",
+        "memory_bank_update",
+        "list_projects",
+        "list_project_files"
+      ],
+      "disabled": true,
+      "timeout": 60,
+      "command": "npx",
+      "args": [
+        "-y",
+        "@allpepper/memory-bank-mcp"
+      ],
+      "env": {
+        "MEMORY_BANK_ROOT": "/PATH/TO/mcp-memory-bank-data"
+      },
+      "transportType": "stdio"
+    },
+    "firecrawl": {
+      "autoApprove": [
+        "firecrawl_scrape",
+        "firecrawl_map",
+        "firecrawl_crawl",
+        "firecrawl_batch_scrape",
+        "firecrawl_check_batch_status",
+        "firecrawl_check_crawl_status",
+        "firecrawl_search",
+        "firecrawl_extract"
+      ],
+      "disabled": true,
+      "timeout": 300,
+      "command": "npx",
+      "args": [
+        "-y",
+        "firecrawl-mcp"
+      ],
+      "env": {
+        "FIRECRAWL_API_KEY": "REDACTED",
+        "FIRECRAWL_API_URL": "https://firecrawl-api.my.internal.network",
+        "FIRECRAWL_RETRY_BACKOFF_FACTOR": "2",
+        "FIRECRAWL_RETRY_INITIAL_DELAY": "1000",
+        "FIRECRAWL_RETRY_MAX_ATTEMPTS": "3",
+        "FIRECRAWL_RETRY_MAX_DELAY": "10000"
+      },
+      "transportType": "stdio"
+    }
+  }
+}

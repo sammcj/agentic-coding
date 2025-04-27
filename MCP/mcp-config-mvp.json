@@ -1,0 +1,81 @@
+{
+  "mcpServers": {
+    "fetch": {
+      "autoApprove": [
+        "fetch"
+      ],
+      "disabled": false,
+      "timeout": 60,
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ],
+      "transportType": "stdio"
+    },
+    "brave-search": {
+      "autoApprove": [
+        "brave_web_search",
+        "brave_local_search"
+      ],
+      "timeout": 60,
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "REDACTED"
+      },
+      "transportType": "stdio"
+    },
+    "context7-mcp": {
+      "autoApprove": [
+        "resolve-library-id",
+        "get-library-docs"
+      ],
+      "timeout": 60,
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
+      "transportType": "stdio"
+    },
+    "mcp-package-version": {
+      "autoApprove": [
+        "check_bedrock_models",
+        "check_docker_tags",
+        "check_github_actions",
+        "check_go_versions",
+        "check_gradle_versions",
+        "check_maven_versions",
+        "check_npm_versions",
+        "check_pyproject_versions",
+        "check_python_versions",
+        "check_swift_versions",
+        "get_latest_bedrock_model"
+      ],
+      "disabled": false,
+      "timeout": 300,
+      "url": "https://mcp-package-version.my.internal.network/sse",
+      "transportType": "sse"
+    },
+    "github": {
+      "autoApprove": [
+        "search_repositories",
+        "get_file_contents",
+        "search_code",
+        "search_issues",
+        "get_issue"
+      ],
+      "disabled": false,
+      "timeout": 60,
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "transportType": "stdio"
+    }
+  }
+}
