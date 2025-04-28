@@ -8,6 +8,8 @@
 
 A collection of coding rules, templates, MCP servers and examples for working with Agentic Coding tools (Cline, Github Copilot etc...)
 
+---
+
 ## MCP Servers
 
 - [MVP / Always On](./MCP/mcp-config-mvp.json)
