@@ -35,8 +35,11 @@ A collection of coding rules, templates, MCP servers and examples for working wi
 
 #### [Repo Specific Rules](./Cline/repo-specific-rules/)
 
+- [mcp-server-development-rules.md](./Cline/repo-specific-rules/mcp-server-development-rules.md)
+  - Assists when developing new MCP servers.
+  - Modified version of https://docs.cline.bot/mcp-servers/mcp-server-from-scratch.
 - [mcp-server-repo-example.md](./Cline/repo-specific-rules/mcp-server-repo-example.md)
-  - Example of rules I have for a MCP server repository.
+  - Assists with working on existing MCP servers.
 
 ---
 
