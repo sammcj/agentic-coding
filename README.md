@@ -36,6 +36,8 @@ A collection of coding rules, templates, MCP servers and examples for working wi
 
 ## Rules
 
+I tend to try and write my rules in pseudo-XML format as some LLMs (such as Anthropic Claude) are specifically trained on XML which can result in better results and prompt adherence.
+
 ### Cline
 
 - [Cline Rules](./Cline/Rules/)
