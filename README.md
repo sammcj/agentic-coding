@@ -33,6 +33,10 @@ A collection of coding rules, templates, MCP servers and examples for working wi
 - Implements Cline's ['new task tool'](https://docs.cline.bot/exploring-clines-tools/new-task-tool).
 - Always enabled across different projects.
 
+#### [cline-memory-bank.md](./Cline/Rules/cline-memory-bank.md)
+
+- Copy of https://docs.cline.bot/improving-your-prompting-skills/cline-memory-bank
+
 #### [Repo Specific Rules](./Cline/repo-specific-rules/)
 
 - [mcp-server-development-rules.md](./Cline/repo-specific-rules/mcp-server-development-rules.md)
