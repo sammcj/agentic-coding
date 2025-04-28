@@ -4,6 +4,7 @@
   - [Agentic Coding Tools](#agentic-coding-tools)
   - [MCP Servers](#mcp-servers)
   - [Rules](#rules)
+  - [Patterns](#patterns)
   - [Links](#links)
   - [License](#license)
 
@@ -19,13 +20,13 @@ A collection of coding rules, templates, MCP servers and examples for working wi
 
 ## MCP Servers
 
-- [MVP / Always On](./MCP/mcp-config-mvp.json)
+- [MVP / Always On](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-mvp.json)
   - [Context7](https://github.com/upstash/context7): Used to fetch documentation.
   - [Fetch](https://github.com/modelcontextprotocol/servers/blob/main/src/fetch/README.md): Used to fetch URLs.
   - [Brave Search](https://github.com/modelcontextprotocol/servers/tree/main/src/brave-search): Provides web search (free Brave Search AI API key required).
   - [Package Version](https://github.com/sammcj/mcp-package-version): Used to get up to date package versions.
   - [Github](https://github.com/modelcontextprotocol/servers/blob/main/src/github/README.md): Used to fetch information from GitHub repositories, Github Issues & PRs.
-- [Sometimes Used](./MCP/mcp-config-sometimes.json)
+- [Sometimes Used](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-sometimes.json)
   - [Firecrawl](https://github.com/mendableai/firecrawl-mcp-server): Provides web scraping and markdown conversion (Self hosted Firecrawl, or Firecrawl API key required).
   - [Markdownify](github.com/zcaceres/markdownify-mcp): Converts documents to markdown.
   - [Browser Use](https://github.com/Saik0s/mcp-browser-use): Gives access to a browser.
@@ -67,6 +68,12 @@ I tend to try and write my rules in pseudo-XML format as some LLMs (such as Anth
   - Assists with working on existing MCP servers.
 
 ---
+
+## Patterns
+
+### Setup -> Plan -> Act -> Review & Iterate
+
+- See my blog post on this pattern here at [smcleod.net](https://smcleod.net)
 
 ## Links
 
