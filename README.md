@@ -1,12 +1,19 @@
 # Sam's Agentic Coding Rules, Templates and Examples
 
 - [Sam's Agentic Coding Rules, Templates and Examples](#sams-agentic-coding-rules-templates-and-examples)
+  - [Agentic Coding Tools](#agentic-coding-tools)
   - [MCP Servers](#mcp-servers)
   - [Rules](#rules)
   - [Links](#links)
   - [License](#license)
 
 A collection of coding rules, templates, MCP servers and examples for working with Agentic Coding tools (Cline, Github Copilot etc...)
+
+---
+
+## Agentic Coding Tools
+
+- [Cline](https://cline.bot): IMO The best agentic coding tool.
 
 ---
 
