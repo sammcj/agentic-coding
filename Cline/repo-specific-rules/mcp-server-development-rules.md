@@ -6,6 +6,7 @@
 
 - What problem does this tool solve?
 - What API/service will it use?
+- Does it need to run in both stdio and SSE modes?
 - What are the authentication requirements?
   □ Standard API key
   □ OAuth (requires separate setup script)
@@ -33,7 +34,7 @@
 
 2. Core Implementation
    - Use MCP SDK (or go-mcp for Golang)
-   - Implement comprehensive logging
+   - Implement comprehensive logging, ensuring that when running in stdio mode the logs are not sent to stdout/stderr.
      - TypeScript (for web/JS projects):
        ```typescript
        console.error('[Setup] Initializing server...');
