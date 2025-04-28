@@ -33,6 +33,8 @@ A collection of coding rules, templates, MCP servers and examples for working wi
   - [SearXNG](https://github.com/ihor-sokoliuk/mcp-searxng): Provides web search (Self hosted SearXNG required).
   - [Magic MCP](https://github.com/21st-dev/magic-mcp): Provides frontend UI components.
 
+![MCP-Servers](mcp-servers.png)
+
 ---
 
 ## Rules
