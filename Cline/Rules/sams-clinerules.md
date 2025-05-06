@@ -1,84 +1,107 @@
 ```xml
-<IMPORTANT_RULES_YOU_MUST_FOLLOW>
-  <IMPORTANT>⚠️ THESE ARE _ALL_ CRITICAL RULES YOU **MUST** FOLLOW ⚠️</IMPORTANT>
+<CLINE_CODING_AGENT_RULES>
+  <CORE_PRINCIPLES>
+    <PRINCIPLE priority="1">Prioritise using the tools available to you over manual approaches whenever appropriate</PRINCIPLE>
+    <PRINCIPLE priority="2">Follow language-specific best practices</PRINCIPLE>
+    <PRINCIPLE priority="3">Verify all changes before task completion</PRINCIPLE>
+    <PRINCIPLE priority="4">Always use British English spelling in all outputs</PRINCIPLE>
+  </CORE_PRINCIPLES>
 
-  <CRITICAL_CODING_RULES>
-    <TASK_AND_CONTEXT_MANAGEMENT>
-      <IMPORTANT>Remember to start a new task when your context window is over 70%.</IMPORTANT>
-    </TASK_AND_CONTEXT_MANAGEMENT>
-    <PACKAGE_MANAGEMENT>
-      <IMPORTANT>When adding packages to an application use the package-version MCP server's tools to ensure you use the latest versions.</IMPORTANT>
-    </PACKAGE_MANAGEMENT>
-    <PROJECT_CONTEXT>
-      <RULE>Check project files before suggesting structural or dependency changes.</RULE>
-      <RULE>If you're using the diff edit tool and it fails, try again before using the next option.</RULE>
-      <RULE>You may complete multiple tasks at once when you are editing the same file.</RULE>
-    </PROJECT_CONTEXT>
-    <QUALITY_ASSURANCE>
-      <RULE>Don't complete the analysis prematurely. If you think you've completed the task but have no way of verifying it, you should ask the user to verify your changes.</RULE>
-      <RULE>If you're modifying software that has an existing test suite, you should run the tests and ensure they pass when you think you've completed the task.</RULE>
-      <RULE>When updating documentation or fixing multiple errors in the same file do so in one edit rather than opening and editing it many times.</RULE>
-    </QUALITY_ASSURANCE>
+  <TOOLING_REQUIREMENTS>
+    <MANDATORY_TOOL_USAGE>
+      <TOOL name="package-version">
+        <WHEN>Adding any packages or dependencies</WHEN>
+        <PURPOSE>Use tools such as package version to ensure latest stable versions are used</PURPOSE>
+      </TOOL>
+      <TOOL name="context7">
+        <WHEN>Implementing modern or complex libraries</WHEN>
+        <PURPOSE>Use tools to such as context7 to access current documentation and implementation patterns</PURPOSE>
+      </TOOL>
+      <TOOL name="fetch">
+        <WHEN>Needing web content or documentation</WHEN>
+        <PURPOSE>Efficient, lightweight content retrieval</PURPOSE>
+      </TOOL>
+      <TOOL name="think">
+        <WHEN>Encountering complex problems or requiring intermediate reasoning</WHEN>
+        <PURPOSE>Document thought process and solve complex issues</PURPOSE>
+        <ESCALATION>Use 'think harder' if standard thinking insufficient</ESCALATION>
+      </TOOL>
+    </MANDATORY_TOOL_USAGE>
+    <BEST_PRACTICES>
+      <PRACTICE>Always consider available MCP tools before manual approaches</PRACTICE>
+      <PRACTICE>Tools are preferred for efficiency and accuracy</PRACTICE>
+    </BEST_PRACTICES>
+  </TOOLING_REQUIREMENTS>
+
+  <CODING_STANDARDS>
+    <GENERAL_RULES>
+      <RULE id="CS001">Avoid adding mock/placeholder code - don't be lazy - implement actual functionality</RULE>
+      <RULE id="CS002">Ensure proper indentation and formatting in all code</RULE>
+      <RULE id="CS003">Complete testing and documentation after primary implementation is complete</RULE>
+      <RULE id="CS004">Consolidate multiple edits to the same file into single operations</RULE>
+    </GENERAL_RULES>
     <LANGUAGE_SPECIFIC_RULES>
       <GOLANG>
-        <RULE>When writing golang code always use io. and os. instead of deprecated ioutil functions.</RULE>
-        <RULE>When adding go dependencies to a file, remember that the autoformatter will remove them unless you actually use them in the code, so make sure to use them in the code when you add them before saving.</RULE>
+        <RULE id="GO001">Use io.* and os.* instead of deprecated ioutil functions</RULE>
+        <RULE id="GO002">Use imported dependencies immediately to prevent auto-removal</RULE>
       </GOLANG>
       <DOCKER>
-        <RULE>When writing docker-compose files don't put the version in the file - this is deprecated and not needed.</RULE>
+        <RULE id="DK001">Omit version field in docker-compose files (deprecated)</RULE>
       </DOCKER>
     </LANGUAGE_SPECIFIC_RULES>
-    <GENERAL_CODING_RULES>
-      <RULE>Do not add mock/placeholder code where there should be real functionality.</RULE>
-      <RULE>Always ensure code is properly indented and formatted.</RULE>
-      <RULE>Unless otherwise specified leave testing and documentation until the end of the development process.</RULE>
-    </GENERAL_CODING_RULES>
-  </CRITICAL_CODING_RULES>
+    <ERROR_HANDLING>
+      <RULE id="EH001">For git merge conflicts, try copying file sideways, editing, then copying back</RULE>
+    </ERROR_HANDLING>
+  </CODING_STANDARDS>
 
-  <CRITICAL_TOOLING_RULES>
-    <RULES>
-      <RULE>Always utilise the available MCP tools for efficient information retrieval. These tools are essential for maintaining context window efficiency and accessing accurate, up-to-date information.</RULE>
-      <RULE>You always think about what MCP tools may help answer the user's request and consider that using tools is often more efficient for the problems they solve. Using tools is highly recommended when they align with the task.</RULE>
-      <RULE>When implementing complex or very modern libraries / packages use the tools available to you such as context7 to understand relevant parts of their documentation to help you understand how to use them.</RULE>
-      <RULE>When adding libraries or packages use the package version tools to ensure you always use the latest package versions.</RULE>
-    </RULES>
-    <IMPORTANT_TOOLS>
-      <TOOL>context7 - Retrieve documentation and information on how to implement libraries and packages</TOOL>
-      <TOOL>package-version - Retrieve the latest stable or recommended version of a package</TOOL>
-      <TOOL>fetch - Fast and lightweight tool to fetch the content of web pages/URLs</TOOL>
-      <TOOL>think tool - If you're having troubles with a complex task use the think tool to think about something complex. If that doesn't work using the 'think harder' tool. These tools will not obtain new information or change any data, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed.</TOOL>
-    </IMPORTANT_TOOLS>
-  </CRITICAL_TOOLING_RULES>
+  <PROJECT_MANAGEMENT>
+    <CONTEXT_WINDOW_MANAGEMENT>
+      <RULE id="CW001">Start new task when context window exceeds 70% capacity</RULE>
+      <RULE id="CW002">Complete multiple tasks in same file efficiently</RULE>
+    </CONTEXT_WINDOW_MANAGEMENT>
+    <FILE_OPERATIONS>
+      <RULE id="FO001">Check existing project files before suggesting structural changes</RULE>
+      <RULE id="FO002">Update documentation and fix errors in single edit per file</RULE>
+    </FILE_OPERATIONS>
+  </PROJECT_MANAGEMENT>
 
-  <CRITICAL_TESTING_RULES>
-    <IMPORTANT>Whenever adding new features you must always create accompanying unit tests.</IMPORTANT>
-    <IMPORTANT>After completing the tasks the user has requested you MUST run the tests (e.g. `pnpm test`, `make test` etc...) to ensure they all pass, If any tests fail, you MUST fix them before proceeding.</IMPORTANT>
-    <IMPORTANT>When writing tests for a UI, test the inputs against actual output objects/variables that would populate the UI as the user would see them when using the UI.</IMPORTANT>
-  </CRITICAL_TESTING_RULES>
+  <TESTING_REQUIREMENTS>
+    <RULE id="TEST001">Create unit tests for all new features</RULE>
+    <RULE id="TEST002">Run test suite (pnpm test, make test, etc.) after completing requested tasks</RULE>
+    <RULE id="TEST003">Fix all failing tests before marking task complete</RULE>
+    <RULE id="TEST004">For UI testing, verify actual output objects/variables as users would see them</RULE>
+  </TESTING_REQUIREMENTS>
 
-  <SPELLING_AND_LOCALISATION>
-    <IMPORTANT>Always use British English spelling for all responses, documentation, comments and function names.</IMPORTANT>
-    <BRITISH_ENGLISH_RULES>
-      <RULE>ALWAYS use British English spelling and conventions in ALL writing.</RULE>
-      <KEY_PATTERNS>
-        <PATTERN>ALWAYS use -our not -or (colour, humour, favour, neighbour, harbour, behaviour)</PATTERN>
-        <PATTERN>ALWAYS use -ise not -ize (organise, prioritise, specialise, recognise, apologise)</PATTERN>
-        <PATTERN>ALWAYS use -re not -er (centre, theatre, calibre, metre, fibre)</PATTERN>
-        <PATTERN>ALWAYS use -ogue not -og (catalogue, dialogue, monologue)</PATTERN>
-        <PATTERN>ALWAYS use -ae/oe not -e (aesthetic, encyclopaedia, manoeuvre, paediatric)</PATTERN>
-        <PATTERN>ALWAYS use -ll- not -l- (travelling, cancelled, counsellor, modelling)</PATTERN>
-        <PATTERN>ALWAYS use -t not -ed for certain past tense verbs (burnt, learnt, dreamt, spelt)</PATTERN>
-        <PATTERN>ALWAYS use -yse not -yze (analyse, paralyse, catalyse)</PATTERN>
-        <PATTERN>ALWAYS use -ence not -ense (defence, offence, licence as noun)</PATTERN>
-        <PATTERN>ALWAYS use British vocabulary (mum, aeroplane, flat, queue, autumn, holiday)</PATTERN>
-      </KEY_PATTERNS>
-    </BRITISH_ENGLISH_RULES>
-  </SPELLING_AND_LOCALISATION>
+  <QUALITY_ASSURANCE>
+    <VERIFICATION>
+      <RULE id="QA001">Never complete analysis prematurely</RULE>
+      <RULE id="QA002">Run existing test suites when modifying tested software</RULE>
+    </VERIFICATION>
+  </QUALITY_ASSURANCE>
 
-  <MERMAID_DIAGRAMS>
-    <RULE>Mermaid diagrams should use <br> instead of \n for new lines</RULE>
-    <RULE>Mermaid diagrams should always use this colour theme unless otherwise specified</RULE>
-    <MERMAID_THEME>
+  <BRITISH_ENGLISH_STANDARDS>
+    <SPELLING_RULES>
+      <PATTERN type="suffix">-our not -or (colour, favour, behaviour)</PATTERN>
+      <PATTERN type="suffix">-ise not -ize (organise, recognise)</PATTERN>
+      <PATTERN type="suffix">-re not -er (centre, theatre)</PATTERN>
+      <PATTERN type="suffix">-ogue not -og (catalogue, dialogue)</PATTERN>
+      <PATTERN type="vowels">-ae/oe not -e (aesthetic, manoeuvre)</PATTERN>
+      <PATTERN type="doubling">-ll- not -l- (travelling, cancelled)</PATTERN>
+      <PATTERN type="verbs">-t not -ed (learnt, spelt, dreamt)</PATTERN>
+      <PATTERN type="suffix">-yse not -yze (analyse, catalyse)</PATTERN>
+      <PATTERN type="suffix">-ence not -ense (defence, licence)</PATTERN>
+    </SPELLING_RULES>
+    <VOCABULARY>
+      <BRITISH>mum, aeroplane, flat, queue, autumn, holiday</BRITISH>
+    </VOCABULARY>
+  </BRITISH_ENGLISH_STANDARDS>
+
+  <DIAGRAM_SPECIFICATIONS>
+    <MERMAID_RULES>
+      <RULE id="MERM001">Use <br> instead of \n for line breaks</RULE>
+      <RULE id="MERM002">Apply standard colour theme unless specified otherwise</RULE>
+    </MERMAID_RULES>
+    <STANDARD_THEME>
       classDef inputOutput fill:#FEE0D2,stroke:#E6550D,color:#E6550D
       classDef llm fill:#E5F5E0,stroke:#31A354,color:#31A354
       classDef components fill:#E6E6FA,stroke:#756BB1,color:#756BB1
@@ -89,9 +112,12 @@
       classDef storage fill:#F2F0F7,stroke:#BCBDDC,color:#756BB1
       classDef api fill:#FFF5F0,stroke:#FD9272,color:#A63603
       classDef error fill:#FCBBA1,stroke:#FB6A4A,color:#CB181D
-    </MERMAID_THEME>
-  </MERMAID_DIAGRAMS>
+    </STANDARD_THEME>
+  </DIAGRAM_SPECIFICATIONS>
 
-  <IMPORTANT>⚠️ BY FOLLOWING THESE CRITICAL RULES YOU WILL MAKE THE WORLD OF SOFTWARE A BETTER PLACE ⚠️</IMPORTANT>
-</IMPORTANT_RULES_YOU_MUST_FOLLOW>
+  <ENFORCEMENT>
+    <NOTE>All rules are mandatory unless specifically overridden by user instruction</NOTE>
+    <PRIORITY>Rules with IDs take precedence over general guidelines</PRIORITY>
+  </ENFORCEMENT>
+</CLINE_CODING_AGENT_RULES>
 ```
