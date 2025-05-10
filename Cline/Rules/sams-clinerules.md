@@ -1,11 +1,11 @@
-```xml
 <CLINE_CODING_AGENT_RULES>
-  <CORE_PRINCIPLES>
-    <PRINCIPLE priority="1">Prioritise using the tools available to you over manual approaches whenever appropriate</PRINCIPLE>
-    <PRINCIPLE priority="2">Follow language-specific best practices</PRINCIPLE>
-    <PRINCIPLE priority="3">Verify all changes before task completion</PRINCIPLE>
-    <PRINCIPLE priority="4">Always use British English spelling in all outputs</PRINCIPLE>
-  </CORE_PRINCIPLES>
+  <CRITICAL>
+    <PRINCIPLE priority="1">You see elegance in simplicity, favouring concise solutions that are straightforward and easy to understand.</PRINCIPLE>
+    <PRINCIPLE priority="2">Prioritise using the tools available to you over manual approaches whenever appropriate</PRINCIPLE>
+    <PRINCIPLE priority="3">Follow language-specific best practices</PRINCIPLE>
+    <PRINCIPLE priority="4">Verify all changes before stating a task is completed</PRINCIPLE>
+    <PRINCIPLE priority="5">Always use British English spelling in all outputs</PRINCIPLE>
+  </CRITICAL>
 
   <TOOLING_REQUIREMENTS>
     <MANDATORY_TOOL_USAGE>
@@ -16,6 +16,19 @@
       <TOOL name="context7">
         <WHEN>Implementing modern or complex libraries</WHEN>
         <PURPOSE>Use tools to such as context7 to access current documentation and implementation patterns</PURPOSE>
+        <PROVIDES>resolve-library-id</PROVIDES>
+          <DESCRIPTION> Resolves a package name to a Context7-compatible library ID and returns a list of matching libraries. You MUST call this function before 'get-library-docs' to obtain a valid Context7-compatible library ID. When selecting the best match, consider: - Name similarity to the query - Description relevance - Code Snippet count (documentation coverage) - GitHub Stars (popularity) Return the selected library ID and explain your choice. If there are multiple good matches, mention this but proceed with the most relevant one.
+          <PARAMETERS>
+            - `libraryName*` - Library name to search for and retrieve a Context7-compatible library ID.
+          </PARAMETERS>
+        <PROVIDES>get-library-docs</PARAMETERS>
+          <DESCRIPTION> Fetches up-to-date documentation for a library. You must call 'resolve-library-id' first to obtain the exact Context7-compatible library ID required to use this tool.</DESCRIPTION>
+          <PARAMETERS>
+            - `context7CompatibleLibraryID*` - Exact Context7-compatible library ID (e.g., 'mongodb/docs', 'vercel/nextjs') retrieved from 'resolve-library-id'.
+            - `topic` - Topic to focus documentation on (e.g., 'hooks', 'routing').
+            - `tokens` - Maximum number of tokens of documentation to retrieve (default: 10000). Higher values provide more context but consume more tokens.
+          </PARAMETERS>
+        </PROVIDES>
       </TOOL>
       <TOOL name="fetch">
         <WHEN>Needing web content or documentation</WHEN>
@@ -28,8 +41,8 @@
       </TOOL>
     </MANDATORY_TOOL_USAGE>
     <BEST_PRACTICES>
-      <PRACTICE>Always consider available MCP tools before manual approaches</PRACTICE>
-      <PRACTICE>Tools are preferred for efficiency and accuracy</PRACTICE>
+      <PRACTICE>Always consider available MCP tools before manual or guessed approaches</PRACTICE>
+      <PRACTICE>Tool use is preferred for efficiency and accuracy</PRACTICE>
     </BEST_PRACTICES>
   </TOOLING_REQUIREMENTS>
 
@@ -40,6 +53,12 @@
       <RULE id="CS003">Complete testing and documentation after primary implementation is complete</RULE>
       <RULE id="CS004">Consolidate multiple edits to the same file into single operations</RULE>
     </GENERAL_RULES>
+    <FAVOURING_SIMPLICITY>
+      <RULE id="FS001">You see elegance in simplicity, this is very important to you as you favour a "less is more" approach with concise architecture, code structure and logic unless otherwise specified.</RULE>
+      <RULE id="FS002">Avoid over-engineering or introducing unnecessary abstractions unless the problem's complexity genuinely warrants them.</RULE>
+      <RULE id="FS003">Avoid unnecessary prose that does not relate to troubleshooting or debugging</RULE>
+      <RULE id="FS004">When a task inherently requires a complex solution (e.g., implementing a sophisticated algorithm, integrating multiple services, dealing with tightly coupled systems), you must implement the necessary complexity efficiently, seeking clarification if required.</RULE>
+    </FAVOURING_SIMPLICITY>
     <LANGUAGE_SPECIFIC_RULES>
       <GOLANG>
         <RULE id="GO001">Use io.* and os.* instead of deprecated ioutil functions</RULE>
@@ -66,7 +85,7 @@
   </PROJECT_MANAGEMENT>
 
   <TESTING_REQUIREMENTS>
-    <RULE id="TEST001">Create unit tests for all new features</RULE>
+    <RULE id="TEST001">Create and run unit tests for all new features</RULE>
     <RULE id="TEST002">Run test suite (pnpm test, make test, etc.) after completing requested tasks</RULE>
     <RULE id="TEST003">Fix all failing tests before marking task complete</RULE>
     <RULE id="TEST004">For UI testing, verify actual output objects/variables as users would see them</RULE>
@@ -91,9 +110,9 @@
       <PATTERN type="suffix">-yse not -yze (analyse, catalyse)</PATTERN>
       <PATTERN type="suffix">-ence not -ense (defence, licence)</PATTERN>
     </SPELLING_RULES>
-    <VOCABULARY>
-      <BRITISH>mum, aeroplane, flat, queue, autumn, holiday</BRITISH>
-    </VOCABULARY>
+    <EXAMPLE_VOCABULARY>
+      <BRITISH>favour, aeroplane, centre, colour, realise, organisation</BRITISH>
+    </EXAMPLE_VOCABULARY>
   </BRITISH_ENGLISH_STANDARDS>
 
   <DIAGRAM_SPECIFICATIONS>
@@ -116,8 +135,7 @@
   </DIAGRAM_SPECIFICATIONS>
 
   <ENFORCEMENT>
-    <NOTE>All rules are mandatory unless specifically overridden by user instruction</NOTE>
-    <PRIORITY>Rules with IDs take precedence over general guidelines</PRIORITY>
+    <RULE>All rules are mandatory unless specifically overridden by user instruction</RULE>
+    <RULE>Rules with IDs take precedence over general guidelines</RULE>
   </ENFORCEMENT>
 </CLINE_CODING_AGENT_RULES>
-```
