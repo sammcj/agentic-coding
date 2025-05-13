@@ -11,4 +11,3 @@
   <RULE>All rules are mandatory unless specifically overridden by user instruction</RULE>
   <RULE>Rules with IDs take precedence over general guidelines</RULE>
 </ENFORCEMENT>
-

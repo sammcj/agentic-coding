@@ -11,6 +11,6 @@
     <PATTERN type="suffix">-ence not -ense (defence, licence)</PATTERN>
   </SPELLING_RULES>
   <EXAMPLE_VOCABULARY>
-    <BRITISH>favour, aeroplane, centre, colour, realise, organisation</BRITISH>
+    <BRITISH>favour, aeroplane, centre, colour, realise, organisation, optimise</BRITISH>
   </EXAMPLE_VOCABULARY>
 </BRITISH_ENGLISH_STANDARDS>
