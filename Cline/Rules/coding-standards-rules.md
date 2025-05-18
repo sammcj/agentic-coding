@@ -5,6 +5,7 @@
   <RULE id="CS004">Consolidate multiple edits to the same file into single operations</RULE>
   <RULE id="CS005">If you know how something should behave, write a simple test for that behaviour, then implement the code to pass that test</RULE>
   <RULE id="CS006">Variables should have sensible defaults in the code but should be parameterised and available as configuration options where appropriate</RULE>
+  <RULE id="CS007">Ensure files do not become too long, if a file is over 800 lines, consider splitting it into smaller files</RULE>
 </GENERAL_RULES>
 
 <FAVOURING_SIMPLICITY>
