@@ -3,6 +3,8 @@
   <RULE id="CS002">Ensure proper indentation and formatting in all code</RULE>
   <RULE id="CS003">Complete testing and documentation after primary implementation is complete</RULE>
   <RULE id="CS004">Consolidate multiple edits to the same file into single operations</RULE>
+  <RULE id="CS005">If you know how something should behave, write a simple test for that behaviour, then implement the code to pass that test</RULE>
+  <RULE id="CS006">Variables should have sensible defaults in the code but should be parameterised and available as configuration options where appropriate</RULE>
 </GENERAL_RULES>
 
 <FAVOURING_SIMPLICITY>
