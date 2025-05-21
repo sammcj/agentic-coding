@@ -210,9 +210,17 @@ create_hardlinks() {
 
   # Find all MD files in source_dir that should be linked
   while IFS= read -r file; do
-    local filename
-    filename=$(basename "$file")
-    local dest_file="${dest_dir}/${filename}"
+    # file is the full path to the source file, e.g., /path/to/source_dir/subdir/name.md
+    # source_dir is /path/to/source_dir
+    local relative_path="${file#$source_dir/}" # e.g., subdir/name.md
+    local dest_file="${dest_dir}/${relative_path}"
+    local dest_file_dir
+    dest_file_dir=$(dirname "$dest_file")
+
+    # Ensure the destination directory exists
+    if [ ! -d "$dest_file_dir" ]; then
+      execute_or_print mkdir -p "$dest_file_dir"
+    fi
 
     # Check if destination already exists
     if [ -f "$dest_file" ]; then
@@ -222,28 +230,24 @@ create_hardlinks() {
       dest_inode=$(stat -f "%i" "$dest_file")
 
       if [ "$src_inode" = "$dest_inode" ]; then
-        [ "$VERBOSE" = true ] && echo -e "${GREEN}Already hardlinked: $filename${NC}"
+        [ "$VERBOSE" = true ] && echo -e "${GREEN}Already hardlinked: $relative_path${NC}"
         continue
       else
         # Files exist in both locations but are not hardlinked
         # First check if content is identical
         if cmp -s "$file" "$dest_file"; then
-          echo -e "${YELLOW}Files have identical content but are not hardlinked: $filename${NC}"
+          echo -e "${YELLOW}Files have identical content but are not hardlinked: $relative_path${NC}"
           if [ "$DRY_RUN" = true ]; then
             echo -e "${YELLOW}WOULD REPLACE: $dest_file with hardlink to $file${NC}"
           else
-            read -p "Replace $dest_file with hardlink to $file? (y/n) " answer
-            if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
-              execute_or_print rm "$dest_file"
-              execute_or_print ln "$file" "$dest_file"
-              echo -e "${GREEN}Replaced with hardlink: $filename${NC}"
-            else
-              echo -e "${YELLOW}Skipped hardlinking: $filename${NC}"
-            fi
+            echo -e "${BLUE}Automatically replacing $dest_file with hardlink to $file (identical content).${NC}"
+            execute_or_print rm "$dest_file"
+            execute_or_print ln "$file" "$dest_file"
+            echo -e "${GREEN}Replaced with hardlink: $relative_path${NC}"
           fi
         else
           # Files have different content
-          echo -e "${RED}WARNING: Files have different content: $filename${NC}"
+          echo -e "${RED}WARNING: Files have different content: $relative_path${NC}"
 
           # Display file dates
           local src_date dest_date
@@ -271,43 +275,25 @@ create_hardlinks() {
           fi
 
           if [ "$DRY_RUN" = true ]; then
-            echo -e "${YELLOW}WOULD ASK which file to keep and create hardlink${NC}"
+            echo -e "${YELLOW}WOULD REPLACE $dest_file with hardlink to $file (source is master for this step).${NC}"
           else
-            echo -e "${CYAN}${BOLD}OPTIONS:${NC}"
-            if [ "$source_newer" = true ]; then
-              echo -e "${CYAN}1) Replace destination with source (FROM $source_dir TO $dest_dir) ${GREEN}[NEWER]${NC}"
-              echo -e "${CYAN}2) Keep destination and skip hardlinking this file ${RED}[OLDER]${NC}"
-              echo -e "${GREEN}Recommendation: Option 1 (use newer version from source)${NC}"
-              recommended_option="1"
-            else
-              echo -e "${CYAN}1) Replace destination with source (FROM $source_dir TO $dest_dir) ${RED}[OLDER]${NC}"
-              echo -e "${CYAN}2) Keep destination and skip hardlinking this file ${GREEN}[NEWER]${NC}"
-              echo -e "${GREEN}Recommendation: Option 2 (keep newer version in destination)${NC}"
-              recommended_option="2"
+            # For create_hardlinks, the source is considered the master.
+            # If content differs, replace destination with hardlink to source.
+            echo -e "${BLUE}Automatically replacing $dest_file with hardlink to $file (differing content, source is master).${NC}"
+            if [ "$ALWAYS_SHOW_DIFF" = true ] || [ "$VERBOSE" = true ]; then
+                 # Show diff based on source replacing destination
+                show_coloured_diff "$file" "$dest_file" "Source ($source_dir)" "Destination ($dest_dir)" "1->2"
             fi
-            echo -e "${CYAN}3) Skip this file entirely${NC}"
-
-            read -p "Choose option [1-3] (recommended: $recommended_option): " choice
-
-            case "$choice" in
-              1)
-                execute_or_print rm "$dest_file"
-                execute_or_print ln "$file" "$dest_file"
-                echo -e "${GREEN}Copied FROM $source_dir TO $dest_dir and created hardlink.${NC}"
-                ;;
-              2)
-                echo -e "${YELLOW}Kept destination file: $filename${NC}"
-                ;;
-              *)
-                echo -e "${YELLOW}Skipped hardlinking: $filename${NC}"
-                ;;
-            esac
+            execute_or_print rm "$dest_file"
+            execute_or_print ln "$file" "$dest_file"
+            echo -e "${GREEN}Replaced destination with source and created hardlink for $relative_path.${NC}"
           fi
         fi
       fi
     else
       # Destination file doesn't exist, simply create hardlink
-      echo -e "${GREEN}Creating hardlink for: $filename${NC}"
+      echo -e "${GREEN}Creating hardlink for: $relative_path${NC}"
+      execute_or_print mkdir -p "$(dirname "$dest_file")" # Ensure directory exists
       execute_or_print ln "$file" "$dest_file"
     fi
   done < <(find "$source_dir" -type f -name "*.md" "${exclusion_args[@]}" 2>/dev/null)
@@ -320,38 +306,42 @@ sync_directories() {
   local source_name="$3"
   local dest_name="$4"
 
-  echo -e "${CYAN}Checking for files in $source_name that are missing from $dest_name...${NC}"
+  echo -e "${CYAN}Checking for files in $source_name to sync with $dest_name...${NC}"
 
-  # Files that exist in source but not in destination
-  for file in "$source_dir"/*.md; do
-    [ -f "$file" ] || continue
+  # Build exclusion pattern for find, similar to create_hardlinks
+  local find_exclusion_args=()
+  for pattern in "${IGNORE_PATTERNS[@]}"; do
+    find_exclusion_args+=(-not -path "${source_dir}/${pattern}*")
+  done
 
-    local filename
-    filename=$(basename "$file")
-    local dest_file="${dest_dir}/${filename}"
+  # Find all MD files in source_dir
+  while IFS= read -r file; do
+    # 'file' is the full path to the source file from find
+    local relative_path="${file#$source_dir/}"
+    local dest_file="${dest_dir}/${relative_path}"
+    local dest_file_dir
+    dest_file_dir=$(dirname "$dest_file")
 
-    # Skip ignored files
-    for pattern in "${IGNORE_PATTERNS[@]}"; do
-      if [[ "$filename" == *"$pattern"* ]]; then
-        continue 2
-      fi
-    done
+    # Ensure the destination directory exists before any operation
+    # It's important to do this even if the source file might not be copied,
+    # as a differing file might be copied *from* destination later if it's newer.
+    # However, for this specific loop (source -> dest), mkdir is needed before cp.
+    if [ ! -d "$dest_file_dir" ]; then
+        execute_or_print mkdir -p "$dest_file_dir"
+    fi
 
     if [ ! -f "$dest_file" ]; then
-      echo -e "${YELLOW}File '$filename' exists in $source_name but not in $dest_name.${NC}"
+      echo -e "${YELLOW}File '$relative_path' exists in $source_name but not in $dest_name.${NC}"
       if [ "$DRY_RUN" = true ]; then
-        echo -e "${YELLOW}WOULD COPY: '$filename' FROM $source_name TO $dest_name${NC}"
+        echo -e "${YELLOW}WOULD COPY: '$relative_path' FROM $source_name TO $dest_name${NC}"
       else
-        read -p "Copy FROM $source_name TO $dest_name? (y/n) " answer
-        if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
-          execute_or_print cp "$file" "$dest_file"
-          echo -e "${GREEN}Copied '$filename' FROM $source_name TO $dest_name.${NC}"
-        else
-          echo -e "${YELLOW}Skipped copying '$filename'.${NC}"
-        fi
+        echo -e "${BLUE}Automatically copying '$relative_path' FROM $source_name TO $dest_name.${NC}"
+        execute_or_print mkdir -p "$(dirname "$dest_file")" # Ensure directory exists
+        execute_or_print cp "$file" "$dest_file"
+        echo -e "${GREEN}Copied '$relative_path' FROM $source_name TO $dest_name.${NC}"
       fi
     elif ! cmp -s "$file" "$dest_file"; then
-      echo -e "${RED}File '$filename' differs between $source_name and $dest_name.${NC}"
+      echo -e "${RED}File '$relative_path' differs between $source_name and $dest_name.${NC}"
 
       # Get modification times and format them
       local src_date dest_date
@@ -381,41 +371,29 @@ sync_directories() {
       fi
 
       if [ "$DRY_RUN" = true ]; then
-        echo -e "${YELLOW}WOULD ASK which version to copy.${NC}"
-      else
-        echo -e "${CYAN}${BOLD}OPTIONS:${NC}"
-        # Always be consistent with option order but label which is newer
         if [ "$source_newer" = true ]; then
-          echo -e "${CYAN}1) Copy FROM $source_name TO $dest_name ${GREEN}[NEWER]${NC}"
-          echo -e "${CYAN}2) Copy FROM $dest_name TO $source_name ${RED}[OLDER]${NC}"
-          echo -e "${GREEN}Recommendation: Option 1 (copy the newer $source_name version to $dest_name)${NC}"
-          recommended_option="1"
+            echo -e "${YELLOW}WOULD COPY newer file '$relative_path' FROM $source_name TO $dest_name.${NC}"
         else
-          echo -e "${CYAN}1) Copy FROM $source_name TO $dest_name ${RED}[OLDER]${NC}"
-          echo -e "${CYAN}2) Copy FROM $dest_name TO $source_name ${GREEN}[NEWER]${NC}"
-          echo -e "${GREEN}Recommendation: Option 2 (copy the newer $dest_name version to $source_name)${NC}"
-          recommended_option="2"
+            echo -e "${YELLOW}WOULD COPY newer file '$relative_path' FROM $dest_name TO $source_name.${NC}"
         fi
-        echo -e "${CYAN}3) Skip this file${NC}"
-
-        read -p "Choose option [1-3] (recommended: $recommended_option): " choice
-
-        case "$choice" in
-          1)
-            execute_or_print cp "$file" "$dest_file"
-            echo -e "${GREEN}Copied FROM $source_name TO $dest_name.${NC}"
-            ;;
-          2)
-            execute_or_print cp "$dest_file" "$file"
-            echo -e "${GREEN}Copied FROM $dest_name TO $source_name.${NC}"
-            ;;
-          *)
-            echo -e "${YELLOW}Skipped syncing '$filename'.${NC}"
-            ;;
-        esac
+      else
+        if [ "$source_newer" = true ]; then
+          echo -e "${BLUE}Automatically copying newer file '$relative_path' FROM $source_name TO $dest_name.${NC}"
+          execute_or_print mkdir -p "$(dirname "$dest_file")" # Ensure directory exists
+          execute_or_print cp "$file" "$dest_file"
+          echo -e "${GREEN}Copied newer '$relative_path' FROM $source_name TO $dest_name.${NC}"
+        else
+          echo -e "${BLUE}Automatically copying newer file '$relative_path' FROM $dest_name TO $source_name.${NC}"
+          execute_or_print mkdir -p "$(dirname "$file")" # Ensure directory exists
+          execute_or_print cp "$dest_file" "$file"
+          echo -e "${GREEN}Copied newer '$relative_path' FROM $dest_name TO $source_name.${NC}"
+        fi
       fi
+    # Optional: If files are identical and already exist, verbose log
+    # elif [ "$VERBOSE" = true ]; then
+    #   echo -e "${GREEN}File '$relative_path' is identical in $source_name and $dest_name.${NC}"
     fi
-  done
+  done < <(find "$source_dir" -type f -name "*.md" "${find_exclusion_args[@]}" 2>/dev/null)
 }
 
 # Main function
