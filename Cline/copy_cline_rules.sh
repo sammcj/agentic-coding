@@ -195,12 +195,12 @@ EOF
   echo # Add a blank line after the diff for readability
 }
 
-# Safely create hardlinks from source to destination
-create_hardlinks() {
+# Safely copy files from source to destination
+copy_files() {
   local source_dir="$1"
   local dest_dir="$2"
 
-  echo -e "${CYAN}Checking for files to hardlink from $source_dir to $dest_dir...${NC}"
+  echo -e "${CYAN}Checking for files to copy from $source_dir to $dest_dir...${NC}"
 
   # Build exclusion pattern
   local exclusion_args=()
@@ -208,7 +208,7 @@ create_hardlinks() {
     exclusion_args+=(-not -path "${source_dir}/${pattern}*")
   done
 
-  # Find all MD files in source_dir that should be linked
+  # Find all MD files in source_dir that should be copied
   while IFS= read -r file; do
     # file is the full path to the source file, e.g., /path/to/source_dir/subdir/name.md
     # source_dir is /path/to/source_dir
@@ -224,77 +224,26 @@ create_hardlinks() {
 
     # Check if destination already exists
     if [ -f "$dest_file" ]; then
-      # Compare inodes to check if they're already hardlinked
-      local src_inode dest_inode
-      src_inode=$(stat -f "%i" "$file")
-      dest_inode=$(stat -f "%i" "$dest_file")
-
-      if [ "$src_inode" = "$dest_inode" ]; then
-        [ "$VERBOSE" = true ] && echo -e "${GREEN}Already hardlinked: $relative_path${NC}"
+      # Check if content is identical
+      if cmp -s "$file" "$dest_file"; then
+        [ "$VERBOSE" = true ] && echo -e "${GREEN}Files already identical: $relative_path${NC}"
         continue
       else
-        # Files exist in both locations but are not hardlinked
-        # First check if content is identical
-        if cmp -s "$file" "$dest_file"; then
-          echo -e "${YELLOW}Files have identical content but are not hardlinked: $relative_path${NC}"
-          if [ "$DRY_RUN" = true ]; then
-            echo -e "${YELLOW}WOULD REPLACE: $dest_file with hardlink to $file${NC}"
-          else
-            echo -e "${BLUE}Automatically replacing $dest_file with hardlink to $file (identical content).${NC}"
-            execute_or_print rm "$dest_file"
-            execute_or_print ln "$file" "$dest_file"
-            echo -e "${GREEN}Replaced with hardlink: $relative_path${NC}"
-          fi
+        # Files exist in both locations but have different content
+        echo -e "${YELLOW}Files have different content: $relative_path${NC}"
+        if [ "$DRY_RUN" = true ]; then
+          echo -e "${YELLOW}WOULD REPLACE: $dest_file with copy of $file${NC}"
         else
-          # Files have different content
-          echo -e "${RED}WARNING: Files have different content: $relative_path${NC}"
-
-          # Display file dates
-          local src_date dest_date
-          src_date=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$file")
-          dest_date=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$dest_file")
-
-          echo -e "${BLUE}Source file date: $src_date${NC}"
-          echo -e "${BLUE}Destination file date: $dest_date${NC}"
-
-          # Determine which file is newer
-          local source_newer=false
-          if [[ $(stat -f "%m" "$file") -gt $(stat -f "%m" "$dest_file") ]]; then
-            echo -e "${GREEN}Source version is newer ($(date -r "$file" "+%H:%M:%S")).${NC}"
-            source_newer=true
-            recommended_direction="1->2"
-          else
-            echo -e "${GREEN}Destination version is newer ($(date -r "$dest_file" "+%H:%M:%S")).${NC}"
-            source_newer=false
-            recommended_direction="2->1"
-          fi
-
-          # Always show diff if ALWAYS_SHOW_DIFF is true
-          if [ "$ALWAYS_SHOW_DIFF" = true ] || [ "$VERBOSE" = true ]; then
-            show_coloured_diff "$file" "$dest_file" "Source ($source_dir)" "Destination ($dest_dir)" "$recommended_direction"
-          fi
-
-          if [ "$DRY_RUN" = true ]; then
-            echo -e "${YELLOW}WOULD REPLACE $dest_file with hardlink to $file (source is master for this step).${NC}"
-          else
-            # For create_hardlinks, the source is considered the master.
-            # If content differs, replace destination with hardlink to source.
-            echo -e "${BLUE}Automatically replacing $dest_file with hardlink to $file (differing content, source is master).${NC}"
-            if [ "$ALWAYS_SHOW_DIFF" = true ] || [ "$VERBOSE" = true ]; then
-                 # Show diff based on source replacing destination
-                show_coloured_diff "$file" "$dest_file" "Source ($source_dir)" "Destination ($dest_dir)" "1->2"
-            fi
-            execute_or_print rm "$dest_file"
-            execute_or_print ln "$file" "$dest_file"
-            echo -e "${GREEN}Replaced destination with source and created hardlink for $relative_path.${NC}"
-          fi
+          echo -e "${BLUE}Automatically replacing $dest_file with copy of $file (source is master).${NC}"
+          execute_or_print cp "$file" "$dest_file"
+          echo -e "${GREEN}Replaced with copy: $relative_path${NC}"
         fi
       fi
     else
-      # Destination file doesn't exist, simply create hardlink
-      echo -e "${GREEN}Creating hardlink for: $relative_path${NC}"
+      # Destination file doesn't exist, simply copy file
+      echo -e "${GREEN}Copying file: $relative_path${NC}"
       execute_or_print mkdir -p "$(dirname "$dest_file")" # Ensure directory exists
-      execute_or_print ln "$file" "$dest_file"
+      execute_or_print cp "$file" "$dest_file"
     fi
   done < <(find "$source_dir" -type f -name "*.md" "${exclusion_args[@]}" 2>/dev/null)
 }
@@ -308,7 +257,7 @@ sync_directories() {
 
   echo -e "${CYAN}Checking for files in $source_name to sync with $dest_name...${NC}"
 
-  # Build exclusion pattern for find, similar to create_hardlinks
+  # Build exclusion pattern for find, similar to copy_files
   local find_exclusion_args=()
   for pattern in "${IGNORE_PATTERNS[@]}"; do
     find_exclusion_args+=(-not -path "${source_dir}/${pattern}*")
@@ -402,8 +351,8 @@ main() {
   process_args "$@"
   check_directories
 
-  # Step 1: Create hardlinks from iCloud to local (where Cline expects the rules)
-  create_hardlinks "$ICLOUD_DIR" "$LOCAL_DIR"
+  # Step 1: Copy files from iCloud to local (where Cline expects the rules)
+  copy_files "$ICLOUD_DIR" "$LOCAL_DIR"
 
   # Step 2: Sync from local to iCloud (if any local-only files exist)
   sync_directories "$LOCAL_DIR" "$ICLOUD_DIR" "local directory" "iCloud"
