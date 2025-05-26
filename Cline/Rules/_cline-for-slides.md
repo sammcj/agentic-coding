@@ -1,9 +1,8 @@
 ---
-description: Provides guidelines and best practices for creating and working with Slidev presentation projects.
-author: https://github.com/nickbaumann98
+description: A comprehensive guide to crafting high-quality advanced presentations using Slidev, covering advanced syntax, visuals, interactivity, customization, and deployment.
 version: 1.0
-tags: ["slidev", "slides", "markdown", "vue", "vite", "guide"]
-globs: ["slides.md", "**/slides.md", "*.vue", "layouts/**/*.vue", "components/**/*.vue"]
+tags: ["slidev", "guide", "advanced", "presentation", "development"]
+globs: ["comprehensive-slide-dev-guide.md"]
 ---
 # Slidev Project Instructions
 

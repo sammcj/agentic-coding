@@ -1,4 +1,10 @@
-# IMPORTANT: You MUST use the `new_task` tool: Task Handoff Strategy Guide
+---
+description: Workflow for starting new task when context window reaches 50%
+version: 1.0
+tags: ["context-management", "new-task"]
+globs: ["*"]
+---
+# You MUST use the `new_task` tool: Task Handoff Strategy Guide
 
 **⚠️ CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE GUIDELINES ⚠️**
 
@@ -6,17 +12,17 @@ This guide provides **MANDATORY** instructions for effectively breaking down com
 
 ## ⚠️ CONTEXT WINDOW MONITORING - MANDATORY ACTION REQUIRED ⚠️
 
-You **MUST** monitor the context window usage displayed in the environment details. When usage exceeds 70% of the available context window, you **MUST** initiate a task handoff using the `new_task` tool.
+You **MUST** monitor the context window usage displayed in the environment details. When usage exceeds 75% of the available context window, you **MUST** initiate a task handoff using the `new_task` tool.
 
-Example of context window usage over 70% with a 200K context window:
+Example of context window usage over 75% with a 200K context window:
 
 \`\`\`text
 # Context Window Usage
 150,000 / 200,000 tokens (75%)
-Model: anthropic/claude-3.7-sonnet (200K context window)
+Model: anthropic/claude-4.0-sonnet (200K context window)
 \`\`\`
 
-**IMPORTANT**: When you see context window usage at or above 70%, you MUST:
+**IMPORTANT**: When you see context window usage at or above 75%, you MUST:
 1. Complete your current logical step
 2. Use the `ask_followup_question` tool to offer creating a new task
 3. If approved, use the `new_task` tool with comprehensive handoff instructions
@@ -34,7 +40,7 @@ Plan Mode is specifically designed for analysing complex tasks and breaking them
 ### 2. Strategic Task Decomposition - REQUIRED
 
 - **MUST** break the overall task into logical, discrete subtasks
-- **MUST** prioritise subtasks based on dependencies (what must be completed first)
+- **MUST** prioritize subtasks based on dependencies (what must be completed first)
 - **MUST** aim for subtasks that can be completed within a single session (15-30 minutes of work)
 - **MUST** consider natural breaking points where context switching makes sense
 
@@ -43,7 +49,7 @@ Plan Mode is specifically designed for analysing complex tasks and breaking them
 - **MUST** present a clear, numbered list of subtasks to the user
 - **MUST** explain dependencies between subtasks
 - **MUST** provide time estimates for each subtask when possible
-- **MUST** use Mermaid diagrams to visualise task flow and dependencies when helpful
+- **MUST** use Mermaid diagrams to visualize task flow and dependencies when helpful
 
 \`\`\`mermaid
 graph TD
@@ -72,20 +78,20 @@ When implementing tasks in Act Mode, you **MUST** follow these guidelines for ef
 - **MUST** document progress clearly through comments and commit messages
 - **MUST** create checkpoints at logical completion points
 
-### 2. Recognising Completion Points - CRITICAL
+### 2. Recognizing Completion Points - CRITICAL
 
 You **MUST** identify natural handoff points when:
 - The current subtask is fully completed
 - You've reached a logical stopping point in a larger subtask
 - The implementation is taking longer than expected and can be continued later
 - The task scope has expanded beyond the original plan
-- **CRITICAL**: The context window usage exceeds 70% (e.g., 120,000+ tokens for a 200K context window)
+- **CRITICAL**: The context window usage exceeds 75% (e.g., 150,000+ tokens for a 200K context window)
 
 ### 3. Initiating the Handoff Process - MANDATORY ACTION
 
 When you've reached a completion point, you **MUST**:
 
-1. Summarise what has been accomplished so far
+1. Summarize what has been accomplished so far
 2. Clearly state what remains to be done
 3. **MANDATORY**: Use the `ask_followup_question` tool to offer creating a new task:
 
@@ -166,13 +172,13 @@ When creating a new task, you **MUST** always include:
 ### 2. Preserve Context - REQUIRED
 
 - **MUST** include relevant code snippets in the handoff
-- **MUST** summarise key discussions from the previous session
+- **MUST** summarize key discussions from the previous session
 - **MUST** reference specific files and line numbers when applicable
 
 ### 3. Set Clear Next Actions - REQUIRED
 
 - **MUST** begin the handoff with a clear, actionable next step
-- **MUST** prioritise remaining tasks
+- **MUST** prioritize remaining tasks
 - **MUST** highlight any decisions that need to be made
 
 ### 4. Document Assumptions - REQUIRED
@@ -181,7 +187,7 @@ When creating a new task, you **MUST** always include:
 - **MUST** note areas where user input might be needed
 - **MUST** identify potential alternative approaches
 
-### 5. Optimise for Resumability - REQUIRED
+### 5. Optimize for Resumability - REQUIRED
 
 - **MUST** structure the handoff so the next session can begin working immediately
 - **MUST** include setup instructions if environment configuration is needed
@@ -240,7 +246,7 @@ Please continue by implementing the login endpoint following the same patterns e
 
 You **MUST** initiate task handoffs in these scenarios:
 
-1. **CRITICAL**: When context window usage exceeds 70% (e.g., 140,000+ tokens for a 200K context window)
+1. **CRITICAL**: When context window usage exceeds 75% (e.g., 100,000+ tokens for a 200K context window)
 2. **Long-running projects** that exceed a single session
 3. **Complex implementations** with multiple distinct phases
 4. **When context window limitations** are approaching
@@ -249,7 +255,7 @@ You **MUST** initiate task handoffs in these scenarios:
 
 **⚠️ FINAL REMINDER - CRITICAL INSTRUCTION ⚠️**
 
-You **MUST** monitor the context window usage in the environment details section. When it exceeds 70% (e.g., "150,000 / 200,000 tokens (75%)"), you **MUST** proactively initiate the task handoff process using the `ask_followup_question` tool followed by the `new_task` tool. You MUST use the `new_task` tool.
+You **MUST** monitor the context window usage in the environment details section. When it exceeds 75%  (e.g., "150,000 / 200,000 tokens (75%)"), you **MUST** proactively initiate the task handoff process using the `ask_followup_question` tool followed by the `new_task` tool. You MUST use the `new_task` tool.
 
 By strictly following these guidelines, you'll ensure smooth transitions between tasks, maintain project momentum, and provide the best possible experience for users working on complex, multi-session projects.
 ```markdown
