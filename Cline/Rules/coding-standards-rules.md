@@ -20,7 +20,7 @@
 <LANGUAGE_SPECIFIC_RULES>
   <GOLANG>
     <RULE id="GO001">Use io.* and os.* instead of deprecated ioutil functions</RULE>
-    <RULE id="GO002">Use imported dependencies immediately to prevent auto-removal</RULE>
+    <RULE id="GO002">Write golang code before adding import statements to prevent the autoformatter removing the unused imports</RULE>
   </GOLANG>
   <DOCKER>
     <RULE id="DK001">Omit version field in docker-compose files (deprecated)</RULE>
