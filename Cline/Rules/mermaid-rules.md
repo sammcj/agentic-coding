@@ -3,6 +3,7 @@
   <MERMAID_RULES>
     <RULE id="MERM001">Use <br> instead of \n for line breaks</RULE>
     <RULE id="MERM002">Apply standard colour theme unless specified otherwise</RULE>
+    <RULE id="MERM003">Do not use round brackets () within item labels</RULE>
   </MERMAID_RULES>
   <STANDARD_THEME>
     classDef inputOutput fill:#FEE0D2,stroke:#E6550D,color:#E6550D
