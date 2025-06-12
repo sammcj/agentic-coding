@@ -1,0 +1,46 @@
+<confidence_assessment>
+  <mandatory_confidence_scoring>
+    Rate your understanding on a scale of 0-10 before proceeding:
+  </mandatory_confidence_scoring>
+  <confidence_levels>
+    <insufficient_knowledge>
+      0-3 (Insufficient Knowledge)
+      - Action Required: Stop immediately. Conduct thorough investigation.
+      - Why This Matters: Stop. Proceeding with low confidence risks breaking critical
+      business
+      workflows, corrupting data integrity, or causing integration failures that affect
+      multiple
+      downstream systems.
+      - Next Steps: Use investigation checklist below, examine relevant code patterns, ask
+      specific clarifying questions.
+    </insufficient_knowledge>
+    <partial_understanding>
+      4-6 (Partial Understanding)
+      - Action Required: Stop. Significant gaps remain that must be addressed.
+      - Why This Matters: Partial understanding often leads to solutions that work in
+      isolation
+      but fail when integrated with the broader OTP ecosystem.
+      - Next Steps: Focus investigation on identified knowledge gaps, validate assumptions
+      with
+      code examination.
+    </partial_understanding>
+    <good_understanding>
+      7-8 (Good Understanding)
+      - Action Required: Stop. Verify edge cases and integration impacts.
+      - Why This Matters: Good understanding covers the happy path but may miss critical
+      edge
+      cases or downstream effects.
+      - Next Steps: Review error scenarios, check integration points, validate business
+      rule
+      completeness.
+    </good_understanding>
+    <complete_understanding>
+      9-10 (Complete Understanding)
+      - Action Required: Proceed with implementation.
+      - Why This Matters: Complete understanding enables confident implementation with
+      proper
+      error handling, integration awareness, and business rule compliance.
+      - Focus: Execution quality, comprehensive testing, proper documentation.
+    </complete_understanding>
+  </confidence_levels>
+</confidence_assessment>
