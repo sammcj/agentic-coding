@@ -1,29 +1,33 @@
 <TOOLING_REQUIREMENTS>
   <MANDATORY_TOOL_USAGE>
-    <TOOL name="package-version">
-      <WHEN>Adding any packages or dependencies</WHEN>
-      <PURPOSE>Use tools such as package version to ensure latest stable versions are used</PURPOSE>
+    <NOTE>Below is a high level overview some of the useful tools you have available, you may have more at your disposal and should make effient use of tools to help completing tasks</NOTE>
+    <TOOL name="repo-documentation">
+      <WHEN>Researching GitHub repositories or library documentation</WHEN>
+      <PURPOSE>Access comprehensive documentation and code search for any GitHub repository</PURPOSE>
+    </TOOL>
+    <TOOL name="hyper">
+      <WHEN>Executing Python code or complex reasoning tasks</WHEN>
+      <PURPOSE>Python evaluation and thought processing capabilities</PURPOSE>
+    </TOOL>
+    <TOOL name="dev-tools">
+      <WHEN>Checking package versions, Docker tags, or development environment information</WHEN>
+      <PURPOSE>Development tooling for version management and environment checks</PURPOSE>
+    </TOOL>
+    <TOOL name="brave-web-search">
+      <WHEN>Searching for current web information or local businesses</WHEN>
+      <PURPOSE>Web search capabilities for general queries and local business information</PURPOSE>
+      <PROVIDES>brave_web_search</PROVIDES>
+      <DESCRIPTION>Performs web search using Brave Search API for general queries, news, and online
+        content</DESCRIPTION>
     </TOOL>
     <TOOL name="context7">
       <WHEN>Implementing modern or complex libraries</WHEN>
-      <PURPOSE>Use tools to such as context7 to access current documentation and implementation patterns</PURPOSE>
-      <PROVIDES>resolve-library-id
-        <DESCRIPTION> Resolves a package name to a Context7-compatible library ID and returns a list of matching libraries. You MUST call this function before 'get-library-docs' to obtain a valid Context7-compatible library ID. When selecting the best match, consider: - Name similarity to the query - Description relevance - Code Snippet count (documentation coverage) - GitHub Stars (popularity) Return the selected library ID and explain your choice. If there are multiple good matches, mention this but proceed with the most relevant one.</DESCRIPTION>
-        <PARAMETERS>
-          - `libraryName*` - Library name to search for and retrieve a Context7-compatible library ID.
-        </PARAMETERS>
-      <PROVIDES>get-library-docs</PROVIDES>
-        <DESCRIPTION> Fetches up-to-date documentation for a library. You must call 'resolve-library-id' first to obtain the exact Context7-compatible library ID required to use this tool.</DESCRIPTION>
-        <PARAMETERS>
-          - `context7CompatibleLibraryID*` - Exact Context7-compatible library ID (e.g., 'mongodb/docs', 'vercel/nextjs') retrieved from 'resolve-library-id'.
-          - `topic` - Topic to focus documentation on (e.g., 'hooks', 'routing').
-          - `tokens` - Maximum number of tokens of documentation to retrieve (default: 10000). Higher values provide more context but consume more tokens.
-        </PARAMETERS>
-      </PROVIDES>
+      <PURPOSE>Use tools to such as context7 to access current documentation and implementation
+        patterns when implementing complex or recently updated packages or frameworks</PURPOSE>
     </TOOL>
     <TOOL name="fetch">
-      <WHEN>Needing web content or documentation</WHEN>
-      <PURPOSE>Efficient, lightweight content retrieval</PURPOSE>
+      <WHEN>Needing web content or documentation from specific URLs</WHEN>
+      <PURPOSE>Efficient, lightweight content retrieval from any URL with markdown extraction</PURPOSE>
     </TOOL>
     <TOOL name="think">
       <WHEN>Encountering complex problems or requiring intermediate reasoning</WHEN>
