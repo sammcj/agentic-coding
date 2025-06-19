@@ -32,7 +32,7 @@
       <RULE id="CS008">If the user provides you with a project development plan, make sure you
         update
         it after completing milestones</RULE>
-      <RULE id="CS009">When writing development plans you do not need to include time estimates</RULE>
+      <RULE id="CS009">When writing development plans do not include time estimates</RULE>
     </GENERAL_RULES>
 
     <FAVOURING_SIMPLICITY>

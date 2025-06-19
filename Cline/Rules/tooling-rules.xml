@@ -1,4 +1,5 @@
 <TOOLING_REQUIREMENTS>
+  <NOTE>Make sure you follow the rules when performing tool calls - you must only use valid tools for editing and finding / replacing within files. Don't make tools up.</NOTE>
   <MANDATORY_TOOL_USAGE>
     <NOTE>Below is a high level overview some of the useful tools you have available, you may have more at your disposal and should make effient use of tools to help completing tasks</NOTE>
     <TOOL name="repo-documentation">

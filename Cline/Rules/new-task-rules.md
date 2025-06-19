@@ -40,7 +40,7 @@ Plan Mode is specifically designed for analysing complex tasks and breaking them
 ### 2. Strategic Task Decomposition - REQUIRED
 
 - **MUST** break the overall task into logical, discrete subtasks
-- **MUST** prioritize subtasks based on dependencies (what must be completed first)
+- **MUST** prioritise subtasks based on dependencies (what must be completed first)
 - **MUST** aim for subtasks that can be completed within a single session (15-30 minutes of work)
 - **MUST** consider natural breaking points where context switching makes sense
 
@@ -49,7 +49,7 @@ Plan Mode is specifically designed for analysing complex tasks and breaking them
 - **MUST** present a clear, numbered list of subtasks to the user
 - **MUST** explain dependencies between subtasks
 - **MUST** provide time estimates for each subtask when possible
-- **MUST** use Mermaid diagrams to visualize task flow and dependencies when helpful
+- **MUST** use Mermaid diagrams to visualise task flow and dependencies when helpful
 
 \`\`\`mermaid
 graph TD
@@ -78,7 +78,7 @@ When implementing tasks in Act Mode, you **MUST** follow these guidelines for ef
 - **MUST** document progress clearly through comments and commit messages
 - **MUST** create checkpoints at logical completion points
 
-### 2. Recognizing Completion Points - CRITICAL
+### 2. Recognising Completion Points - CRITICAL
 
 You **MUST** identify natural handoff points when:
 - The current subtask is fully completed
@@ -91,7 +91,7 @@ You **MUST** identify natural handoff points when:
 
 When you've reached a completion point, you **MUST**:
 
-1. Summarize what has been accomplished so far
+1. Summarise what has been accomplished so far
 2. Clearly state what remains to be done
 3. **MANDATORY**: Use the `ask_followup_question` tool to offer creating a new task:
 
@@ -172,13 +172,13 @@ When creating a new task, you **MUST** always include:
 ### 2. Preserve Context - REQUIRED
 
 - **MUST** include relevant code snippets in the handoff
-- **MUST** summarize key discussions from the previous session
+- **MUST** summarise key discussions from the previous session
 - **MUST** reference specific files and line numbers when applicable
 
 ### 3. Set Clear Next Actions - REQUIRED
 
 - **MUST** begin the handoff with a clear, actionable next step
-- **MUST** prioritize remaining tasks
+- **MUST** prioritise remaining tasks
 - **MUST** highlight any decisions that need to be made
 
 ### 4. Document Assumptions - REQUIRED
@@ -187,7 +187,7 @@ When creating a new task, you **MUST** always include:
 - **MUST** note areas where user input might be needed
 - **MUST** identify potential alternative approaches
 
-### 5. Optimize for Resumability - REQUIRED
+### 5. Optimise for Resumability - REQUIRED
 
 - **MUST** structure the handoff so the next session can begin working immediately
 - **MUST** include setup instructions if environment configuration is needed
