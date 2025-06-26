@@ -6,29 +6,14 @@
       <WHEN>Researching GitHub repositories or library documentation</WHEN>
       <PURPOSE>Access comprehensive documentation and code search for any GitHub repository</PURPOSE>
     </TOOL>
-    <TOOL name="hyper">
-      <WHEN>Executing Python code or complex reasoning tasks</WHEN>
-      <PURPOSE>Python evaluation and thought processing capabilities</PURPOSE>
-    </TOOL>
     <TOOL name="dev-tools">
-      <WHEN>Checking package versions, Docker tags, or development environment information</WHEN>
+      <WHEN>Provides useful development tools such as checking package versions, Docker tags, think tools, fetching pages, searching the internet</WHEN>
       <PURPOSE>Development tooling for version management and environment checks</PURPOSE>
-    </TOOL>
-    <TOOL name="brave-web-search">
-      <WHEN>Searching for current web information or local businesses</WHEN>
-      <PURPOSE>Web search capabilities for general queries and local business information</PURPOSE>
-      <PROVIDES>brave_web_search</PROVIDES>
-      <DESCRIPTION>Performs web search using Brave Search API for general queries, news, and online
-        content</DESCRIPTION>
     </TOOL>
     <TOOL name="context7">
       <WHEN>Implementing modern or complex libraries</WHEN>
       <PURPOSE>Use tools to such as context7 to access current documentation and implementation
         patterns when implementing complex or recently updated packages or frameworks</PURPOSE>
-    </TOOL>
-    <TOOL name="fetch">
-      <WHEN>Needing web content or documentation from specific URLs</WHEN>
-      <PURPOSE>Efficient, lightweight content retrieval from any URL with markdown extraction</PURPOSE>
     </TOOL>
     <TOOL name="think">
       <WHEN>Encountering complex problems or requiring intermediate reasoning</WHEN>
