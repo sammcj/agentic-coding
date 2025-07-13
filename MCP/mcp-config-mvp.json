@@ -1,81 +1,36 @@
 {
   "mcpServers": {
-    "fetch": {
+    "dev-tools": {
       "autoApprove": [
-        "fetch"
-      ],
-      "disabled": false,
-      "timeout": 60,
-      "command": "uvx",
-      "args": [
-        "mcp-server-fetch"
-      ],
-      "transportType": "stdio"
-    },
-    "brave-search": {
-      "autoApprove": [
+        "get_component_details",
+        "get_component_examples",
+        "list_shadcn_components",
+        "search_components",
         "brave_web_search",
-        "brave_local_search"
+        "brave_video_search",
+        "brave_news_search",
+        "brave_local_search",
+        "brave_image_search",
+        "fetch",
+        "brave_search",
+        "think",
+        "fetch_url",
+        "get_latest_bedrock_model",
+        "internet_search",
+        "memory",
+        "search_packages",
+        "get_library_docs",
+        "resolve_library_id",
+        "murican_to_english"
       ],
-      "timeout": 60,
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-brave-search"
-      ],
+      "disabled": false,
+      "timeout": 600,
+      "type": "stdio",
+      "command": "/Users/samm/go/bin/mcp-devtools",
       "env": {
-        "BRAVE_API_KEY": "REDACTED"
-      },
-      "transportType": "stdio"
-    },
-    "context7-mcp": {
-      "autoApprove": [
-        "resolve-library-id",
-        "get-library-docs"
-      ],
-      "timeout": 60,
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
-      ],
-      "transportType": "stdio"
-    },
-    "mcp-package-version": {
-      "autoApprove": [
-        "check_bedrock_models",
-        "check_docker_tags",
-        "check_github_actions",
-        "check_go_versions",
-        "check_gradle_versions",
-        "check_maven_versions",
-        "check_npm_versions",
-        "check_pyproject_versions",
-        "check_python_versions",
-        "check_swift_versions",
-        "get_latest_bedrock_model"
-      ],
-      "disabled": false,
-      "timeout": 300,
-      "url": "https://mcp-package-version.my.internal.network/sse",
-      "transportType": "sse"
-    },
-    "github": {
-      "autoApprove": [
-        "search_repositories",
-        "get_file_contents",
-        "search_code",
-        "search_issues",
-        "get_issue"
-      ],
-      "disabled": false,
-      "timeout": 60,
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
-      "transportType": "stdio"
+        "DISABLED_FUNCTIONS": "brave_local_search,brave_video_search",
+        "BRAVE_API_KEY": "redacted"
+      }
     }
   }
 }

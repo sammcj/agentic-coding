@@ -34,18 +34,6 @@
       },
       "transportType": "stdio"
     },
-    "searxng": {
-      "autoApprove": [
-        "search"
-      ],
-      "disabled": true,
-      "timeout": 60,
-      "command": "uvx",
-      "args": [
-        "mcp-searxng"
-      ],
-      "transportType": "stdio"
-    },
     "@21st-dev/magic": {
       "timeout": 60,
       "command": "npx",
@@ -76,33 +64,21 @@
       },
       "transportType": "stdio"
     },
-    "firecrawl": {
+    "figma-mcp": {
       "autoApprove": [
-        "firecrawl_scrape",
-        "firecrawl_map",
-        "firecrawl_crawl",
-        "firecrawl_batch_scrape",
-        "firecrawl_check_batch_status",
-        "firecrawl_check_crawl_status",
-        "firecrawl_search",
-        "firecrawl_extract"
+        "get_figma_data",
+        "download_figma_images"
       ],
       "disabled": true,
-      "timeout": 300,
+      "timeout": 60,
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",
-        "firecrawl-mcp"
-      ],
-      "env": {
-        "FIRECRAWL_API_KEY": "REDACTED",
-        "FIRECRAWL_API_URL": "https://firecrawl-api.my.internal.network",
-        "FIRECRAWL_RETRY_BACKOFF_FACTOR": "2",
-        "FIRECRAWL_RETRY_INITIAL_DELAY": "1000",
-        "FIRECRAWL_RETRY_MAX_ATTEMPTS": "3",
-        "FIRECRAWL_RETRY_MAX_DELAY": "10000"
-      },
-      "transportType": "stdio"
+        "figma-developer-mcp",
+        "--figma-api-key=your-figma-api-key",
+        "--stdio"
+      ]
     }
   }
 }

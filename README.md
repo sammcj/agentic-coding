@@ -3,12 +3,15 @@
 - [Sam's Agentic Coding Rules, Templates and Examples](#sams-agentic-coding-rules-templates-and-examples)
   - [Agentic Coding Tools](#agentic-coding-tools)
   - [MCP Servers](#mcp-servers)
+    - [Occasionally Used](#occasionally-used)
   - [Rules](#rules)
+    - [Cline](#cline)
   - [Patterns](#patterns)
+    - [Setup -\> Plan -\> Act -\> Review \& Iterate](#setup---plan---act---review--iterate)
   - [Links](#links)
   - [License](#license)
 
-A collection of coding rules, templates, MCP servers and examples for working with Agentic Coding tools (Cline, Github Copilot etc...)
+A collection of coding rules, templates, MCP servers and examples for working with Agentic Coding tools (Cline, Claude Code etc...)
 
 ---
 
@@ -16,24 +19,24 @@ A collection of coding rules, templates, MCP servers and examples for working wi
 
 - [Cline](https://cline.bot): IMO The best agentic coding tool.
 
----
-
 ## MCP Servers
 
-- [MVP / Always On](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-mvp.json)
-  - [Context7](https://github.com/upstash/context7): Used to fetch documentation.
-  - [Fetch](https://github.com/modelcontextprotocol/servers/blob/main/src/fetch/README.md): Used to fetch URLs.
-  - [Brave Search](https://github.com/modelcontextprotocol/servers/tree/main/src/brave-search): Provides web search (free Brave Search AI API key required).
-  - [Package Version](https://github.com/sammcj/mcp-package-version): Used to get up to date package versions.
-  - [Github](https://github.com/modelcontextprotocol/servers/blob/main/src/github/README.md): Used to fetch information from GitHub repositories, Github Issues & PRs.
-- [Sometimes Used](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-sometimes.json)
-  - [Firecrawl](https://github.com/mendableai/firecrawl-mcp-server): Provides web scraping and markdown conversion (Self hosted Firecrawl, or Firecrawl API key required).
-  - [Markdownify](github.com/zcaceres/markdownify-mcp): Converts documents to markdown.
-  - [Browser Use](https://github.com/Saik0s/mcp-browser-use): Gives access to a browser.
-  - [SearXNG](https://github.com/ihor-sokoliuk/mcp-searxng): Provides web search (Self hosted SearXNG required).
-  - [Magic MCP](https://github.com/21st-dev/magic-mcp): Provides frontend UI components.
+[MCP DevTools](https://github.com/sammcj/mcp-devtools) has become the only MCP server I _always_ have enabled.
 
-![MCP-Servers](mcp-servers.png)
+I wrote it to provide the most common tooling I use with Agentic Coding.
+
+- [Example MCP DevTools client config](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-mvp.json)
+
+### Occasionally Used
+
+
+- [Firecrawl](https://github.com/mendableai/firecrawl-mcp-server): Provides web scraping and markdown conversion (Self hosted Firecrawl, or Firecrawl API key required).
+- [Markdownify](github.com/zcaceres/markdownify-mcp): Converts documents to markdown.
+- [Browser Use](https://github.com/Saik0s/mcp-browser-use): Gives access to a browser.
+- [SearXNG](https://github.com/ihor-sokoliuk/mcp-searxng): Provides web search (Self hosted SearXNG required).
+- [Magic MCP](https://github.com/21st-dev/magic-mcp): Provides frontend UI components.
+
+[Example client config](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-sometimes.json)
 
 ---
 
@@ -44,8 +47,6 @@ I tend to try and write my rules in pseudo-XML format as some LLMs (such as Anth
 ### Cline
 
 - [Cline Rules](./Cline/Rules/)
-
-![clinerules setting](clinerules-setting.png)
 
 #### [sams-clinerules.md](./Cline/Rules/sams-clinerules.md)
 
@@ -69,7 +70,7 @@ I tend to try and write my rules in pseudo-XML format as some LLMs (such as Anth
 - [mcp-server-repo-example.md](./Cline/repo-specific-rules/mcp-server-repo-example.md)
   - Assists with working on existing MCP servers.
 
----
+![clinerules setting](clinerules-setting.png)
 
 ## Patterns
 
