@@ -10,6 +10,11 @@
       ],
       "transportType": "stdio"
     },
+    "chrome-browser-control": {
+      "command": "npx",
+      "disabled": true,
+      "args": ["-y", "@browsermcp/mcp@latest"]
+    },
     "markdownify": {
       "autoApprove": [
         "get-markdown-file",

@@ -2,18 +2,20 @@
   <NOTE>Make sure you follow the rules when performing tool calls - you must only use valid tools for editing and finding / replacing within files. Don't make tools up.</NOTE>
   <MANDATORY_TOOL_USAGE>
     <NOTE>Below is a high level overview some of the useful tools you have available, you may have more at your disposal and should make effient use of tools to help completing tasks</NOTE>
-    <TOOL name="repo-documentation">
-      <WHEN>Researching GitHub repositories or library documentation</WHEN>
-      <PURPOSE>Access comprehensive documentation and code search for any GitHub repository</PURPOSE>
+    <TOOL name="fetch_url">
+      <WHEN>Needing to fetch content from a URL</WHEN>
     </TOOL>
-    <TOOL name="dev-tools">
-      <WHEN>Provides useful development tools such as checking package versions, Docker tags, think tools, fetching pages, searching the internet</WHEN>
-      <PURPOSE>Development tooling for version management and environment checks</PURPOSE>
+    <TOOL name="[ resolve_library_id , get_library_docs ]">
+      <WHEN>Researching or implementing complex packages / libraries</WHEN>
+      <PURPOSE>Use these tools to access up to date documentation and implementation patterns for packages. Especially useful when implementing complex or recently updated packages or frameworks</PURPOSE>
     </TOOL>
-    <TOOL name="context7">
-      <WHEN>Implementing modern or complex libraries</WHEN>
-      <PURPOSE>Use tools to such as context7 to access current documentation and implementation
-        patterns when implementing complex or recently updated packages or frameworks</PURPOSE>
+    <TOOL name="search_packages">
+      <WHEN>Adding or updating packages / libraries</WHEN>
+      <PURPOSE>To get the latest stable versions to use</PURPOSE>
+    </TOOL>
+    <TOOL name="internet_search">
+      <WHEN>Searching for internet for information or solutions not found in existing tools</WHEN>
+      <PURPOSE>Perform web searches to find relevant information, documentation, or solutions</PURPOSE>
     </TOOL>
     <TOOL name="think">
       <WHEN>Encountering complex problems or requiring intermediate reasoning</WHEN>
