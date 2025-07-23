@@ -1,52 +1,42 @@
 # Sam's Agentic Coding Rules, Templates and Examples
 
 - [Sam's Agentic Coding Rules, Templates and Examples](#sams-agentic-coding-rules-templates-and-examples)
-  - [Agentic Coding Tools](#agentic-coding-tools)
   - [MCP Servers](#mcp-servers)
-  - [Patterns](#patterns)
-    - [Setup -\> Plan -\> Act -\> Review \& Iterate](#setup---plan---act---review--iterate)
-  - [Rules](#rules)
-    - [Cline](#cline)
+  - [Coding Agent Rules](#coding-agent-rules)
+  - [Patterns / Workflows](#patterns--workflows)
   - [Links](#links)
   - [License](#license)
 
 A collection of coding rules, templates, MCP servers and examples for working with Agentic Coding tools (Cline, Claude Code etc...)
 
----
-
-## Agentic Coding Tools
-
-- [Cline](https://cline.bot): IMO The best agentic coding tool.
-
 ## MCP Servers
 
-[MCP DevTools](https://github.com/sammcj/mcp-devtools) has become the only MCP server I _always_ have enabled.
+- [MCP DevTools](https://github.com/sammcj/mcp-devtools): This has become the only MCP server I _always_ have enabled. I wrote it to provide the most common tooling I use with Agentic Coding.
+  - [Example MCP DevTools client config](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-mvp.json)
 
-I wrote it to provide the most common tooling I use with Agentic Coding.
+## Coding Agent Rules
 
-- [Example MCP DevTools client config](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-mvp.json)
+I tend to try and write most of my rules in pseudo-XML format as some LLMs (such as Anthropic Claude) are specifically trained on XML which can result in better results and prompt adherence.
 
-## Patterns
+Note:
 
-### Setup -> Plan -> Act -> Review & Iterate
+- Rules starting with an `_` indicate that I only toggle these on for specific scenarios and they are disabled by default.
+- I often add a project specific rules file to the root of the repository, such as `.clinerules`, `CLAUDE.md` or similar. I have an _example_ of what these might look like in [Cline/Rules/adhoc/_repo-specific-rules.md](./Cline/Rules/adhoc/_repo-specific-rules.md).
 
-- See my blog post on this pattern here at [smcleod.net](https://smcleod.net)
+- [Rules](./Cline/Rules/)
+- [Workflows (Prompt Templates)](./Cline/Workflows/)
 
-## Rules
+![Rules Toggled In Cline](clinerules.png)
 
-I tend to try and write my rules in pseudo-XML format as some LLMs (such as Anthropic Claude) are specifically trained on XML which can result in better results and prompt adherence.
+## Patterns / Workflows
 
-### Cline
-
-- [Cline Rules](./Cline/Rules/)
-- [Cline Workflows (Prompt Templates)](./Cline/Workflows/)
-
-![clinerules setting](clinerules-setting.png)
+- See my blog post on my Setup -> Plan -> Act -> Review & Iterate workflow at: [smcleod.net](https://smcleod.net)
 
 ## Links
 
 - [Blog - smcleod.net](https://smcleod.net)
 - [GitHub - sammcj](https://github.com/sammcj)
+- [Cline](https://cline.bot): IMO The best agentic coding tool.
 
 ## License
 
