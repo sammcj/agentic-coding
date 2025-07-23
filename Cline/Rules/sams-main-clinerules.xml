@@ -27,12 +27,13 @@
       <RULE id="CS006">Variables should have sensible defaults in the code but should be
         parameterised
         and available as configuration options where appropriate</RULE>
-      <RULE id="CS007">Ensure files do not become too long, if a file is over 800 lines, consider
+      <RULE id="CS007">Ensure files do not become too long, if a file is over 700 lines, consider
         splitting it into smaller files</RULE>
       <RULE id="CS008">If the user provides you with a project development plan, make sure you
         update
         it after completing milestones</RULE>
       <RULE id="CS009">When writing development plans do not include time estimates</RULE>
+      <RULE id="CS010">Never hardcode credentials or unique identifiers in code or documentation</RULE>
     </GENERAL_RULES>
 
     <FAVOURING_SIMPLICITY>
