@@ -25,7 +25,7 @@ Only enable the rules you want, if you enable all of my (or anyone else's) rules
 - Rules starting with an `_` indicate that I only toggle these on for specific scenarios and they are disabled by default.
 - I often add a project specific rules file to the root of the repository, such as `.clinerules`, `CLAUDE.md` or similar. I have an _example_ of what these might look like in [Cline/Rules/adhoc/_repo-specific-rules.md](./Cline/Rules/adhoc/_repo-specific-rules.md).
 
-- [Rules](./Cline/Rules/)
+- [Agent Rules](./Cline/Rules/) - Note that while these are mainly written for use with Cline, for 95% of them there's no reason they can't be used with other Agentic Coding tools such as Claude Code etc. without modification.
 - [Workflows (Prompt Templates)](./Cline/Workflows/)
 - [Amazon Kiro Specific Rules](./Kiro/kiro-specific-rules.md) (Mainly as Kiro seems to over-complicate and over-engineer everything).
 - [Cline Docs on Rules](https://docs.cline.bot/features/cline-rules)
