@@ -16,16 +16,25 @@ A collection of coding rules, templates, MCP servers and examples for working wi
 
 ## Coding Agent Rules
 
-I tend to try and write most of my rules in pseudo-XML format as some LLMs (such as Anthropic Claude) are specifically trained on XML which can result in better results and prompt adherence.
+Tips for writing rules:
 
-Note: **Do not blindly import and enable all my (or anyone else's) rules!**
+- **Using pseudo-XML for your rules can help LLM adherence**
+  - LLMs are trained on a lot of structured data (such as XML), see [this blog post](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags) for more information.
+  - On _many_ occasions I have been given feedback that after simply changing rules XML like structure - the LLM closer adheres to them.
+- **Only enable the rules you actually want to use**
+  - Think about the signal to noise ratio of your rules (and context in general), _how much information could you be told at once and remember?_
+  - If you have a lot of rules that are not relevant to the current task, then you're just adding noise and misleading the prediction engine, while increasing the token count.
+  - Do not blindly import and enable all my (or anyone else's) rules!
+- **Be clear, concise and specific in your rules. Avoid ambiguity**
+- **Use emphasis** (e.g. `**bold**`, `*italic*`, `__underline__`) to highlight important parts of your rules.
+- As well as global rules, **consider adding project specific rules** such as `.clinerules`, `CLAUDE.md` or similar that relate to repository specific behaviour (e.g. "To build the application, you must run `make build` etc.)
+  - I have an _example_ of what these might look like in [Cline/Rules/adhoc/_repo-specific-rules.md](./Cline/Rules/adhoc/_repo-specific-rules.md).
+- **Rules are often transferable between agentic coding tools**
+  - While I write a lot of my rules in Cline, for 95% of them there's no reason they can't be used with other Agentic Coding tools such as Claude Code etc. without modification.
 
-Only enable the rules you want, if you enable all of my (or anyone else's) rules you'll be reducing the signal to noise ratio and adding to the token count. Remember - LLMs are stateless, every interaction with them means sending the entire context.
+_Note: My rules starting with an `_` indicate that I only toggle these on for specific scenarios and they are disabled by default._
 
-- Rules starting with an `_` indicate that I only toggle these on for specific scenarios and they are disabled by default.
-- I often add a project specific rules file to the root of the repository, such as `.clinerules`, `CLAUDE.md` or similar. I have an _example_ of what these might look like in [Cline/Rules/adhoc/_repo-specific-rules.md](./Cline/Rules/adhoc/_repo-specific-rules.md).
-
-- [Agent Rules](./Cline/Rules/) - Note that while these are mainly written for use with Cline, for 95% of them there's no reason they can't be used with other Agentic Coding tools such as Claude Code etc. without modification.
+- [Agent Rules](./Cline/Rules/)
 - [Workflows (Prompt Templates)](./Cline/Workflows/)
 - [Amazon Kiro Specific Rules](./Kiro/kiro-specific-rules.md) (Mainly as Kiro seems to over-complicate and over-engineer everything).
 - [Cline Docs on Rules](https://docs.cline.bot/features/cline-rules)
