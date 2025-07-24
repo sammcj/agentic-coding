@@ -25,6 +25,7 @@ Note:
 
 - [Rules](./Cline/Rules/)
 - [Workflows (Prompt Templates)](./Cline/Workflows/)
+- [Amazon Kiro Specific Rules](./Kiro/kiro-specific-rules.md) (Mainly as Kiro seems to over-complicate and over-engineer everything).
 
 ![Rules Toggled In Cline](clinerules.png)
 
