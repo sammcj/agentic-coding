@@ -20,6 +20,8 @@ I tend to try and write most of my rules in pseudo-XML format as some LLMs (such
 
 Note: **Do not blindly import and enable all my (or anyone else's) rules!**
 
+Only enable the rules you want, if you enable all of my (or anyone else's) rules you'll be reducing the signal to noise ratio and adding to the token count. Remember - LLMs are stateless, every interaction with them means sending the entire context.
+
 - Rules starting with an `_` indicate that I only toggle these on for specific scenarios and they are disabled by default.
 - I often add a project specific rules file to the root of the repository, such as `.clinerules`, `CLAUDE.md` or similar. I have an _example_ of what these might look like in [Cline/Rules/adhoc/_repo-specific-rules.md](./Cline/Rules/adhoc/_repo-specific-rules.md).
 
