@@ -11,5 +11,6 @@
    <RULE>When dealing with Python virtual environments, use uv and store the venv in .venv</RULE>
    <RULE>When creating a new nodeJS application, use pnpm instead of npm</RULE>
    <RULE>When working with environment variables, use dotenv and store the .env file in the root of the project along with a .env.example with complete, up to date examples</RULE>
+   <RULE>When developing web applications make good use of browser real estate, we don't want one of those applications that squashes all the content into a small piece of the browsers available resolution.</RULE>
    <RULE>Never perform git add or git commit commands</RULE>
 </USER_RULES>
