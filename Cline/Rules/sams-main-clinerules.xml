@@ -34,6 +34,7 @@
         it after completing milestones</RULE>
       <RULE id="CS009">When writing development plans do not include time estimates</RULE>
       <RULE id="CS010">Never hardcode credentials or unique identifiers in code or documentation</RULE>
+      <RULE id="CS011">When executing long running interactive commands (e.g. pnpm dev, make run etc..), run them with the timeout command so you don't sit there waiting for them forever.</RULE>
     </GENERAL_RULES>
 
     <FAVOURING_SIMPLICITY>
@@ -63,7 +64,7 @@
     <GIT_RULES>
       <RULE id="EH001">For git merge conflicts, try copying file sideways, editing, then copying
         back</RULE>
-      <RULE id="EH002">NEVER perform a git commit or a git push</RULE>
+      <RULE id="EH002">CRITICAL: NEVER perform a git add, git commit or a git push!</RULE>
     </GIT_RULES>
 
     <TESTING_REQUIREMENTS>

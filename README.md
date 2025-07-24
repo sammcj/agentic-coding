@@ -18,7 +18,7 @@ A collection of coding rules, templates, MCP servers and examples for working wi
 
 I tend to try and write most of my rules in pseudo-XML format as some LLMs (such as Anthropic Claude) are specifically trained on XML which can result in better results and prompt adherence.
 
-Note:
+Note: **Do not blindly import and enable all my (or anyone else's) rules!**
 
 - Rules starting with an `_` indicate that I only toggle these on for specific scenarios and they are disabled by default.
 - I often add a project specific rules file to the root of the repository, such as `.clinerules`, `CLAUDE.md` or similar. I have an _example_ of what these might look like in [Cline/Rules/adhoc/_repo-specific-rules.md](./Cline/Rules/adhoc/_repo-specific-rules.md).
@@ -26,6 +26,7 @@ Note:
 - [Rules](./Cline/Rules/)
 - [Workflows (Prompt Templates)](./Cline/Workflows/)
 - [Amazon Kiro Specific Rules](./Kiro/kiro-specific-rules.md) (Mainly as Kiro seems to over-complicate and over-engineer everything).
+- [Cline Docs on Rules](https://docs.cline.bot/features/cline-rules)
 
 ![Rules Toggled In Cline](clinerules.png)
 
