@@ -2,8 +2,9 @@
 
 - [Sam's Agentic Coding Rules, Templates and Examples](#sams-agentic-coding-rules-templates-and-examples)
   - [MCP Servers](#mcp-servers)
-  - [Coding Agent Rules](#coding-agent-rules)
   - [Patterns / Workflows](#patterns--workflows)
+  - [Coding Agent Rules](#coding-agent-rules)
+    - [Tips For Writing Rules](#tips-for-writing-rules)
   - [Links](#links)
   - [License](#license)
 
@@ -14,9 +15,22 @@ A collection of coding rules, templates, MCP servers and examples for working wi
 - [MCP DevTools](https://github.com/sammcj/mcp-devtools): This has become the only MCP server I _always_ have enabled. I wrote it to provide the most common tooling I use with Agentic Coding.
   - [Example MCP DevTools client config](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-mvp.json)
 
+## Patterns / Workflows
+
+- See my blog post on my Setup -> Plan -> Act -> Review & Iterate workflow at: [smcleod.net](https://smcleod.net)
+
 ## Coding Agent Rules
 
-Tips for writing rules:
+_Note: My rules starting with an `_` indicate that I only toggle these on for specific scenarios and they are disabled by default._
+
+- [Agent Rules](./Cline/Rules/)
+- [Workflows (Prompt Templates)](./Cline/Workflows/)
+- [Amazon Kiro Specific Rules](./Kiro/kiro-specific-rules.md) (Mainly as Kiro seems to over-complicate and over-engineer everything).
+- [Cline Docs on Rules](https://docs.cline.bot/features/cline-rules)
+
+![Rules Toggled In Cline](clinerules.png)
+
+### Tips For Writing Rules
 
 - **Using pseudo-XML for your rules can help LLM adherence**
   - LLMs are trained on a lot of structured data (such as XML), see [this blog post](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags) for more information.
@@ -31,19 +45,22 @@ Tips for writing rules:
   - I have an _example_ of what these might look like in [Cline/Rules/adhoc/_repo-specific-rules.md](./Cline/Rules/adhoc/_repo-specific-rules.md).
 - **Rules are often transferable between agentic coding tools**
   - While I write a lot of my rules in Cline, for 95% of them there's no reason they can't be used with other Agentic Coding tools such as Claude Code etc. without modification.
+- **Get AI to help you write or improve rules**
 
-_Note: My rules starting with an `_` indicate that I only toggle these on for specific scenarios and they are disabled by default._
+If you spend a long time on a difficult problem with a coding agent and you finally crack it - get it to:
+1. Summarise the fix
+2. Why previous attempts did not work
+3. What led them down the wrong paths initially
+4. Get them to write a concise, clear rule (prompt) that could be used in the future (or added to your global rules if it's a common issue) to prevent the issue from happening again or at least aid with debugging.
 
-- [Agent Rules](./Cline/Rules/)
-- [Workflows (Prompt Templates)](./Cline/Workflows/)
-- [Amazon Kiro Specific Rules](./Kiro/kiro-specific-rules.md) (Mainly as Kiro seems to over-complicate and over-engineer everything).
-- [Cline Docs on Rules](https://docs.cline.bot/features/cline-rules)
+Example:
+> YOU FIXED IT!!! Finally! That's taken a VERY long time to fix. Can you please respond with details on:
+  > 1. What the fix was
+  > 2. Why it wasn't picked up earlier
+  > 3. What information could I have provided to AI coding agents in the future - not just for this project but also other projects in general?
+> With those in mind I would like you also like you to create a 1 to 3 sentence prompt I can provide to future AI coding agents that would help them avoid having similar issues in the future.
 
-![Rules Toggled In Cline](clinerules.png)
-
-## Patterns / Workflows
-
-- See my blog post on my Setup -> Plan -> Act -> Review & Iterate workflow at: [smcleod.net](https://smcleod.net)
+---
 
 ## Links
 
