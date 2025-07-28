@@ -5,6 +5,7 @@
   - [Patterns / Workflows](#patterns--workflows)
   - [Coding Agent Rules](#coding-agent-rules)
     - [Tips For Writing Rules](#tips-for-writing-rules)
+  - [Sub-Agent Definitions](#sub-agent-definitions)
   - [Links](#links)
   - [License](#license)
 
@@ -59,6 +60,14 @@ Example:
   > 2. Why it wasn't picked up earlier
   > 3. What information could I have provided to AI coding agents in the future - not just for this project but also other projects in general?
 > With those in mind I would like you also like you to create a 1 to 3 sentence prompt I can provide to future AI coding agents that would help them avoid having similar issues in the future.
+
+---
+
+## Sub-Agent Definitions
+
+Claude Code recently introduced the concept of [sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents), which are essentially agents that can be called by other agents to handle specific tasks or workflows.
+
+- [Sub-Agent Definitions](./SubAgents/)
 
 ---
 
