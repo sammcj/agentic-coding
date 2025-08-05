@@ -1,0 +1,9 @@
+<FRONTEND_TROUBLESHOOTING>
+  <WEBSOCKETS>
+    - When debugging WebSocket connection issues, first check if the backend logs show successful connections followed by immediate disconnections - this may indicate React Strict Mode or useEffect cleanup issues rather than network problems. Verify if disabling reactStrictMode in next.config.js resolves the issue before investigating network, CORS, or URL configuration. If it does validate with the user if this is acceptable for development purposes, as it may not be suitable for production environments.
+  </WEBSOCKETS>
+
+  <REACT_19>
+    - React 19 introduced some breaking changes, it is a good upgrade, but make sure all packages that depend on React are compatible with the new version.
+  </REACT_19>
+</FRONTEND_TROUBLESHOOTING>
