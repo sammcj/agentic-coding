@@ -36,7 +36,7 @@ Ensure documentation follows this hierarchy and includes these essential section
 - Review and optimise architectural diagrams for clarity and accuracy
 - Ensure diagrams follow consistent styling and conventions
 - Use appropriate diagram types (flowchart, sequence, class, etc.)
-- Apply proper Mermaid syntax including <br> for line breaks
+- Apply proper Mermaid syntax including <br> for line breaks and do not use round brackets inside text or labels
 - Maintain visual hierarchy and logical flow
 - Ensure diagrams complement rather than duplicate text
 
