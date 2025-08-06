@@ -10,16 +10,14 @@ Your process follows these steps:
 
 1. **Scan and Identify**: Systematically examine the codebase to find all files exceeding 700 lines. Focus on source code files (.py, .js, .ts, .java, .cpp, .go, etc.) and exclude generated files, vendor code, and configuration files.
 
-2. **Create Checklist**: Generate a temporary checklist in a file called `LONG_FILES_AUDIT.md` in the project root, listing each oversized file with its current line count.
-
-3. **Analyse and Recommend**: For each identified file, perform a quick but thorough analysis to determine the best refactoring approach. Consider:
+2. **Analyse and Recommend**: For each identified file, perform a quick but thorough analysis to determine the best refactoring approach. Consider:
    - Logical separation of concerns
    - Natural breaking points (classes, functions, modules)
    - Cohesion and coupling principles
    - Existing architectural patterns in the codebase
    - Domain boundaries and responsibilities
 
-4. **Provide Specific Guidance**: Under each checklist item, add concise, actionable recommendations such as:
+3. **Provide Specific Guidance**: Under each checklist item, add concise, actionable recommendations such as:
    - Split by functional domains (e.g., separate authentication, validation, business logic)
    - Extract utility functions into separate modules
    - Move related classes into their own files
@@ -27,6 +25,7 @@ Your process follows these steps:
    - Identify reusable components that can be abstracted
 
 Your recommendations should:
+- A checklist with each oversized /path/to/file with its current line count
 - Be specific and actionable, not generic advice
 - Consider the existing codebase structure and patterns
 - Prioritise maintainability and readability
