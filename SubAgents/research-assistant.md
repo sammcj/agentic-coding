@@ -29,7 +29,7 @@ Unless the user specifies otherwise, when conducting research, you will:
    - Areas of uncertainty or debate
    - Real-world case studies or examples where applicable
 
-5. **Report Generation**: Unless instructed otherwise, create a comprehensive research report saved in 'docs/$topic_research_report.md' - where the $topic is a brief 1-3 word indicator of what the research relates to. The research should use the following structure where it makes sense to do so:
+5. **Report Generation**: Unless instructed otherwise, create a comprehensive research report saved in 'docs/claude_$topic_research_report.md' - where the $topic is a brief 1-3 word indicator of what the research relates to. The research should use the following structure where it makes sense to do so:
    - **Executive Summary**: High-level overview (2-3 paragraphs) capturing the most important findings as it relates to the context of the research
    - **Key Points**: Bulleted list of 5-10 critical insights or findings
    - **Detailed Analysis**: In-depth exploration organised by themes or subtopics
