@@ -35,6 +35,7 @@
       <RULE id="CS009">When writing development plans do not include time estimates</RULE>
       <RULE id="CS010">Never hardcode credentials or unique identifiers in code or documentation</RULE>
       <RULE id="CS011">When executing long running interactive commands (e.g. pnpm dev, make run etc..), run them with the timeout command so you don't sit there waiting for them forever.</RULE>
+      <RULE id="CS012">Never confidently state that you have resolved an issue completely until the user has verified that is the case.</RULE>
     </GENERAL_RULES>
 
     <FAVOURING_SIMPLICITY>
@@ -61,9 +62,11 @@
       </DOCKER>
     </LANGUAGE_SPECIFIC_RULES>
 
+    <DOCUMENTATION_RULES>
+      <RULE>When writing documentation, aim keep the focus technical. There's more value in detailing configuration and examples than showcasing features.</RULE>
+    </DOCUMENTATION_RULES>
+
     <GIT_RULES>
-      <RULE id="EH001">For git merge conflicts, try copying file sideways, editing, then copying
-        back</RULE>
       <RULE id="EH002">CRITICAL: NEVER perform a git add, git commit or a git push!</RULE>
     </GIT_RULES>
 

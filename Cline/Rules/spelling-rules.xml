@@ -1,4 +1,5 @@
 <BRITISH_ENGLISH_STANDARDS>
+  <LANGUAGE>Always use Australian / British English spelling - do not use Americanisations. The user is based in Australia - not America.</LANGUAGE>
   <SPELLING_RULES>
     <PATTERN type="suffix">-our not -or (colour, favour, behaviour)</PATTERN>
     <PATTERN type="suffix">-ise not -ize (organise, recognise)</PATTERN>
