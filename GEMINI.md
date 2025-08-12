@@ -25,5 +25,5 @@
 </MERMAID_RULES>
 
 <DOCUMENTATION_RULES>
-  <RULE>When writing documentation, aim keep the focus technical. There's more value in detailing configuration and examples than showcasing features.</RULE>
+  <RULE>When writing documentation, keep the focus technical. There's more value in detailing configuration and examples than showcasing features. When writing content ask yourself 'What is the value that this is adding?'.</RULE>
 </DOCUMENTATION_RULES>
