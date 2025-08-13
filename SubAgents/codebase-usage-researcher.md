@@ -161,6 +161,97 @@ After completing your report, conduct a MEGATHINK review:
 - Use ```language code blocks for all examples
 - Bold only **critical warnings** or **breaking changes**
 
+### 9. Visualisation Generation
+
+After completing the research report, create visual representations to aid comprehension:
+
+**Component Architecture Diagram**:
+Generate a Mermaid diagram showing the codebase's structural relationships, e.g:
+
+```mermaid
+graph TB
+    subgraph "Core Components"
+        A[Main Entry Point]
+        B[API Layer]
+        C[Business Logic]
+        D[Data Layer]
+    end
+
+    subgraph "External Dependencies"
+        E[Database]
+        F[Cache]
+        G[External APIs]
+    end
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    D --> F
+    C --> G
+
+    style A fill:#90EE90
+    style B fill:#87CEEB
+    style C fill:#FFB6C1
+```
+
+Focus on:
+- Primary modules/packages and their dependencies
+- External service integrations
+- Data stores and caching layers
+- API boundaries and interfaces
+- Plugin/extension points
+- Message queues or event buses (if present)
+- Other important architectural elements or components
+
+**User/Data Flow Diagram** (create only if applicable):
+Generate a Mermaid sequence or flowchart diagram showing typical usage patterns, e.g:
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant API as API Gateway
+    participant Auth as Auth Service
+    participant BL as Business Logic
+    participant DB as Database
+
+    U->>API: Request with credentials
+    API->>Auth: Validate token
+    Auth-->>API: Token valid
+    API->>BL: Process request
+    BL->>DB: Query data
+    DB-->>BL: Return results
+    BL-->>API: Format response
+    API-->>U: JSON response
+```
+
+Focus on:
+- Authentication/authorisation flows
+- Request/response cycles
+- Data transformation pipelines
+- Event processing sequences
+- State transitions
+- Error handling paths
+
+**Diagram Requirements**:
+- Keep diagrams concise (max 15-20 nodes for architecture, 10-12 steps for flows)
+- Use clear, technical labels (avoid marketing terms)
+- Apply consistent colour coding for component types
+- Include only architecturally relevant or significant elements
+- Omit internal implementation details
+- Note: Do not use round brackets ( ) in labels or descriptions - use square brackets [ ] or quotes, use <br> instead of \n for line breaks
+
+**Output Location**:
+- Save diagrams in the report under a new section: `## Architecture Visualisations`
+- Place this section after `Core APIs` but before `Type Definitions`
+- Include brief explanatory text only if the diagram requires context
+- Mark complex flows with `Note: Simplified for clarity` if abstraction was necessary
+
+**Validation**:
+- Ensure all components shown in diagrams are documented in the report
+- Relationships must accurately reflect code analysis findings
+- Cross-reference with sub-agent reports if delegation was used
+
 ### 9. Completion
 
 Once the report is finalised and you have finished all tasks, run `open ${HOME}/git/sammcj/repo-research/${PROJECTNAME}/` to open finder to the project directory for the user.
