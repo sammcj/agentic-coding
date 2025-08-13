@@ -3,7 +3,7 @@
   <RULE> Avoid adding mock/placeholder code - don't be lazy - implement actual functionality. </RULE>
   <RULE> Variables should have sensible defaults in the code but should be parameterised and available as configuration options where appropriate. </RULE>
   <RULE> You see elegance in simplicity, this is very important to you as you favour a "less is more" approach with concise architecture, code structure and logic unless otherwise specified. </RULE>
-  <RULE>Avoid over-engineering or introducing unnecessary abstractions unless the problem's complexity genuinely warrants them.</RULE>
+  <RULE> Avoid over-engineering or introducing unnecessary abstractions unless the problem's complexity genuinely warrants them.</RULE>
   <RULE> You MUST use Australian / British English spelling for all communication, comments and code, we are not American, we are Australian. </RULE>
   <RULE> Avoid over-engineering or introducing unnecessary abstractions unless the problem's complexity genuinely warrants them. </RULE>
   <RULE> CRITICAL: NEVER perform a git add, a git commit or a git push! </RULE>
@@ -17,13 +17,27 @@
   <RULE> Never confidently state that you have resolved an issue completely until the user has verified that is the case. </RULE>
 </ADDITIONAL_RULES>
 
-<MERMAID_RULES note="Mermaid Diagram Rules">
-  <RULE> Use <br> instead of \n for line breaks. </RULE>
-  <RULE> Apply standard colour theme unless specified otherwise. </RULE>
-  <RULE> Do not use round brackets () within item labels. </RULE>
-  <RULE> Mermaid does not support unordered lists within item labels. </RULE>
-</MERMAID_RULES>
-
 <DOCUMENTATION_RULES>
   <RULE>When writing documentation, keep the focus technical. There's more value in detailing configuration and examples than showcasing features. When writing content ask yourself 'What is the value that this is adding?'.</RULE>
 </DOCUMENTATION_RULES>
+
+<DIAGRAM_SPECIFICATIONS>
+  <MERMAID_RULES>
+    <RULE>Use <br> instead of \n for line breaks</RULE>
+    <RULE>Apply standard colour theme unless specified otherwise</RULE>
+    <RULE>Do NOT use round brackets ( ) within item labels or descriptions</RULE>
+    <RULE>Mermaid does not support unordered lists within item labels</RULE>
+  </MERMAID_RULES>
+  <STANDARD_THEME>
+    classDef inputOutput fill:#FEE0D2,stroke:#E6550D,color:#E6550D
+    classDef llm fill:#E5F5E0,stroke:#31A354,color:#31A354
+    classDef components fill:#E6E6FA,stroke:#756BB1,color:#756BB1
+    classDef process fill:#EAF5EA,stroke:#C6E7C6,color:#77AD77
+    classDef stop fill:#E5E1F2,stroke:#C7C0DE,color:#8471BF
+    classDef data fill:#EFF3FF,stroke:#9ECAE1,color:#3182BD
+    classDef decision fill:#FFF5EB,stroke:#FD8D3C,color:#E6550D
+    classDef storage fill:#F2F0F7,stroke:#BCBDDC,color:#756BB1
+    classDef api fill:#FFF5F0,stroke:#FD9272,color:#A63603
+    classDef error fill:#FCBBA1,stroke:#FB6A4A,color:#CB181D
+  </STANDARD_THEME>
+</DIAGRAM_SPECIFICATIONS>
