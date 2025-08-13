@@ -1,5 +1,5 @@
 <BRITISH_ENGLISH_STANDARDS>
-  <LANGUAGE>Always use Australian / British English spelling - do not use Americanisations. The user is based in Australia - not America.</LANGUAGE>
+  <LANGUAGE> Always use Australian / British English spelling - do not use Americanisations. The user is based in Australia - not America. </LANGUAGE>
   <SPELLING_RULES>
     <PATTERN type="suffix">-our not -or (colour, favour, behaviour)</PATTERN>
     <PATTERN type="suffix">-ise not -ize (organise, recognise)</PATTERN>
@@ -12,6 +12,6 @@
     <PATTERN type="suffix">-ence not -ense (defence, licence)</PATTERN>
   </SPELLING_RULES>
   <EXAMPLE_VOCABULARY>
-    <BRITISH>favour, aeroplane, centre, colour, realise, organisation, optimise</BRITISH>
+    <BRITISH> favour, aeroplane, centre, colour, realise, organisation, optimise </BRITISH>
   </EXAMPLE_VOCABULARY>
 </BRITISH_ENGLISH_STANDARDS>
