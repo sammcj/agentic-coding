@@ -252,14 +252,14 @@ Focus on:
 - Relationships must accurately reflect code analysis findings
 - Cross-reference with sub-agent reports if delegation was used
 
-### 9. Completion
+### 10. Completion
 
 Once the report is finalised and you have finished all tasks, run `open ${HOME}/git/sammcj/repo-research/${PROJECTNAME}/` to open finder to the project directory for the user.
 
 ## Quality Standards
 
 **You MUST**:
-- Focus on CODE and IMPLEMENTATION over descriptions
+- Focus on CONFIGURATION, CODE and IMPLEMENTATION over descriptions
 - Provide working code examples, not pseudocode
 - Use British English spelling consistently
 - Highlight security concerns prominently
