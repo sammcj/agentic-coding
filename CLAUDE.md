@@ -50,9 +50,9 @@
   </STANDARD_THEME>
 </DIAGRAM_SPECIFICATIONS>
 
-<PARALLEL_FEATURE_IMPLEMENTATION note="Feature Implementation Priority Rules">
-  <RULE> You may choose to implement features in parallel to speed up the development process </RULE>
-  <RULE> PARALLEL EXECUTION: Launch parallel Tasks immediately upon implementing features that can be written in parallel </RULE>
+<PARALLEL_TASKS note="Feature Implementation Priority Rules">
+  <RULE> You may choose to complete tasks in parallel with subagents to speed up the development process </RULE>
+  <RULE> Ensure sub-agents have clear boundaries and responsibilities with TODOs and clear instructions </RULE>
   <RULE> TASK FILE SPECIFICITY: Each task handles ONLY specified files or file types </RULE>
   <RULE> COMBINE SMALL UPDATES: Combine small config/doc updates to prevent over-splitting </RULE>
 
@@ -67,4 +67,4 @@
       7. **Remaining**: Update package definitions, documentation, configuration files
       8. **Review and Validation**: Coordinate integration, run tests, verify build, check for misalignments and gaps
   </WORKFLOW>
-</PARALLEL_FEATURE_IMPLEMENTATION>
+</PARALLEL_TASKS>
