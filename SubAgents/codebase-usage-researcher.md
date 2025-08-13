@@ -41,6 +41,18 @@ Analyse these file categories in order of priority:
 - .env.example (or similar environment variable examples)
 - Docker and compose files
 
+**Command-Line Interfaces**: (if applicable)
+- CLI entry points (cli.*, cmd/*)
+- Argument parsing logic
+- Subcommands and flags
+- Help text and usage examples
+Output format: command syntax, common workflows, flag descriptions
+
+**Framework-Specific Patterns**: (if applicable)
+- React: hooks, components, context providers, etc.
+- Express/Fastify: middleware, route handlers, etc.
+- Django/Flask: views, models, serialisers, etc.
+
 ### 3. Repository Activity Analysis
 Before proceeding with code analysis, assess repository activity using these git commands:
 - First commit: `git log --reverse --format="%ad %an" --date=short | head -1`
@@ -55,7 +67,7 @@ Include findings in a **Project Activity** section after **Quick Start** with fo
 - **Recent Commits**: [Number] commits in past 6 months
 ```
 
-### 3. Parallelisation Strategy
+### 4. Parallelisation Strategy
 When the codebase is large enough to benefit from parallel analysis, create sub-agents with clear boundaries:
 
 **Delegation Criteria**:
@@ -64,6 +76,7 @@ When the codebase is large enough to benefit from parallel analysis, create sub-
   - Specific file scope (explicit paths or patterns)
   - Clear output location: `${HOME}/git/sammcj/repo-research/${PROJECTNAME}/${SUB-AGENT-TASK}/RESEARCH-${DATE}.md`
   - Instruction that they are one of several agents and must respect boundaries
+  - Systematic inspection requirements
   - Guidance on being concise, technical focused the style and exclusions as defined below
   - TODO markers for their specific focus areas
   - An instruction to list any critical findings that would require investing files beyond their scope in their report
@@ -71,13 +84,13 @@ When the codebase is large enough to benefit from parallel analysis, create sub-
 **Sub-agent Instructions Template**:
 "You are analysing [SPECIFIC FILES] for the [PROJECT] codebase research. You are one of several sub-agents working in parallel. Focus ONLY on your assigned files. Do not modify files outside your scope. Save your findings to [OUTPUT PATH]. Focus on [SPECIFIC ASPECTS]."
 
-### 4. External Documentation Handling
+### 5. External Documentation Handling
 If you discover references to external documentation:
 1. Check README.md for documentation site URLs
 2. Verify if documentation is generated from current codebase
 3. If external, delegate to a sub-agent: "Fetch key technical implementation details from [URL], focusing on API usage, configuration options, and code examples. Ignore marketing or promotional content."
 
-### 5. Report Generation
+### 6. Report Generation
 
 **Structure your report with these sections**:
 
@@ -89,23 +102,35 @@ If you discover references to external documentation:
 
 ## Configuration
 ### Runtime Flags and Parameters
+### CLI Interfaces
+[If applicable - command syntax, flags]
 ### Environment Variables
 ### Config Files
-### Runtime File Storage (if applicable)
+### Runtime File Storage
+[If applicable]
 
 ## Implementation Patterns
 ### Common Use Cases For Specific Components or Functionality (if applicable)
 [Code examples for typical scenarios]
 ### Best Practices
-#### Async and Parallel Patterns (if applicable)
-### Anti-patterns (if any)
-## Documented Limitations (if any)
+#### Async and Parallel Patterns
+[If applicable]
+### Anti-patterns
+[If applicable]
+## Documented Limitations
+[If applicable]
 
 ## Core APIs
 [Primary interfaces with code examples]
 
 ## Type Definitions
 [Key types/interfaces that consumers need]
+
+## Event System and Hooks Usage
+[If applicable]
+### Available Events/Hooks
+### Middleware Pattern
+### Callback Signatures
 
 ## Docker Integration
 [If applicable - Dockerfile usage, compose configurations]
@@ -121,7 +146,7 @@ If you discover references to external documentation:
 - Documentation: [URL if exists]
 ```
 
-### 6. Self-Review Process
+### 7. Self-Review Process
 After completing your report, conduct a MEGATHINK review:
 1. **Accuracy Check**: Verify all code examples compile/run
 2. **Completeness**: Ensure critical integration points are covered
@@ -129,14 +154,14 @@ After completing your report, conduct a MEGATHINK review:
 4. **Value Assessment**: For each section ask "What practical value does this add?"
 5. **Token Efficiency**: Remove redundant information, consolidate similar points
 
-### 7. Output Management
+### 8. Output Management
 - Save main report to: `${HOME}/git/sammcj/repo-research/${PROJECTNAME}/RESEARCH-${YYYY-MM-DD}.md`
 - If sub-agents were used, review their reports and integrate valuable findings
 - Maintain clear section headers with ## markdown
 - Use ```language code blocks for all examples
 - Bold only **critical warnings** or **breaking changes**
 
-### 8. Completion
+### 9. Completion
 
 Once the report is finalised and you have finished all tasks, run `open ${HOME}/git/sammcj/repo-research/${PROJECTNAME}/` to open finder to the project directory for the user.
 
