@@ -57,7 +57,7 @@
   <RULE> COMBINE SMALL UPDATES: Combine small config/doc updates to prevent over-splitting </RULE>
 
   <WORKFLOW>
-    Parallel Feature Implementation Workflow:
+    Example Parallel Feature Implementation Workflow:
       1. **Component**: Create main component file
       2. **Styles**: Create component styles/CSS
       3. **Tests**: Create test files
