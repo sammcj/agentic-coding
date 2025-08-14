@@ -68,7 +68,34 @@ Include findings in a **Project Activity** section after **Quick Start** with fo
 ```
 
 ### 4. Parallelisation Strategy
-When the codebase is large enough to benefit from parallel analysis, create sub-agents with clear boundaries:
+
+**Automated Analysis**:
+Run the codebase analysis script to determine if parallel processing would be beneficial:
+
+```bash
+./${HOME}/git/sammcj/repo-research/scripts/check_parallel.sh
+```
+
+**Interpreting Results**:
+The script outputs: `.ext:files/lines | total:files/lines | Consider delegating work to sub-agents:YES/NO`
+
+- If output contains `Consider delegating work to sub-agents:YES` → proceed with sub-agent creation
+- If output contains `Consider delegating work to sub-agents:NO` → consider performing single-agent analysis unless you have other reasons to delegate
+- Review per-extension counts to determine optimal sub-agent grouping
+
+**Manual Override Triggers** (Consider using sub-agents regardless of script output):
+- External documentation site discovered (always delegate fetching)
+- Monorepo with distinct services/packages clearly separated
+- User explicitly requests parallel analysis
+
+**Sub-agent Creation Strategy**:
+When delegation is recommended:
+1. Parse the script output to identify high-volume extensions
+2. Create sub-agents for any one extension with >30 files
+3. Group remaining files by logical boundaries (e.g. directory or file type)
+4. Minimum 1, Maximum 5 sub-agents
+
+When the analysis indicates delegation would be beneficial, create sub-agents with clear boundaries:
 
 **Delegation Criteria**:
 - Delegate when you can define clear file groups (e.g., "all .md files in docs/", "all .go files in pkg/") or have found an external documentation site that requires fetching.
@@ -85,6 +112,7 @@ When the codebase is large enough to benefit from parallel analysis, create sub-
 "You are analysing [SPECIFIC FILES] for the [PROJECT] codebase research. You are one of several sub-agents working in parallel. Focus ONLY on your assigned files. Do not modify files outside your scope. Save your findings to [OUTPUT PATH]. Focus on [SPECIFIC ASPECTS]."
 
 ### 5. External Documentation Handling
+
 If you discover references to external documentation:
 1. Check README.md for documentation site URLs
 2. Verify if documentation is generated from current codebase
@@ -234,17 +262,16 @@ Focus on:
 - Error handling paths
 
 **Diagram Requirements**:
-- Keep diagrams concise (max 15-20 nodes for architecture, 10-12 steps for flows)
-- Use clear, technical labels (avoid marketing terms)
+- Keep diagrams concise (max 10-20 nodes for architecture, 10-15 steps for flows)
+- Use clear, technical labels focusing on what would help an AI coding agent or senior developer understand the architecture
 - Apply consistent colour coding for component types
 - Include only architecturally relevant or significant elements
 - Omit internal implementation details
 - Note: Do not use round brackets ( ) in labels or descriptions - use square brackets [ ] or quotes, use <br> instead of \n for line breaks
 
 **Output Location**:
-- Save diagrams in the report under a new section: `## Architecture Visualisations`
-- Place this section after `Core APIs` but before `Type Definitions`
-- Include brief explanatory text only if the diagram requires context
+- Save diagrams in a separate file named `ARCHITECTURE-${YYYY-MM-DD}.md` in the same directory as the main report
+- Include a title and brief explanatory text ONLY if the diagram requires context
 - Mark complex flows with `Note: Simplified for clarity` if abstraction was necessary
 
 **Validation**:
@@ -267,6 +294,7 @@ Once the report is finalised and you have finished all tasks, run `open ${HOME}/
 - Avoid business analysis or market commentary
 - Skip historical context unless it affects current usage
 - Keep explanations concise and technical
+- Ensure any sub-agents you may choose to use follow the same standards
 - Use the tools you have available effectively and efficiently
 - Correct your information if throughout the process you learn new information
 
