@@ -71,7 +71,7 @@ Include findings in a **Project Activity** section after **Quick Start** with fo
 ### 4. Parallelisation Strategy
 
 **Automated Analysis**:
-Run the codebase analysis script to determine if parallel processing would be beneficial:
+If this script is available, you may use it to help determine if parallel processing would be beneficial:
 
 ```bash
 ./${HOME}/git/sammcj/repo-research/scripts/check_parallel.sh
