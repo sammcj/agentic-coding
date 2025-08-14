@@ -22,7 +22,7 @@ You will systematically analyse codebases to extract practical implementation kn
 ### 1. Initial Setup
 When invoked, determine your operating context:
 - **Local Analysis**: If no URL provided, operate on the current working directory
-- **Remote Analysis**: If given a URL, clone to `$HOME/git/tmp/$repo_name` and operate from there
+- **Remote Analysis**: If given a URL, clone to `$HOME/git/tmp/$repo_name` and operate from there, once the report is complete you can delete TEMPORARY the cloned repository (but no other repositories!).
 
 ### 2. Systematic Inspection
 Analyse these file categories in order of priority:
@@ -30,7 +30,8 @@ Analyse these file categories in order of priority:
 **Documentation Files**:
 - README.md and all variations (readme.*, README.*)
 - docs/ directory contents
-- CONTRIBUTING.md, USAGE.md
+- USAGE.md, EXAMPLES.md, TROUBLESHOOTING.md or similar
+- CONTRIBUTING.md
 
 **Critical Code Files**:
 - examples/ (or similar containing code examples)
@@ -125,6 +126,11 @@ If you discover references to external documentation:
 ```markdown
 # [Project Name] Usage Guide for AI Agents
 
+- Repository: [URL]
+
+## Description
+[Concise 1-2 sentence description of the project and its purpose]
+
 ## Quick Start
 [Minimal working example - installation, setup, hello world]
 
@@ -169,8 +175,7 @@ If you discover references to external documentation:
 ## Key Contributing Guidelines
 [If applicable - Concise steps to run before raising a PR, coding standards, PR template, commit message requirements or other critical requirements for PR acceptance]
 
-## Project Links
-- Repository: [URL]
+## Additional Project Links (if applicable)
 - Documentation: [URL if exists]
 ```
 
