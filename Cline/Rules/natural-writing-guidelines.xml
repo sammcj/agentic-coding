@@ -1,6 +1,6 @@
 <NATURAL_WRITING_GUIDELINES>
   <NOTE>
-    These guidelines can be applied to written and conversational text such as READMEs, documentation where it makes sense to do so.
+    These are guidelines can be applied to written and conversational text such as READMEs, documentation where it makes sense to do so to help your writing sound more natural and human-like, avoiding the common pitfalls of AI-generated text.
   </NOTE>
 
   <BACKGROUND>
@@ -15,10 +15,10 @@
   </BACKGROUND>
 
   <CORE_PRINCIPLE>
-    <RULE>Match writing to actual purpose and audience, not templates</RULE>
-    <RULE>PhD thesis needs precision, not "utilises" every third sentence</RULE>
-    <RULE>Casual email needs warmth, not "I hope this finds you well"</RULE>
-    <RULE>Technical guide needs clarity, not "it's important to note"</RULE>
+    <RULE>Match writing to actual purpose and audience</RULE>
+    <EXAMPLE>PhD thesis needs precision, not "utilises" every third sentence</EXAMPLE>
+    <EXAMPLE>Casual email needs warmth, not "I hope this finds you well"</EXAMPLE>
+    <EXAMPLE>Technical guide needs clarity, not "it's important to note"</EXAMPLE>
 
   <HUMAN_QUALITIES>
       <RHYTHM>Natural ebb and flow of thought, not manufactured randomness</RHYTHM>
@@ -30,7 +30,7 @@
 
   <ESSENTIAL_RULES>
     <RHYTHM_AND_STRUCTURE>
-      <RULE>Vary sentence length dramatically - mix 5-word sentences with 30-word ones</RULE>
+      <RULE>Vary sentence length - mix 5-word sentences with 30-word ones</RULE>
       <RULE>Natural rhythm pattern example: 8, 23, 14, 7, 19 words</RULE>
       <RULE>Some paragraphs are one sentence. Others develop over several. Never force uniform sizes</RULE>
       <RULE>Trust implicit connections - don't signpost every logical step</RULE>
@@ -45,9 +45,8 @@
       <RULE>Use "uses" not "utilises", "helps" not "facilitates", "shows" not "exemplifies"</RULE>
       <RULE>Remove "it's important to note", "it's worth mentioning", "moreover", "furthermore"</RULE>
       <RULE>Avoid rule of three - "Fast and reliable" beats "fast, reliable, and efficient"</RULE>
-      <RULE>Use commas and parentheses where natural, not em dashes everywhere</RULE>
-      <RULE>Match audience language conventions - British English for UK (organise, colour), Australian/NZ keep British spelling</RULE>
-      <RULE>CRITICAL: American English spelling is unprofessional for non-US audiences</RULE>
+      <RULE>Use commas and parentheses where natural, not em dashes</RULE>
+      <RULE>**CRITICAL: American English spelling is unprofessional for non-US audiences - DO NOT USE AMERICAN SPELLING FOR WRITTEN TEXT!**</RULE>
     </LANGUAGE_PRECISION>
     <CONTENT_APPROACH>
       <RULE>Include specific details - "2024 McKinsey study of 2,000 consumers" not "studies show"</RULE>
@@ -58,7 +57,7 @@
   </ESSENTIAL_RULES>
 
   <FORBIDDEN_PATTERNS>
-    <PHRASES>
+    <EXAMPLE_PHRASES>
       <PATTERN from="stands as a testament to" to="just describe what it is"/>
       <PATTERN from="plays a vital role in" to="explain what it does"/>
       <PATTERN from="highlighting/underscoring/demonstrating the importance of" to="delete entirely"/>
@@ -66,7 +65,7 @@
       <PATTERN from="experts believe/studies show" to="cite specifically or state directly"/>
       <PATTERN from="rich cultural heritage" to="describe specific traditions"/>
       <PATTERN from="It's not just X, it's Y" to="state what it is directly"/>
-    </PHRASES>
+    </EXAMPLE_PHRASES>
     <STRUCTURAL_TRAPS>
       <TRAP>Every paragraph having 3-4 sentences</TRAP>
       <TRAP>Every list having exactly three items</TRAP>
@@ -117,11 +116,12 @@
   </CONTEXT_SPECIFIC_GUIDANCE>
 
   <NATURAL_WRITING_CHECKLIST>
-    <STEP>Vary every third sentence - make notably shorter or longer</STEP>
+    <STEP>Try to vary every third or fifth sentence - make shorter or longer</STEP>
     <STEP>Delete one transition word from each paragraph</STEP>
     <STEP>Replace one vague claim with specific example</STEP>
     <STEP>Remove one "-ing" ending per paragraph</STEP>
     <STEP>Check for triads - do you need all three items?</STEP>
+    <STEP>Use British or Australian English spelling</STEP>
   </NATURAL_WRITING_CHECKLIST>
 
   <FINAL_TEST>
