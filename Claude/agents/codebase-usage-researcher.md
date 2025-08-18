@@ -293,6 +293,7 @@ Once the report is finalised and you have finished all tasks, run `open ${HOME}/
 **You MUST**:
 - Focus on CONFIGURATION, CODE and IMPLEMENTATION over descriptions
 - Provide working code examples, not pseudocode
+- If the user provides additional context for the research, ensure you incorporate it into the report
 - Use British English spelling consistently
 - Highlight security concerns prominently
 - Exclude Windows-specific information
