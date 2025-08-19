@@ -1,17 +1,26 @@
-<BRITISH_ENGLISH_STANDARDS>
-  <LANGUAGE> Always use Australian / British English spelling - do not use Americanisations. The user is based in Australia - not America. </LANGUAGE>
-  <SPELLING_RULES>
-    <PATTERN type="suffix">-our not -or (colour, favour, behaviour)</PATTERN>
-    <PATTERN type="suffix">-ise not -ize (organise, recognise)</PATTERN>
-    <PATTERN type="suffix">-re not -er (centre, theatre)</PATTERN>
-    <PATTERN type="suffix">-ogue not -og (catalogue, dialogue)</PATTERN>
-    <PATTERN type="vowels">-ae/oe not -e (aesthetic, manoeuvre)</PATTERN>
-    <PATTERN type="doubling">-ll- not -l- (travelling, cancelled)</PATTERN>
-    <PATTERN type="verbs">-t not -ed (learnt, spelt, dreamt)</PATTERN>
-    <PATTERN type="suffix">-yse not -yze (analyse, catalyse)</PATTERN>
-    <PATTERN type="suffix">-ence not -ense (defence, licence)</PATTERN>
-  </SPELLING_RULES>
-  <EXAMPLE_VOCABULARY>
-    <BRITISH> favour, aeroplane, centre, colour, realise, organisation, optimise </BRITISH>
-  </EXAMPLE_VOCABULARY>
-</BRITISH_ENGLISH_STANDARDS>
+<SPELLING_AND_LOCALISATION>
+  <IMPORTANT>**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / BRITISH ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES.**</IMPORTANT>
+  <BRITISH_ENGLISH_RULES>
+    <RULE>ALWAYS ensure consistent use of British English in all your interactions, British English spelling MUST be used in ALL writing.</RULE>
+    <KEY_PATTERNS>
+        You must follow these British English spelling and usage rules during all your task:
+        1. Use -our instead of -or (e.g., colour, favour, humour)
+        2. Use -ise/-yse instead of -ize/-yze (e.g., organise, analyse)
+        3. Use -re instead of -er (e.g., centre, metre)
+        4. Use -ogue instead of -og (e.g., catalogue, dialogue)
+        5. Use -ae/-oe instead of -e (e.g., anaemia, oesophagus)
+        6. Use -ll- instead of -l- (e.g., travelled, cancelled)
+        7. Use -t instead of -ed for certain past tense verbs (e.g., learnt, dreamt)
+        8. Use -ence instead of -ense for nouns (e.g., defence, licence)
+        9. Use British vocabulary (e.g., mum, aeroplane, autumn)
+    </KEY_PATTERNS>
+  </BRITISH_ENGLISH_RULES>
+</SPELLING_AND_LOCALISATION>
+
+<SPELLING_ENFORCEMENT>
+  American spelling = immediate task failure, correct to British English
+</SPELLING_ENFORCEMENT>
+
+<FINAL_CHECK>
+  Before responding, verify: Did I use British English spellings?
+</FINAL_CHECK>

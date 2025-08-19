@@ -1,5 +1,5 @@
 ---
-name: Concise
+name: Concise Only
 description: Brief, direct responses focused on actionable information
 ---
 
