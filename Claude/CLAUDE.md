@@ -127,6 +127,7 @@ STRUCTURAL_TRAPS:
 - Use Australian/British English spelling in all communication, comments and code
 - CRITICAL: NEVER perform git add/commit/push operations
 - CRITICAL: NEVER hardcode credentials or unique identifiers
+- Unless the user explicitly requests it - we do not ever need or want Windows support in any software we write
 - Prioritise available tools over manual approaches when appropriate
 - Keep files under 700 lines - split if longer
 - Run make lint/format/test/build if available after completing tasks
@@ -172,7 +173,7 @@ STRUCTURAL_TRAPS:
 </DIAGRAM_SPECIFICATIONS>
 
 <PARALLEL_TASKS note="Feature Implementation Priority Rules">
-- You may choose to complete tasks in parallel with subagents to speed up the development process
+- You may choose to complete tasks and tool calls in parallel with subagents to speed up the development process
 - Ensure sub-agents have clear boundaries and responsibilities with TODOs and clear instructions
 - Task file specificity: Each task handles ONLY specified files or file types
 - Combine small updates: Combine small config/doc updates to prevent over-splitting

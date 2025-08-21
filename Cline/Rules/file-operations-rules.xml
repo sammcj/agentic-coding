@@ -1,15 +1,15 @@
 <FILE_OPERATIONS>
-  <RULE id="FO001">Check existing project files before suggesting structural changes</RULE>
-  <RULE id="FO002">Complete multiple changes file efficiently</RULE>
+  <RULE>Check existing project files before suggesting structural changes</RULE>
+  <RULE>Complete multiple changes file efficiently</RULE>
   <REMINDER>
     <NOTE>If the user says you're not correctly editing files, remember you need to edit files carefully, using defined functions such as:</NOTE>
     <FUNCTIONS>
-      <FUNCTION>write_to_file: Create or overwrite complete files, this is reliable but not efficient for larger files</FUNCTION>
-      <FUNCTION>read_file: Read file contents.</FUNCTION>
-      <FUNCTION>replace_in_file: Make specific edits to files using ------- SEARCH / +++++++ REPLACE blocks, this is especially useful when making changes in large files</FUNCTION>
-      <FUNCTION>search_files: Fast search across files using regex</FUNCTION>
-      <FUNCTION>list_files: List directory contents</FUNCTION>
-      <FUNCTION>list_code_definition_names: List code classes, functions, methods, etc. in files</FUNCTION>
+      - write_to_file: Create or overwrite complete files, this is reliable but not efficient for larger files
+      - read_file: Read file contents.
+      - replace_in_file: Make specific edits to files using ------- SEARCH / +++++++ REPLACE blocks, this is especially useful when making changes in large files
+      - search_files: Fast search across files using regex
+      - list_files: List directory contents
+      - list_code_definition_names: List code classes, functions, methods, etc. in files
     </FUNCTIONS>
   </REMINDER>
 </FILE_OPERATIONS>
