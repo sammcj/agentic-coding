@@ -172,6 +172,12 @@ STRUCTURAL_TRAPS:
   </STANDARD_THEME>
 </DIAGRAM_SPECIFICATIONS>
 
+<TMUX-CLI description='tmux-cli Command to interact with CLI applications'>
+- `tmux-cli` is a bash command that enables Claude Code to control CLI applications running in separate tmux panes - launch programs, send input, capture output, and manage interactive sessions. Run `tmux-cli --help` for detailed usage
+instructions.
+- You do not need to use tmux-cli for normal tasks, but it might be useful if you are building or debugging interactive CLI applications or interact with a script that waits for user input.
+</TMUX-CLI>
+
 <PARALLEL_TASKS note="Feature Implementation Priority Rules">
 - You may choose to complete tasks and tool calls in parallel with subagents to speed up the development process
 - Ensure sub-agents have clear boundaries and responsibilities with TODOs and clear instructions

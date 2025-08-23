@@ -7,6 +7,7 @@
     - [Tips For Writing Rules](#tips-for-writing-rules)
   - [Sub-Agent Definitions](#sub-agent-definitions)
   - [Links](#links)
+  - [Notes](#notes)
   - [License](#license)
 
 A collection of coding rules, templates, MCP servers and examples for working with Agentic Coding tools (Cline, Claude Code etc...)
@@ -76,6 +77,10 @@ Claude Code recently introduced the concept of [sub-agents](https://docs.anthrop
 - [Blog - smcleod.net](https://smcleod.net)
 - [GitHub - sammcj](https://github.com/sammcj)
 - [Cline](https://cline.bot): IMO The best agentic coding tool.
+
+## Notes
+
+- iIf you see 'tmux-cli' in any rules, you need to install it - https://github.com/dkmin/cc-tools
 
 ## License
 
