@@ -80,7 +80,7 @@ Claude Code recently introduced the concept of [sub-agents](https://docs.anthrop
 
 ## Notes
 
-- iIf you see 'tmux-cli' in any rules, you need to install it - [pchalasani/claude-code-tools](https://github.com/pchalasani/claude-code-tools)
+- If you see 'tmux-cli' in any rules, you need to install it - [pchalasani/claude-code-tools](https://github.com/pchalasani/claude-code-tools)
 
 ## License
 
