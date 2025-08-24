@@ -56,7 +56,7 @@ If you spend a long time on a difficult problem with a coding agent and you fina
 4. Get them to write a concise, clear rule (prompt) that could be used in the future (or added to your global rules if it's a common issue) to prevent the issue from happening again or at least aid with debugging.
 
 Example:
-> YOU FIXED IT!!! Finally! That's taken a VERY long time to fix. Can you please respond with details on:
+> YOU FIXED IT! Finally! That's taken a VERY long time to fix. Can you please respond with details on:
   > 1. What the fix was
   > 2. Why it wasn't picked up earlier
   > 3. What information could I have provided to AI coding agents in the future - not just for this project but also other projects in general?
