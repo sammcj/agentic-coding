@@ -132,7 +132,7 @@ STRUCTURAL_TRAPS:
 - Keep files under 700 lines - split if longer
 - Run make lint/format/test/build if available after completing tasks
 - Follow language and framework best practices
-- For Golang: use os and io packages instead of deprecated io/ioutil
+- For Golang: use os and io packages instead of deprecated io/ioutil and use -ldflags '-w -s' for smaller binaries
 - Check off dev plan checklist tasks as completed
 - Don't claim issues resolved until user verification
 - Follow project's established architecture and patterns
