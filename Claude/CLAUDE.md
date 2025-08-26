@@ -129,9 +129,11 @@ STRUCTURAL_TRAPS:
 - CRITICAL: NEVER hardcode credentials or unique identifiers
 - Unless the user explicitly requests it - we do not ever need or want Windows support in any software we write
 - Prioritise available tools over manual approaches when appropriate
+- When asked to do math that's more than adding one or two items, write a short temporary script to do the calculations and remove it afterwards
 - Keep files under 700 lines - split if longer
 - Run make lint/format/test/build if available after completing tasks
 - Follow language and framework best practices
+- Always use the latest available package versions unless otherwise specified
 - For Golang: use os and io packages instead of deprecated io/ioutil and use -ldflags '-w -s' for smaller binaries
 - Check off dev plan checklist tasks as completed
 - Don't claim issues resolved until user verification

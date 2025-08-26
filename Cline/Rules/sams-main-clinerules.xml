@@ -21,7 +21,7 @@
       <RULE> If you know how something should behave, write a simple test for that behaviour, then implement the code to pass that test </RULE>
       <RULE> Variables should have sensible defaults in the code but should be parameterised and available as configuration options where appropriate </RULE>
       <RULE> Ensure files do not become longer than 700 lines, if a file is over 700 lines, split them it into smaller files </RULE>
-      <RULE> If the user provides you with a project development plan, make s ure you update it after completing milestones </RULE>
+      <RULE> If the user provides you with a project development plan, make sure you update it after completing milestones </RULE>
       <RULE> When writing development plans do not include time estimates </RULE>
       <RULE> Never hardcode credentials or unique identifiers in code or documentation </RULE>
       <RULE> When executing long running interactive commands (e.g. pnpm dev, make run etc..) run them with the timeout command so you don't sit there waiting for them forever </RULE>
