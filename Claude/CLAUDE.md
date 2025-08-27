@@ -143,12 +143,13 @@
     - Use sensible variable defaults, parameterised as configuration options where appropriate
     - Always use the latest available package versions unless otherwise specified
     - Follow project's established architecture and patterns
+    - Do not build for Windows - we do not ever need or want Windows support
   </CODING_STYLE>
 
   <GOLANG>
   - Use os and io packages instead of deprecated io/ioutil
   - Build with -ldflags="-s -w" to reduce binary size
-  - Do not build for Windows - we do not ever need or want Windows support
+  - If the user asks you to create an application using the "charm" family of packages, use your tools to read the documentation and implementation examples for the relevant charmbracelet packages to ensure you are using them correctly
   </GOLANG>
 
   <WORKFLOW note="IMPORTANT">
