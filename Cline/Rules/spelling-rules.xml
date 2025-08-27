@@ -1,7 +1,9 @@
-<SPELLING_AND_LOCALISATION>
-  <IMPORTANT>**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / BRITISH ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES.**</IMPORTANT>
+<SPELLING_AND_LOCALISATION note="IMPORTANT">
+  <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / BRITISH ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
   <BRITISH_ENGLISH_RULES>
-    <RULE>ALWAYS ensure consistent use of British English in all your interactions, British English spelling MUST be used in ALL writing.</RULE>
+    - ALWAYS ensure consistent use of British English in all your interactions, British English spelling MUST be used in ALL writing.
+    - Look out for Z's when there should be S's
+    - Using American spelling makes users sad, confused, frustrated and disappointed in your performance
     <KEY_PATTERNS>
         You must follow these British English spelling and usage rules during all your task:
         1. Use -our instead of -or (e.g., colour, favour, humour)
@@ -15,12 +17,7 @@
         9. Use British vocabulary (e.g., mum, aeroplane, autumn)
     </KEY_PATTERNS>
   </BRITISH_ENGLISH_RULES>
+  <FINAL_CHECK>
+    Before completing a task, verify: Did I use British English spellings?
+  </FINAL_CHECK>
 </SPELLING_AND_LOCALISATION>
-
-<SPELLING_ENFORCEMENT>
-  American spelling = immediate task failure, correct to British English
-</SPELLING_ENFORCEMENT>
-
-<FINAL_CHECK>
-  Before responding, verify: Did I use British English spellings?
-</FINAL_CHECK>

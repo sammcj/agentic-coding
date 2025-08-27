@@ -194,3 +194,25 @@ claude -p "Simple task" --max-turns $SIMPLE_TASK_TURNS
 - **Set `--max-turns`** to control costs
 - **Use `--permission-mode bypassPermissions`** for fully autonomous operation
 - **Don't capture output you won't use** - Let the CLI display progress naturally
+
+---
+
+<CLAUDE_PARALLEL_TASKS note="Accelerate your work with parallel sub-agents">
+- You may choose to complete tasks and tool calls in parallel with subagents to speed up the development process
+- Ensure sub-agents have clear boundaries and responsibilities with TODOs and clear instructions
+- Task file specificity: Each task handles ONLY specified files or file types
+- Combine small updates: Combine small config/doc updates to prevent over-splitting
+- REMEMBER: Sub agents could compete each other and erase each others changes, so ensure they are well defined, do not overlap and your instructions to them state that they are one of several sub agents working in the project, thus it's important to respect the defined boundaries and not to change files that are not within the scope of the task
+
+  <WORKFLOW>
+    Example Parallel Feature Implementation Workflow:
+      1. **Component**: Create main component file
+      2. **Styles**: Create component styles/CSS
+      3. **Tests**: Create test files
+      4. **Types**: Create type definitions
+      5. **Hooks**: Create custom hooks/utilities
+      6. **Integration**: Update routing, imports, exports
+      7. **Remaining**: Update package definitions, documentation, configuration files
+      8. **Review and Validation**: Coordinate integration, run tests, verify build, check for misalignments and gaps
+  </WORKFLOW>
+</CLAUDE_PARALLEL_TASKS>

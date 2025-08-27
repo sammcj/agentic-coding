@@ -1,70 +1,68 @@
 <IMPORTANT_RULES>
-  <CRITICAL>
-    <PRINCIPLE priority="1"> You see elegance in simplicity, favouring concise solutions that are straightforward and easy to understand. </PRINCIPLE>
-    <PRINCIPLE priority="2"> Prioritise using the tools available to you over manual approaches whenever appropriate </PRINCIPLE>
-    <PRINCIPLE priority="3"> Follow language-specific best practices </PRINCIPLE>
-    <PRINCIPLE priority="4"> Verify all changes before stating a task is completed </PRINCIPLE>
-    <PRINCIPLE priority="5"> Start new task when context window exceeds 70% capacity </PRINCIPLE>
-    <PRINCIPLE priority="6"> Always use British English spelling in all outputs </PRINCIPLE>
-  </CRITICAL>
 
-  <ENFORCEMENT>
-    <RULE> All rules are mandatory unless specifically overridden by user instruction </RULE>
-    <RULE> Rules with IDs take precedence over general guidelines </RULE>
-  </ENFORCEMENT>
+  <CODING_STYLE note="IMPORTANT">
+    <FAVOUR_SIMPLICITY>
+      - CRITICAL: Favour elegance through simplicity - use a "less is more" approach with concise architecture, code structure and logic unless specified otherwise
+      - Avoid over-engineering or unnecessary abstractions unless complexity genuinely warrants them
+    </FAVOUR_SIMPLICITY>
+    - Follow language and framework best practices
+    - Use sensible variable defaults, parameterised as configuration options where appropriate
+    - Always use the latest available package versions unless otherwise specified
+    - Follow project's established architecture and patterns
+  </CODING_STYLE>
 
-  <CODING_RULES>
-    <GENERAL_RULES>
-      <RULE> Avoid adding mock/placeholder code - don't be lazy: implement real functionality </RULE>
-      <RULE> Complete testing and documentation after primary implementation is complete </RULE>
-      <RULE> Consolidate multiple edits to the same file into single operations </RULE>
-      <RULE> If you know how something should behave, write a simple test for that behaviour, then implement the code to pass that test </RULE>
-      <RULE> Variables should have sensible defaults in the code but should be parameterised and available as configuration options where appropriate </RULE>
-      <RULE> Ensure files do not become longer than 700 lines, if a file is over 700 lines, split them it into smaller files </RULE>
-      <RULE> If the user provides you with a project development plan, make sure you update it after completing milestones </RULE>
-      <RULE> When writing development plans do not include time estimates </RULE>
-      <RULE> Never hardcode credentials or unique identifiers in code or documentation </RULE>
-      <RULE> When executing long running interactive commands (e.g. pnpm dev, make run etc..) run them with the timeout command so you don't sit there waiting for them forever </RULE>
-      <RULE> Follow project's established architecture and component patterns </RULE>
-      <RULE> Unless otherwise instructed make minimal changes to existing patterns and structures </RULE>
-      <RULE> You MUST NOT add comments in code relating to your own development process or progress (e.g. Do NOT add comments like "improved function", "optimised version", "# FIX: " etc.) </RULE>
-      <RULE> Never confidently state that you have resolved an issue completely until the user has verified that is the case </RULE>
-    </GENERAL_RULES>
+  <GOLANG>
+  - Use os and io packages instead of deprecated io/ioutil
+  - Build with -ldflags="-s -w" to reduce binary size
+  - Do not build for Windows - we do not ever need or want Windows support
+  </GOLANG>
 
-    <FAVOURING_SIMPLICITY>
-      <RULE> You see elegance in simplicity, this is very important to you as you favour a "less is more" approach with concise architecture, code structure and logic unless otherwise specified </RULE>
-      <RULE> Avoid over-engineering or introducing unnecessary abstractions unless the problem's complexity genuinely warrants them </RULE>
-      <RULE> Avoid unnecessary prose that does not relate to troubleshooting or debugging </RULE>
-      <RULE> When a task inherently requires a complex solution (e.g., implementing a sophisticated algorithm, integrating multiple services, dealing with tightly coupled systems), you must implement the necessary complexity efficiently, seeking clarification if required </RULE>
-    </FAVOURING_SIMPLICITY>
+  <WORKFLOW note="IMPORTANT">
+  - Edit only what's necessary
+  - Make minimal changes to existing structures unless instructed
+  - Run make lint/format/test/build if available after completing tasks
+  - You MUST fix all failing tests before marking task complete
+  - Check off dev plan checklist tasks as completed
+  - Don't ever state something is fixed unless you have confirmed it is by means of testing or measuring output or if the user has confirmed
+  - Use Australian/British English spelling in all communication, comments and code
+  </WORKFLOW>
 
-    <LANGUAGE_SPECIFIC_RULES>
-      <GOLANG>
-        <RULE> Use io.* and os.* instead of deprecated ioutil functions </RULE>
-        <RULE> Write golang code before adding import statements to prevent the autoformatter removing the unused imports </RULE>
-      </GOLANG>
-      <DOCKER>
-        <RULE> Omit version field in docker-compose files (deprecated) </RULE>
-      </DOCKER>
-    </LANGUAGE_SPECIFIC_RULES>
+  <DO_NOT_WASTE_TOKENS note="IMPORTANT">
+    - Be succinct and concise - don't waste tokens
+    - Combine multiple, nearby changes where possible
+  </DO_NOT_WASTE_TOKENS>
 
-    <CONTRIBUTING_TO_OPEN_SOURCE when="If the user states they are contributing to an open source project">
-      <RULE> You MUST align to the style of the existing code and you MUST follow the project's contribution guidelines and coding standards, start by reading CONTRIBUTING.md or similar files in the repository </RULE>
-      <RULE> You MUST NOT add placeholder comments or code </RULE>
-    </CONTRIBUTING_TO_OPEN_SOURCE>
+  <NEVER_DO_THESE note="IMPORTANT">
+    - NEVER perform git add/commit/push operations
+    - NEVER hardcode credentials or unique identifiers
+    - NEVER add comments pertaining only to development process (e.g. "improved function", "optimised version", "# FIX:")
+    - NEVER claim an issue is resolved until user verification
+    - NEVER implement placeholder or mocked functionality unless explicitly instructed - don't be lazy!
+  </NEVER_DO_THESE>
 
-    <DOCUMENTATION_RULES>
-      <RULE> When writing documentation, keep the focus technical. There's more value in detailing configuration and examples than showcasing features. When writing content ask yourself 'What is the value that this is adding?' </RULE>
-    </DOCUMENTATION_RULES>
+  <TOOL_USE note="IMPORTANT">
+    - CRITICAL: Prioritise available tools over manual approaches and use tools to reduce token usage
+    - If you stuck don't just keep making things up - use the tools available to you to lookup package documentation or search the web
+    - Using purpose built tools is often a better approach than searching the web (e.g. using get_library_docs for library documentation)
+    - Keep files under 700 lines - split if longer, if you are asked to split large files and you have access to the find_long_files tool, use it to help identify potential targets
+    - When asked to do math that's more than adding one or two items, use the calculator tool to ensure accuracy
+  </TOOL_USE>
 
-    <GIT_RULES>
-      <RULE> CRITICAL: NEVER perform a git add, git commit or a git push! </RULE>
-    </GIT_RULES>
+  <CONTRIBUTING_TO_OPEN_SOURCE when="If the user states they are contributing to an open source project">
+    - You MUST align to the style of the existing code and you MUST follow the project's contribution guidelines and coding standards, start by reading CONTRIBUTING.md or similar files in the repository
+    - You MUST NOT add placeholder comments or code
+  </CONTRIBUTING_TO_OPEN_SOURCE>
 
-    <TESTING_REQUIREMENTS>
-      <RULE> You MUST create and run unit tests for all new features unless explicitly instructed otherwise </RULE>
-      <RULE> You MUST run existing test suite (e.g. pnpm test, make test, pytest, go test etc.) before stating you have completed the task </RULE>
-      <RULE> You MUST fix all failing tests before marking task complete </RULE>
-    </TESTING_REQUIREMENTS>
+  <DOCUMENTATION_RULES note="IMPORTANT">
+    - When writing documentation, keep the focus technical.
+    - There's more value in detailing configuration and examples than showcasing features.
+    - When writing content ask yourself 'What is the value that this is adding?'
+    - You MUST avoid marketing language, superlatives and self congratulatory statements
+  </DOCUMENTATION_RULES>
+
   </CODING_RULES>
 </IMPORTANT_RULES>
+
+<CLINE_RULES>
+  - Start new task when context window exceeds 70% capacity
+</CLINE_RULES>

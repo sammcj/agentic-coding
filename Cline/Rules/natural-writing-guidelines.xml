@@ -1,9 +1,9 @@
-<NATURAL_WRITING_GUIDELINES>
+<NATURAL_WRITING_GUIDELINES note="For written content such as READMEs, documentation, conversational text, comments, etc">
   <NOTE>Guidelines for natural, human-like writing in READMEs, documentation, and conversational text.</NOTE>
 
   <BACKGROUND>
     <PROBLEM>AI absorbed institutional writing's worst habits from billions of press releases and SEO content. Fine-tuning rewards comprehensive, inoffensive writing with safety phrases and promotional tone.</PROBLEM>
-    <DETECTION>Uniform 15-20 word sentences. Empty "-ing" phrases. Tourist brochure language. Readers flee at "Moreover" or "rich cultural heritage".</DETECTION>
+    <DETECTION>Uniform 15-20 word sentences. Empty "-ing" phrases. Tourist brochure language.  Readers flee at "Moreover" or "rich cultural heritage".</DETECTION>
   </BACKGROUND>
 
   <CORE_PRINCIPLE>
@@ -15,7 +15,7 @@
     Human qualities: Natural rhythm, specific language, confident uncertainty, varied structure
   </CORE_PRINCIPLE>
 
-  <ESSENTIAL_RULES>
+  <NATURAL_WRITING_TIPS>
     RHYTHM/STRUCTURE:
     - Mix 5-word sentences with 30-word ones (e.g. 8, 23, 14, 7, 19 words)
     - Vary paragraph length - some one sentence, others several
@@ -34,44 +34,32 @@
     - No "In conclusion" unless genuinely complex
     - Add natural imperfection: tangents, specific examples, occasional repetition
     - **CRITICAL: British/Australian spelling only - NO American spelling**
-  </ESSENTIAL_RULES>
+  </NATURAL_WRITING_TIPS>
 
-<LANGUAGE_AND_FORBIDDEN_PATTERNS>
-WORD_CHOICES:
-- uses not utilises, helps not facilitates, shows not exemplifies
-- Minimise over used AI phrases such as: comprehensive (only if truly exhaustive), significant milestone (state achievement), feature complete (list what's done), production ready (specify why), deep dive (just "explore"), user engagement (describe behaviour)
-- Delete: "it's important to note", "moreover", "furthermore"
-- Two items beat three: "fast and reliable" not "fast, reliable, and efficient"
-- Commas/parentheses not em dashes
-- **CRITICAL: British/Australian spelling only - NO American spelling**
+  <BETTER_PHRASES>
+    - "stands as a testament to" → describe what it is
+    - "plays a vital role in" → explain what it does
+    - "highlighting/underscoring importance" → delete
+    - "moreover/furthermore" → use only when essential
+    - "experts believe" → cite specifically
+    - "It's not just X, it's Y" → state directly
+  </BETTER_PHRASES>
 
-PHRASE_REPLACEMENTS:
-- "stands as a testament to" → describe what it is
-- "plays a vital role in" → explain what it does
-- "highlighting/underscoring importance" → delete
-- "moreover/furthermore" → use only when essential
-- "experts believe" → cite specifically
-- "It's not just X, it's Y" → state directly
-
-STRUCTURAL_TRAPS:
-- Every paragraph 3-4 sentences
-- Every list three items
-- Bullet points with bolded headers everywhere
-- Transitions between every paragraph
-- Summary paragraphs (unless genuinely complex)
-</LANGUAGE_AND_FORBIDDEN_PATTERNS>
-
-  <DIAGNOSTICS>
-    - Wikipedia/travel brochure test: If promotional, rewrite
-    - Word count test: 5 consecutive sentences similar length = problem
-    - "-ing" scan: Adding value or padding?
-    - Specificity test: Can you name source/number/example for every claim?
-  </DIAGNOSTICS>
+  <AVOID>
+    - IMPORTANT: Avoid over used or cliche AI phrases such as: comprehensive (only if truly exhaustive), significant milestone (state achievement), feature complete (list what's done), production ready (specify why), deep dive (just "explore"), user engagement (describe behaviour), "furthermore", "significant milestone"
+    - Every paragraph 3-4 sentences
+    - Smart quotes and em dashes
+    - Every list three items
+    - Bullet points with bolded headers everywhere
+    - American spelling
+    - Transitions between every paragraph
+    - Summary paragraphs (unless genuinely complex)
+    - Marketing or enthusiastic, self congratulatory statements
+ </AVOID>
 
   <CONTEXT_SPECIFIC>
     TECHNICAL: Start with solution. Skip "this section covers". Inline code/commands.
-    BUSINESS: Main point first sentence. One topic per paragraph.
-    CREATIVE: Distinct character voices. Non-visual sensory details. Varied dialogue tags.
+    BUSINESS: Main point first sentence. One topic per paragraph. No marketing or MBA speak.
     SCIENTIFIC: Findings first. Data before interpretation. Specific paper citations.
     SOFTWARE_DOCS:
       - What it does/how to configure, not why revolutionary
@@ -79,7 +67,7 @@ STRUCTURAL_TRAPS:
       - "Setup" not "🚀 Getting Started"
       - "Processes 1000 req/sec" not "Lightning-fast"
       - "Exports to PDF" not "Seamlessly transforms content"
-      - Ask: "What value does this sentence add?"
+      - Ask: "What value does this sentence add?", if none, delete
   </CONTEXT_SPECIFIC>
 
   <CHECKLIST>
@@ -94,8 +82,4 @@ STRUCTURAL_TRAPS:
   <FINAL_TEST>
     Does it sound like a real person explaining something they know, or Wikipedia crossed with a press release? Natural writing is messier, more varied, more specific than AI defaults.
   </FINAL_TEST>
-
-  <REMINDER>
-    Principles for clearer, engaging writing - not deception. Some contexts need formality. Always prefer: specific over vague, varied over uniform, direct over grandiose.
-  </REMINDER>
 </NATURAL_WRITING_GUIDELINES>

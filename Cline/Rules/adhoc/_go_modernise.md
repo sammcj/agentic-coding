@@ -24,3 +24,6 @@ CRITICAL: Follow these rules when writing Go code to avoid outdated patterns tha
 
 ### Formatting
 - Use `fmt.Appendf(nil, format, args...)` instead of `[]byte(fmt.Sprintf(format, args...))`
+
+### Build without debug symbols
+- Use `go build -ldflags="-s -w"` to reduce binary size
