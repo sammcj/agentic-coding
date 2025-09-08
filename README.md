@@ -6,6 +6,13 @@
   - [Coding Agent Rules](#coding-agent-rules)
     - [Tips For Writing Rules](#tips-for-writing-rules)
   - [Sub-Agent Definitions](#sub-agent-definitions)
+  - [Tips For Agentic Coding](#tips-for-agentic-coding)
+    - [Getting High Quality Outcomes](#getting-high-quality-outcomes)
+    - [Context Window \& Token Usage](#context-window--token-usage)
+    - [Agent Rules](#agent-rules)
+    - [Agent Tools (MCP Servers)](#agent-tools-mcp-servers)
+    - [Claude Code Tips](#claude-code-tips)
+    - [Client Tooling - Not All Created Equal](#client-tooling---not-all-created-equal)
   - [Links](#links)
   - [Notes](#notes)
   - [License](#license)
@@ -69,6 +76,75 @@ Example:
 Claude Code recently introduced the concept of [sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents), which are essentially agents that can be called by other agents to handle specific tasks or workflows.
 
 - [Sub-Agent Definitions](./SubAgents/)
+
+---
+
+## Tips For Agentic Coding
+
+### Getting High Quality Outcomes
+- Treat an agent like you would someone who just joined your team, don't assume they know anything about your codebase or intended outcomes. Unless the task is very simple and self explanatory - a single sentence is probably not going to be enough for a prompt. GIGO.
+- Manage the context window usage effectively (see other notes here on this).
+- Start with a plan - break down large or complex tasks into a checklist of items to complete, have the agent follow and mark off items has it completes them.
+- Make use of tools (MCP servers), they extend and enhance LLMs with access to up to date information, new capabilities and integrations.
+- Always have tools available to the agent that allow it to search the web, lookup package documentation, efficiently retrieve web page content as markdown.
+- Spend the time to craft global and project scoped agent rules (guidelines).
+
+---
+
+### Context Window & Token Usage
+- Understand that LLMs are stateless, this means that every time you send a message the entire context is sent back for re-processing.
+- Don't fall into the trap of thinking the solution is just around the corner when you've dug yourself into a hole troubleshooting, get the agent to document the problem, what it's tried to fix it so far and possible next things to try, then start a fresh session and provide the document.
+- Ideally try to keep the models context window usage under 75%, the higher the usage the slower and dumber the model becomes along with increased cost.
+- When you want to refresh the conversation ask the agent to document where it is up to and what's left to do (if you don't already have a dev plan with a checklist of tasks) and provide the document when starting a fresh session.
+- Use checkpoints to roll back to previous points in the conversation or code changes when you've gone down the wrong path or want to explore a different approach.
+- Ensure you enable prompt caching, some agentic coding tools will do this automatically, others like Cline with some providers require you to enable it in settings. Prompt caching can reduce the cost of agentic coding by 75-90%.
+- Practice good code hygiene, keep files from getting too long as if the agent has to read or write the entire file it will be slower, costly and more at risk of errors, a good rule of thumb is a maximum of 700 lines.
+- Only use multimodal operations (images / screenshots as used by browser tools etc..) to a minimum - only when truly needed or where cost is not an issue as they use a lot of tokens.
+- Add files and directories you never want the agent to read to the agent's ignore file (e.g. `.clineignore` or claude.json's access rules).
+- Don't pipe data into LLMs and be wary of code with hardcoded data (XML, SVGs, i18n translations) inline. LLMs are designed to perform predictions (e.g. writing text / code and answering questions) effectively, they're not designed to parse large amounts of data at low cost - that's what software is for.
+- Don't waste time with low end models for planning or coding, the higher error rates, lower quality code and the rework they often incur does not pay off (at least with current generation models).
+- Whenever you find the agent performing actions that seem to consume a disproportionate amount of tokens - ask yourself if there is an agent rule that might need to be added, or if there's a MCP tool that could perform this kind of task more efficiently.
+- Avoid using Claude Opus - it's 5x the price for 1.5x the smarts.
+
+#### Subscription vs Consumption Based Providers
+- A Claude Max 5 subscription will cost you $100 USD / month and get you over $2000+ equivalent worth of raw LLM API token usage.
+- Be wary of subscription based AI coding tools like Cursor or Windsurf - they often provide you reduced versions of models with smaller context windows, artificially slowed response times and fallback to lower end models. Read the fine print especially if it seems too cheap to be true.
+- All subscription based agentic coding tools serve their models from the US. This is fine for most things, but occasionally you might work with a client that requires all inference to be performed within Australia.
+- Some consumption based offerings like Github Copilot have very low rate limits if you use the service with anything other than their client. With Github Copilot's SDK you can use your entire months paid limits of Claude Sonnet access in just two days.
+
+---
+
+### Agent Rules
+- Create both global (all projects) and project scoped agent rules to guide the agent as to how it should behave, what it's values are, if there are any specific build, lint or test commands it should be aware of, where to find additional information etc...
+- Writing your rules in XML style tags (`<Golang_Rules`>...`</Golang_Rules>`) can significantly improve adherence.
+
+---
+
+### Agent Tools (MCP Servers)
+- Always have tools available to the agent that allow it to:
+  - Search the web.
+  - Efficiently retrieve web page content as markdown.
+  - Lookup package documentation.
+  - Perform math calculations.
+- Be mindful of how many tokens each MCP server adds to your context window (`/context` in Claude Code), some tools abuse their descriptions and pollute the context window - for example Github's official MCP server alone uses ¼ of the entire context window of Claude Sonnet 4.
+
+---
+
+### Claude Code Tips
+- Use sub-agents (Claude Code's "tasks" tool) to delegate out tasks like research without polluting the main agents context.
+- Use `/reset` and start fresh rather than waiting for the compaction tool to compress the conversation.
+- When you want Claude Code to remember something in the project you're in you can prefix something to remember with a `#`.
+
+---
+
+### Client Tooling - Not All Created Equal
+- I recommend Cline (or Roo Code) or Claude Code.
+  - Both tools are equally good in different ways.
+
+- I do _not_ recommend:
+  - Cursor / Windsurf - Requires you to run a fork of VSCode, slow agent mode, models can be artificially limited in terms of capability and speed, for the same price or cheaper you could get a Claude Max 5 subscription, lots of baby sitting.
+  - Github Copilot - Very slow agent mode, subscription rate limits are very low for the price. For the same price or cheaper you could get a Claude Max 5 subscription.
+  - Amazon Kiro - Requires you to run a fork of VSCode, over engineers everything, expensive subscription, lots of baby sitting, for the same price or cheaper you could get a Claude Max 5 subscription.
 
 ---
 
