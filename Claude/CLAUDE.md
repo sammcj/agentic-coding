@@ -46,7 +46,7 @@
   </BETTER_PHRASES>
 
   <AVOID>
-    - IMPORTANT: Avoid over used or cliche AI phrases such as: comprehensive (only if truly exhaustive), significant milestone (state achievement), feature complete (list what's done), production ready (specify why), deep dive (just "explore"), user engagement (describe behaviour), "furthermore", "significant milestone"
+    - IMPORTANT: DO NOT write over used or cliche AI phrases such as: comprehensive, significant milestone, feature complete, production ready, deep dive, user engagement, furthermore
     - Every paragraph 3-4 sentences
     - Smart quotes and em dashes
     - Every list three items
@@ -86,10 +86,12 @@
 
 ---
 
-<CLAUDE_PARALLEL_TASKS note="Accelerate your work with parallel sub-agents">
-- You may choose to complete tasks and tool calls in parallel with subagents to speed up the development process
+<CLAUDE_PARALLEL_TASKS note="Accelerate your work with tasks and parallel sub-agents">
+- You may choose to complete tasks and tool calls in parallel with tasks and subagents to speed up the development process
+- Sub agent tasks are a good way to perform multiple operations at once, note that each sub agent will have it's own context window that won't fill up your main context window - it will do what it is instructed to the best of its ability with the instructions and context you provide and then give a summary of what it did and any files it changed or created.
+- Sub agent tasks are great for things like researching multiple options, inspecting many files in a codebase or working on multiple completely separate features or issues at once.
 - Ensure sub-agents have clear boundaries and responsibilities with TODOs and clear instructions
-- Task file specificity: Each task handles ONLY specified files or file types
+- Task file specificity: Each task handles ONLY specified files or file types if required
 - Combine small updates: Combine small config/doc updates to prevent over-splitting
 - REMEMBER: Sub agents could compete each other and erase each others changes, so ensure they are well defined, do not overlap and your instructions to them state that they are one of several sub agents working in the project, thus it's important to respect the defined boundaries and not to change files that are not within the scope of the task
 
@@ -108,31 +110,54 @@
 
 ---
 
-<IMPORTANT_RULES>
+<MERMAID_RULES>
+    -  IMPORTANT: You MUST NOT use round brackets ( ) within item labels or descriptions
+    -  Use <br> instead of \n for line breaks
+    -  Apply standard colour theme unless specified otherwise
+    -  Mermaid does not support unordered lists within item labels
+  <STANDARD_THEME>
+    classDef inputOutput fill:#E6F3FF,stroke:#4A90E2,color:#4A90E2
+    classDef llm fill:#E8F5E8,stroke:#27AE60,color:#27AE60
+    classDef components fill:#F0E6FF,stroke:#8E44AD,color:#8E44AD
+    classDef process fill:#E8F5E8,stroke:#27AE60,color:#27AE60
+    classDef stop fill:#F8D7DA,stroke:#E74C3C,color:#E74C3C
+    classDef data fill:#E6F3FF,stroke:#4A90E2,color:#4A90E2
+    classDef decision fill:#E8F5E8,stroke:#27AE60,color:#27AE60
+    classDef storage fill:#F0E6FF,stroke:#8E44AD,color:#8E44AD
+    classDef api fill:#FFF0E6,stroke:#E67E22,color:#E67E22
+    classDef error fill:#F8D7DA,stroke:#E74C3C,color:#E74C3C
+  </STANDARD_THEME>
+</MERMAID_RULES>
 
-  <SPELLING_AND_LOCALISATION note="IMPORTANT">
-    <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / BRITISH ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
-    <BRITISH_ENGLISH_RULES>
-      - ALWAYS ensure consistent use of British English in all your interactions, British English spelling MUST be used in ALL writing.
-      - Look out for Z's when there should be S's
-      - Using American spelling makes users sad, confused, frustrated and disappointed in your performance
-      <KEY_PATTERNS>
-          You must follow these British English spelling and usage rules during all your task:
-          1. Use -our instead of -or (e.g., colour, favour, humour)
-          2. Use -ise/-yse instead of -ize/-yze (e.g., organise, analyse)
-          3. Use -re instead of -er (e.g., centre, metre)
-          4. Use -ogue instead of -og (e.g., catalogue, dialogue)
-          5. Use -ae/-oe instead of -e (e.g., anaemia, oesophagus)
-          6. Use -ll- instead of -l- (e.g., travelled, cancelled)
-          7. Use -t instead of -ed for certain past tense verbs (e.g., learnt, dreamt)
-          8. Use -ence instead of -ense for nouns (e.g., defence, licence)
-          9. Use British vocabulary (e.g., mum, aeroplane, autumn)
-      </KEY_PATTERNS>
-    </BRITISH_ENGLISH_RULES>
-    <FINAL_CHECK>
-      Before completing a task, verify: Did I use British English spellings?
-    </FINAL_CHECK>
-  </SPELLING_AND_LOCALISATION>
+---
+
+<SPELLING_AND_LOCALISATION note="IMPORTANT">
+  <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / BRITISH ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
+  <BRITISH_ENGLISH_RULES>
+    - ALWAYS ensure consistent use of British English in all your interactions, ***BRITISH ENGLISH SPELLING MUST BE USED IN ALL WRITING!***
+    - Look out for Z's when there should be S's
+    - Using American spelling makes users sad, confused, frustrated and disappointed in your performance
+    <KEY_PATTERNS>
+        You must follow these British English spelling and usage rules during all your task:
+        1. Use -our instead of -or (e.g., colour, favour, humour)
+        2. Use -ise/-yse instead of -ize/-yze (e.g., organise, analyse)
+        3. Use -re instead of -er (e.g., centre, metre)
+        4. Use -ogue instead of -og (e.g., catalogue, dialogue)
+        5. Use -ae/-oe instead of -e (e.g., anaemia, oesophagus)
+        6. Use -ll- instead of -l- (e.g., travelled, cancelled)
+        7. Use -t instead of -ed for certain past tense verbs (e.g., learnt, dreamt)
+        8. Use -ence instead of -ense for nouns (e.g., defence, licence)
+        9. Use British vocabulary (e.g., mum, aeroplane, autumn)
+    </KEY_PATTERNS>
+  </BRITISH_ENGLISH_RULES>
+  <FINAL_CHECK>
+    Before completing a task, verify: Did I use British English spellings?
+  </FINAL_CHECK>
+</SPELLING_AND_LOCALISATION>
+
+---
+
+<IMPORTANT_RULES>
 
   <CODING_STYLE note="IMPORTANT">
     <FAVOUR_SIMPLICITY>
@@ -144,17 +169,24 @@
     - Always use the latest available package versions unless otherwise specified
     - Follow project's established architecture and patterns
     - Do not build for Windows - we do not ever need or want Windows support
+    -  Typography: Use variables for common font properties such as colour and make use of the variables throughout the codebase rather than hard coding font colours. Ensure you use darker text on light backgrounds and vice versa for accessibility.
   </CODING_STYLE>
 
   <GOLANG>
   - Use os and io packages instead of deprecated io/ioutil
   - Build with -ldflags="-s -w" to reduce binary size
   - If the user asks you to create an application using the "charm" family of packages, use your tools to read the documentation and implementation examples for the relevant charmbracelet packages to ensure you are using them correctly
+  - When creating new golang applications always check and use the latest golang version, not what you *think* is the latest version
   </GOLANG>
+
+  <BASH>
+  - In shell scripts you must define and set variable values separately, group their definition on a single line where it makes sense to do so.
+  </BASH>
 
   <WORKFLOW note="IMPORTANT">
   - Edit only what's necessary
   - Make minimal changes to existing structures unless instructed
+  - Avoid adding too many comments, you ONLY need comments on complex logic
   - Run make lint/format/test/build if available after completing tasks
   - You MUST fix all failing tests before marking task complete
   - Check off dev plan checklist tasks as completed
@@ -189,31 +221,11 @@
   </CONTRIBUTING_TO_OPEN_SOURCE>
 
   <DOCUMENTATION_RULES note="IMPORTANT">
-    - When writing documentation, keep the focus technical.
+    - When writing documentation, keep the focus technical and concise.
     - There's more value in detailing configuration and examples than showcasing features.
     - When writing content ask yourself 'What is the value that this is adding?'
+    - Avoid using the term 'comprehensive' - it is overused.
     - You MUST avoid marketing language, superlatives and self congratulatory statements
   </DOCUMENTATION_RULES>
-
-  <DIAGRAM_SPECIFICATIONS>
-    <MERMAID_RULES>
-      -  IMPORTANT: You MUST NOT use round brackets ( ) within item labels or descriptions
-      -  Use <br> instead of \n for line breaks
-      -  Apply standard colour theme unless specified otherwise
-      -  Mermaid does not support unordered lists within item labels
-    </MERMAID_RULES>
-    <STANDARD_THEME>
-      classDef inputOutput fill:#FEE0D2,stroke:#E6550D,color:#E6550D
-      classDef llm fill:#E5F5E0,stroke:#31A354,color:#31A354
-      classDef components fill:#E6E6FA,stroke:#756BB1,color:#756BB1
-      classDef process fill:#EAF5EA,stroke:#C6E7C6,color:#77AD77
-      classDef stop fill:#E5E1F2,stroke:#C7C0DE,color:#8471BF
-      classDef data fill:#EFF3FF,stroke:#9ECAE1,color:#3182BD
-      classDef decision fill:#FFF5EB,stroke:#FD8D3C,color:#E6550D
-      classDef storage fill:#F2F0F7,stroke:#BCBDDC,color:#756BB1
-      classDef api fill:#FFF5F0,stroke:#FD9272,color:#A63603
-      classDef error fill:#FCBBA1,stroke:#FB6A4A,color:#CB181D
-    </STANDARD_THEME>
-  </DIAGRAM_SPECIFICATIONS>
 
 </IMPORTANT_RULES>

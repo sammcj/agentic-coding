@@ -7,15 +7,15 @@
     <RULE> Mermaid does not support unordered lists within item labels </RULE>
   </MERMAID_RULES>
   <STANDARD_THEME>
-    classDef inputOutput fill:#FEE0D2,stroke:#E6550D,color:#E6550D
-    classDef llm fill:#E5F5E0,stroke:#31A354,color:#31A354
-    classDef components fill:#E6E6FA,stroke:#756BB1,color:#756BB1
-    classDef process fill:#EAF5EA,stroke:#C6E7C6,color:#77AD77
-    classDef stop fill:#E5E1F2,stroke:#C7C0DE,color:#8471BF
-    classDef data fill:#EFF3FF,stroke:#9ECAE1,color:#3182BD
-    classDef decision fill:#FFF5EB,stroke:#FD8D3C,color:#E6550D
-    classDef storage fill:#F2F0F7,stroke:#BCBDDC,color:#756BB1
-    classDef api fill:#FFF5F0,stroke:#FD9272,color:#A63603
-    classDef error fill:#FCBBA1,stroke:#FB6A4A,color:#CB181D
+    classDef inputOutput fill:#E6F3FF,stroke:#4A90E2,color:#4A90E2
+    classDef llm fill:#E8F5E8,stroke:#27AE60,color:#27AE60
+    classDef components fill:#F0E6FF,stroke:#8E44AD,color:#8E44AD
+    classDef process fill:#E8F5E8,stroke:#27AE60,color:#27AE60
+    classDef stop fill:#F8D7DA,stroke:#E74C3C,color:#E74C3C
+    classDef data fill:#E6F3FF,stroke:#4A90E2,color:#4A90E2
+    classDef decision fill:#E8F5E8,stroke:#27AE60,color:#27AE60
+    classDef storage fill:#F0E6FF,stroke:#8E44AD,color:#8E44AD
+    classDef api fill:#FFF0E6,stroke:#E67E22,color:#E67E22
+    classDef error fill:#F8D7DA,stroke:#E74C3C,color:#E74C3C
   </STANDARD_THEME>
 </DIAGRAM_SPECIFICATIONS>

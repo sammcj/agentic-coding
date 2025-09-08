@@ -1,3 +1,4 @@
+
 <IMPORTANT_RULES>
 
   <CODING_STYLE note="IMPORTANT">
@@ -10,17 +11,24 @@
     - Always use the latest available package versions unless otherwise specified
     - Follow project's established architecture and patterns
     - Do not build for Windows - we do not ever need or want Windows support
+    -  Typography: Use variables for common font properties such as colour and make use of the variables throughout the codebase rather than hard coding font colours. Ensure you use darker text on light backgrounds and vice versa for accessibility.
   </CODING_STYLE>
 
   <GOLANG>
   - Use os and io packages instead of deprecated io/ioutil
   - Build with -ldflags="-s -w" to reduce binary size
   - If the user asks you to create an application using the "charm" family of packages, use your tools to read the documentation and implementation examples for the relevant charmbracelet packages to ensure you are using them correctly
+  - When creating new golang applications always check and use the latest golang version, not what you *think* is the latest version
   </GOLANG>
+
+  <BASH>
+  - In shell scripts you must define and set variable values separately, group their definition on a single line where it makes sense to do so.
+  </BASH>
 
   <WORKFLOW note="IMPORTANT">
   - Edit only what's necessary
   - Make minimal changes to existing structures unless instructed
+  - Avoid adding too many comments, you ONLY need comments on complex logic
   - Run make lint/format/test/build if available after completing tasks
   - You MUST fix all failing tests before marking task complete
   - Check off dev plan checklist tasks as completed
@@ -55,15 +63,15 @@
   </CONTRIBUTING_TO_OPEN_SOURCE>
 
   <DOCUMENTATION_RULES note="IMPORTANT">
-    - When writing documentation, keep the focus technical.
+    - When writing documentation, keep the focus technical and concise.
     - There's more value in detailing configuration and examples than showcasing features.
     - When writing content ask yourself 'What is the value that this is adding?'
+    - Avoid using the term 'comprehensive' - it is overused.
     - You MUST avoid marketing language, superlatives and self congratulatory statements
   </DOCUMENTATION_RULES>
 
-  </CODING_RULES>
-</IMPORTANT_RULES>
+  <CLINE_RULES>
+    - Start new task when context window exceeds 70% capacity
+  </CLINE_RULES>
 
-<CLINE_RULES>
-  - Start new task when context window exceeds 70% capacity
-</CLINE_RULES>
+</IMPORTANT_RULES>
