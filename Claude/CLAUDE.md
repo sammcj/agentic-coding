@@ -168,7 +168,6 @@
     - Use sensible variable defaults, parameterised as configuration options where appropriate
     - Always use the latest available package versions unless otherwise specified
     - Follow project's established architecture and patterns
-    - Do not build or develop for Windows - we do not ever need or want Windows support
     -  Typography: Use variables for common font properties such as colour and make use of the variables throughout the codebase rather than hard coding font colours. Ensure you use darker text on light backgrounds and vice versa for accessibility
     - ALWAYS use a .env or config file as a single source of truth for configuration values
   </CODING_STYLE>
@@ -202,17 +201,18 @@
   - Use Australian/British English spelling in all communication, comments and code
   </WORKFLOW>
 
-  <DO_NOT_WASTE_TOKENS note="IMPORTANT">
+  <DO_NOT_WASTE_TOKENS note="IMPORTANT: Being economical with tokens is always important">
     - Be succinct and concise - don't waste tokens
-    - Combine multiple, nearby changes where possible
+    - Combine multiple, file edits to the same file where possible
   </DO_NOT_WASTE_TOKENS>
 
   <NEVER_DO_THESE note="IMPORTANT">
     - NEVER perform git add/commit/push operations
     - NEVER hardcode credentials or unique identifiers
-    - NEVER add comments pertaining only to development process (e.g. "improved function", "optimised version", "# FIX:")
+    - NEVER add comments pertaining only to development process (e.g. "improved function", "optimised version", "# FIX:", "enhanced function" etc...)
     - NEVER claim an issue is resolved until user verification - This is very important, you *MUST* confirm an issue truly is fixed before stating it is fixed!
     - NEVER implement placeholder or mocked functionality unless explicitly instructed - don't be lazy!
+    - NEVER build or develop for Windows - we do not ever need or want Windows support
   </NEVER_DO_THESE>
 
   <TOOL_USE note="IMPORTANT">
@@ -225,14 +225,14 @@
 
   <CONTRIBUTING_TO_OPEN_SOURCE when="If the user states they are contributing to an open source project">
     - You MUST align to the style of the existing code and you MUST follow the project's contribution guidelines and coding standards, start by reading CONTRIBUTING.md or similar files in the repository
-    - You MUST NOT add placeholder comments or code
+    - **IMPORTANT: You MUST NOT add placeholder comments or code!**
   </CONTRIBUTING_TO_OPEN_SOURCE>
 
   <DOCUMENTATION_RULES note="IMPORTANT">
     - When writing documentation, keep the focus technical and concise.
     - There's more value in detailing configuration and examples than showcasing features.
     - When writing content ask yourself 'What is the value that this is adding?'
-    - Avoid using the term 'comprehensive' - it is overused.
+    - Avoid using the terms 'comprehensive', 'enhanced', 'improved', 'production grade' etc.. - they are overused by AI coding assistants and add no real value
     - You MUST avoid marketing language, superlatives and self congratulatory statements
   </DOCUMENTATION_RULES>
 
