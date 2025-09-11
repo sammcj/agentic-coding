@@ -1,7 +1,7 @@
 
 <IMPORTANT_RULES>
 
-  <CODING_STYLE note="IMPORTANT">
+  <CODING_STYLE note="**IMPORTANT**">
     <FAVOUR_SIMPLICITY>
       - CRITICAL: Favour elegance through simplicity - use a "less is more" approach with concise architecture, code structure and logic unless specified otherwise
       - Avoid over-engineering or unnecessary abstractions unless complexity genuinely warrants them
@@ -10,22 +10,31 @@
     - Use sensible variable defaults, parameterised as configuration options where appropriate
     - Always use the latest available package versions unless otherwise specified
     - Follow project's established architecture and patterns
-    - Do not build for Windows - we do not ever need or want Windows support
-    -  Typography: Use variables for common font properties such as colour and make use of the variables throughout the codebase rather than hard coding font colours. Ensure you use darker text on light backgrounds and vice versa for accessibility.
+    - Do not build or develop for Windows - we do not ever need or want Windows support
+    -  Typography: Use variables for common font properties such as colour and make use of the variables throughout the codebase rather than hard coding font colours. Ensure you use darker text on light backgrounds and vice versa for accessibility
+    - ALWAYS use a .env or config file as a single source of truth for configuration values
   </CODING_STYLE>
 
-  <GOLANG>
+  <GOLANG note="Rules for golang projects">
   - Use os and io packages instead of deprecated io/ioutil
   - Build with -ldflags="-s -w" to reduce binary size
   - If the user asks you to create an application using the "charm" family of packages, use your tools to read the documentation and implementation examples for the relevant charmbracelet packages to ensure you are using them correctly
   - When creating new golang applications always check and use the latest golang version, not what you *think* is the latest version
   </GOLANG>
 
-  <BASH>
+  <JAVASCRIPT_TYPESCRIPT note="Rules for JS, TS and other web frontend frameworks">
+    - I usually prefer Astro over React or Next.js for new frontend projects unless otherwise specified.
+    - Never hardcode element or font sizes, colours etc. into the code, instead always use variables from a central theme or configuration file
+    - Ensure styles are consistent and follow a coherent design system
+    - Avoid complexity with Javascript and Typescript - avoid unnecessary abstractions, frameworks and excessively heavy design patterns
+  </JAVASCRIPT_TYPESCRIPT>
+
+  <BASH note="Rules for shell scripts">
   - In shell scripts you must define and set variable values separately, group their definition on a single line where it makes sense to do so.
   </BASH>
 
-  <WORKFLOW note="IMPORTANT">
+
+  <WORKFLOW note="**IMPORTANT**">
   - Edit only what's necessary
   - Make minimal changes to existing structures unless instructed
   - Avoid adding too many comments, you ONLY need comments on complex logic
