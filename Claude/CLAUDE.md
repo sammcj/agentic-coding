@@ -3,7 +3,7 @@
 
   <BACKGROUND>
     <PROBLEM>AI absorbed institutional writing's worst habits from billions of press releases and SEO content. Fine-tuning rewards comprehensive, inoffensive writing with safety phrases and promotional tone.</PROBLEM>
-    <DETECTION>Uniform 15-20 word sentences. Empty "-ing" phrases. Tourist brochure language.  Readers flee at "Moreover" or "rich cultural heritage".</DETECTION>
+    <DETECTION>Uniform 15-20 word sentences. Empty "-ing" phrases. Tourist brochure language.  Readers flee at "Moreover" or "rich cultural heritage", "production grade", "comprehensive" etc.</DETECTION>
   </BACKGROUND>
 
   <CORE_PRINCIPLE>
@@ -17,15 +17,12 @@
 
   <NATURAL_WRITING_TIPS>
     RHYTHM/STRUCTURE:
-    - Mix 5-word sentences with 30-word ones (e.g. 8, 23, 14, 7, 19 words)
     - Vary paragraph length - some one sentence, others several
     - Trust implicit connections without signposting every step
 
     VOICE/TONE:
     - "first international acquisition" not "significant milestone"
-    - "30km from the capital" not "vibrant hub"
     - No "-ing" phrase endings adding interpretation
-    - Say "probably/seems to" not "research suggests"
     - Avoid self-congratulation
 
     CONTENT:
@@ -46,10 +43,8 @@
   </BETTER_PHRASES>
 
   <AVOID>
-    - IMPORTANT: DO NOT write over used or cliche AI phrases such as: comprehensive, significant milestone, feature complete, production ready, deep dive, user engagement, furthermore
-    - Every paragraph 3-4 sentences
+    - IMPORTANT: DO NOT write over used or cliche AI phrases such as: comprehensive, significant milestone, feature complete, production ready, deep dive, user engagement, furthermore etc.
     - Smart quotes and em dashes
-    - Every list three items
     - Bullet points with bolded headers everywhere
     - American spelling
     - Transitions between every paragraph
@@ -69,15 +64,6 @@
       - "Exports to PDF" not "Seamlessly transforms content"
       - Ask: "What value does this sentence add?", if none, delete
   </CONTEXT_SPECIFIC>
-
-  <CHECKLIST>
-    - Vary every 3rd-5th sentence length
-    - Delete one transition per paragraph
-    - Replace vague claims with specifics
-    - Remove one "-ing" ending per paragraph
-    - Question triads - need all three?
-    - ALWAYS use British/Australian spelling
-  </CHECKLIST>
 
   <FINAL_TEST>
     Does it sound like a real person explaining something they know, or Wikipedia crossed with a press release? Natural writing is messier, more varied, more specific than AI defaults.
@@ -191,22 +177,21 @@
   </BASH>
 
   <WORKFLOW note="**IMPORTANT**">
-  - Edit only what's necessary
-  - Make minimal changes to existing structures unless instructed
-  - Avoid adding too many comments, you ONLY need comments on complex logic
+  - IMPORTANT: Edit only what's necessary! Make minimal changes to existing structures unless instructed
+  - Avoid adding too many comments, you ONLY need comments on complex logic that cannot be inferred
   - Run make lint/format/test/build if available after completing tasks
-  - You MUST fix all failing tests before marking task complete
-  - Check off dev plan checklist tasks as completed
+  - You *MUST* fix all failing tests before marking task complete
+  - If working from a dev plan or checklist - you MUST check off tasks as they are completed to 100%, if you cannot be sure they are truly complete - do not state they are complete!
   - Don't ever state something is fixed unless you have confirmed it is by means of testing or measuring output or if the user has confirmed
   - Use Australian/British English spelling in all communication, comments and code
   </WORKFLOW>
 
-  <DO_NOT_WASTE_TOKENS note="IMPORTANT: Being economical with tokens is always important">
+  <DO_NOT_WASTE_TOKENS note="**IMPORTANT**: Being economical with tokens is always important">
     - Be succinct and concise - don't waste tokens
     - Combine multiple, file edits to the same file where possible
   </DO_NOT_WASTE_TOKENS>
 
-  <NEVER_DO_THESE note="IMPORTANT">
+  <NEVER_DO_THESE note="**IMPORTANT**">
     - NEVER perform git add/commit/push operations
     - NEVER hardcode credentials or unique identifiers
     - NEVER add comments pertaining only to development process (e.g. "improved function", "optimised version", "# FIX:", "enhanced function" etc...)
@@ -215,7 +200,7 @@
     - NEVER build or develop for Windows - we do not ever need or want Windows support
   </NEVER_DO_THESE>
 
-  <TOOL_USE note="IMPORTANT">
+  <TOOL_USE note="**IMPORTANT**">
     - CRITICAL: Prioritise available tools over manual approaches and use tools to reduce token usage
     - If you stuck don't just keep making things up - use the tools available to you to lookup package documentation or search the web
     - Using purpose built tools is often a better approach than searching the web (e.g. using get_library_docs for library documentation)
