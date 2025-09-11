@@ -1,9 +1,17 @@
+---
+title: 'Extract and Document Domain Knowledge and Business Logic from Codebase'
+read_only: true
+type: 'command'
+created: 2025-08-26T14:46:05+10:00
+updated: 2025-08-26T14:46:05+10:00
+---
+
 Extract and document domain knowledge, business logic, and architectural patterns from $ARGUMENTS.
 
 Steps:
 
 1. **Codebase Analysis:**
-   - Scan project structure to understand organization
+   - Scan project structure to understand organisation
    - Identify main modules, packages, and entry points
    - Map data flow and component relationships
    - Locate configuration and environment files
@@ -202,7 +210,7 @@ Steps:
    - [How to write and run tests]
    ```
 
-10. **Knowledge Artifacts:**
+10. **Knowledge Artefacts:**
 
     **Generate Documentation Files:**
     - `docs/architecture.md` - High-level system design
@@ -214,7 +222,7 @@ Steps:
     **Create Decision Records:**
     - Document architectural decisions (ADRs)
     - Explain technology choices and trade-offs
-    - Record domain modeling decisions
+    - Record domain modelling decisions
 
     **Extract Code Examples:**
     - Common usage patterns and idioms
