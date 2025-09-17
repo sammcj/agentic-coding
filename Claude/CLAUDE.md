@@ -183,6 +183,7 @@
   - You *MUST* fix all failing tests before marking task complete
   - If working from a dev plan or checklist - you MUST check off tasks as they are completed to 100%, if you cannot be sure they are truly complete - do not state they are complete!
   - Don't ever state something is fixed unless you have confirmed it is by means of testing or measuring output or if the user has confirmed
+  - If you are stuck on a persistent problem that you and the user have tried to fix several times, suggest to the user that they can run the `/systematic-debugging-when-stuck` command to perform a fagan inspection
   - Use Australian/British English spelling in all communication, comments and code
   </WORKFLOW>
 
@@ -193,7 +194,7 @@
 
   <NEVER_DO_THESE note="**IMPORTANT**">
     - NEVER perform git add/commit/push operations
-    - NEVER hardcode credentials or unique identifiers
+    - NEVER hardcode credentials, unique identifiers or localhost URLs
     - NEVER add comments pertaining only to development process (e.g. "improved function", "optimised version", "# FIX:", "enhanced function" etc...)
     - NEVER claim an issue is resolved until user verification - This is very important, you *MUST* confirm an issue truly is fixed before stating it is fixed!
     - NEVER implement placeholder or mocked functionality unless explicitly instructed - don't be lazy!

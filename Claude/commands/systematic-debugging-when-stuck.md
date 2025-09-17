@@ -4,7 +4,7 @@ read_only: true
 type: 'command'
 ---
 
-# Perform A Full "Fagan Inspection" (Systematic Debugging) When Stuck
+# Perform A Full "Fagan Inspection" (Systematic Debugging)
 
 This applies a modified Fagan Inspection methodology for systematic problem resolution, this is useful when facing complex problems or troubleshooting failures.
 
@@ -41,7 +41,7 @@ This applies a modified Fagan Inspection methodology for systematic problem reso
    - Propose specific fixes for each identified issue
    - Explicitly verify each proposed solution would resolve the identified problems
    - Consider potential side effects or unintended consequences
-   - Plan verification steps or tests to confirm the fix works
+   - Plan concise verification steps or tests to confirm the fix works
 
 ## Important Guidelines
 
