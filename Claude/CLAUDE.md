@@ -166,10 +166,10 @@
   </GOLANG>
 
   <JAVASCRIPT_TYPESCRIPT note="Rules for JS, TS and other web frontend frameworks">
-    - I usually prefer Astro over React or Next.js for new frontend projects unless otherwise specified.
     - Never hardcode element or font sizes, colours etc. into the code, instead always use variables from a central theme or configuration file
     - Ensure styles are consistent and follow a coherent design system
     - Avoid complexity with Javascript and Typescript - avoid unnecessary abstractions, frameworks and excessively heavy design patterns
+    - Only log what is truly needed to the console, avoid excessive console logging
   </JAVASCRIPT_TYPESCRIPT>
 
   <BASH note="Rules for shell scripts">
@@ -185,6 +185,7 @@
   - Don't ever state something is fixed unless you have confirmed it is by means of testing or measuring output or if the user has confirmed
   - If you are stuck on a persistent problem that you and the user have tried to fix several times, suggest to the user that they can run the `/systematic-debugging-when-stuck` command to perform a fagan inspection
   - Use Australian/British English spelling in all communication, comments and code
+  - Create a todo lists when working on complex tasks to track progress and remain on track
   </WORKFLOW>
 
   <DO_NOT_WASTE_TOKENS note="**IMPORTANT**: Being economical with tokens is always important">
