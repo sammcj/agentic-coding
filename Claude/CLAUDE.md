@@ -1,77 +1,3 @@
-<NATURAL_WRITING_GUIDELINES note="For written content such as READMEs, documentation, conversational text, comments, etc">
-  <NOTE>Guidelines for natural, human-like writing in READMEs, documentation, and conversational text.</NOTE>
-
-  <BACKGROUND>
-    <PROBLEM>AI absorbed institutional writing's worst habits from billions of press releases and SEO content. Fine-tuning rewards comprehensive, inoffensive writing with safety phrases and promotional tone.</PROBLEM>
-    <DETECTION>Uniform 15-20 word sentences. Empty "-ing" phrases. Tourist brochure language.  Readers flee at "Moreover" or "rich cultural heritage", "production grade", "comprehensive" etc.</DETECTION>
-  </BACKGROUND>
-
-  <CORE_PRINCIPLE>
-    Match writing to purpose and audience:
-    - PhD thesis: precision, not "utilises" everywhere
-    - Casual email: warmth, not "I hope this finds you well"
-    - Technical guide: clarity, not "it's important to note"
-
-    Human qualities: Natural rhythm, specific language, confident uncertainty, varied structure
-  </CORE_PRINCIPLE>
-
-  <NATURAL_WRITING_TIPS>
-    RHYTHM/STRUCTURE:
-    - Vary paragraph length - some one sentence, others several
-    - Trust implicit connections without signposting every step
-
-    VOICE/TONE:
-    - "first international acquisition" not "significant milestone"
-    - No "-ing" phrase endings adding interpretation
-    - Avoid self-congratulation
-
-    CONTENT:
-    - "2024 McKinsey study of 2,000 consumers" not "studies show"
-    - Not everything has "rich cultural heritage"
-    - No "In conclusion" unless genuinely complex
-    - Add natural imperfection: tangents, specific examples, occasional repetition
-    - **CRITICAL: British/Australian spelling only - NO American spelling**
-  </NATURAL_WRITING_TIPS>
-
-  <BETTER_PHRASES>
-    - "stands as a testament to" → describe what it is
-    - "plays a vital role in" → explain what it does
-    - "highlighting/underscoring importance" → delete
-    - "moreover/furthermore" → use only when essential
-    - "experts believe" → cite specifically
-    - "It's not just X, it's Y" → state directly
-  </BETTER_PHRASES>
-
-  <AVOID>
-    - IMPORTANT: DO NOT write over used or cliche AI phrases such as: comprehensive, significant milestone, feature complete, production ready, deep dive, user engagement, furthermore etc.
-    - Smart quotes and em dashes
-    - Bullet points with bolded headers everywhere
-    - American spelling
-    - Transitions between every paragraph
-    - Summary paragraphs (unless genuinely complex)
-    - Marketing or enthusiastic, self congratulatory statements
- </AVOID>
-
-  <CONTEXT_SPECIFIC>
-    TECHNICAL: Start with solution. Skip "this section covers". Inline code/commands.
-    BUSINESS: Main point first sentence. One topic per paragraph. No marketing or MBA speak.
-    SCIENTIFIC: Findings first. Data before interpretation. Specific paper citations.
-    SOFTWARE_DOCS:
-      - What it does/how to configure, not why revolutionary
-      - Technical info over philosophy
-      - "Setup" not "🚀 Getting Started"
-      - "Processes 1000 req/sec" not "Lightning-fast"
-      - "Exports to PDF" not "Seamlessly transforms content"
-      - Ask: "What value does this sentence add?", if none, delete
-  </CONTEXT_SPECIFIC>
-
-  <FINAL_TEST>
-    Does it sound like a real person explaining something they know, or Wikipedia crossed with a press release? Natural writing is messier, more varied, more specific than AI defaults.
-  </FINAL_TEST>
-</NATURAL_WRITING_GUIDELINES>
-
----
-
 <CLAUDE_PARALLEL_TASKS note="Accelerate your work with tasks and parallel sub-agents">
 - You may choose to complete tasks and tool calls in parallel with tasks and subagents to speed up the development process
 - Sub agent tasks are a good way to perform multiple operations at once, note that each sub agent will have it's own context window that won't fill up your main context window - it will do what it is instructed to the best of its ability with the instructions and context you provide and then give a summary of what it did and any files it changed or created.
@@ -116,6 +42,46 @@
 </MERMAID_RULES>
 
 ---
+
+<NATURAL_WRITING_GUIDELINES note="For written content such as READMEs, documentation, conversational text, comments, etc">
+  <NOTE>Guidelines for natural, human-like writing in READMEs, documentation, and conversational text.</NOTE>
+
+  <BETTER_PHRASES>
+    - "stands as a testament to" → describe what it is
+    - "plays a vital role in" → explain what it does
+    - "highlighting/underscoring importance" → delete
+    - "moreover/furthermore" → use only when essential
+    - "experts believe" → cite specifically
+    - "It's not just X, it's Y" → state directly
+  </BETTER_PHRASES>
+
+  <AVOID>
+    - IMPORTANT: DO NOT write over used or cliche AI phrases such as: comprehensive, significant milestone, feature complete, production ready, deep dive, user engagement, furthermore etc.
+    - Smart quotes and em dashes
+    - Bullet points with bolded headers everywhere
+    - American spelling
+    - Transitions between every paragraph
+    - Summary paragraphs (unless genuinely complex)
+    - Marketing or enthusiastic, self congratulatory statements
+ </AVOID>
+
+  <CONTEXT_SPECIFIC>
+    TECHNICAL: Start with solution. Skip "this section covers". Inline code/commands.
+    BUSINESS: Main point first sentence. One topic per paragraph. No marketing or MBA speak.
+    SCIENTIFIC: Findings first. Data before interpretation. Specific paper citations.
+    SOFTWARE_DOCS:
+      - What it does/how to configure, not why revolutionary
+      - Technical info over philosophy
+      - "Setup" not "🚀 Getting Started"
+      - "Processes 1000 req/sec" not "Lightning-fast"
+      - "Exports to PDF" not "Seamlessly transforms content"
+      - Ask: "What value does this sentence add?", if none, delete
+  </CONTEXT_SPECIFIC>
+
+  <FINAL_TEST>
+    Does it sound like a real person explaining something they know, or Wikipedia crossed with a press release? Natural writing is messier, more varied, more specific than AI defaults.
+  </FINAL_TEST>
+</NATURAL_WRITING_GUIDELINES>
 
 <SPELLING_AND_LOCALISATION note="IMPORTANT">
   <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / BRITISH ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
