@@ -1,3 +1,69 @@
+<SPELLING_AND_LOCALISATION note="IMPORTANT">
+  <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / BRITISH ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
+  <BRITISH_ENGLISH_RULES>
+    - ALWAYS ensure consistent use of British English in all your interactions, ***BRITISH ENGLISH SPELLING MUST BE USED IN ALL WRITING!***
+    - Look out for Z's when there should be S's
+    - Using American spelling makes users sad, confused, frustrated and disappointed in your performance
+    <KEY_PATTERNS>
+        You must follow these British English spelling and usage rules during all your task:
+        1. Use -our instead of -or (e.g., colour, favour, humour)
+        2. Use -ise/-yse instead of -ize/-yze (e.g., organise, analyse)
+        3. Use -re instead of -er (e.g., centre, metre)
+        4. Use -ogue instead of -og (e.g., catalogue, dialogue)
+        5. Use -ae/-oe instead of -e (e.g., anaemia, oesophagus)
+        6. Use -ll- instead of -l- (e.g., travelled, cancelled)
+        7. Use -t instead of -ed for certain past tense verbs (e.g., learnt, dreamt)
+        8. Use -ence instead of -ense for nouns (e.g., defence, licence)
+        9. Use British vocabulary (e.g., mum, aeroplane, autumn)
+    </KEY_PATTERNS>
+  </BRITISH_ENGLISH_RULES>
+  <FINAL_CHECK>
+    Before completing a task, verify: Did I use British English spellings?
+  </FINAL_CHECK>
+</SPELLING_AND_LOCALISATION>
+
+<NATURAL_WRITING_GUIDELINES note="For written content such as READMEs, documentation, conversational text, comments, etc">
+  <NOTE>Guidelines for natural, human-like writing in READMEs, documentation, and conversational text.</NOTE>
+
+  <BETTER_PHRASES>
+    - "stands as a testament to" → describe what it is
+    - "plays a vital role in" → explain what it does
+    - "highlighting/underscoring importance" → delete
+    - "moreover/furthermore" → use only when essential
+    - "experts believe" → cite specifically
+    - "It's not just X, it's Y" → state directly
+  </BETTER_PHRASES>
+
+  <AVOID>
+    - IMPORTANT: DO NOT write over used or cliche AI phrases such as: comprehensive, significant milestone, feature complete, production ready, deep dive, user engagement, furthermore etc.
+    - Smart quotes and em dashes
+    - Bullet points with bolded headers everywhere
+    - American spelling
+    - Transitions between every paragraph
+    - Summary paragraphs (unless genuinely complex)
+    - Marketing or enthusiastic, self congratulatory statements
+ </AVOID>
+
+  <CONTEXT_SPECIFIC>
+    TECHNICAL: Start with solution. Skip "this section covers". Inline code/commands.
+    BUSINESS: Main point first sentence. One topic per paragraph. No marketing or MBA speak.
+    SCIENTIFIC: Findings first. Data before interpretation. Specific paper citations.
+    SOFTWARE_DOCS:
+      - What it does/how to configure, not why revolutionary
+      - Technical info over philosophy
+      - "Setup" not "🚀 Getting Started"
+      - "Processes 1000 req/sec" not "Lightning-fast"
+      - "Exports to PDF" not "Seamlessly transforms content"
+      - Ask: "What value does this sentence add?", if none, delete
+  </CONTEXT_SPECIFIC>
+
+  <FINAL_TEST>
+    Does it sound like a real person explaining something they know, or Wikipedia crossed with a press release? Natural writing is messier, more varied, more specific than AI defaults.
+  </FINAL_TEST>
+</NATURAL_WRITING_GUIDELINES>
+
+---
+
 <CLAUDE_PARALLEL_TASKS note="Accelerate your work with tasks and parallel sub-agents">
 - You may choose to complete tasks and tool calls in parallel with tasks and subagents to speed up the development process
 - Sub agent tasks are a good way to perform multiple operations at once, note that each sub agent will have it's own context window that won't fill up your main context window - it will do what it is instructed to the best of its ability with the instructions and context you provide and then give a summary of what it did and any files it changed or created.
@@ -40,72 +106,6 @@
     classDef error fill:#F8D7DA,stroke:#E74C3C,color:#E74C3C
   </STANDARD_THEME>
 </MERMAID_RULES>
-
----
-
-<NATURAL_WRITING_GUIDELINES note="For written content such as READMEs, documentation, conversational text, comments, etc">
-  <NOTE>Guidelines for natural, human-like writing in READMEs, documentation, and conversational text.</NOTE>
-
-  <BETTER_PHRASES>
-    - "stands as a testament to" → describe what it is
-    - "plays a vital role in" → explain what it does
-    - "highlighting/underscoring importance" → delete
-    - "moreover/furthermore" → use only when essential
-    - "experts believe" → cite specifically
-    - "It's not just X, it's Y" → state directly
-  </BETTER_PHRASES>
-
-  <AVOID>
-    - IMPORTANT: DO NOT write over used or cliche AI phrases such as: comprehensive, significant milestone, feature complete, production ready, deep dive, user engagement, furthermore etc.
-    - Smart quotes and em dashes
-    - Bullet points with bolded headers everywhere
-    - American spelling
-    - Transitions between every paragraph
-    - Summary paragraphs (unless genuinely complex)
-    - Marketing or enthusiastic, self congratulatory statements
- </AVOID>
-
-  <CONTEXT_SPECIFIC>
-    TECHNICAL: Start with solution. Skip "this section covers". Inline code/commands.
-    BUSINESS: Main point first sentence. One topic per paragraph. No marketing or MBA speak.
-    SCIENTIFIC: Findings first. Data before interpretation. Specific paper citations.
-    SOFTWARE_DOCS:
-      - What it does/how to configure, not why revolutionary
-      - Technical info over philosophy
-      - "Setup" not "🚀 Getting Started"
-      - "Processes 1000 req/sec" not "Lightning-fast"
-      - "Exports to PDF" not "Seamlessly transforms content"
-      - Ask: "What value does this sentence add?", if none, delete
-  </CONTEXT_SPECIFIC>
-
-  <FINAL_TEST>
-    Does it sound like a real person explaining something they know, or Wikipedia crossed with a press release? Natural writing is messier, more varied, more specific than AI defaults.
-  </FINAL_TEST>
-</NATURAL_WRITING_GUIDELINES>
-
-<SPELLING_AND_LOCALISATION note="IMPORTANT">
-  <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / BRITISH ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
-  <BRITISH_ENGLISH_RULES>
-    - ALWAYS ensure consistent use of British English in all your interactions, ***BRITISH ENGLISH SPELLING MUST BE USED IN ALL WRITING!***
-    - Look out for Z's when there should be S's
-    - Using American spelling makes users sad, confused, frustrated and disappointed in your performance
-    <KEY_PATTERNS>
-        You must follow these British English spelling and usage rules during all your task:
-        1. Use -our instead of -or (e.g., colour, favour, humour)
-        2. Use -ise/-yse instead of -ize/-yze (e.g., organise, analyse)
-        3. Use -re instead of -er (e.g., centre, metre)
-        4. Use -ogue instead of -og (e.g., catalogue, dialogue)
-        5. Use -ae/-oe instead of -e (e.g., anaemia, oesophagus)
-        6. Use -ll- instead of -l- (e.g., travelled, cancelled)
-        7. Use -t instead of -ed for certain past tense verbs (e.g., learnt, dreamt)
-        8. Use -ence instead of -ense for nouns (e.g., defence, licence)
-        9. Use British vocabulary (e.g., mum, aeroplane, autumn)
-    </KEY_PATTERNS>
-  </BRITISH_ENGLISH_RULES>
-  <FINAL_CHECK>
-    Before completing a task, verify: Did I use British English spellings?
-  </FINAL_CHECK>
-</SPELLING_AND_LOCALISATION>
 
 ---
 
