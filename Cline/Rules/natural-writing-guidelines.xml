@@ -1,47 +1,28 @@
-<NATURAL_WRITING_GUIDELINES note="For written content such as READMEs, documentation, conversational text, comments, etc">
-  <NOTE>Guidelines for natural, human-like writing in READMEs, documentation, and conversational text.</NOTE>
+<SPELLING_AND_LOCALISATION note="IMPORTANT">
+  <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / BRITISH ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
+  <BRITISH_ENGLISH_RULES>
+    - ALWAYS ensure consistent use of British English in all your interactions, ***BRITISH ENGLISH SPELLING MUST BE USED IN ALL WRITING!***
+    - Look out for Z's when there should be S's
+    - Using American spelling makes users sad, confused, frustrated and disappointed in your performance
+    <KEY_PATTERNS>
+        You must follow these British English spelling and usage rules during all your task:
+        1. Use -our instead of -or (e.g., colour, favour, humour)
+        2. Use -ise/-yse instead of -ize/-yze (e.g., organise, analyse)
+        3. Use -re instead of -er (e.g., centre, metre)
+        4. Use -ogue instead of -og (e.g., catalogue, dialogue)
+        5. Use -ae/-oe instead of -e (e.g., anaemia, oesophagus)
+        6. Use -ll- instead of -l- (e.g., travelled, cancelled)
+        7. Use -t instead of -ed for certain past tense verbs (e.g., learnt, dreamt)
+        8. Use -ence instead of -ense for nouns (e.g., defence, licence)
+        9. Use British vocabulary (e.g., mum, aeroplane, autumn)
+    </KEY_PATTERNS>
+  </BRITISH_ENGLISH_RULES>
+  <FINAL_CHECK>
+    Before completing a task, verify: Did I use British English spellings?
+  </FINAL_CHECK>
+</SPELLING_AND_LOCALISATION>
 
-  <BACKGROUND>
-    <PROBLEM>AI absorbed institutional writing's worst habits from billions of press releases and SEO content. Fine-tuning rewards comprehensive, inoffensive writing with safety phrases and promotional tone.</PROBLEM>
-    <DETECTION>Uniform 15-20 word sentences. Empty "-ing" phrases. Tourist brochure language.  Readers flee at "Moreover" or "rich cultural heritage", "production grade", "comprehensive" etc.</DETECTION>
-  </BACKGROUND>
-
-  <CORE_PRINCIPLE>
-    Match writing to purpose and audience:
-    - PhD thesis: precision, not "utilises" everywhere
-    - Casual email: warmth, not "I hope this finds you well"
-    - Technical guide: clarity, not "it's important to note"
-
-    Human qualities: Natural rhythm, specific language, confident uncertainty, varied structure
-  </CORE_PRINCIPLE>
-
-  <NATURAL_WRITING_TIPS>
-    RHYTHM/STRUCTURE:
-    - Vary paragraph length - some one sentence, others several
-    - Trust implicit connections without signposting every step
-
-    VOICE/TONE:
-    - "first international acquisition" not "significant milestone"
-    - No "-ing" phrase endings adding interpretation
-    - Avoid self-congratulation
-
-    CONTENT:
-    - "2024 McKinsey study of 2,000 consumers" not "studies show"
-    - Not everything has "rich cultural heritage"
-    - No "In conclusion" unless genuinely complex
-    - Add natural imperfection: tangents, specific examples, occasional repetition
-    - **CRITICAL: British/Australian spelling only - NO American spelling**
-  </NATURAL_WRITING_TIPS>
-
-  <BETTER_PHRASES>
-    - "stands as a testament to" → describe what it is
-    - "plays a vital role in" → explain what it does
-    - "highlighting/underscoring importance" → delete
-    - "moreover/furthermore" → use only when essential
-    - "experts believe" → cite specifically
-    - "It's not just X, it's Y" → state directly
-  </BETTER_PHRASES>
-
+<WRITTEN_LANGUAGE_RULES note="IMPORTANT rules for written content such as READMEs, documentation, conversational text, comments, function names etc">
   <AVOID>
     - IMPORTANT: DO NOT write over used or cliche AI phrases such as: comprehensive, significant milestone, feature complete, production ready, deep dive, user engagement, furthermore etc.
     - Smart quotes and em dashes
@@ -68,4 +49,4 @@
   <FINAL_TEST>
     Does it sound like a real person explaining something they know, or Wikipedia crossed with a press release? Natural writing is messier, more varied, more specific than AI defaults.
   </FINAL_TEST>
-</NATURAL_WRITING_GUIDELINES>
+</WRITTEN_LANGUAGE_RULES>

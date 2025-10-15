@@ -1,3 +1,6 @@
+<CLINE_RULES>
+  - Start new task when context window exceeds 70% capacity
+</CLINE_RULES>
 
 <IMPORTANT_RULES>
 
@@ -22,24 +25,27 @@
   </GOLANG>
 
   <JAVASCRIPT_TYPESCRIPT note="Rules for JS, TS and other web frontend frameworks">
-    - I usually prefer Astro over React or Next.js for new frontend projects unless otherwise specified.
     - Never hardcode element or font sizes, colours etc. into the code, instead always use variables from a central theme or configuration file
     - Ensure styles are consistent and follow a coherent design system
     - Avoid complexity with Javascript and Typescript - avoid unnecessary abstractions, frameworks and excessively heavy design patterns
+    - Only log what is truly needed to the console, avoid excessive console logging
   </JAVASCRIPT_TYPESCRIPT>
 
   <BASH note="Rules for shell scripts">
   - In shell scripts you must define and set variable values separately, group their definition on a single line where it makes sense to do so.
   </BASH>
 
-  <WORKFLOW note="**IMPORTANT**">
+  <WORKFLOW note="**IMPORTANT** you must follow this workflow for all tasks unless directly instructed otherwise by the user">
   - IMPORTANT: Edit only what's necessary! Make minimal changes to existing structures unless instructed
+  - **You MUST NOT EVER state something is fixed unless you have confirmed it is by means of testing or measuring output and building the application**
   - Avoid adding too many comments, you ONLY need comments on complex logic that cannot be inferred
   - Run make lint/format/test/build if available after completing tasks
-  - You *MUST* fix all failing tests before marking task complete
-  - If working from a dev plan or checklist - you MUST check off tasks as they are completed to 100%, if you cannot be sure they are truly complete - do not state they are complete!
-  - Don't ever state something is fixed unless you have confirmed it is by means of testing or measuring output or if the user has confirmed
+  - If working from a dev plan or checklist - you **MUST** check off tasks as they are completed to 100%, if you cannot be sure they are truly complete - do not state they are complete!
+  - If you are stuck on a persistent problem that you and the user have tried to fix several times, suggest to the user that they can run the `/systematic-debugging-when-stuck` command to perform a fagan inspection
   - Use Australian/British English spelling in all communication, comments and code
+  - Create a todo lists when working on complex tasks to track progress and remain on track
+  - You **MUST** fix all failing tests before marking task complete
+  - If the user asks you to ensure the code builds you **MUST** ensure you run a build or any other related commands before stating you've completed the work.
   </WORKFLOW>
 
   <DO_NOT_WASTE_TOKENS note="**IMPORTANT**: Being economical with tokens is always important">
@@ -49,7 +55,7 @@
 
   <NEVER_DO_THESE note="**IMPORTANT**">
     - NEVER perform git add/commit/push operations
-    - NEVER hardcode credentials or unique identifiers
+    - NEVER hardcode credentials, unique identifiers or localhost URLs
     - NEVER add comments pertaining only to development process (e.g. "improved function", "optimised version", "# FIX:", "enhanced function" etc...)
     - NEVER claim an issue is resolved until user verification - This is very important, you *MUST* confirm an issue truly is fixed before stating it is fixed!
     - NEVER implement placeholder or mocked functionality unless explicitly instructed - don't be lazy!
@@ -66,7 +72,7 @@
 
   <CONTRIBUTING_TO_OPEN_SOURCE when="If the user states they are contributing to an open source project">
     - You MUST align to the style of the existing code and you MUST follow the project's contribution guidelines and coding standards, start by reading CONTRIBUTING.md or similar files in the repository
-    - You MUST NOT add placeholder comments or code
+    - **IMPORTANT: You MUST NOT add placeholder comments or code!**
   </CONTRIBUTING_TO_OPEN_SOURCE>
 
   <DOCUMENTATION_RULES note="IMPORTANT">
@@ -76,9 +82,5 @@
     - Avoid using the terms 'comprehensive', 'enhanced', 'improved', 'production grade' etc.. - they are overused by AI coding assistants and add no real value
     - You MUST avoid marketing language, superlatives and self congratulatory statements
   </DOCUMENTATION_RULES>
-
-  <CLINE_RULES>
-    - Start new task when context window exceeds 70% capacity
-  </CLINE_RULES>
 
 </IMPORTANT_RULES>
