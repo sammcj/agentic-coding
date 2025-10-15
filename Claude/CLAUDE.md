@@ -22,18 +22,7 @@
   </FINAL_CHECK>
 </SPELLING_AND_LOCALISATION>
 
-<NATURAL_WRITING_GUIDELINES note="For written content such as READMEs, documentation, conversational text, comments, etc">
-  <NOTE>Guidelines for natural, human-like writing in READMEs, documentation, and conversational text.</NOTE>
-
-  <BETTER_PHRASES>
-    - "stands as a testament to" → describe what it is
-    - "plays a vital role in" → explain what it does
-    - "highlighting/underscoring importance" → delete
-    - "moreover/furthermore" → use only when essential
-    - "experts believe" → cite specifically
-    - "It's not just X, it's Y" → state directly
-  </BETTER_PHRASES>
-
+<WRITTEN_LANGUAGE_RULES note="IMPORTANT rules for written content such as READMEs, documentation, conversational text, comments, function names etc">
   <AVOID>
     - IMPORTANT: DO NOT write over used or cliche AI phrases such as: comprehensive, significant milestone, feature complete, production ready, deep dive, user engagement, furthermore etc.
     - Smart quotes and em dashes
@@ -60,7 +49,7 @@
   <FINAL_TEST>
     Does it sound like a real person explaining something they know, or Wikipedia crossed with a press release? Natural writing is messier, more varied, more specific than AI defaults.
   </FINAL_TEST>
-</NATURAL_WRITING_GUIDELINES>
+</WRITTEN_LANGUAGE_RULES>
 
 ---
 
@@ -72,18 +61,6 @@
 - Task file specificity: Each task handles ONLY specified files or file types if required
 - Combine small updates: Combine small config/doc updates to prevent over-splitting
 - REMEMBER: Sub agents could compete each other and erase each others changes, so ensure they are well defined, do not overlap and your instructions to them state that they are one of several sub agents working in the project, thus it's important to respect the defined boundaries and not to change files that are not within the scope of the task
-
-  <WORKFLOW>
-    Example Parallel Feature Implementation Workflow:
-      1. **Component**: Create main component file
-      2. **Styles**: Create component styles/CSS
-      3. **Tests**: Create test files
-      4. **Types**: Create type definitions
-      5. **Hooks**: Create custom hooks/utilities
-      6. **Integration**: Update routing, imports, exports
-      7. **Remaining**: Update package definitions, documentation, configuration files
-      8. **Review and Validation**: Coordinate integration, run tests, verify build, check for misalignments and gaps
-  </WORKFLOW>
 </CLAUDE_PARALLEL_TASKS>
 
 ---
@@ -142,16 +119,17 @@
   - In shell scripts you must define and set variable values separately, group their definition on a single line where it makes sense to do so.
   </BASH>
 
-  <WORKFLOW note="**IMPORTANT**">
+  <WORKFLOW note="**IMPORTANT** you must follow this workflow for all tasks unless directly instructed otherwise by the user">
   - IMPORTANT: Edit only what's necessary! Make minimal changes to existing structures unless instructed
+  - **You MUST NOT EVER state something is fixed unless you have confirmed it is by means of testing or measuring output and building the application**
   - Avoid adding too many comments, you ONLY need comments on complex logic that cannot be inferred
   - Run make lint/format/test/build if available after completing tasks
-  - You *MUST* fix all failing tests before marking task complete
-  - If working from a dev plan or checklist - you MUST check off tasks as they are completed to 100%, if you cannot be sure they are truly complete - do not state they are complete!
-  - Don't ever state something is fixed unless you have confirmed it is by means of testing or measuring output or if the user has confirmed
+  - If working from a dev plan or checklist - you **MUST** check off tasks as they are completed to 100%, if you cannot be sure they are truly complete - do not state they are complete!
   - If you are stuck on a persistent problem that you and the user have tried to fix several times, suggest to the user that they can run the `/systematic-debugging-when-stuck` command to perform a fagan inspection
   - Use Australian/British English spelling in all communication, comments and code
   - Create a todo lists when working on complex tasks to track progress and remain on track
+  - You **MUST** fix all failing tests before marking task complete
+  - If the user asks you to ensure the code builds you **MUST** ensure you run a build or any other related commands before stating you've completed the work.
   </WORKFLOW>
 
   <DO_NOT_WASTE_TOKENS note="**IMPORTANT**: Being economical with tokens is always important">
