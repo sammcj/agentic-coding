@@ -1,14 +1,50 @@
-Let's approach this systematically using a modified Fagan Inspection methodology:
 
-1. **Initial Overview**: First, explain the problem/bug in plain language and what the expected vs actual behaviour is.
+# Perform A Full "Fagan Inspection" (Systematic Debugging)
+
+This applies a modified Fagan Inspection methodology for systematic problem resolution, this is useful when facing complex problems or troubleshooting failures.
+
+## Process
+
+1. **Initial Overview**:
+
+   - Explain the problem/bug in plain language
+   - Clearly state the expected behaviour
+   - Clearly state the actual behaviour
+   - Identify any error messages or symptoms observed
 
 2. **Systematic Inspection** (Fagan-style):
-   - Line-by-line walkthrough as the "Reader" role
-   - Identify defects without fixing yet (pure inspection phase)
-   - Check against common defect categories: logic errors, boundary conditions, error handling, data flow issues
 
-3. **Root Cause Analysis**: After identifying issues, trace back to find the fundamental cause, not just symptoms.
+   - Perform a line-by-line walkthrough as the "Reader" role
+   - Identify defects without attempting to fix them yet (pure inspection phase)
+   - Check against common defect categories:
+     - Logic errors (incorrect conditional logic, loop conditions)
+     - Boundary conditions (off-by-one errors, edge cases)
+     - Error handling (unhandled exceptions, missing validations)
+     - Data flow issues (variable scope, data transformation problems)
+     - Integration points (API calls, database interactions, external dependencies)
 
-4. **Solution & Verification**: Propose fixes and explicitly verify each one would resolve the identified issues.
+3. **Root Cause Analysis**:
 
-Think aloud through each phase. If you spot assumptions, state them explicitly. If something seems unclear, flag it rather than guessing.
+   - After identifying issues, trace back to find the fundamental cause
+   - Focus on the root cause, not just symptoms
+   - Ask "why" (aloud, to yourself) repeatedly to get to the underlying issue
+   - Consider environmental factors (configuration, dependencies, timing)
+   - State any assumptions explicitly
+
+4. **Solution & Verification**:
+
+   - Propose specific fixes for each identified issue
+   - Explicitly verify each proposed solution would resolve the identified problems
+   - Consider potential side effects or unintended consequences
+   - Plan concise verification steps or tests to confirm the fix works
+
+## Important Guidelines
+
+- **Think aloud** through each phase
+- **State assumptions explicitly** rather than making implicit ones
+- **Flag unclear aspects** rather than guessing
+- **Focus on systematic analysis** over quick fixes
+- **Don't skip phases** - complete each step thoroughly before moving to the next
+- **Validate any flagged aspects** - after the final step, revisit any unclear points and use ultrathink to clarify them if required
+
+Once complete: Summarise the findings, proposed solutions, and next steps clearly. Unless the user has indicated they do not want you to take action on the findings you may then proceed to implement the proposed solutions if appropriate.
