@@ -149,16 +149,10 @@ If the skill needs extensive content, split into separate files:
 
 - Time-sensitive information (dates, versions that change)
 - Inconsistent terminology
-- Over-general advice that doesn't guide behaviour
-- Unnecessary context or background
+- Over-general advice that doesn't guide behaviour or add knowledge
+- Context or background information that does not relate to the skill's purpose
+- Duplicated information across files within the skill
 - Vague names
-
-## Testing Strategy
-
-1. **Create test scenarios FIRST** (before extensive documentation)
-2. **Establish baseline**: Try skill with minimal instructions
-3. **Iterative refinement**: Add only what's needed to pass tests
-4. **Test across models**: Verify behaviour on Haiku, Sonnet, and Opus
 
 ## Implementation Steps
 
@@ -190,9 +184,9 @@ Once you understand the requirements:
    - [ ] Description is third person, under 1024 characters
    - [ ] Description explains BOTH what and when
    - [ ] SKILL.md is under 500 lines
-   - [ ] Includes ALL necessary contextual information (APIs, terminology, procedures)
+   - [ ] Includes necessary contextual information (APIs, terminology, procedures)
    - [ ] Concise writing without unnecessary verbosity
-   - [ ] allowed-tools specified appropriately (if needed)
+   - [ ] allowed-tools specified appropriately (only if needed)
    - [ ] Instructions are clear and actionable
    - [ ] Examples provided for complex outputs
    - [ ] British English spelling used throughout
