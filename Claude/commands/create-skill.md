@@ -77,8 +77,8 @@ description: Third-person description of what the skill does and when to use it
 
 Optional fields:
 ```yaml
-allowed-tools: [Read, Write, Edit, Bash]  # Restrict tools for security
-model: claude-opus-4-20250514  # Override default model if needed
+allowed-tools: [Read, Write, Edit, Bash]  # Restrict tools for security (only add upon user request)
+model: claude-sonnet-4-5-20250929  # Override default model (only add upon user request)
 ```
 
 ### Naming Rules
@@ -177,7 +177,7 @@ Once you understand the requirements:
    - Reference them from SKILL.md
 
 5. **Create the skill file(s)**
-   - Place in correct directory (personal vs project)
+   - Place in correct directory (global / personal vs project)
    - Ensure SKILL.md exists with proper frontmatter
 
 6. **Validation checklist:**
@@ -191,6 +191,11 @@ Once you understand the requirements:
    - [ ] Instructions are clear and actionable
    - [ ] Examples provided for complex outputs
    - [ ] British English spelling used throughout
+
+## Remember
+
+- SKILL.md is loaded into context when the skill is triggered, while other .md files will be loaded as needed (but they must be referenced in SKILL.md for the agent to
+  be aware of them)
 
 ## Examples of Well-Scoped Skills
 
