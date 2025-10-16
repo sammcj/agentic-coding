@@ -179,6 +179,7 @@ Once you understand the requirements:
 5. **Create the skill file(s)**
    - Place in correct directory (global / personal vs project)
    - Ensure SKILL.md exists with proper frontmatter
+   - If adding supporting markdown files, ensure they're clearly referenced and described as to what information they provide in SKILL.md, they should not duplicate SKILL.md or other supplemental file content
 
 6. **Validation checklist:**
    - [ ] Name is gerund form, under 64 characters
@@ -198,6 +199,7 @@ Once you understand the requirements:
   be aware of them)
 - Skills are designed to dynamically extend Claude's capabilities with specialised knowledge, guidance and optionally scripts that are not part of the training data
 - Don't be vague or generic with the skill name or description
+- If you add additional markdown files, ensure they are referenced in SKILL.md or the agent won't know it can load them
 
 ## Examples of Well-Scoped Skills
 
