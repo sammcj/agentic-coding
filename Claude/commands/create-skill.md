@@ -196,6 +196,8 @@ Once you understand the requirements:
 
 - SKILL.md is loaded into context when the skill is triggered, while other .md files will be loaded as needed (but they must be referenced in SKILL.md for the agent to
   be aware of them)
+- Skills are designed to dynamically extend Claude's capabilities with specialised knowledge, guidance and optionally scripts that are not part of the training data
+- Don't be vague or generic with the skill name or description
 
 ## Examples of Well-Scoped Skills
 
