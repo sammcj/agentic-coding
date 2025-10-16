@@ -1,9 +1,9 @@
 ---
 name: Writing Go Tests
-description: Applies current Go testing best practices based on 2025 standards, including testing/synctest for concurrent code, table-driven patterns, and modern tooling. Use when writing or modifying Go test files, implementing benchmarks, or advising on Go testing strategies.
+description: Applies current Go testing best practices. Use when writing or modifying Go test files or advising on Go testing strategies.
 ---
 
-# Go Testing Best Practices (2025)
+# Go Testing Best Practices
 
 This skill provides actionable testing guidelines. For detailed implementation patterns, code examples, rationale, and production system references, consult `go-testing-best-practices.md`.
 
@@ -22,7 +22,7 @@ This skill provides actionable testing guidelines. For detailed implementation p
 - Use descriptive test case names that appear in failure output
 - See detailed guide for complete pattern and examples
 
-### 3. Concurrent Testing (2025 Revolution)
+### 3. Concurrent Testing
 - **Use `testing/synctest` for deterministic concurrent testing** (Go 1.24+)
 - This eliminates flaky time-based tests and runs in microseconds instead of seconds
 - For traditional parallel tests, always call `t.Parallel()` first in test functions

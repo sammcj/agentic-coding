@@ -195,7 +195,7 @@ Once you understand the requirements:
 
 ## Remember
 
-- The agent ONLY gets given the skill name and description to know when to invoke the skill, it does NOT get the full content of the skill until it is triggered
+- The agent ONLY gets given the skill name and description to know when to invoke the skill, it does NOT get the full content of the skill until it is triggered so do not add when to use the skill in the content of SKILL.md
 - SKILL.md is loaded into context when the skill is triggered, while other .md files will be loaded as needed (but they must be referenced in SKILL.md for the agent to
   be aware of them)
 - Skills are designed to dynamically extend Claude's capabilities with specialised knowledge, guidance and optionally scripts that are not part of the training data
