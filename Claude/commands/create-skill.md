@@ -13,7 +13,7 @@ You are helping the user create or edit a Claude Code Skill. Skills are modular 
 **What Skills Are:**
 - Autonomous capabilities stored as SKILL.md files with optional supporting files
 - Automatically triggered by Claude based on the description matching user requests
-- Can be personal (~/.claude/skills/) or project-level (.claude/skills/)
+- Can be global (also known as personal) (~/.claude/skills/) or project-level (.claude/skills/)
 
 **Skills vs Slash Commands:**
 - Skills: Model-invoked automatically when relevant
@@ -48,9 +48,8 @@ Before creating or editing a skill, ask the user:
    - Project skill (.claude/skills/) - shared with team via git
 
 5. **What tools should it use?**
-   - Should it be read-only? (Read, Glob, Grep only)
-   - Does it need to modify files? (Edit, Write)
-   - Does it need to run commands? (Bash)
+   - Note: You only need to ask which tools to allow if the user or your conversation indicates special tools are needed for the skill
+   - Should it be read-only or allow writing?
    - Web access? (WebFetch, WebSearch)
 
 6. **What contextual information is needed?**
@@ -87,7 +86,7 @@ model: claude-opus-4-20250514  # Override default model if needed
 **name field:**
 - Maximum 64 characters
 - Use gerund form (verbs ending in -ing): "Processing PDFs", "Analysing Logs"
-- Be descriptive and specific
+- **Be specific**, do not use generic or vague names
 
 **description field:**
 - Maximum 1024 characters
@@ -152,6 +151,7 @@ If the skill needs extensive content, split into separate files:
 - Inconsistent terminology
 - Over-general advice that doesn't guide behaviour
 - Unnecessary context or background
+- Vague names
 
 ## Testing Strategy
 
