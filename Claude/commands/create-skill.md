@@ -1,7 +1,7 @@
 ---
 description: Create or edit a Claude Skill with guided assistance and best practices
 allowed-tools: [Read, Write, Edit, Glob, Bash]
-argument-hint: "[skill-name or path]"
+argument-hint: "[skill name or path]"
 ---
 
 # Claude Skill Builder Assistant
@@ -195,6 +195,7 @@ Once you understand the requirements:
 
 ## Remember
 
+- The agent ONLY gets given the skill name and description to know when to invoke the skill, it does NOT get the full content of the skill until it is triggered
 - SKILL.md is loaded into context when the skill is triggered, while other .md files will be loaded as needed (but they must be referenced in SKILL.md for the agent to
   be aware of them)
 - Skills are designed to dynamically extend Claude's capabilities with specialised knowledge, guidance and optionally scripts that are not part of the training data
