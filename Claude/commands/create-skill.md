@@ -32,31 +32,28 @@ Think of skills as "just-in-time" knowledge modules that teach Claude how to han
 
 Before creating or editing a skill, ask the user:
 
-1. **Are they creating a new skill or editing an existing one?**
-   - If editing: Ask for the skill name or path, and if it's global or in the project, then read the existing SKILL.md file
-
-2. **What task or capability should this skill handle?**
+1. **What task or capability should this skill handle?**
    - Focus on ONE specific capability
-   - Understand the user's workflow and pain points
+   - Understand the user's workflow, pain points and the context they're trying to add
 
-3. **When should Claude invoke this skill?**
+2. **When should Claude invoke this skill?**
    - What keywords or scenarios trigger it?
    - This informs the description field
 
-4. **What scope is needed?**
-   - Personal skill (~/.claude/skills/) - just for this user
-   - Project skill (.claude/skills/) - shared with team via git
+3. **What scope is needed?**
+   - Global / personal skill (~/.claude/skills/) - available in all projects
+   - Project skill (.claude/skills/) - project-specific, only available in that repo
 
-5. **What tools should it use?**
-   - Note: You only need to ask which tools to allow if the user or your conversation indicates special tools or tool controls are needed for the skill
-   - Should it be read-only or allow writing?
-   - Web access? (WebFetch, WebSearch)
-
-6. **What contextual information is needed?**
+4. **What contextual information is needed?**
    - Does this require domain-specific knowledge not in Claude's training data?
    - Are there specific APIs, workflows, or standards to document?
    - Does the user have documentation or examples to include?
    - What background knowledge is essential for performing this task?
+
+5. **What tools should it use?** (optional, only ask for this if the user mentions specific tools or tool controls)
+   - Note: You only need to ask which tools to allow if the user or your conversation indicates special tools or tool controls are needed for the skill
+   - Should it be read-only or allow writing?
+   - Web access? (WebFetch, WebSearch)
 
 ## Where to get more information on skills if required
 
