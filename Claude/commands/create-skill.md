@@ -118,13 +118,14 @@ Match detail level to task fragility:
 
 ### Organisation Patterns
 
-If the skill needs extensive content, split into separate files:
+If the skill needs extensive content, split into separate files, for example:
 
 **Pattern 1 - Reference Model:**
-- SKILL.md: High-level guide
-- FORMS.md: Templates and formats
-- REFERENCE.md: Detailed documentation
-- EXAMPLES.md: Example outputs
+- SKILL.md: High-level guide # Main instructions (loaded when triggered)
+- forms.md: Templates and formats (example) # Form-filling guide (loaded as needed)
+- reference.md: Detailed documentation (example) # API reference (loaded as needed)
+- examples.md: Example outputs # Usage examples (loaded as needed)
+- scripts/*.py/sh: Any scripts (if required for the skill) # Utility script (executed, not loaded)
 
 **Pattern 2 - Domain Split:**
 - SKILL.md: Overview and routing
@@ -133,7 +134,7 @@ If the skill needs extensive content, split into separate files:
 
 **Pattern 3 - Progressive Disclosure:**
 - SKILL.md: Basic instructions
-- advanced-usage.md: Complex scenarios (referenced when needed)
+- advanced-usage.md: Complex scenarios # Additional usage information (if required) (loaded as needed)
 
 **Key rule:** Keep references ONE level deep from SKILL.md
 
