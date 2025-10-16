@@ -48,7 +48,7 @@ Before creating or editing a skill, ask the user:
    - Project skill (.claude/skills/) - shared with team via git
 
 5. **What tools should it use?**
-   - Note: You only need to ask which tools to allow if the user or your conversation indicates special tools are needed for the skill
+   - Note: You only need to ask which tools to allow if the user or your conversation indicates special tools or tool controls are needed for the skill
    - Should it be read-only or allow writing?
    - Web access? (WebFetch, WebSearch)
 
@@ -170,7 +170,7 @@ Once you understand the requirements:
 
 2. **Draft the frontmatter**
    - Write a compelling, specific description
-   - Set appropriate tool restrictions
+   - Set appropriate tool restrictions (if required)
 
 3. **Write core instructions**
    - Start with essential workflow
@@ -192,7 +192,7 @@ Once you understand the requirements:
    - [ ] SKILL.md is under 500 lines
    - [ ] Includes ALL necessary contextual information (APIs, terminology, procedures)
    - [ ] Concise writing without unnecessary verbosity
-   - [ ] allowed-tools specified appropriately
+   - [ ] allowed-tools specified appropriately (if needed)
    - [ ] Instructions are clear and actionable
    - [ ] Examples provided for complex outputs
    - [ ] British English spelling used throughout
