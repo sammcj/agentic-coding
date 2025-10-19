@@ -2,9 +2,9 @@
 
 - [Sam's Agentic Coding Rules, Templates and Examples](#sams-agentic-coding-rules-templates-and-examples)
   - [Coding Agent Rules, Agents, Templates and Skills](#coding-agent-rules-agents-templates-and-skills)
+    - [Client Tooling - Not All Created Equal](#client-tooling---not-all-created-equal)
   - [Patterns / Workflows](#patterns--workflows)
   - [MCP Servers](#mcp-servers)
-    - [Client Tooling - Not All Created Equal](#client-tooling---not-all-created-equal)
   - [Tips For Agentic Coding](#tips-for-agentic-coding)
     - [Writing Rules](#writing-rules)
     - [Getting High Quality Outcomes](#getting-high-quality-outcomes)
@@ -30,19 +30,23 @@ _Note: My rules starting with an `_` indicate that I only toggle these on for sp
   - [Workflows (Prompt Templates)](./Cline/Workflows/)
   - [Cline Docs on Rules](https://docs.cline.bot/features/cline-rules)
 
-> _You may also find other rules for other tools that I've tried but did not find as effective such as Github Copilot Agent, Charm, Gemini CLI and [Amazon Kiro](./Kiro/kiro-specific-rules.md) - be mindful they might not be as well maintained as the Claude Code and Cline rules. I have a table where I keep track of coding agent tools here:_ https://smcleod.net/agentic-coding-tools/
-
 ![Rules Toggled In Cline](clinerules.png)
 
----
+### Client Tooling - Not All Created Equal
+
+**I recommend Claude Code or Cline as the best agentic coding tools.**
+
+I find they both _far_ outperform the many other tools I've tried (Copilot Agent, Cursor, Windsurf, Kiro, Augment Code, Gemini CLI, Codex etc...).
+
+Both Claude Code and Cline are equally good in different ways. Claude Code provides the best value for money if you can pair it with the Claude Max 5 subscription ($100 USD / month).
+
+> _You may also find other rules for other tools that I've tried but did not find as effective such as Github Copilot Agent, Charm, Gemini CLI and [Amazon Kiro](./Kiro/kiro-specific-rules.md) - be mindful they might not be as well maintained as the Claude Code and Cline rules. I have a table where I keep track of coding agent tools here:_ https://smcleod.net/agentic-coding-tools/
 
 ## Patterns / Workflows
 
 - See my blog post on my Setup -> Plan -> Act -> Review & Iterate workflow at: [smcleod.net](https://smcleod.net)
 
 ## MCP Servers
-
----
 
 - [MCP DevTools](https://github.com/sammcj/mcp-devtools): This has become the only MCP server I _always_ have enabled. I wrote it to provide the most common tooling I use with Agentic Coding.
   - [Example MCP DevTools client config](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-mvp.json)
@@ -53,15 +57,6 @@ _Note: My rules starting with an `_` indicate that I only toggle these on for sp
   - Lookup package documentation.
   - Perform math calculations.
 - Be mindful of how many tokens each MCP server adds to your context window (`/context` in Claude Code), some tools abuse their descriptions and pollute the context window - for example Github's official MCP server alone uses ¼ of the entire context window of Claude Sonnet 4.
-
-
-### Client Tooling - Not All Created Equal
-
-**I recommend Claude Code or Cline as the best agentic coding tools.**
-
-I find they both _far_ outperform the many other tools I've tried (Copilot Agent, Cursor, Windsurf, Kiro, Augment Code, Gemini CLI, Codex etc...).
-
-Both Claude Code and Cline are equally good in different ways. Claude Code provides the best value for money if you can pair it with the Claude Max 5 subscription ($100 USD / month).
 
 ---
 
