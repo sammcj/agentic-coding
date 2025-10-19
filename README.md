@@ -30,7 +30,7 @@ _Note: My rules starting with an `_` indicate that I only toggle these on for sp
   - [Workflows (Prompt Templates)](./Cline/Workflows/)
   - [Cline Docs on Rules](https://docs.cline.bot/features/cline-rules)
 
-I also have some [Amazon Kiro Specific Rules](./Kiro/kiro-specific-rules.md) but these probably lag a bit behind Claude and Cline rules as I rarely have to use Kiro now as I don't find it a high performing option.
+> _You may also find other rules for other tools that I've tried but did not find as effective such as Github Copilot Agent, Charm, Gemini CLI and [Amazon Kiro](./Kiro/kiro-specific-rules.md) - be mindful they might not be as well maintained as the Claude Code and Cline rules. I have a table where I keep track of coding agent tools here:_ https://smcleod.net/agentic-coding-tools/
 
 ![Rules Toggled In Cline](clinerules.png)
 
