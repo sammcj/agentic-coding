@@ -105,6 +105,7 @@
   - Use os and io packages instead of deprecated io/ioutil
   - Build with -ldflags="-s -w" to reduce binary size
   - If the user asks you to create an application using the "charm" family of packages, use your tools to read the documentation and implementation examples for the relevant charmbracelet packages to ensure you are using them correctly
+  - When writing golang you can use the 'modernize' command to aid with modernising code: `go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix -test ./...`
   - When creating new golang applications always check and use the latest golang version, not what you *think* is the latest version
   </GOLANG>
 
