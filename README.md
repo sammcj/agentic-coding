@@ -10,7 +10,6 @@
     - [Getting High Quality Outcomes](#getting-high-quality-outcomes)
     - [Context Window \& Token Usage](#context-window--token-usage)
     - [Agent Rules](#agent-rules)
-    - [Agent Tools (MCP Servers)](#agent-tools-mcp-servers)
   - [Links](#links)
   - [Notes](#notes)
   - [License](#license)
@@ -43,8 +42,18 @@ I also have some [Amazon Kiro Specific Rules](./Kiro/kiro-specific-rules.md) but
 
 ## MCP Servers
 
+---
+
 - [MCP DevTools](https://github.com/sammcj/mcp-devtools): This has become the only MCP server I _always_ have enabled. I wrote it to provide the most common tooling I use with Agentic Coding.
   - [Example MCP DevTools client config](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-mvp.json)
+
+- Always have tools available to the agent that allow it to:
+  - Search the web.
+  - Efficiently retrieve web page content as markdown.
+  - Lookup package documentation.
+  - Perform math calculations.
+- Be mindful of how many tokens each MCP server adds to your context window (`/context` in Claude Code), some tools abuse their descriptions and pollute the context window - for example Github's official MCP server alone uses ¼ of the entire context window of Claude Sonnet 4.
+
 
 ### Client Tooling - Not All Created Equal
 
@@ -82,7 +91,7 @@ If you spend a long time on a difficult problem with a coding agent and you fina
 4. Get them to write a concise, clear rule (prompt) that could be used in the future (or added to your global rules if it's a common issue) to prevent the issue from happening again or at least aid with debugging.
 
 Example:
-> YOU FIXED IT! That's taken a long time to fix. Can you please respond with details on:
+> You fixed it! That's taken a long time to fix. Can you please respond with details on:
   > 1. What the fix was
   > 2. Why it wasn't picked up earlier
   > 3. What information could I have provided to AI coding agents in the future - not just for this project but also other projects in general?
@@ -130,17 +139,6 @@ Example:
 
 - Create both global (all projects) and project scoped agent rules to guide the agent as to how it should behave, what it's values are, if there are any specific build, lint or test commands it should be aware of, where to find additional information etc...
 - Writing your rules in XML style tags (`<Golang_Rules`>...`</Golang_Rules>`) can significantly improve adherence.
-
----
-
-### Agent Tools (MCP Servers)
-
-- Always have tools available to the agent that allow it to:
-  - Search the web.
-  - Efficiently retrieve web page content as markdown.
-  - Lookup package documentation.
-  - Perform math calculations.
-- Be mindful of how many tokens each MCP server adds to your context window (`/context` in Claude Code), some tools abuse their descriptions and pollute the context window - for example Github's official MCP server alone uses ¼ of the entire context window of Claude Sonnet 4.
 
 ---
 
