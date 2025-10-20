@@ -41,7 +41,6 @@
       - What it does/how to configure, not why revolutionary
       - Technical info over philosophy
       - "Setup" not "🚀 Getting Started"
-      - "Processes 1000 req/sec" not "Lightning-fast"
       - "Exports to PDF" not "Seamlessly transforms content"
       - Ask: "What value does this sentence add?", if none, delete
   </CONTEXT_SPECIFIC>
@@ -119,6 +118,13 @@
   <BASH note="Rules for shell scripts">
   - In shell scripts you must define and set variable values separately, group their definition on a single line where it makes sense to do so.
   </BASH>
+
+  <BUILDING_MCP_TOOLS note="MCP Design Rules">
+  - When creating MCP tools, think like a user interface designer, not an API wrapper.
+  - Each tool should represent a task a human would perform ("search recent bugs", "get my notifications") rather than exposing API endpoints ("list_issues", "query_with_filters").
+  - Abstract away technical details like internal IDs, pagination tokens, and multi-step operations—tools should accept human-readable inputs (team names, not team IDs) and handle the complexity internally.
+  - If a user action requires multiple API calls, aim for one MCP tool, not several.
+  </BUILDING_MCP_TOOLS>
 
   <WORKFLOW note="**IMPORTANT** you must follow this workflow for all tasks unless directly instructed otherwise by the user">
   - IMPORTANT: Edit only what's necessary! Make minimal changes to existing structures unless instructed
