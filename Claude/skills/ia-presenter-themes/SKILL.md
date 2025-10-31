@@ -287,6 +287,7 @@ When creating or modifying themes:
 - **Both modes** - Always configure and test light and dark appearances
 - **Grid modifiers** - Grid layouts have `.grid-items-2`, `.grid-items-3`, etc. classes
 - **British spelling** - Use "colour", "centre", "customise" in all content
+- **Update placeholders** - Update any placeholder content in the template.json, theme.css, presets.json files
 
 ## Resources
 
