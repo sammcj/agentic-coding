@@ -421,7 +421,7 @@
 </COLOUR_SCHEME>
 
 <FONT>
-  - Where applicible use the 'Inter' typeface is utilised for headlines, subheadings, and body copy.
+  - Where applicable use the 'Inter' typeface is utilised for headlines, subheadings, and body copy.
   - Favour bundling the font for offline use over relying on CDNs.
   <INTER_CDN note="If bundling is not possible, you may use this CDN">
     <!-- HTML in your document's head -->

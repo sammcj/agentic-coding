@@ -1,11 +1,9 @@
 
-<DIAGRAM_SPECIFICATIONS>
-  <MERMAID_RULES>
-    <RULE> IMPORTANT: You MUST NOT use round brackets ( ) within item labels or descriptions </RULE>
-    <RULE> Use <br> instead of \n for line breaks </RULE>
-    <RULE> Apply standard colour theme unless specified otherwise </RULE>
-    <RULE> Mermaid does not support unordered lists within item labels </RULE>
-  </MERMAID_RULES>
+<MERMAID_RULES>
+    -  IMPORTANT: You MUST NOT use round brackets ( ) within item labels or descriptions
+    -  Use <br> instead of \n for line breaks
+    -  Apply standard colour theme unless specified otherwise
+    -  Mermaid does not support unordered lists within item labels
   <STANDARD_THEME>
     classDef inputOutput fill:#E6F3FF,stroke:#4A90E2,color:#4A90E2
     classDef llm fill:#E8F5E8,stroke:#27AE60,color:#27AE60
@@ -18,4 +16,4 @@
     classDef api fill:#FFF0E6,stroke:#E67E22,color:#E67E22
     classDef error fill:#F8D7DA,stroke:#E74C3C,color:#E74C3C
   </STANDARD_THEME>
-</DIAGRAM_SPECIFICATIONS>
+</MERMAID_RULES>
