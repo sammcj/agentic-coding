@@ -1,0 +1,36 @@
+{
+  "Presets": [
+    {
+      "Name": "Default",
+      "TitleFont": "system-ui",
+      "BodyFont": "system-ui",
+      "Appearance": "light",
+      "DarkBodyTextColor": "#ffffff",
+      "LightBodyTextColor": "#000000",
+      "DarkTitleTextColor": "#ffffff",
+      "LightTitleTextColor": "#000000",
+      "DarkBackgroundColor": "#1a1a1a",
+      "LightBackgroundColor": "#ffffff",
+      "DarkAccent1": "#ffffff",
+      "LightAccent1": "#000000",
+      "Accent1": "#f94144",
+      "Accent2": "#43aa8b",
+      "Accent3": "#f9c74f",
+      "Accent4": "#90be6d",
+      "Accent5": "#f8961e",
+      "Accent6": "#577590",
+      "LightBgGradient": [
+        "#e8f4f8",
+        "#f0e8f8",
+        "#f8e8f0",
+        "#f8f0e8"
+      ],
+      "DarkBgGradient": [
+        "#1a2530",
+        "#251a30",
+        "#301a28",
+        "#302818"
+      ]
+    }
+  ]
+}
