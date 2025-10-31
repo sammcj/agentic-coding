@@ -172,14 +172,45 @@ Configure colours for both modes in `presets.json`:
 ```json
 {
   "Appearance": "light",
-  "DarkBodyTextColor": "#ffffff",
-  "LightBodyTextColor": "#000000",
-  "DarkTitleTextColor": "#ffffff",
-  "LightTitleTextColor": "#000000",
+  "DarkBodyTextColor": "#000000",
+  "LightBodyTextColor": "#ffffff",
+  "DarkTitleTextColor": "#000000",
+  "LightTitleTextColor": "#ffffff",
   "DarkBackgroundColor": "#1a1a1a",
   "LightBackgroundColor": "#ffffff"
 }
 ```
+
+**CRITICAL: Understanding iA Presenter Colour Naming**
+
+The colour field names in `presets.json` can be counter-intuitive. They refer to the COLOUR OF THE ELEMENT, not the mode:
+
+- **`DarkBodyTextColor`** = Dark-coloured text (e.g. #000000 black)
+  - Used for text ON light backgrounds in light mode
+
+- **`LightBodyTextColor`** = Light-coloured text (e.g. #ffffff white)
+  - Used for text ON dark backgrounds in dark mode
+
+- **`DarkBackgroundColor`** = Dark background colour (e.g. #1a1a1a)
+  - Used as background in dark mode
+
+- **`LightBackgroundColor`** = Light background colour (e.g. #ffffff)
+  - Used as background in light mode
+
+**Example - For good contrast:**
+```json
+{
+  "DarkBodyTextColor": "#000000",      // Black text for light backgrounds
+  "LightBodyTextColor": "#ffffff",     // White text for dark backgrounds
+  "DarkBackgroundColor": "#1a1a1a",    // Dark grey background
+  "LightBackgroundColor": "#ffffff"    // White background
+}
+```
+
+In light mode: Uses LightBackgroundColor (#ffffff) with DarkBodyTextColor (#000000)
+In dark mode: Uses DarkBackgroundColor (#1a1a1a) with LightBodyTextColor (#ffffff)
+
+**Common Mistake:** Swapping DarkBodyTextColor and LightBodyTextColor, which results in invisible text.
 
 Force appearance for specific layouts in `template.json`:
 ```json
@@ -211,9 +242,23 @@ Default CSS applies to mobile. Use media queries for larger screens:
 
 ## Troubleshooting Guide
 
-### Changes Not Appearing
+### Text Not Visible (Invisible Text Issue)
 
-iA Presenter requires closing and reopening to see CSS changes. There is no hot reload.
+**Symptom**: Text appears invisible in both light and dark modes
+
+**Cause**: Incorrect colour assignments in `presets.json`. The colour naming refers to the colour of the element, not the mode.
+
+**Solution**: Ensure colours are assigned correctly:
+```json
+{
+  "DarkBodyTextColor": "#000000",      // Dark text (for light backgrounds)
+  "LightBodyTextColor": "#ffffff",     // Light text (for dark backgrounds)
+  "DarkBackgroundColor": "#1a1a1a",    // Dark background
+  "LightBackgroundColor": "#ffffff"    // Light background
+}
+```
+
+**Common Mistake**: Setting `DarkBodyTextColor` to a light colour like "#ffffff" - this puts white text on a white background in light mode.
 
 ### Inline SVG Broken
 
@@ -280,13 +325,15 @@ When creating or modifying themes:
 
 ## Key Reminders
 
-- **No hot reload** - Always close and reopen iA Presenter after changes
+- **CRITICAL: Colour naming** - DarkBodyTextColor = dark-coloured text (for light backgrounds), LightBodyTextColor = light-coloured text (for dark backgrounds). DO NOT swap these!
+- **No hot reload on theme creation** - The user must close and reopen iA Presenter when you first create a theme, but subsequent updates will apply on the fly.
 - **Inner div targeting** - Alignment rules target `.layout-* > div`, not the container
 - **Inline SVG colours** - Use `rgb()` format, not hexadecimal
 - **Mobile-first** - Default CSS applies to mobile, add `@media (min-width: 768px)` for desktop
 - **Both modes** - Always configure and test light and dark appearances
 - **Grid modifiers** - Grid layouts have `.grid-items-2`, `.grid-items-3`, etc. classes
 - **British spelling** - Use "colour", "centre", "customise" in all content
+- **Minimal CSS overrides** - Avoid setting explicit colours in CSS for text/backgrounds - let presets.json handle them
 - **Update placeholders** - Update any placeholder content in the template.json, theme.css, presets.json files
 - If you need clarification on the theme you may ask the user for more details about their preferences and requirements.
 
