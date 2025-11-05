@@ -1,11 +1,11 @@
 <SPELLING_AND_LOCALISATION note="IMPORTANT">
-  <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / BRITISH ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
-  <BRITISH_ENGLISH_RULES>
-    - ALWAYS ensure consistent use of British English in all your interactions, ***BRITISH ENGLISH SPELLING MUST BE USED IN ALL WRITING!***
+  <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / AUSTRALIAN ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
+  <AUSTRALIAN_ENGLISH_RULES>
+    - ALWAYS ensure consistent use of Australian English in all your interactions, ***AUSTRALIAN ENGLISH SPELLING MUST BE USED IN ALL WRITING!***
     - Look out for Z's when there should be S's
     - Using American spelling makes users sad, confused, frustrated and disappointed in your performance
     <KEY_PATTERNS>
-        You must follow these British English spelling and usage rules during all your task:
+        You must follow these Australian English spelling and usage rules during all your task:
         1. Use -our instead of -or (e.g., colour, favour, humour)
         2. Use -ise/-yse instead of -ize/-yze (e.g., organise, analyse)
         3. Use -re instead of -er (e.g., centre, metre)
@@ -16,9 +16,9 @@
         8. Use -ence instead of -ense for nouns (e.g., defence, licence)
         9. Use British vocabulary (e.g., mum, aeroplane, autumn)
     </KEY_PATTERNS>
-  </BRITISH_ENGLISH_RULES>
+  </AUSTRALIAN_ENGLISH_RULES>
   <FINAL_CHECK>
-    Before completing a task, verify: Did I use British English spellings?
+    Before completing a task, verify: Did I use Australian English spellings?
   </FINAL_CHECK>
 </SPELLING_AND_LOCALISATION>
 

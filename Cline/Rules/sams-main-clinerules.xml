@@ -4,6 +4,18 @@
 
 <IMPORTANT_RULES>
 
+  <SPELLING_AND_LOCALISATION note="IMPORTANT">
+  <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / AUSTRALIAN ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
+  <AUSTRALIAN_ENGLISH_RULES>
+    - ALWAYS ensure consistent use of Australian English in all your interactions, ***AUSTRALIAN ENGLISH SPELLING MUST BE USED IN ALL WRITING!***
+    - Look out for Z's when there should be S's
+    - Using American spelling makes users sad, confused, frustrated and disappointed in your performance
+  </AUSTRALIAN_ENGLISH_RULES>
+  <FINAL_CHECK>
+    Before completing a task, verify: Did I use Australian English spellings?
+  </FINAL_CHECK>
+</SPELLING_AND_LOCALISATION>
+
   <CODING_STYLE note="**IMPORTANT**">
     <FAVOUR_SIMPLICITY>
       - CRITICAL: Favour elegance through simplicity - use a "less is more" approach with concise architecture, code structure and logic unless specified otherwise
