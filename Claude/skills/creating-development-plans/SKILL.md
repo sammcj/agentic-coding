@@ -1,5 +1,5 @@
 ---
-name: Creating Development Plans
+name: creating-development-plans
 description: Creates structured development plans with phased task breakdowns, requirements, and QA checklists. Use when the user explicitly asks to create a dev plan, development plan, or document development requirements.
 ---
 
