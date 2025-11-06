@@ -395,7 +395,7 @@ count="${#lines[@]}"
 
 ### Formatting
 - **Indentation**: 2 spaces, never tabs
-- **Line length**: Maximum 80 characters
+- **Line length**: Maximum 120 characters
 - **Long strings**: Use here-documents or embedded newlines
 
 ```bash
