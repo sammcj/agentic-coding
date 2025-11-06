@@ -60,6 +60,7 @@
 - Task file specificity: Each task handles ONLY specified files or file types if required
 - Combine small updates: Combine small config/doc updates to prevent over-splitting
 - REMEMBER: Sub agents could compete each other and erase each others changes, so ensure they are well defined, do not overlap and your instructions to them state that they are one of several sub agents working in the project, thus it's important to respect the defined boundaries and not to change files that are not within the scope of the task
+- If you have access to the 'explore' and 'plan' agents you should remember to use them when appropriate
 </CLAUDE_PARALLEL_TASKS>
 
 ---
