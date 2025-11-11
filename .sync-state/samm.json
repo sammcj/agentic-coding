@@ -1,0 +1,38 @@
+{
+  "machine_id": "samm-mbp.local-f9e6c894",
+  "hostname": "samm",
+  "last_sync": "2025-11-11T16:37:49.480279",
+  "files": {
+    "claude/commands/create-development-plan.md": {
+      "checksum": "sha256:67b03e49d22739fe36e3712a79ae5f7b234a0d72ddfa0fbc28c52b1296c40914",
+      "size": 14925,
+      "mtime": "2025-10-21T16:21:12.260782",
+      "last_synced": "2025-11-11T16:37:49.467422"
+    },
+    "claude/CLAUDE.md": {
+      "checksum": "sha256:cbac76a7d77c1f6ac109405cd497401312b04e373e923d98a48aa5ef3abb3b3e",
+      "size": 12620,
+      "mtime": "2025-11-11T12:57:41.164431",
+      "last_synced": "2025-11-11T16:37:49.467851"
+    },
+    "claude/settings.json": {
+      "checksum": "sha256:24377d80d86dae36c435d92940c2b7e48a32859c972f3e6a3de1b843611751fe",
+      "size": 2361,
+      "mtime": "2025-11-11T08:09:31.954204",
+      "last_synced": "2025-11-11T16:37:49.468482"
+    },
+    "claude/commands/review-development-plan.md": {
+      "checksum": "sha256:eebf95698c15f4774bc19474e89acfa70a3bc2ce1e20145bedb910f522f7c531",
+      "size": 22570,
+      "mtime": "2025-10-21T16:22:23.019078",
+      "last_synced": "2025-11-11T16:37:49.468932"
+    },
+    "cline/Rules/CLINE_RULES.md": {
+      "checksum": "sha256:a473aa986ab320ce9f711b94992b59633e73ea0cf8e8a033be7cf42ddc5f0805",
+      "size": 11122,
+      "mtime": "2025-11-11T14:26:07.170538",
+      "last_synced": "2025-11-11T16:37:49.480121"
+    }
+  },
+  "deletions": {}
+}
