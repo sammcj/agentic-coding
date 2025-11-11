@@ -29,22 +29,6 @@
       "mcp__dev-tools",
       "WebSearch"
     ],
-    "ask": [
-      "Bash(git add:*)",
-      "Bash(nc:*)",
-      "Bash(ssh:*)",
-      "Bash(rsync:*)",
-      "Bash(scp:*)",
-      "Bash(git commit:*)",
-      "Bash(npx:*)",
-      "Bash(uvx:*)",
-      "Read(**/credentials.json)",
-      "Read(**/.env)",
-      "Read(**/*.pem)",
-      "Read(//Users/samm/Library/**)",
-      "Write(//Users/samm/.claude/settings.json)",
-      "Write(~/.claude/settings.json)"
-    ],
     "deny": [
       "Read(.vscode/**)",
       "Read(**/secrets/**)",
@@ -72,6 +56,22 @@
       "Bash(1pw:*)",
       "Bash(1Password:*)",
       "Bash(1password:*)"
+    ],
+    "ask": [
+      "Bash(git add:*)",
+      "Bash(nc:*)",
+      "Bash(ssh:*)",
+      "Bash(rsync:*)",
+      "Bash(scp:*)",
+      "Bash(git commit:*)",
+      "Bash(npx:*)",
+      "Bash(uvx:*)",
+      "Read(**/credentials.json)",
+      "Read(**/.env)",
+      "Read(**/*.pem)",
+      "Read(//Users/samm/Library/**)",
+      "Write(//Users/samm/.claude/settings.json)",
+      "Write(~/.claude/settings.json)"
     ],
     "additionalDirectories": [
       "/Users/samm/git"
