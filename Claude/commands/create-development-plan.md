@@ -473,7 +473,6 @@ Present the plan to the user with the following information (filling in the brac
 "I've created a [micro/standard/complex] development plan based on our discussion. This plan:
 - [Brief 1-line summary of what it achieves]
 - Is organised into [N] phases with review checkpoints
-- Targets approximately [X] lines and [estimated time] to complete
 - Includes a Working Notes section where the executing agent can track complex issues if needed
 
 **Scope tier**: [Micro/Standard/Complex] - [brief justification]
