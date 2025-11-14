@@ -9,6 +9,49 @@ You have been working with the user to understand their goal. Now you will creat
 
 ## Your Task
 
+**Step 0: Scope Assessment**
+
+Before creating a plan, you MUST assess whether this work requires a formal development plan and what tier of plan is appropriate.
+
+**Assessment Criteria:**
+
+Ask yourself these questions:
+
+1. **Complexity indicators** - Does this change:
+   - Affect multiple subsystems or cross architectural boundaries?
+   - Require breaking changes or API modifications?
+   - Impact backwards compatibility or existing integrations?
+   - Involve complex business logic or security-critical code?
+   - Require changes to data models or database schema?
+
+2. **Scope indicators** - Is this:
+   - A single-file change with obvious solution?
+   - A focused feature within one subsystem?
+   - A multi-system feature requiring coordination?
+   - An architectural change affecting core patterns?
+
+3. **Scale indicators** - Count the concrete work:
+   - How many files will likely be touched? (1-2, 3-10, >10)
+   - How many new tests will be needed? (None, few, comprehensive suite)
+   - How many subsystems are affected? (1, 2-3, >3)
+   - How many integration points need updating? (None, few, many)
+
+**Decision Tree:**
+
+- **No plan needed**: Single file, <5 tasks, obvious solution → Just do the work
+- **Micro plan** (target <80 lines): Bug fix, dependency update, simple refactor within single subsystem → Use simplified template
+- **Standard plan** (target 100-250 lines): Focused feature, single subsystem with tests, moderate complexity → Full template, 2-4 phases
+- **Complex plan** (target 250-400 lines): Multi-system feature, architectural changes, high complexity → Full template, 4-6 phases
+- **Too large** (>400 lines projected): Consider splitting into multiple plans or questioning scope with user
+
+**Escalation triggers** - STOP and discuss with user if:
+- Involves architectural decisions beyond current scope
+- Dependencies on unavailable resources
+- Unclear complex requirements that need significant clarification
+- Fundamental approach or technology choices are uncertain
+
+Once you've assessed the scope, proceed with the appropriate level of planning.
+
 **Step 1: Gather Context (if working with existing code)**
 
 If there is existing code in the project that may be relevant to the goal and that you haven't already analysed:
@@ -22,19 +65,27 @@ If there is existing code in the project that may be relevant to the goal and th
 
 Use ultrathink (think deeply) about your understanding of the user's requirements, context, constraints and goal based on your discussion so far and any code/documentation you've reviewed.
 
+Consider:
+- What is the actual problem being solved? (Not just symptoms)
+- What assumptions am I making that should be validated?
+- Are there simpler approaches I haven't considered?
+- What could go wrong during implementation?
+- Does the proposed solution align with existing architecture?
+
 **Step 3: Create the Plan**
 
-Create a development plan (in `DEVELOPMENT_PLAN.md` unless specified otherwise) that:
-1. Concisely and clearly documents what needs to be done and why
-2. Breaks work into checklists within logical, reviewable phases
-3. Provides enough guidance without over-constraining implementation
-4. Sets measurable success criteria
-5. Can be followed by an AI coding agent in a fresh session without further context other than any existing files in the project (if applicable)
-6. Includes a "Working Notes" section where the executing agent can optionally track complex issues and troubleshooting attempts
+Create a development plan (in `DEVELOPMENT_PLAN.md` unless specified otherwise) that SHALL:
+1. Concisely and clearly document what needs to be done and why
+2. Break work into checklists within logical, reviewable phases
+3. Provide enough guidance without over-constraining implementation
+4. Set measurable, objective success criteria
+5. Be executable by an AI coding agent in a fresh session without further context other than any existing files in the project
+6. Include a "Working Notes" section where the executing agent can track complex issues and troubleshooting attempts
+7. Use specification-style language (MUST/SHALL/SHOULD) for requirements and constraints
 
 ## Plan Structure
 
-Your plan must include these essential components:
+Your plan MUST include these essential components (adjust detail level based on scope tier):
 
 ### 1. Overview & Current State
 
@@ -51,14 +102,32 @@ Your plan must include these essential components:
 
 ### 2. Requirements & Constraints
 
-List specific, concrete requirements:
-- What must the solution do? (Functional requirements)
-- What constraints must be respected? (Technical, architectural, compatibility)
-- What should NOT change? (Backwards compatibility, existing APIs, etc.)
-- What dependencies or prerequisites exist?
-- Are there any resource constraints? (No external teams, specific libraries to use/avoid)
+Use specification-style language to make requirements unambiguous:
 
-**Make requirements specific and testable** - avoid vague statements.
+**Functional Requirements** (What the solution MUST do):
+- Use "MUST" for mandatory requirements
+- Use "SHOULD" for strongly recommended but not mandatory
+- Use "MAY" for optional features
+- Example: "The API MUST return 400 errors for invalid input"
+- Example: "Error messages SHOULD include field-level validation details"
+
+**Technical Constraints** (What MUST be respected):
+- Architectural patterns that MUST be followed
+- Compatibility requirements (e.g., "MUST maintain backwards compatibility with v2.x API")
+- Performance requirements (e.g., "Response time MUST be <200ms for 95th percentile")
+- Security requirements (e.g., "User input MUST be sanitised before database queries")
+
+**Exclusions** (What MUST NOT change):
+- Existing APIs that MUST remain unchanged
+- Dependencies that MUST NOT be upgraded
+- Patterns or approaches that MUST be avoided
+
+**Prerequisites**:
+- Dependencies that MUST be available
+- Configuration that MUST be in place
+- Access or permissions required
+
+**Make every requirement specific, testable, and unambiguous.** Avoid vague statements like "should be robust" or "must be user-friendly".
 
 ### 3. Unknowns & Assumptions (only if applicable)
 
@@ -189,18 +258,41 @@ Before finalising your plan, check you haven't created these problems:
 
 ## Length & Detail Guidelines
 
-**Target length: 120-400 lines** (but context matters)
+Plan length MUST align with scope assessment. Use these tiers:
 
-- **< 80 lines:** Likely too vague - add more detail on requirements, context, or break phases into clearer tasks
-- **120-300 lines:** Sweet spot for most focused projects
-- **300-400 lines:** Appropriate for complex projects with multiple systems
-- **> 600 lines:** Likely too detailed/ambitious or overly prescriptive - consider reducing scope or combining related items
+**Micro Plan (<80 lines):**
+- Single subsystem change
+- Bug fix or simple refactor
+- Simplified structure: Problem → Solution → Tasks → Success Criteria
+- 1-2 phases maximum
+- Example: Dependency update, simple bug fix, config change
 
-**Use checklists, not essays:**
-- Use checklists of tasks to perform
-- Make it scannable and actionable
-- Be concise but clear, don't waste tokens on fluff
-- Avoid self-congratulatory or marketing language, focus on practical information rather than selling features
+**Standard Plan (100-350 lines):**
+- Focused feature within single subsystem
+- Moderate complexity with testing
+- Full structure with 2-4 phases
+- Clear requirements and success criteria
+- Example: New API endpoint, UI component, service integration
+
+**Complex Plan (350-600 lines):**
+- Multi-system feature
+- Architectural changes
+- Full structure with 4-6 phases
+- Detailed requirements, constraints, and unknowns
+- Example: Authentication system, major refactor, new core feature
+
+**Red Flag (>600 lines):**
+- Plan is likely too large or too prescriptive
+- Consider: Splitting into multiple plans, reducing scope, or discussing with user
+- If legitimately complex: Break into sub-projects with separate plans
+
+**Writing Style:**
+- Use checklists, not essays
+- Be scannable and actionable
+- Use specification language for requirements (MUST/SHALL/SHOULD)
+- Don't include specific code changes unless necessary (e.g. if you had to research online to understand a complex implementation detail)
+- Be concise - don't waste tokens on fluff, but provide enough information that the plan could be provided to a fresh agent in a new session
+- Avoid marketing language - focus on technical clarity
 
 ## Testing Strategy
 
@@ -213,7 +305,7 @@ Before finalising your plan, check you haven't created these problems:
 
 ## Plan Template
 
-Use this structure:
+Use this structure (scale detail to scope tier):
 
 ```markdown
 # [Descriptive Plan Title]
@@ -235,11 +327,19 @@ Use this structure:
 
 ## Requirements
 
-1. [Specific requirement 1]
-2. [Specific requirement 2]
-3. [Specific requirement 3]
+**Functional Requirements:**
+1. [The system MUST...]
+2. [The API SHOULD...]
+3. [Users MAY...]
 
-[Add more as needed but keep it concise and within the scope of what the user has requested]
+**Technical Constraints:**
+1. [Solution MUST maintain backwards compatibility with...]
+2. [Response time MUST be <Xms for...]
+3. [Code MUST NOT...]
+
+**Prerequisites:**
+1. [Dependency X version Y.Z MUST be available]
+2. [Access to Z MUST be configured]
 
 ## Unknowns & Assumptions (if applicable)
 
@@ -319,44 +419,64 @@ Use this structure:
 
 Run through this checklist:
 
+- [ ] Scope assessment completed - tier (micro/standard/complex) is appropriate for the work
 - [ ] Plan has clear overview explaining what and why
 - [ ] Current state/problems clearly documented
-- [ ] Requirements are specific and testable
+- [ ] Requirements use specification language (MUST/SHALL/SHOULD) and are testable
 - [ ] Unknowns and assumptions documented (if applicable)
 - [ ] Success criteria are measurable (no vague terms like "better", "improved", "robust")
-- [ ] 2-6 logical phases with clear progression
+- [ ] 2-6 logical phases with clear progression (1-2 for micro, 2-4 for standard, 4-6 for complex)
 - [ ] Each phase ends with "STOP and wait for human review"
 - [ ] Tasks describe outcomes, not code implementations
 - [ ] Testing integrated throughout, not just at the end
 - [ ] No red flags (reasonable scope, appropriate tech, solving real problems)
-- [ ] Length is appropriate (120-400 lines typical)
+- [ ] Length matches tier (<80 micro, 100-350 standard, 350-600 complex)
 - [ ] Final phase includes comprehensive review
 - [ ] Working Notes section included
 - [ ] British / Australian spelling used throughout (NO AMERICAN SPELLING ALLOWED!)
 - [ ] Plan is specific enough to guide work but flexible enough to allow good implementation decisions
+- [ ] Critical self-review completed (considered design-critic review)
 
 ## Critical Self-Review
 
-Before presenting the plan to the user, perform a critical self-review:
+Before presenting the plan to the user, you MUST perform a critical self-review:
 
-1. **Alignment check**: Does this plan actually solve the user's stated problem?
-2. **Scope check**: Is the scope realistic and focused, or have you crept beyond the original goal?
-3. **Clarity check**: Could a different AI agent read this plan in a fresh session and know exactly what to do?
-4. **Assumptions check**: Are there hidden assumptions that should be documented in the Unknowns & Assumptions section?
-5. **Trade-offs check**: Have you considered alternative approaches? Is this the most proportionate solution?
-6. **Red flags check**: Review the "Red Flags to Avoid" section - does your plan have any of these issues?
+1. **Alignment check**: Does this plan actually solve the user's stated problem? Am I solving symptoms or root causes?
 
-If you identify issues during this review, **revise the plan before presenting it to the user**.
+2. **Scope check**: Is the scope realistic and focused, or have I crept beyond the original goal? Does it match my initial scope assessment?
+
+3. **Complexity check**:
+   - Does this need a dev plan at all, or is it simple enough to just do?
+   - Is the plan tier (micro/standard/complex) appropriate for the work?
+   - Am I over-engineering or under-specifying?
+
+4. **Clarity check**: Could a different AI agent read this plan in a fresh session and know exactly what to do? Are requirements unambiguous?
+
+5. **Assumptions check**: Are there hidden assumptions that should be documented in the Unknowns & Assumptions section?
+
+6. **Trade-offs check**: Have I considered alternative approaches? Is this the most proportionate solution?
+
+7. **Red flags check**: Review the "Red Flags to Avoid" section - does your plan have any of these issues?
+
+8. **Design-critic check** (RECOMMENDED): Consider performing a quick design-critic style review your plan before user presentation:
+   - Challenge architectural decisions
+   - Identify over-engineering or complexity
+   - Question technology choices
+   - Validate that requirements match the stated problem
+
+If you identify issues during this review, you MUST revise the plan before presenting it to the user.
 
 ## After Creating the Plan
 
-Present the plan to the user and say the following (filling in the brackets):
+Present the plan to the user with the following information (filling in the brackets):
 
-"I've created a development plan based on our discussion. This plan:
+"I've created a [micro/standard/complex] development plan based on our discussion. This plan:
 - [Brief 1-line summary of what it achieves]
 - Is organised into [N] phases with review checkpoints
+- Targets approximately [X] lines and [estimated time] to complete
 - Includes a Working Notes section where the executing agent can track complex issues if needed
-- Should take [rough estimate if you can provide one] to complete
+
+**Scope tier**: [Micro/Standard/Complex] - [brief justification]
 
 **Next steps:**
 1. Please review the plan and either let me know if anything needs adjusting or make any changes you'd like
