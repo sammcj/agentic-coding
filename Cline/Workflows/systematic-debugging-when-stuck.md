@@ -1,3 +1,8 @@
+---
+title: 'Perform A Full "Fagan Inspection" (Systematic Debugging) When Stuck'
+read_only: true
+type: 'command'
+---
 
 # Perform A Full "Fagan Inspection" (Systematic Debugging)
 

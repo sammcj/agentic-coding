@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-11-14T15:07:59.490777",
+  "last_sync": "2025-11-14T16:00:43.586193",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:67b03e49d22739fe36e3712a79ae5f7b234a0d72ddfa0fbc28c52b1296c40914",
@@ -32,6 +32,60 @@
       "size": 11122,
       "mtime": "2025-11-11T14:26:07.170538",
       "last_synced": "2025-11-11T16:37:49.480121"
+    },
+    "cline/Workflows/systematic-debugging-when-stuck.md": {
+      "checksum": "sha256:68f009cefade27dd9fe1f5dddbecfba6079c78bdcb3034fbb53b2f10f30c5f4a",
+      "size": 2473,
+      "mtime": "2025-11-14T15:43:33.618454",
+      "last_synced": "2025-11-14T15:45:03.489796"
+    },
+    "cline/Workflows/create-development-plan.md": {
+      "checksum": "sha256:8f982269828a0bb3701a810889d7a4191d430c080d2cdb2d8692e0acda5ab74d",
+      "size": 20127,
+      "mtime": "2025-11-14T15:43:33.617877",
+      "last_synced": "2025-11-14T15:45:03.490546"
+    },
+    "cline/Workflows/design-review-slash-command.md": {
+      "checksum": "sha256:ad8c3c3f0459a4e9addf3f32771e6a443d560bbe9cc77296606fc07e47076e1f",
+      "size": 2254,
+      "mtime": "2025-11-14T15:43:33.615300",
+      "last_synced": "2025-11-14T15:45:03.491305"
+    },
+    "cline/Workflows/review-dev-plan.md": {
+      "checksum": "sha256:397e8e96ecd661e2e25a4cbdceadb35a678ddf9f7ab545210dd20850269141ef",
+      "size": 22482,
+      "mtime": "2025-11-14T15:43:33.616379",
+      "last_synced": "2025-11-14T15:45:03.491995"
+    },
+    "cline/Workflows/create-skill.md": {
+      "checksum": "sha256:fd870930e0073069e9a0992503c68b0bfba36cf97ff417f4188544fcf9a0202e",
+      "size": 9707,
+      "mtime": "2025-11-14T15:43:33.615893",
+      "last_synced": "2025-11-14T15:45:03.492607"
+    },
+    "cline/Workflows/create-new-custom-command.md": {
+      "checksum": "sha256:5aebef7ea0e8e40f83726b31b4389d298d0cb2d97c3f2bc395ce10cdbeca8b41",
+      "size": 1900,
+      "mtime": "2025-11-14T15:43:33.615582",
+      "last_synced": "2025-11-14T15:45:03.493164"
+    },
+    "cline/Workflows/review-development-plan.md": {
+      "checksum": "sha256:eebf95698c15f4774bc19474e89acfa70a3bc2ce1e20145bedb910f522f7c531",
+      "size": 22570,
+      "mtime": "2025-11-14T15:43:33.617090",
+      "last_synced": "2025-11-14T15:45:03.493775"
+    },
+    "cline/Workflows/go-unit-testing-best-practices.md": {
+      "checksum": "sha256:a75528e2cb03ce5e47925459c9fb68141a9f77a66b7c055cdc3c1f7a84d9189a",
+      "size": 11238,
+      "mtime": "2025-11-14T15:43:33.614905",
+      "last_synced": "2025-11-14T15:45:03.494481"
+    },
+    "claude/commands/review-docs.md": {
+      "checksum": "sha256:7c1278945fcf58fd71dd0660b7a6baddaab8220885054177d2f9d8d984374cc1",
+      "size": 3961,
+      "mtime": "2025-08-13T15:03:19.892905",
+      "last_synced": "2025-11-14T16:00:43.586009"
     }
   },
   "deletions": {}

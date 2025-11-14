@@ -1,9 +1,4 @@
----
-description: Review a development plan
-allowed-tools: [Read, Write, Edit, Glob, Bash]
----
-
-# Development Plan Review
+# Development Plan Review Prompt
 
 You are reviewing a development plan created using the "Setup → Plan → Act → Review & Iterate" workflow. Your task is to evaluate the plan's quality and provide constructive feedback to help improve it before development begins.
 
