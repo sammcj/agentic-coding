@@ -23,7 +23,7 @@ _Note: My rules starting with an `_` indicate that I only toggle these on for sp
 - **Claude Code**
   - [Agent Rules](./Claude/CLAUDE.md)
   - [Agents / Sub-Agents](./Claude/agents/)
-  - [Kills](./Claude/skills/)
+  - [Skills](./Claude/skills/)
   - [Commands](./Claude/commands/)
 - **Cline**
   - [Agent Rules](./Cline/Rules/)
