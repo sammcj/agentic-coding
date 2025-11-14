@@ -160,6 +160,8 @@
     - Using purpose built tools is often a better approach than searching the web (e.g. using get_library_docs for library documentation)
     - Keep files under 700 lines - split if longer, if you are asked to split large files and you have access to the find_long_files tool, use it to help identify potential targets
     - When asked to do math that's more than adding one or two items, use the calculator tool to ensure accuracy
+    - If you're exploring a large codebase or potentially very large files, use of the 'code_skim' tool to quickly understand the structure of the file(s) without all the implementation details
+    - Remember can delegate tasks to a sub-agents with instructions to use specific tools and provide you with only the key information you're looking for to reduce token usage and optionally speed up the process further by doing this in parallel where it makes sense to do so
   </TOOL_USE>
 
   <CONTRIBUTING_TO_OPEN_SOURCE when="If the user states they are contributing to an open source project">
@@ -176,4 +178,3 @@
   </DOCUMENTATION_RULES>
 
 </IMPORTANT_RULES>
-# Test propagation change
