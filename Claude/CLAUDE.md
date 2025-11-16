@@ -95,9 +95,10 @@
     </FAVOUR_SIMPLICITY>
     - Follow language and framework best practices
     - Use sensible variable defaults, parameterised as configuration options where appropriate
+    - Make pragmatic architectural decisions and decisions when designing systems
     - Always use the latest available package versions unless otherwise specified
     - Follow project's established architecture and patterns
-    -  Typography: Use variables for common font properties such as colour and make use of the variables throughout the codebase rather than hard coding font colours. Ensure you use darker text on light backgrounds and vice versa for accessibility
+    - Typography: Use variables for common font properties such as colour and make use of the variables throughout the codebase rather than hard coding font colours. Ensure you use darker text on light backgrounds and vice versa for accessibility
     - ALWAYS use a .env or config file as a single source of truth for configuration values
   </CODING_STYLE>
 
