@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-11-17T10:21:29.667385",
+  "last_sync": "2025-11-17T10:34:48.039892",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:67b03e49d22739fe36e3712a79ae5f7b234a0d72ddfa0fbc28c52b1296c40914",
@@ -153,6 +153,11 @@
     },
     "cline/Rules/writing-guidelines.xml": {
       "deleted_at": "2025-11-17T10:21:29.653914",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "cline/Rules/CLAUDE.md": {
+      "deleted_at": "2025-11-17T10:34:48.035987",
       "checksum": "unknown",
       "decision": "confirmed"
     }

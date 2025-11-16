@@ -86,9 +86,11 @@
     </FAVOUR_SIMPLICITY>
     - Follow language and framework best practices
     - Use sensible variable defaults, parameterised as configuration options where appropriate
+    - Make pragmatic architectural decisions and decisions when designing systems and follow SOLID principles where applicable
+    - Place value on proper separation of concerns and loose coupling
     - Always use the latest available package versions unless otherwise specified
     - Follow project's established architecture and patterns
-    -  Typography: Use variables for common font properties such as colour and make use of the variables throughout the codebase rather than hard coding font colours. Ensure you use darker text on light backgrounds and vice versa for accessibility
+    - Typography: Use variables for common font properties such as colour and make use of the variables throughout the codebase rather than hard coding font colours. Ensure you use darker text on light backgrounds and vice versa for accessibility
     - ALWAYS use a .env or config file as a single source of truth for configuration values
   </CODING_STYLE>
 
@@ -111,13 +113,6 @@
   - In shell scripts you must define and set variable values separately, group their definition on a single line where it makes sense to do so.
   </BASH>
 
-  <BUILDING_MCP_TOOLS note="MCP Design Rules">
-  - When creating MCP tools, think like a user interface designer, not an API wrapper.
-  - Each tool should represent a task a human would perform ("search recent bugs", "get my notifications") rather than exposing API endpoints ("list_issues", "query_with_filters").
-  - Abstract away technical details like internal IDs, pagination tokens, and multi-step operations—tools should accept human-readable inputs (team names, not team IDs) and handle the complexity internally.
-  - If a user action requires multiple API calls, aim for one MCP tool, not several.
-  </BUILDING_MCP_TOOLS>
-
   <WORKFLOW note="**IMPORTANT** you must follow this workflow for all tasks unless directly instructed otherwise by the user">
   - IMPORTANT: Edit only what's necessary! Make minimal changes to existing structures unless instructed
   - **You MUST NOT EVER state something is fixed unless you have confirmed it is by means of testing or measuring output and building the application**
@@ -132,13 +127,14 @@
   </WORKFLOW>
 
   <DO_NOT_WASTE_TOKENS note="**IMPORTANT**: Being economical with tokens is always important">
-    - Be succinct and concise - don't waste tokens
+    - Be verbose when you are thinking to help explore the problem space but be succinct and concise (don't waste tokens) in your general communication and code changes
     - Combine multiple, file edits to the same file where possible
   </DO_NOT_WASTE_TOKENS>
 
   <NEVER_DO_THESE note="**IMPORTANT**">
     - NEVER perform git add/commit/push operations
     - NEVER hardcode credentials, unique identifiers or localhost URLs
+    - NEVER attempt to estimate time required for tasks
     - NEVER add comments pertaining only to development process (e.g. "improved function", "optimised version", "# FIX:", "enhanced function" etc...)
     - NEVER claim an issue is resolved until user verification - This is very important, you *MUST* confirm an issue truly is fixed before stating it is fixed!
     - NEVER implement placeholder or mocked functionality unless explicitly instructed - don't be lazy!
