@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-11-17T10:34:48.039892",
+  "last_sync": "2025-11-17T11:15:20.874007",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:67b03e49d22739fe36e3712a79ae5f7b234a0d72ddfa0fbc28c52b1296c40914",
@@ -10,10 +10,10 @@
       "last_synced": "2025-11-11T16:37:49.467422"
     },
     "claude/CLAUDE.md": {
-      "checksum": "sha256:195548b0bb116685833315463ca1c9711b83ce0298285bd09a070b97645ea2d8",
-      "size": 12801,
-      "mtime": "2025-11-17T08:20:41.847371",
-      "last_synced": "2025-11-17T09:22:15.183164"
+      "checksum": "sha256:ea4e4497345400ae28d8c3c2e697054373bafe325a98aa0a0f880db63256dc71",
+      "size": 16306,
+      "mtime": "2025-11-17T11:15:17.193441",
+      "last_synced": "2025-11-17T11:15:20.873841"
     },
     "claude/settings.json": {
       "checksum": "sha256:f970cb1316e3c2641c97516e5033b27606db618c6a9331c2158212c1d1bd5b1b",
