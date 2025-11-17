@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-11-17T11:15:20.874007",
+  "last_sync": "2025-11-18T09:48:37.317574",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:67b03e49d22739fe36e3712a79ae5f7b234a0d72ddfa0fbc28c52b1296c40914",
@@ -98,6 +98,18 @@
       "size": 5383,
       "mtime": "2025-11-11T16:37:42.665535",
       "last_synced": "2025-11-17T10:20:22.379321"
+    },
+    "claude/skills/youtube-wisdom/scripts/download_video.sh": {
+      "checksum": "sha256:3be48a91276b92df6e009d470b8f4a6306b3cb3c2632e9e3a7431c84668124d5",
+      "size": 2513,
+      "mtime": "2025-11-18T09:13:23.891544",
+      "last_synced": "2025-11-18T09:48:37.316690"
+    },
+    "claude/skills/youtube-wisdom/SKILL.md": {
+      "checksum": "sha256:54f1f5c08843a011b1d4ef028216c6082ec569ff694945e98dc45133ea68ce02",
+      "size": 5872,
+      "mtime": "2025-11-18T09:23:01.068050",
+      "last_synced": "2025-11-18T09:48:37.317424"
     }
   },
   "deletions": {
