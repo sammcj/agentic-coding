@@ -57,6 +57,7 @@
     - Include concrete examples for every major feature
     - Document the "why" only for non-obvious decisions
     - Aim to keep README files under 500 lines
+    - Do NOT create new markdown files (.md) or documentation files beyond the README.md unless explicitly requested by the user. Instead aim to keep documentation consolidated in main README file where possible, and keep status updates in the dev plan if you are working from one - otherwise just in the conversation (unless requested otherwise by the user)
   </TECHNICAL_DOCS>
 
   <CODE_COMMENTS>

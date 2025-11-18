@@ -34,7 +34,6 @@
       "Read(**/secrets/**)",
       "Read(**/.secrets/**)",
       "Read(**/*.keychain)",
-      "Read(//Library/**)",
       "Read(//System/Library/**)",
       "Read(~/Library/Keychains/**)",
       "Read(~/samm/.ssh/**)",
@@ -70,6 +69,7 @@
       "Read(**/*.pem)",
       "Read(//Users/samm/Library/**)",
       "Read(~/Library/**)",
+      "Read(//Library/**)",
       "Write(//Users/samm/.claude/settings.json)",
       "Write(~/.claude/settings.json)"
     ],

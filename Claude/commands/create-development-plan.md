@@ -177,7 +177,6 @@ Break the work into **2-6 logical phases** that:
 - Describe **outcomes**, not specific code changes
 - Include verification/testing steps
 - Add a "Perform a critical self-review of your changes and fix any issues found" task
-- **End each phase with "STOP and wait for human review"** (unless user explicitly requested otherwise)
 
 ## The Goldilocks Principle
 
