@@ -140,6 +140,7 @@
     - Use table-driven tests for multiple cases
     - Mock external dependencies where appropriate
     - Test edge cases and error paths
+    - Group all tests in a common location (e.g. `test/` or `tests/`)
   </TEST_STANDARDS>
 </SOFTWARE_TESTING_PRACTICES>
 
@@ -288,7 +289,7 @@ Before declaring any task complete:
 </TOOL_PRIORITIES>
 
 <CLAUDE_PARALLEL_TASKS note="Accelerate your work with tasks and parallel sub-agents">
-- You may choose to complete tasks and tool calls in parallel with tasks and subagents to speed up the development process
+- You may choose to complete tasks and tool calls in parallel with tasks and subagents to speed up the development process and reduce context bloat
 - Sub agent tasks are a good way to perform multiple operations at once, note that each sub agent will have it's own context window that won't fill up your main context window - it will do what it is instructed to the best of its ability with the instructions and context you provide and then give a summary of what it did and any files it changed or created.
 - Sub agent tasks are great for things like researching multiple options, inspecting many files in a codebase or working on multiple completely separate features or issues at once.
 - REMEMBER: Sub agents could compete each other and erase each others changes, so ensure they are well defined, do not overlap and your instructions to them state that they are one of several sub agents working in the project, thus it's important to respect the defined boundaries and not to change files that are not within the scope of the task

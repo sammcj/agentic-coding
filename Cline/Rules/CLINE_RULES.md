@@ -140,6 +140,7 @@
     - Use table-driven tests for multiple cases
     - Mock external dependencies where appropriate
     - Test edge cases and error paths
+    - Group all tests in a common location (e.g. `test/` or `tests/`)
   </TEST_STANDARDS>
 </SOFTWARE_TESTING_PRACTICES>
 
