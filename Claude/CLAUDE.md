@@ -96,6 +96,7 @@
     - Strategy pattern for swappable algorithms
     - Observer pattern for event systems
     - Factory pattern for complex object creation
+    - When creating a project greenfields provide a single Makefile entrypoint to lint, test, version, build and run the application
   </DESIGN_PATTERNS>
 </CORE_DESIGN_PRINCIPLES>
 
@@ -104,7 +105,7 @@
 - Files: Max 700 lines (split if larger)
 - Cyclomatic complexity: Under 10
 - Test execution: Test run quickly (a few seconds ideally) and do not rely on external services
-- Build time: Optimise if over 2 minutes
+- Build time: Optimise if over 1 minute
 - Code coverage: 80% minimum for new code
 </CODE_QUALITY_METRICS>
 
