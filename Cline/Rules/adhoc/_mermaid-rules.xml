@@ -5,25 +5,15 @@
     -  Apply standard colour theme unless specified otherwise
     -  Mermaid does not support unordered lists within item labels
   <STANDARD_THEME>
-    classDef inputOutput fill:#E3F2FD,stroke:#64B5F6,color:#1565C0
-    classDef llm fill:#E8EAF6,stroke:#9575CD,color:#5E35B1
-    classDef components fill:#E1F5FE,stroke:#4FC3F7,color:#0277BD
-    classDef process fill:#E0F2F1,stroke:#4DB6AC,color:#00695C
-    classDef stop fill:#FCE4EC,stroke:#F06292,color:#C2185B
-    classDef data fill:#F3E5F5,stroke:#BA68C8,color:#7B1FA2
-    classDef decision fill:#FFF9C4,stroke:#FFD54F,color:#F57F00
-    classDef storage fill:#E8F5E9,stroke:#81C784,color:#2E7D32
-    classDef api fill:#FFF3E0,stroke:#FFB74D,color:#EF6C00
-    classDef error fill:#FFEBEE,stroke:#E57373,color:#C62828
-
-    classDef success fill:#C8E6C9,stroke:#66BB6A,color:#2E7D32
-    classDef warning fill:#FFF9C4,stroke:#FFD54F,color:#F57F00
-    classDef info fill:#E1F5FE,stroke:#4FC3F7,color:#0277BD
-    classDef queue fill:##E8EAF6,stroke:#7986CB,color:#283593
-    classDef integration fill:#E1BEE7,stroke:#BA68C8,color:#6A1B9A
-    classDef transformation fill:#B2EBF2,stroke:#4DD0E1,color:#006064
-    classDef validation fill:#DCEDC8,stroke:#9CCC65,color:#689F38
-    classDef external fill:#FFE0B2,stroke:#FFAB91,color:#D84315
-    classDef internal fill:#C5CAE9,stroke:#9FA8DA,color:#3949AB
+  classDef inputOutput fill:#F5F5F5,stroke:#9E9E9E,color:#616161
+  classDef llm fill:#E8EAF6,stroke:#7986CB,color:#3F51B5
+  classDef components fill:#F3E5F5,stroke:#BA68C8,color:#8E24AA
+  classDef process fill:#E0F2F1,stroke:#4DB6AC,color:#00897B
+  classDef stop fill:#FFEBEE,stroke:#E57373,color:#D32F2F
+  classDef data fill:#E3F2FD,stroke:#64B5F6,color:#1976D2
+  classDef decision fill:#FFF3E0,stroke:#FFB74D,color:#F57C00
+  classDef storage fill:#F1F8E9,stroke:#9CCC65,color:#689F38
+  classDef api fill:#FFF9C4,stroke:#FDD835,color:#F9A825
+  classDef error fill:#FFCDD2,stroke:#EF5350,color:#C62828
   </STANDARD_THEME>
 </MERMAID_RULES>
