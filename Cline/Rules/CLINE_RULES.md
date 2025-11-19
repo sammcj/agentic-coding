@@ -213,6 +213,7 @@ Before declaring any task complete:
     - Always handle errors explicitly
     - Use context for cancellation and timeouts
     - Build with -ldflags="-s -w" for smaller binaries
+    - Check go code modernity with `go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix -test ./...`
     - Use table-driven tests
     - Follow standard project layout
     - Use go mod for dependencies
