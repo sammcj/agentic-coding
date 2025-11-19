@@ -289,22 +289,27 @@ Before declaring any task complete:
 - Remember can delegate tasks to a sub-agents with instructions to use specific tools and provide you with only the key information you're looking for to reduce token usage and optionally speed up the process further by doing this in parallel where it makes sense to do so
 </TOOL_PRIORITIES>
 
-<CLAUDE_PARALLEL_TASKS note="Accelerate your work with tasks and parallel sub-agents">
-- You may choose to complete tasks and tool calls in parallel with tasks and subagents to speed up the development process and reduce context bloat
-- Sub agent tasks are a good way to perform multiple operations at once, note that each sub agent will have it's own context window that won't fill up your main context window - it will do what it is instructed to the best of its ability with the instructions and context you provide and then give a summary of what it did and any files it changed or created.
-- Sub agent tasks are great for things like researching multiple options, inspecting many files in a codebase or working on multiple completely separate features or issues at once.
-- REMEMBER: Sub agents could compete each other and erase each others changes, so ensure they are well defined, do not overlap and your instructions to them state that they are one of several sub agents working in the project, thus it's important to respect the defined boundaries and not to change files that are not within the scope of the task
-- If you have access to the 'explore' and 'plan' agents you should remember to use them when appropriate
-  <SUB_AGENT_COORDINATION>
-  - Define clear boundaries per agent
-  - Specify which files each agent owns
-  - Include "you are one of several agents" in instructions
-  - Set explicit success criteria
-  - Prevent overlapping responsibilities
-  - Use for research, inspection, or parallel features
-  - Combine small updates: Combine small config/doc updates to prevent over-splitting
-  </SUB_AGENT_COORDINATION>
-</CLAUDE_PARALLEL_TASKS>
+<CLAUDE_FEATURES>
+  <SKILLS>
+    - Remember to use relevant skills to help extend your capabilities
+  </SKILLS>
+  <CLAUDE_PARALLEL_TASKS note="Accelerate your work with tasks and parallel sub-agents">
+    - You may choose to complete tasks and tool calls in parallel with tasks and subagents to speed up the development process and reduce context bloat
+    - Sub agent tasks are a good way to perform multiple operations at once, note that each sub agent will have it's own context window that won't fill up your main context window - it will do what it is instructed to the best of its ability with the instructions and context you provide and then give a summary of what it did and any files it changed or created.
+    - Sub agent tasks are great for things like researching multiple options, inspecting many files in a codebase or working on multiple completely separate features or issues at once.
+    - REMEMBER: Sub agents could compete each other and erase each others changes, so ensure they are well defined, do not overlap and your instructions to them state that they are one of several sub agents working in the project, thus it's important to respect the defined boundaries and not to change files that are not within the scope of the task
+    - If you have access to the 'explore' and 'plan' agents you should remember to use them when appropriate
+    <SUB_AGENT_COORDINATION>
+    - Define clear boundaries per agent
+    - Specify which files each agent owns
+    - Include "you are one of several agents" in instructions
+    - Set explicit success criteria
+    - Prevent overlapping responsibilities
+    - Use for research, inspection, or parallel features
+    - Combine small updates: Combine small config/doc updates to prevent over-splitting
+    </SUB_AGENT_COORDINATION>
+  </CLAUDE_PARALLEL_TASKS>
+</CLAUDE_FEATURES>
 
 ---
 
@@ -316,16 +321,26 @@ Before declaring any task complete:
     -  Apply standard colour theme unless specified otherwise
     -  Mermaid does not support unordered lists within item labels
   <STANDARD_THEME>
-    classDef inputOutput fill:#E6F3FF,stroke:#4A90E2,color:#4A90E2
-    classDef llm fill:#E8F5E8,stroke:#27AE60,color:#27AE60
-    classDef components fill:#F0E6FF,stroke:#8E44AD,color:#8E44AD
-    classDef process fill:#E8F5E8,stroke:#27AE60,color:#27AE60
-    classDef stop fill:#F8D7DA,stroke:#E74C3C,color:#E74C3C
-    classDef data fill:#E6F3FF,stroke:#4A90E2,color:#4A90E2
-    classDef decision fill:#E8F5E8,stroke:#27AE60,color:#27AE60
-    classDef storage fill:#F0E6FF,stroke:#8E44AD,color:#8E44AD
-    classDef api fill:#FFF0E6,stroke:#E67E22,color:#E67E22
-    classDef error fill:#F8D7DA,stroke:#E74C3C,color:#E74C3C
+    classDef inputOutput fill:#E3F2FD,stroke:#64B5F6,color:#1565C0
+    classDef llm fill:#E8EAF6,stroke:#9575CD,color:#5E35B1
+    classDef components fill:#E1F5FE,stroke:#4FC3F7,color:#0277BD
+    classDef process fill:#E0F2F1,stroke:#4DB6AC,color:#00695C
+    classDef stop fill:#FCE4EC,stroke:#F06292,color:#C2185B
+    classDef data fill:#F3E5F5,stroke:#BA68C8,color:#7B1FA2
+    classDef decision fill:#FFF9C4,stroke:#FFD54F,color:#F57F00
+    classDef storage fill:#E8F5E9,stroke:#81C784,color:#2E7D32
+    classDef api fill:#FFF3E0,stroke:#FFB74D,color:#EF6C00
+    classDef error fill:#FFEBEE,stroke:#E57373,color:#C62828
+
+    classDef success fill:#C8E6C9,stroke:#66BB6A,color:#2E7D32
+    classDef warning fill:#FFF9C4,stroke:#FFD54F,color:#F57F00
+    classDef info fill:#E1F5FE,stroke:#4FC3F7,color:#0277BD
+    classDef queue fill:##E8EAF6,stroke:#7986CB,color:#283593
+    classDef integration fill:#E1BEE7,stroke:#BA68C8,color:#6A1B9A
+    classDef transformation fill:#B2EBF2,stroke:#4DD0E1,color:#006064
+    classDef validation fill:#DCEDC8,stroke:#9CCC65,color:#689F38
+    classDef external fill:#FFE0B2,stroke:#FFAB91,color:#D84315
+    classDef internal fill:#C5CAE9,stroke:#9FA8DA,color:#3949AB
   </STANDARD_THEME>
 </MERMAID_RULES>
 

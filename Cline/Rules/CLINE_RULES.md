@@ -301,16 +301,26 @@ Before declaring any task complete:
     -  Apply standard colour theme unless specified otherwise
     -  Mermaid does not support unordered lists within item labels
   <STANDARD_THEME>
-    classDef inputOutput fill:#E6F3FF,stroke:#4A90E2,color:#4A90E2
-    classDef llm fill:#E8F5E8,stroke:#27AE60,color:#27AE60
-    classDef components fill:#F0E6FF,stroke:#8E44AD,color:#8E44AD
-    classDef process fill:#E8F5E8,stroke:#27AE60,color:#27AE60
-    classDef stop fill:#F8D7DA,stroke:#E74C3C,color:#E74C3C
-    classDef data fill:#E6F3FF,stroke:#4A90E2,color:#4A90E2
-    classDef decision fill:#E8F5E8,stroke:#27AE60,color:#27AE60
-    classDef storage fill:#F0E6FF,stroke:#8E44AD,color:#8E44AD
-    classDef api fill:#FFF0E6,stroke:#E67E22,color:#E67E22
-    classDef error fill:#F8D7DA,stroke:#E74C3C,color:#E74C3C
+    classDef inputOutput fill:#E3F2FD,stroke:#64B5F6,color:#1565C0
+    classDef llm fill:#E8EAF6,stroke:#9575CD,color:#5E35B1
+    classDef components fill:#E1F5FE,stroke:#4FC3F7,color:#0277BD
+    classDef process fill:#E0F2F1,stroke:#4DB6AC,color:#00695C
+    classDef stop fill:#FCE4EC,stroke:#F06292,color:#C2185B
+    classDef data fill:#F3E5F5,stroke:#BA68C8,color:#7B1FA2
+    classDef decision fill:#FFF9C4,stroke:#FFD54F,color:#F57F00
+    classDef storage fill:#E8F5E9,stroke:#81C784,color:#2E7D32
+    classDef api fill:#FFF3E0,stroke:#FFB74D,color:#EF6C00
+    classDef error fill:#FFEBEE,stroke:#E57373,color:#C62828
+
+    classDef success fill:#C8E6C9,stroke:#66BB6A,color:#2E7D32
+    classDef warning fill:#FFF9C4,stroke:#FFD54F,color:#F57F00
+    classDef info fill:#E1F5FE,stroke:#4FC3F7,color:#0277BD
+    classDef queue fill:##E8EAF6,stroke:#7986CB,color:#283593
+    classDef integration fill:#E1BEE7,stroke:#BA68C8,color:#6A1B9A
+    classDef transformation fill:#B2EBF2,stroke:#4DD0E1,color:#006064
+    classDef validation fill:#DCEDC8,stroke:#9CCC65,color:#689F38
+    classDef external fill:#FFE0B2,stroke:#FFAB91,color:#D84315
+    classDef internal fill:#C5CAE9,stroke:#9FA8DA,color:#3949AB
   </STANDARD_THEME>
 </MERMAID_RULES>
 
