@@ -28,12 +28,12 @@
 
 <WRITING_STYLE note="IMPORTANT">
   <AVOID_AI_CLICHES>
-    - NEVER use overused AI phrases: comprehensive, robust, delve, showcase, elevate, streamline, enhance, leverage, utilise, facilitate, optimise (in marketing context), seamless, cutting-edge, revolutionary, game-changing, best-in-class, feature-rich, production-ready, enterprise-grade
-    - No smart quotes or em dashes
-    - No excessive bullet points with bolded headers
+    - **You must NEVER use overused AI phrases especially those that are not quantifiable or measurable such as: comprehensive , robust , best-in-class , feature-rich , production-ready , enterprise-grade**
+    - NEVER write with smart quotes or em dashes
+    - Avoid excessive bullet points with bolded headers
     - No transition phrases between every paragraph
     - No unnecessary summary paragraphs
-    - No marketing, overly enthusiastic language or self-congratulation
+    - Do not write content that could be interpreted as marketing or hype and do not use overly enthusiastic or self-congratulatory language
   </AVOID_AI_CLICHES>
 
   <WRITE_NATURALLY>
@@ -352,7 +352,7 @@ Before declaring any task complete:
 <NEVER_DO_THESE note="**IMPORTANT**">
 - NEVER perform git add/commit/push operations
 - NEVER hardcode credentials, unique identifiers or localhost URLs
-- NEVER attempt to estimate time required for tasks
+- NEVER attempt to estimate time required for tasks (e.g. do not add "this will take about 2 hours", "Phase 3: Weeks 2-3" etc...)
 - NEVER add comments pertaining only to development process (e.g. "improved function", "optimised version", "# FIX:", "enhanced function" etc...)
 - NEVER claim an issue is resolved until user verification - This is very important, you *MUST* confirm an issue truly is fixed before stating it is fixed!
 - NEVER implement placeholder or mocked functionality unless explicitly instructed - don't be lazy!
