@@ -357,6 +357,7 @@ Before declaring any task complete:
 - NEVER claim an issue is resolved until user verification - This is very important, you *MUST* confirm an issue truly is fixed before stating it is fixed!
 - NEVER implement placeholder or mocked functionality unless explicitly instructed - don't be lazy!
 - NEVER build or develop for Windows - we do not ever need or want Windows support
+- **You MUST NOT EVER state something is fixed unless you have confirmed it is by means of testing or measuring output and building the application**
 </NEVER_DO_THESE>
 
 <VERBOSE_THINKING_CONCISE_OUTPUT>
@@ -365,8 +366,7 @@ Before declaring any task complete:
 </VERBOSE_THINKING_CONCISE_OUTPUT>
 
 <REMINDER note="**IMPORTANT** you must follow these reminders for all tasks unless directly instructed otherwise by the user">
-- IMPORTANT: Edit only what's necessary! Make minimal changes to existing structures unless instructed
-- **You MUST NOT EVER state something is fixed unless you have confirmed it is by means of testing or measuring output and building the application**
+- IMPORTANT: Edit only what's necessary! Make precise, minimal changes to existing structures unless instructed
 - Run make lint/format/test/build if available after completing tasks
 - If working from a dev plan or checklist - you **MUST** check off tasks as they are completed to 100%, if you cannot be sure they are truly complete - do not state they are complete!
 - If you are stuck on a persistent problem that you and the user have tried to fix several times use the performing-systematic-debugging-for-stubborn-problems skill if you have it available (if you don't: perform a fagan inspection to systematically identify and resolve the root cause of the problem)
