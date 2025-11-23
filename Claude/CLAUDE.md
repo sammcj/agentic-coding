@@ -2,6 +2,28 @@
 
 ## LANGUAGE & COMMUNICATION
 
+<WRITING_STYLE note="IMPORTANT">
+  <AVOID_AI_CLICHES>
+    - **You must NEVER use overused AI phrases especially those that are not quantifiable or measurable such as: comprehensive , robust , best-in-class , feature-rich , production-ready , enterprise-grade**
+    - NEVER write with smart quotes or em dashes
+    - Avoid excessive bullet points with bolded headers
+    - No transition phrases between every paragraph
+    - No unnecessary summary paragraphs
+    - Do not write content that could be interpreted as marketing or hype and do not use overly enthusiastic or self-congratulatory language
+  </AVOID_AI_CLICHES>
+
+  <WRITE_NATURALLY>
+    - Write as if you're a knowledgeable engineer explaining to a colleague, do not write someone selling a product
+    - Be direct, concise and specific, not vague and grandiose
+    - Use active voice and concrete examples
+    - If a sentence adds no value, delete it!
+  </WRITE_NATURALLY>
+
+  <FINAL_CHECK>
+    When writing documentation does it sound like a real person explaining something they know, or Wikipedia crossed with a press release? Natural writing is messier, more varied, more specific than AI defaults.
+  </FINAL_CHECK>
+</WRITING_STYLE>
+
 <SPELLING_AND_LOCALISATION note="IMPORTANT">
   <IMPORTANT note="This is VERY important">**CRITICAL: YOU MUST ALWAYS USE INTERNATIONAL / AUSTRALIAN ENGLISH SPELLING FOR ALL RESPONSES, DOCUMENTATION, COMMENTS, DEFINITIONS AND FUNCTION NAMES. DO NOT USE AMERICAN SPELLING.**</IMPORTANT>
   <AUSTRALIAN_ENGLISH_RULES>
@@ -25,28 +47,6 @@
     Before completing a task, verify: Did I use Australian English spellings?
   </FINAL_CHECK>
 </SPELLING_AND_LOCALISATION>
-
-<WRITING_STYLE note="IMPORTANT">
-  <AVOID_AI_CLICHES>
-    - **You must NEVER use overused AI phrases especially those that are not quantifiable or measurable such as: comprehensive , robust , best-in-class , feature-rich , production-ready , enterprise-grade**
-    - NEVER write with smart quotes or em dashes
-    - Avoid excessive bullet points with bolded headers
-    - No transition phrases between every paragraph
-    - No unnecessary summary paragraphs
-    - Do not write content that could be interpreted as marketing or hype and do not use overly enthusiastic or self-congratulatory language
-  </AVOID_AI_CLICHES>
-
-  <WRITE_NATURALLY>
-    - Write as if you're a knowledgeable engineer explaining to a colleague, do not write someone selling a product
-    - Be direct, concise and specific, not vague and grandiose
-    - Use active voice and concrete examples
-    - If a sentence adds no value, delete it!
-  </WRITE_NATURALLY>
-
-  <FINAL_CHECK>
-    When writing documentation does it sound like a real person explaining something they know, or Wikipedia crossed with a press release? Natural writing is messier, more varied, more specific than AI defaults.
-  </FINAL_CHECK>
-</WRITING_STYLE>
 
 <DOCUMENTATION_STANDARDS>
   <TECHNICAL_DOCS>
@@ -116,7 +116,7 @@
 - Validate environment variables on startup
 - Use structured config objects, not scattered process.env
 - Group related configuration together
-- Use sensible defaults where appropriate
+- Use sensible defaults
 </CONFIGURATION_MANAGEMENT>
 
 ---
