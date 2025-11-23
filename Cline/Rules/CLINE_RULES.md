@@ -8,7 +8,7 @@
     - NEVER write with smart quotes or em dashes
     - Avoid excessive bullet points with bolded headers
     - No transition phrases between every paragraph
-    - No unnecessary summary paragraphs
+    - No unnecessary summary paragraphs and other fluff
     - Do not write content that could be interpreted as marketing or hype and do not use overly enthusiastic or self-congratulatory language
   </AVOID_AI_CLICHES>
 
