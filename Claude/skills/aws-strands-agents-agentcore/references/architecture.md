@@ -13,7 +13,7 @@
 - `Hooks`: Lifecycle event interception
 - `Metrics`: Automatic token usage, latency, tool execution tracking
 
-**Key Characteristic**: Framework-agnostic, model-agnostic (Bedrock, OpenAI, Anthropic, Ollama)
+**Key Characteristic**: Framework-agnostic, model-agnostic (primarily AWS Bedrock with Anthropic Claude, also supports other providers)
 
 ---
 
@@ -341,13 +341,13 @@ result = swarm.run("Create and review an article")
 
 **Data Residency**:
 - Bedrock processes data in-region (GDPR-compliant)
-- Third-party models (OpenAI) may process globally
 - AgentCore Memory stores data in specified region
+- Note: Third-party model providers may have different data locality requirements
 
 **Best Practice**: Enforce regional processing for compliance
 ```python
 model = BedrockModel(
-    model_id="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    model_id="anthropic.claude-sonnet-4-5-20250929-v1:0",
     region_name="eu-west-1"  # GDPR-compliant
 )
 ```

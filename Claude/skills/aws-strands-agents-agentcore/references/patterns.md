@@ -28,7 +28,7 @@ class BaseAgentFactory:
         """Create agent with organisational defaults."""
 
         model = BedrockModel(
-            model_id=os.getenv("DEFAULT_MODEL_ID", "us.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+            model_id=os.getenv("DEFAULT_MODEL_ID", "anthropic.claude-sonnet-4-5-20250929-v1:0"),
             temperature=0.7,
             region_name=os.getenv("AWS_REGION", "us-east-1")
         )

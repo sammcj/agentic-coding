@@ -113,10 +113,14 @@ Read when you need:
 ### When to Read [observability.md](references/observability.md)
 
 Read when you need:
+- **AWS AgentCore Observability Platform** setup (Transaction Search, GenAI dashboard, ADOT)
+- Runtime-hosted vs non-runtime hosted observability configuration
+- Session tracking for multi-turn conversations
+- X-Ray distributed tracing with custom headers
+- Service-provided metrics for runtime, memory, gateway, tools
 - OpenTelemetry tracing setup (environment variables, fluent API, code-based)
 - Custom observability hooks (logging, metrics, alerting)
-- CloudWatch integration (automatic metrics, custom metrics)
-- Third-party platforms (Arize Phoenix, Langfuse, Jaeger)
+- Third-party platforms (Arize Phoenix, Langfuse)
 - Cost tracking hooks
 - Production observability patterns
 
@@ -169,6 +173,29 @@ result = agent("What are the top tech trends?")
 
 ---
 
+## Model Selection
+
+**Primary Provider**: Anthropic Claude via AWS Bedrock
+
+**Model ID Format**: `anthropic.claude-{model}-{version}`
+
+**Current Recommended Models** (as of January 2025):
+- `anthropic.claude-sonnet-4-5-20250929-v1:0` - Production (balanced performance/cost)
+- `anthropic.claude-haiku-4-5-20251001-v1:0` - Fast/economical tasks
+- `anthropic.claude-opus-4-5-20250514-v1:0` - Complex reasoning (when available)
+
+**IMPORTANT**: Always verify the latest available Anthropic model versions on AWS Bedrock when implementing or documenting systems. Model versions are updated regularly with performance improvements.
+
+**Check Latest Models**:
+```bash
+aws bedrock list-foundation-models --by-provider anthropic \
+  --query 'modelSummaries[*].[modelId,modelName]' --output table
+```
+
+**Note**: While Strands SDK supports other providers (OpenAI, Azure, Ollama), this skill focuses on AWS Bedrock deployment patterns as the primary use case.
+
+---
+
 ## Quick Implementation Examples
 
 ### Basic Agent Creation
@@ -181,7 +208,7 @@ from strands.agent.conversation_manager import SlidingWindowConversationManager
 
 agent = Agent(
     agent_id="my-agent",
-    model=BedrockModel(model_id="us.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+    model=BedrockModel(model_id="anthropic.claude-sonnet-4-5-20250929-v1:0"),
     system_prompt="You are a helpful assistant.",
     tools=[tool1, tool2],
     session_manager=DynamoDBSessionManager(table_name="sessions"),
@@ -246,19 +273,42 @@ def safe_tool(param: str) -> dict:
 
 ### Observability Setup
 
+**AgentCore Runtime (Automatic)**:
+```python
+# Install with OTEL support
+# pip install 'strands-agents[otel]'
+# Add 'aws-opentelemetry-distro' to requirements.txt
+
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+from strands import Agent
+
+app = BedrockAgentCoreApp()
+agent = Agent(...)  # Automatically instrumented
+
+@app.entrypoint
+def handler(payload):
+    return agent(payload["prompt"])
+```
+
+**Self-Hosted (Environment Variables)**:
+```bash
+export AGENT_OBSERVABILITY_ENABLED=true
+export OTEL_PYTHON_DISTRO=aws_distro
+export OTEL_RESOURCE_ATTRIBUTES="service.name=my-agent"
+
+# Run with auto-instrumentation
+opentelemetry-instrument python agent.py
+```
+
+**General OpenTelemetry**:
 ```python
 from strands.observability import StrandsTelemetry
 
 # Development: Console output
 telemetry = StrandsTelemetry().setup_console_exporter()
 
-# Production: OTLP endpoint (reads from environment)
+# Production: OTLP endpoint
 telemetry = StrandsTelemetry().setup_otlp_exporter()
-
-# Both: Console + OTLP (multi-backend)
-telemetry = StrandsTelemetry() \
-    .setup_console_exporter() \
-    .setup_otlp_exporter()
 ```
 
 **For detailed observability patterns**, see **[observability.md](references/observability.md)**.
@@ -321,15 +371,15 @@ When:
 Before deploying to production:
 
 - [ ] Conversation management configured
+- [ ] **AgentCore Observability enabled** (Transaction Search, GenAI dashboard) or OpenTelemetry configured
 - [ ] Observability hooks implemented (see **[observability.md](references/observability.md)**)
 - [ ] Cost tracking enabled (see **[observability.md](references/observability.md)**)
-- [ ] OpenTelemetry tracing configured
 - [ ] Error handling in all tools (see **[patterns.md](references/patterns.md)**)
 - [ ] Security permissions validated (see **[patterns.md](references/patterns.md)**)
 - [ ] MCP servers deployed to ECS/Fargate (see **[architecture.md](references/architecture.md)**)
 - [ ] Timeout limits set
 - [ ] Session backend configured (DynamoDB for production)
-- [ ] CloudWatch dashboards created
+- [ ] CloudWatch alarms configured (error rate, latency, token usage)
 
 ---
 
@@ -339,7 +389,7 @@ Before deploying to production:
 - **[architecture.md](references/architecture.md)** - Deployment patterns, multi-agent orchestration, session storage, AgentCore services
 - **[patterns.md](references/patterns.md)** - Foundation components, tool design, security, testing, performance optimisation
 - **[limitations.md](references/limitations.md)** - Known constraints, workarounds, mitigation strategies, challenges
-- **[observability.md](references/observability.md)** - OpenTelemetry setup, hooks, CloudWatch, cost tracking, monitoring
+- **[observability.md](references/observability.md)** - AgentCore Observability platform, ADOT, GenAI dashboard, OpenTelemetry, hooks, cost tracking
 
 ---
 
@@ -352,7 +402,7 @@ Before deploying to production:
 5. **Set timeout limits everywhere** (agents, graphs, tools)
 6. **Error handling in tools is non-negotiable** (return errors, don't raise)
 7. **Lambda for stateless, AgentCore for interactive** (streaming requires AgentCore)
-8. **Observability from day one** (OpenTelemetry + cost tracking)
+8. **AgentCore Observability for production** (GenAI dashboard, automatic instrumentation, session tracking)
 9. **Start simple, evolve complexity** (single agent → delegation → graph → swarm)
 10. **Security by default** (permissions, approval hooks, least privilege)
 11. **Separate config from code** (environment variables, prompt templates, system prompts, config files etc.)

@@ -1,8 +1,352 @@
 # Observability & Tracing
 
-## OpenTelemetry Distributed Tracing
+## Overview
 
-Strands Agents provides comprehensive observability built on OpenTelemetry standards.
+Strands Agents provides observability through two approaches:
+
+1. **AWS AgentCore Observability Platform** - Enterprise observability service with GenAI dashboard, automatic instrumentation, and CloudWatch integration (for agents deployed to AgentCore)
+2. **General OpenTelemetry Setup** - Standard OTLP configuration for self-hosted agents or third-party platforms
+
+---
+
+## AWS AgentCore Observability Platform
+
+AWS AgentCore Observability is a managed observability service that provides trace visualisations, GenAI-specific dashboards, session tracking, and automatic instrumentation for agents deployed to AgentCore Runtime or using AgentCore services.
+
+### Key Features
+
+- **GenAI Observability Dashboard** in CloudWatch console
+- **Automatic instrumentation** for AgentCore Runtime-hosted agents
+- **Session, trace, and span hierarchy** for multi-turn conversations
+- **Service-provided metrics** for runtime, memory, gateway, tools, and identity
+- **CloudWatch Transaction Search** for span/trace exploration
+- **AWS Distro for OpenTelemetry (ADOT)** integration
+- **X-Ray distributed tracing** support
+
+### Prerequisites (One-Time Setup)
+
+Before using AgentCore Observability, enable CloudWatch Transaction Search:
+
+#### Option 1: CloudWatch Console
+
+1. Open [CloudWatch Console](https://console.aws.amazon.com/cloudwatch/)
+2. Navigate to **Application Signals (APM)** → **Transaction Search**
+3. Choose **Enable Transaction Search**
+4. Select checkbox to ingest spans as structured logs
+5. Set sampling percentage (1% free tier, adjust as needed)
+6. Choose **Save**
+
+#### Option 2: AWS CLI
+
+```bash
+# 1. Configure permissions for X-Ray to write to CloudWatch Logs
+aws logs put-resource-policy --policy-name AgentCoreObservability --policy-document '{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "TransactionSearchXRayAccess",
+    "Effect": "Allow",
+    "Principal": {"Service": "xray.amazonaws.com"},
+    "Action": "logs:PutLogEvents",
+    "Resource": [
+      "arn:aws:logs:REGION:ACCOUNT_ID:log-group:aws/spans:*",
+      "arn:aws:logs:REGION:ACCOUNT_ID:log-group:/aws/application-signals/data:*"
+    ],
+    "Condition": {
+      "ArnLike": {"aws:SourceArn": "arn:aws:xray:REGION:ACCOUNT_ID:*"},
+      "StringEquals": {"aws:SourceAccount": "ACCOUNT_ID"}
+    }
+  }]
+}'
+
+# 2. Configure trace destination
+aws xray update-trace-segment-destination --destination CloudWatchLogs
+
+# 3. Configure sampling percentage (optional)
+aws xray update-indexing-rule --name "Default" \
+  --rule '{"Probabilistic": {"DesiredSamplingPercentage": 10}}'
+```
+
+---
+
+### AgentCore Runtime-Hosted Agents (Automatic Instrumentation)
+
+Agents deployed to AgentCore Runtime get automatic OTEL instrumentation with minimal configuration.
+
+#### Installation
+
+```bash
+# Install Strands with OTEL support
+pip install 'strands-agents[otel]'
+
+# Ensure ADOT is in requirements.txt
+echo "aws-opentelemetry-distro" >> requirements.txt
+```
+
+#### Agent Code
+
+```python
+# strands_agent.py
+from strands import Agent, tool
+from strands.models import BedrockModel
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+app = BedrockAgentCoreApp()
+
+@tool
+def weather() -> str:
+    """Get current weather."""
+    return "sunny"
+
+model = BedrockModel(model_id="anthropic.claude-sonnet-4-5-20250929-v1:0")
+agent = Agent(
+    model=model,
+    tools=[weather],
+    system_prompt="You are a helpful assistant."
+)
+
+@app.entrypoint
+def handler(payload):
+    user_input = payload.get("prompt")
+    response = agent(user_input)
+    return response.message['content'][0]['text']
+
+if __name__ == "__main__":
+    app.run()
+```
+
+#### Deploy to AgentCore Runtime
+
+```python
+from bedrock_agentcore_starter_toolkit import Runtime
+from boto3.session import Session
+
+boto_session = Session()
+agentcore_runtime = Runtime()
+
+# Deploy with automatic OTEL instrumentation
+response = agentcore_runtime.configure(
+    entrypoint="strands_agent.py",
+    auto_create_execution_role=True,
+    auto_create_ecr=True,
+    requirements_file="requirements.txt",  # Must include aws-opentelemetry-distro
+    region=boto_session.region_name,
+    agent_name="my-agent"
+)
+
+launch_result = agentcore_runtime.launch()
+
+# Invoke - traces automatically appear in GenAI Observability Dashboard
+response = agentcore_runtime.invoke({"prompt": "What's the weather?"})
+```
+
+**View traces**: Open [GenAI Observability Dashboard](https://console.aws.amazon.com/cloudwatch/home#gen-ai-observability)
+
+---
+
+### Non-Runtime Hosted Agents (Self-Hosted with AgentCore Observability)
+
+For agents running outside AgentCore Runtime (Lambda, ECS, local), configure ADOT environment variables.
+
+#### Environment Variables
+
+```bash
+# AWS credentials
+export AWS_ACCOUNT_ID=123456789012
+export AWS_DEFAULT_REGION=us-east-1
+export AWS_REGION=us-east-1
+export AWS_ACCESS_KEY_ID=your-key
+export AWS_SECRET_ACCESS_KEY=your-secret
+
+# Create CloudWatch log group/stream first
+export LOG_GROUP=/aws/agents/my-agent
+export LOG_STREAM=instance-1
+
+# AgentCore Observability configuration
+export AGENT_OBSERVABILITY_ENABLED=true
+export OTEL_PYTHON_DISTRO=aws_distro
+export OTEL_PYTHON_CONFIGURATOR=aws_configurator
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_LOGS_HEADERS="x-aws-log-group=${LOG_GROUP},x-aws-log-stream=${LOG_STREAM},x-aws-metric-namespace=CustomAgents"
+export OTEL_RESOURCE_ATTRIBUTES="service.name=my-agent"
+```
+
+#### Agent Code
+
+```python
+# agent.py
+from strands import Agent
+from strands_tools import http_request
+from strands.models import BedrockModel
+
+model = BedrockModel(model_id="anthropic.claude-sonnet-4-5-20250929-v1:0")
+
+agent = Agent(
+    system_prompt="You are a helpful assistant.",
+    model=model,
+    tools=[http_request]
+)
+
+response = agent("What's the weather in Seattle?")
+print(response)
+```
+
+#### Run with Automatic Instrumentation
+
+```bash
+# Install dependencies
+pip install strands-agents[otel] aws-opentelemetry-distro
+
+# Run with ADOT auto-instrumentation
+opentelemetry-instrument python agent.py
+```
+
+**View traces**: Open [GenAI Observability Dashboard](https://console.aws.amazon.com/cloudwatch/home#gen-ai-observability) and find your agent by service name.
+
+---
+
+### Session Tracking
+
+Associate traces across multi-turn conversations using OpenTelemetry baggage:
+
+```python
+from opentelemetry import baggage, context
+from strands import Agent
+
+agent = Agent(...)
+
+# Set session ID for correlation
+session_id = "user-session-123"
+ctx = baggage.set_baggage("session.id", session_id)
+
+# All traces within this context include session.id
+with context.attach(ctx):
+    response = agent("First question")
+    response = agent("Follow-up question")
+```
+
+Run with session tracking:
+
+```bash
+opentelemetry-instrument python agent_with_session.py --session-id "user-123"
+```
+
+---
+
+### Custom Headers for Distributed Tracing
+
+When invoking agents via HTTP, propagate trace context using standard headers:
+
+#### X-Ray Format (AWS Native)
+
+```python
+import requests
+
+headers = {
+    "X-Amzn-Trace-Id": "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1"
+}
+
+response = requests.post(
+    "https://runtime.bedrock-agentcore.amazonaws.com/invoke",
+    json={"prompt": "Hello"},
+    headers=headers
+)
+```
+
+#### W3C Format (Standard)
+
+```python
+headers = {
+    "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+}
+```
+
+---
+
+### Viewing AgentCore Observability Data
+
+#### GenAI Observability Dashboard
+
+1. Open [GenAI Observability Console](https://console.aws.amazon.com/cloudwatch/home#gen-ai-observability)
+2. Navigate to **Bedrock AgentCore** tab
+3. Explore three views:
+   - **Agents View**: List all agents (runtime and non-runtime), view metrics per agent
+   - **Sessions View**: Browse all sessions, filter by agent or date
+   - **Traces View**: Inspect individual traces, explore trajectory and timeline
+
+#### CloudWatch Logs
+
+**Standard logs** (stdout/stderr):
+- Location: `/aws/bedrock-agentcore/runtimes/<agent_id>-<endpoint_name>/[runtime-logs] <UUID>`
+- Contains: print statements, application logs, debugging output
+
+**OTEL structured logs** (detailed operations):
+- Location: `/aws/bedrock-agentcore/runtimes/<agent_id>-<endpoint_name>/otel-rt-logs`
+- Contains: Execution details, error tracking, performance data
+- Automatic: Generated by ADOT instrumentation
+
+#### Transaction Search (Spans)
+
+1. Open [CloudWatch Console](https://console.aws.amazon.com/cloudwatch/)
+2. Navigate to **Transaction Search**
+3. Location: `/aws/spans/default`
+4. Filter by service name, trace ID, or custom attributes
+5. Select trace to view execution graph
+
+#### CloudWatch Metrics
+
+1. Open [CloudWatch Console](https://console.aws.amazon.com/cloudwatch/)
+2. Navigate to **Metrics**
+3. Browse to `bedrock-agentcore` namespace
+4. Available metrics:
+   - Session count, invocation count, latency (p50, p90, p99)
+   - Token usage (input, output, total)
+   - Error rate, throttling
+   - Tool invocation metrics
+   - Memory query metrics
+
+---
+
+### Service-Provided Observability
+
+AgentCore automatically emits observability data for:
+
+| Resource Type    | Metrics | Spans | Logs | Enablement Required |
+|------------------|---------|-------|------|---------------------|
+| **Runtime**      | ✅      | ✅    | ✅   | Automatic           |
+| **Memory**       | ✅      | ✅    | ✅   | Enable on creation  |
+| **Gateway**      | ✅      | ❌    | ❌   | Automatic           |
+| **Built-in Tools** | ✅    | ❌    | ❌   | Automatic           |
+| **Identity**     | ✅      | ❌    | ❌   | Automatic           |
+
+To enable memory observability:
+
+```python
+from bedrock_agentcore import BedrockAgentCoreMemory
+
+memory = BedrockAgentCoreMemory(
+    memory_id="my-memory",
+    enable_observability=True  # Enables spans and logs
+)
+```
+
+---
+
+### AgentCore Observability Best Practices
+
+1. **Start simple** - Default observability captures most critical metrics automatically
+2. **Use consistent naming** - Set meaningful `service.name` in `OTEL_RESOURCE_ATTRIBUTES`
+3. **Configure sampling** - Start with 1% sampling (free tier), increase based on needs
+4. **Filter sensitive data** - Prevent exposure of PII in trace attributes
+5. **Set up CloudWatch alarms** - Alert on error rate > 2%, latency > 10s
+6. **Use session IDs** - Enable session tracking for multi-turn conversations
+7. **Monitor token usage** - Track costs per agent/session using CloudWatch metrics
+8. **Propagate trace context** - Use X-Amzn-Trace-Id headers for distributed tracing
+
+---
+
+## OpenTelemetry Distributed Tracing (General)
+
+Strands Agents provides observability built on OpenTelemetry standards for self-hosted deployments.
 
 ### Trace Hierarchy
 
@@ -270,56 +614,6 @@ agent = Agent(
 
 ---
 
-## AgentCore CloudWatch Integration
-
-### Automatic Metrics (No Configuration Required)
-
-AgentCore automatically emits using Enhanced Metric Format (EMF):
-
-**Runtime Metrics**:
-- `SessionCount`: Active agent sessions
-- `InvocationCount`: Total invocations
-- `Latency`: Request latency (p50, p90, p99)
-- `TokenUsage`: Input, output, total tokens
-- `ErrorRate`: Failed invocations percentage
-
-**Gateway Metrics**:
-- `ToolInvocationCount`: Tool calls per tool
-- `ToolLatency`: Tool execution latency
-- `ToolErrorRate`: Tool failure rate
-
-**Memory Metrics**:
-- `MemoryQueryCount`: Memory query invocations
-- `MemoryQueryLatency`: Retrieval latency
-
----
-
-### Custom CloudWatch Metrics
-
-```python
-import boto3
-from datetime import datetime
-
-cloudwatch = boto3.client('cloudwatch')
-
-def publish_custom_metric(metric_name: str, value: float, unit: str = "Count"):
-    cloudwatch.put_metric_data(
-        Namespace='CustomAgentMetrics',
-        MetricData=[{
-            'MetricName': metric_name,
-            'Value': value,
-            'Unit': unit,
-            'Timestamp': datetime.utcnow(),
-            'Dimensions': [
-                {'Name': 'AgentName', 'Value': 'support-agent'},
-                {'Name': 'Environment', 'Value': 'production'}
-            ]
-        }]
-    )
-```
-
----
-
 ## Third-Party Observability Platforms
 
 ### Arize Phoenix
@@ -502,7 +796,17 @@ class ErrorAlertingHook(HookProvider):
 
 ## Observability Checklist
 
-### Essential
+### AgentCore Platform (If Using)
+
+- [ ] CloudWatch Transaction Search enabled (one-time setup)
+- [ ] ADOT (`aws-opentelemetry-distro`) installed
+- [ ] Runtime-hosted: `strands-agents[otel]` in requirements.txt
+- [ ] Non-runtime hosted: Environment variables configured
+- [ ] GenAI Observability Dashboard accessible
+- [ ] Session tracking enabled for multi-turn conversations
+- [ ] Sampling percentage configured (start with 1-10%)
+
+### Essential (All Deployments)
 
 - [ ] OpenTelemetry tracing enabled
 - [ ] Metrics collection configured

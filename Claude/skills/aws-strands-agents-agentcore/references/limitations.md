@@ -307,7 +307,7 @@ session_manager = DynamoDBSessionManager(
 2. **Model Reasoning Traces** (for Claude 4):
 ```python
 model = BedrockModel(
-    model_id="us.anthropic.claude-4-20250228-v1:0",
+    model_id="anthropic.claude-4-20250228-v1:0",
     enable_thinking=True  # Model explains reasoning
 )
 ```
@@ -341,7 +341,7 @@ def query_database(sql: str) -> dict:
 **Solution**: Enforce regional processing
 ```python
 model = BedrockModel(
-    model_id="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    model_id="anthropic.claude-sonnet-4-5-20250929-v1:0",
     region_name="eu-west-1"  # GDPR-compliant region
 )
 

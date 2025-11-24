@@ -1,5 +1,23 @@
 # Quick Reference: AWS Strands Agents & AgentCore
 
+## Model Selection
+
+**Primary Provider**: Anthropic Claude on AWS Bedrock
+
+**Model ID Format**: `anthropic.claude-{model}-{version}`
+
+**Current Models** (January 2025):
+- Sonnet 4.5: `anthropic.claude-sonnet-4-5-20250929-v1:0`
+- Haiku 4.5: `anthropic.claude-haiku-4-5-20251001-v1:0`
+- Opus 4.5: `anthropic.claude-opus-4-5-20250514-v1:0`
+
+**IMPORTANT**: Always check for latest versions when implementing:
+```bash
+aws bedrock list-foundation-models --by-provider anthropic
+```
+
+---
+
 ## Deployment Decision Matrix
 
 | Component | Lambda | ECS/Fargate | AgentCore Runtime |
@@ -88,7 +106,7 @@ from strands.agent.conversation_manager import SlidingWindowConversationManager
 
 agent = Agent(
     agent_id="my-agent",
-    model=BedrockModel(model_id="us.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+    model=BedrockModel(model_id="anthropic.claude-sonnet-4-5-20250929-v1:0"),
     system_prompt="You are a helpful assistant.",
     tools=[tool1, tool2],
     session_manager=DynamoDBSessionManager(table_name="sessions"),
