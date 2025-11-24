@@ -253,7 +253,7 @@ Before declaring any task complete:
 
 <PYTHON>
   <PYTHON_STANDARDS>
-    - Use Python 3.10+ features
+    - Use Python 3.14+ features
     - Type hints for all functions
     - Use dataclasses for data structures
     - Follow PEP 8 style guide
@@ -280,7 +280,7 @@ Before declaring any task complete:
 ## Tool Usage
 
 <TOOL_PRIORITIES note="**IMPORTANT**">
-- Use purpose-built tools over manual approaches.
+- Use purpose-built tools over manual approaches
 - Prioritise using specific tools is often a better approach than searching the web (e.g. using get_library_docs for library documentation)
 - Use tools to reduce token usage
 - Search documentation before making assumptions

@@ -253,7 +253,7 @@ Before declaring any task complete:
 
 <PYTHON>
   <PYTHON_STANDARDS>
-    - Use Python 3.10+ features
+    - Use Python 3.14+ features
     - Type hints for all functions
     - Use dataclasses for data structures
     - Follow PEP 8 style guide
@@ -280,7 +280,7 @@ Before declaring any task complete:
 ## Tool Usage
 
 <TOOL_PRIORITIES note="**IMPORTANT**">
-- Use purpose-built tools over manual approaches.
+- Use purpose-built tools over manual approaches
 - Prioritise using specific tools is often a better approach than searching the web (e.g. using get_library_docs for library documentation)
 - Use tools to reduce token usage
 - Search documentation before making assumptions
@@ -296,7 +296,7 @@ Before declaring any task complete:
   </SKILLS>
   <CLAUDE_PARALLEL_TASKS note="Accelerate your work with tasks and parallel sub-agents">
     - You may choose to complete tasks and tool calls in parallel with tasks and subagents to speed up the development process and reduce context bloat
-    - Sub agent tasks are a good way to perform multiple operations at once, note that each sub agent will have it's own context window that won't fill up your main context window - it will do what it is instructed to the best of its ability with the instructions and context you provide and then give a summary of what it did and any files it changed or created.
+    - Sub agent tasks are a good way to perform multiple operations at once, note that each sub agent will have it's own context window that won't fill up your main context window - it will do what it is instructed to the best of its ability with the instructions and context you provide and then give a summary of what it did and any files it changed or created
     - Sub agent tasks are great for things like researching multiple options, inspecting many files in a codebase or working on multiple completely separate features or issues at once.
     - REMEMBER: Sub agents could compete each other and erase each others changes, so ensure they are well defined, do not overlap and your instructions to them state that they are one of several sub agents working in the project, thus it's important to respect the defined boundaries and not to change files that are not within the scope of the task
     - If you have access to the 'explore' and 'plan' agents you should remember to use them when appropriate
@@ -310,6 +310,11 @@ Before declaring any task complete:
     - Combine small updates: Combine small config/doc updates to prevent over-splitting
     </SUB_AGENT_COORDINATION>
   </CLAUDE_PARALLEL_TASKS>
+  <CLAUDE_MD>
+    - When creating or updating CLAUDE.md files remember they should only contain information that an AI coding agent such as yourself would need to help steer, direct and work effectively within the codebase, or would not find obvious from a quick look at the codebase such as architectural overviews, core design principles, important guidelines and rules
+    - If you repeatidly hit an issue interacting with a codebase that you find a confirmed solution for it may be a good candidate for inclusion in CLAUDE.md
+    - Do not include line numbers when referencing files in CLAUDE.md or other documentation
+  </CLAUDE_MD>
 </CLAUDE_FEATURES>
 
 ---
