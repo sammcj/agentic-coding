@@ -507,3 +507,4 @@ Detailed implementation guides:
 - Read and analyse metric reasons
 - Adjust thresholds based on empirical results
 - Use component-level tests during development
+- Separate config and eval content from code
