@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-11-25T08:54:18.395834",
+  "last_sync": "2025-11-25T09:29:52.678376",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:bf9673e389cab32f6d1a95c495c8cdefb587e0020c1abe7590f79044667c6f08",
@@ -128,6 +128,72 @@
       "size": 15681,
       "mtime": "2025-11-19T14:51:58.592052",
       "last_synced": "2025-11-19T14:52:15.818247"
+    },
+    "claude/skills/deepeval/references/dataset_management.md": {
+      "checksum": "sha256:06353820153f30f3b9fb83beb7821d867b7347cd1cf96b60b4446f2f690ac1e8",
+      "size": 26416,
+      "mtime": "2025-11-25T09:08:55.378922",
+      "last_synced": "2025-11-25T09:29:37.736949"
+    },
+    "claude/skills/aws-strands-agents-agentcore/references/patterns.md": {
+      "checksum": "sha256:0103f16e02a7905b531e0d0667bb29b171f6e519d281f077b57abb85eb0b3d31",
+      "size": 13438,
+      "mtime": "2025-11-25T09:02:14",
+      "last_synced": "2025-11-25T09:29:37.737934"
+    },
+    "claude/skills/aws-strands-agents-agentcore/references/limitations.md": {
+      "checksum": "sha256:b7b1e519ac66c5920ed72745cfc1d054b8b7ffc9551ba2c116b718e75be0dcfb",
+      "size": 9841,
+      "mtime": "2025-11-25T09:03:28",
+      "last_synced": "2025-11-25T09:29:37.738655"
+    },
+    "claude/skills/aws-strands-agents-agentcore/references/observability.md": {
+      "checksum": "sha256:03aa7497c3ef8b222da79b81694d173c3db008cd864f7336ca40ee49031d3406",
+      "size": 14353,
+      "mtime": "2025-11-25T09:04:46",
+      "last_synced": "2025-11-25T09:29:37.739297"
+    },
+    "claude/skills/deepeval/SKILL.md": {
+      "checksum": "sha256:633f7298c90075a175ce2fb6e1e61a7e5ce236c94b7404921bac0c839d2172c2",
+      "size": 14135,
+      "mtime": "2025-11-25T09:29:32.825051",
+      "last_synced": "2025-11-25T09:29:37.739937"
+    },
+    "claude/skills/aws-strands-agents-agentcore/references/quick-reference.md": {
+      "checksum": "sha256:e50468580a2c3f8b33637f13928d8a684ad8984513400d137e0fb73cb7f58a3c",
+      "size": 5761,
+      "mtime": "2025-11-25T08:59:52",
+      "last_synced": "2025-11-25T09:29:37.740634"
+    },
+    "claude/skills/aws-strands-agents-agentcore/references/architecture.md": {
+      "checksum": "sha256:e7468a5876628cc3e049ddf52c8fed1816f3a3b27610f6cd536d72f68b66f627",
+      "size": 9797,
+      "mtime": "2025-11-25T09:01:00",
+      "last_synced": "2025-11-25T09:29:37.741878"
+    },
+    "claude/skills/deepeval/references/async_performance.md": {
+      "checksum": "sha256:ae8d24a059e4491f28486c5966d6b946b35fa44d21774ff8af373174ee37c3de",
+      "size": 12564,
+      "mtime": "2025-11-25T09:08:55.376723",
+      "last_synced": "2025-11-25T09:29:37.742591"
+    },
+    "claude/skills/deepeval/references/custom_metrics.md": {
+      "checksum": "sha256:1cb8ce6432deab578f8fb521b5193b8578894037ebcb712034f0199d274091d2",
+      "size": 16893,
+      "mtime": "2025-11-25T09:08:55.374578",
+      "last_synced": "2025-11-25T09:29:37.743151"
+    },
+    "claude/skills/deepeval/references/model_providers.md": {
+      "checksum": "sha256:33ad93986504294227d1aef899caea6b5570d08dcc7fa0cb4f06c40cc99d6489",
+      "size": 29727,
+      "mtime": "2025-11-25T09:08:55.372237",
+      "last_synced": "2025-11-25T09:29:37.743744"
+    },
+    "claude/skills/aws-strands-agents-agentcore/SKILL.md": {
+      "checksum": "sha256:37d0286f31436865f11e718fc7553cd74dcdc097e8ee89bd6321753d8fa0b438",
+      "size": 12888,
+      "mtime": "2025-11-25T09:23:46.602876",
+      "last_synced": "2025-11-25T09:29:37.744359"
     }
   },
   "deletions": {
@@ -228,6 +294,11 @@
     },
     "claude/skills/create-slidev-presentation/SKILL.md": {
       "deleted_at": "2025-11-25T08:54:18.384923",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude/skills/aws-strands-agents.zip": {
+      "deleted_at": "2025-11-25T09:29:52.676161",
       "checksum": "unknown",
       "decision": "confirmed"
     }
