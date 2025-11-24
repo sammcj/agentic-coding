@@ -451,7 +451,7 @@ jobs:
   evaluate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
       - name: Install dependencies
         run: pip install deepeval
       - name: Run evaluations
