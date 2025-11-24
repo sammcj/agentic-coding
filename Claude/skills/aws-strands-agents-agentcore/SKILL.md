@@ -355,3 +355,4 @@ Before deploying to production:
 8. **Observability from day one** (OpenTelemetry + cost tracking)
 9. **Start simple, evolve complexity** (single agent → delegation → graph → swarm)
 10. **Security by default** (permissions, approval hooks, least privilege)
+11. **Separate config from code** (environment variables, prompt templates, system prompts, config files etc.)

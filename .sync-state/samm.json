@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-11-25T09:35:21.746543",
+  "last_sync": "2025-11-25T09:37:14.054635",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:bf9673e389cab32f6d1a95c495c8cdefb587e0020c1abe7590f79044667c6f08",
@@ -190,10 +190,10 @@
       "last_synced": "2025-11-25T09:29:37.743744"
     },
     "claude/skills/aws-strands-agents-agentcore/SKILL.md": {
-      "checksum": "sha256:37d0286f31436865f11e718fc7553cd74dcdc097e8ee89bd6321753d8fa0b438",
-      "size": 12888,
-      "mtime": "2025-11-25T09:23:46.602876",
-      "last_synced": "2025-11-25T09:29:37.744359"
+      "checksum": "sha256:1a1226171698cdddd443706026f70da771c31d7045c98096195c09ecdd5f6a5e",
+      "size": 12999,
+      "mtime": "2025-11-25T09:37:11.625193",
+      "last_synced": "2025-11-25T09:37:14.054434"
     }
   },
   "deletions": {
