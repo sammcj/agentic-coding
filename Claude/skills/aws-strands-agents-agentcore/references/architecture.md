@@ -29,15 +29,15 @@
 
 **AgentCore Platform Services**:
 
-| Service | Purpose | Key Features |
-|---------|---------|--------------|
-| **Runtime** | Long-running agent execution | 8hr runtime, streaming, session isolation, no cold starts |
-| **Gateway** | Unified tool access | MCP/Lambda/REST integration, runtime discovery |
-| **Memory** | Persistent cross-session knowledge | Knowledge graphs, semantic retrieval |
-| **Identity** | Secure auth/authorisation | IAM integration, OAuth (GitHub, Slack, etc.) |
-| **Browser** | Managed web automation | Headless browser, JavaScript rendering |
-| **Code Interpreter** | Isolated Python execution | Sandboxed environment, package installation |
-| **Observability** | Monitoring and metrics | CloudWatch EMF, automatic dashboards |
+| Service              | Purpose                            | Key Features                                              |
+|----------------------|------------------------------------|-----------------------------------------------------------|
+| **Runtime**          | Long-running agent execution       | 8hr runtime, streaming, session isolation, no cold starts |
+| **Gateway**          | Unified tool access                | MCP/Lambda/REST integration, runtime discovery            |
+| **Memory**           | Persistent cross-session knowledge | Knowledge graphs, semantic retrieval                      |
+| **Identity**         | Secure auth/authorisation          | IAM integration, OAuth (GitHub, Slack, etc.)              |
+| **Browser**          | Managed web automation             | Headless browser, JavaScript rendering                    |
+| **Code Interpreter** | Isolated Python execution          | Sandboxed environment, package installation               |
+| **Observability**    | Monitoring and metrics             | CloudWatch EMF, automatic dashboards                      |
 
 ---
 
@@ -337,10 +337,8 @@ result = swarm.run("Create and review an article")
 
 ## Regional Considerations
 
-**AgentCore Availability**: Currently in 9 AWS regions (verify your region is supported)
-
 **Data Residency**:
-- Bedrock processes data in-region (GDPR-compliant)
+- Bedrock processes data in-region (Australian data sovereignty, etc.)
 - AgentCore Memory stores data in specified region
 - Note: Third-party model providers may have different data locality requirements
 

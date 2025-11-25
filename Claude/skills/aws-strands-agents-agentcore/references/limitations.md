@@ -128,10 +128,10 @@ def invoke_agent_with_retry(agent: Agent, query: str, max_retries: int = 3):
 
 ### 1. Runtime Constraints
 
-| Limit | Value | Mitigation |
-|-------|-------|------------|
-| **Max Runtime** | 8 hours | Break tasks into resumable chunks |
-| **Session Timeout** | Configurable | Balance resource usage vs UX |
+| Limit               | Value        | Mitigation                        |
+|---------------------|--------------|-----------------------------------|
+| **Max Runtime**     | 8 hours      | Break tasks into resumable chunks |
+| **Session Timeout** | Configurable | Balance resource usage vs UX      |
 
 ---
 
