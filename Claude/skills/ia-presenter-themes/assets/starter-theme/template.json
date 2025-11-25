@@ -1,9 +1,0 @@
-{
-  "Name": "My Custom Theme",
-  "Author": "Your Name",
-  "Description": "A custom theme for iA Presenter",
-  "Version": 1,
-  "Css": "theme.css",
-  "TitleFont": "system-ui",
-  "BodyFont": "system-ui"
-}
