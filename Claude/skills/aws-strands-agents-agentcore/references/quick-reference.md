@@ -6,12 +6,12 @@
 
 **Model ID Format**: `anthropic.claude-{model}-{version}`
 
-**Current Models** (January 2025):
+**Current Models** (Nov 2025):
 - Sonnet 4.5: `anthropic.claude-sonnet-4-5-20250929-v1:0`
 - Haiku 4.5: `anthropic.claude-haiku-4-5-20251001-v1:0`
 - Opus 4.5: `anthropic.claude-opus-4-5-20250514-v1:0`
 
-**IMPORTANT**: Always check for latest versions when implementing:
+**IMPORTANT**: Always check for latest versions when implementing, use the search_packages tool if you have it, otherwise fall back to:
 ```bash
 aws bedrock list-foundation-models --by-provider anthropic
 ```
@@ -20,13 +20,13 @@ aws bedrock list-foundation-models --by-provider anthropic
 
 ## Deployment Decision Matrix
 
-| Component | Lambda | ECS/Fargate | AgentCore Runtime |
-|-----------|--------|-------------|-------------------|
-| **Stateless Agents** | ✅ Perfect | ❌ Overkill | ❌ Overkill |
-| **Interactive Agents** | ❌ No streaming | ⚠️ Possible | ✅ Ideal |
-| **MCP Servers** | ❌ NEVER | ✅ Standard | ✅ With features |
-| **Duration** | < 15 minutes | Unlimited | Up to 8 hours |
-| **Cold Starts** | Yes (30-60s) | No | No |
+| Component              | Lambda         | ECS/Fargate | AgentCore Runtime |
+|------------------------|----------------|-------------|-------------------|
+| **Stateless Agents**   | ✅ Perfect      | ❌ Overkill  | ❌ Overkill        |
+| **Interactive Agents** | ❌ No streaming | ⚠️ Possible  | ✅ Ideal           |
+| **MCP Servers**        | ❌ NEVER        | ✅ Standard  | ✅ With features   |
+| **Duration**           | < 15 minutes   | Unlimited   | Up to 8 hours     |
+| **Cold Starts**        | Yes (30-60s)   | No          | No                |
 
 ### Critical Rule
 
@@ -36,12 +36,12 @@ aws bedrock list-foundation-models --by-provider anthropic
 
 ## Multi-Agent Pattern Selection
 
-| Pattern | Complexity | Predictability | Cost | Use Case |
-|---------|-----------|----------------|------|----------|
-| **Single Agent** | Low | High | 1x | Most tasks |
-| **Agent as Tool** | Low | High | 2-3x | Simple delegation to specialists |
-| **Graph** | High | Very High | 3-5x | Deterministic workflows with dependencies |
-| **Swarm** | Medium | Low | 5-8x | Autonomous collaboration |
+| Pattern           | Complexity | Predictability | Cost | Use Case                                  |
+|-------------------|------------|----------------|------|-------------------------------------------|
+| **Single Agent**  | Low        | High           | 1x   | Most tasks                                |
+| **Agent as Tool** | Low        | High           | 2-3x | Simple delegation to specialists          |
+| **Graph**         | High       | Very High      | 3-5x | Deterministic workflows with dependencies |
+| **Swarm**         | Medium     | Low            | 5-8x | Autonomous collaboration                  |
 
 **Recommendation**: Start with single agents, evolve to multi-agent as needed.
 
@@ -149,13 +149,13 @@ def safe_tool(param: str) -> dict:
 
 ## Performance Thresholds
 
-| Metric | Threshold | Action |
-|--------|-----------|--------|
-| Tool execution | > 5s | Add progress feedback |
-| Agent latency | > 30s | Investigate bottlenecks |
-| Token usage | > 100K | Review conversation management |
-| Tool failure rate | > 5% | Review error handling |
-| Error rate | > 2% | Investigate root cause |
+| Metric            | Threshold | Action                         |
+|-------------------|-----------|--------------------------------|
+| Tool execution    | > 5s      | Add progress feedback          |
+| Agent latency     | > 30s     | Investigate bottlenecks        |
+| Token usage       | > 100K    | Review conversation management |
+| Tool failure rate | > 5%      | Review error handling          |
+| Error rate        | > 2%      | Investigate root cause         |
 
 ---
 
