@@ -1,6 +1,7 @@
 ---
 name: writing-documentation-with-diataxis
 description: Applies the Diataxis framework to create or improve technical documentation. Use when being asked to write high quality tutorials, how-to guides, reference docs, or explanations, when reviewing documentation quality, or when deciding what type of documentation to create. Helps identify documentation types using the action/cognition and acquisition/application dimensions.
+# model: inherit
 ---
 
 # Writing Documentation with Diataxis

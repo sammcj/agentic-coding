@@ -1,6 +1,7 @@
 ---
 name: performing-systematic-debugging-for-stubborn-problems
 description: Applies a modified Fagan Inspection methodology to systematically resolve persistent bugs and complex issues. Use when multiple previous fix attempts have failed repeatedly, when dealing with intricate system interactions, or when a methodical root cause analysis is needed. Do not use for simple troubleshooting. Triggers after multiple failed debugging attempts on the same complex issue.
+model: opus
 ---
 
 # Systematic Debugging with Fagan Inspection

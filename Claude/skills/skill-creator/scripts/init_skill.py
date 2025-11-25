@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
-Skill Initializer - Creates a new skill from template
+Skill Initialiser - Creates a new skill from template
 
 Usage:
-    init_skill.py <skill-name> --path <path>
+    init_skill.py <skill-name>
 
 Examples:
-    init_skill.py my-new-skill --path skills/public
-    init_skill.py my-api-helper --path skills/private
-    init_skill.py custom-skill --path /custom/location
+    init_skill.py my-new-skill
+    init_skill.py my-api-helper
+    init_skill.py custom-skill
+
+Skills are always created in ~/.claude/skills/
 """
 
 import sys
@@ -17,7 +19,9 @@ from pathlib import Path
 
 SKILL_TEMPLATE = """---
 name: {skill_name}
-description: [TODO: Complete and informative explanation of what the skill does and when to use it. Include WHEN to use this skill - specific scenarios, file types, or tasks that trigger it.]
+description: [TODO: This is THE MOST CRITICAL field. Claude uses pure LLM reasoning to select skills based solely on this description. Be comprehensive yet concise. Include: (1) What the skill does, (2) WHEN to use it - specific scenarios, file types, or tasks, (3) Key capabilities that distinguish it. Front-load the most important information. Example: "Extract and analyse data from spreadsheets (.xlsx, .csv). Use when working with tabular data for: (1) Reading cell values, (2) Generating reports, (3) Data transformation, (4) Creating charts."]
+model: inherit
+# allowedTools: []
 ---
 
 # {skill_title}
@@ -64,7 +68,7 @@ Delete this entire "Structuring This Skill" section when done - it's just guidan
 
 ## Resources
 
-This skill includes example resource directories that demonstrate how to organize different types of bundled resources:
+This skill includes example resource directories that demonstrate how to organise different types of bundled resources:
 
 ### scripts/
 Executable code (Python/Bash/etc.) that can be run directly to perform specific operations.
@@ -191,19 +195,19 @@ def title_case_skill_name(skill_name):
     return ' '.join(word.capitalize() for word in skill_name.split('-'))
 
 
-def init_skill(skill_name, path):
+def init_skill(skill_name):
     """
-    Initialize a new skill directory with template SKILL.md.
+    Initialise a new skill directory with template SKILL.md.
 
     Args:
         skill_name: Name of the skill
-        path: Path where the skill directory should be created
 
     Returns:
         Path to created skill directory, or None if error
     """
-    # Determine skill directory path
-    skill_dir = Path(path).resolve() / skill_name
+    # Determine skill directory path (always ~/.claude/skills/)
+    base_path = Path.home() / ".claude" / "skills"
+    skill_dir = base_path / skill_name
 
     # Check if directory already exists
     if skill_dir.exists():
@@ -261,37 +265,38 @@ def init_skill(skill_name, path):
         return None
 
     # Print next steps
-    print(f"\n✅ Skill '{skill_name}' initialized successfully at {skill_dir}")
+    print(f"\n✅ Skill '{skill_name}' initialised successfully at {skill_dir}")
     print("\nNext steps:")
     print("1. Edit SKILL.md to complete the TODO items and update the description")
-    print("2. Customize or delete the example files in scripts/, references/, and assets/")
+    print("2. Customise or delete the example files in scripts/, references/, and assets/")
     print("3. Run the validator when ready to check the skill structure")
 
     return skill_dir
 
 
 def main():
-    if len(sys.argv) < 4 or sys.argv[2] != '--path':
-        print("Usage: init_skill.py <skill-name> --path <path>")
+    if len(sys.argv) != 2:
+        print("Usage: init_skill.py <skill-name>")
         print("\nSkill name requirements:")
-        print("  - Hyphen-case identifier (e.g., 'data-analyzer')")
+        print("  - Hyphen-case identifier (e.g., 'data-analyser')")
         print("  - Lowercase letters, digits, and hyphens only")
         print("  - Max 40 characters")
         print("  - Must match directory name exactly")
         print("\nExamples:")
-        print("  init_skill.py my-new-skill --path skills/public")
-        print("  init_skill.py my-api-helper --path skills/private")
-        print("  init_skill.py custom-skill --path /custom/location")
+        print("  init_skill.py my-new-skill")
+        print("  init_skill.py my-api-helper")
+        print("  init_skill.py custom-skill")
+        print("\nSkills are created in: ~/.claude/skills/")
         sys.exit(1)
 
     skill_name = sys.argv[1]
-    path = sys.argv[3]
+    base_path = Path.home() / ".claude" / "skills"
 
-    print(f"🚀 Initializing skill: {skill_name}")
-    print(f"   Location: {path}")
+    print(f"🚀 Initialising skill: {skill_name}")
+    print(f"   Location: {base_path / skill_name}")
     print()
 
-    result = init_skill(skill_name, path)
+    result = init_skill(skill_name)
 
     if result:
         sys.exit(0)
