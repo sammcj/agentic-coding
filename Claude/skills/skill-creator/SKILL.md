@@ -376,7 +376,16 @@ After testing the skill, users may request improvements. Often this happens righ
 - Do not duplicate information throughout the skill - focus on concise, high-value information that will add valuable knowledge to the agent without creating a novel.
 - Only include code samples if they are critical to understanding a unique aspect, pattern or approach that could not simply be considered 'good quality coding'.
 - If a word, sentence, paragraph or section does not add any knowledge or concise clarification - it should be removed.
-- If you have the `ingest` tool available, you may use `ingest *.md` after creating a skill to get an estimated number of tokens the skill will use when loaded into context: Great: 1k-5k tokens, Good: 5k-9k, OK 9k-12k, Poor: 12k+ tokens but this will depend on the scope and complexity of the knowledge that the skill is providing.
+
+### If you have the `ingest` CLI tool available
+
+- You may use `ingest *.md` after creating a skill to get an estimated number of tokens the skill will use when loaded into context.
+- Total token guidance (this will depend on the scope and complexity of the knowledge that the skill is providing):
+  - Great: 1k-5k
+  - Good: 5k-9k
+  - OK 9k-12k
+  - Poor: 12k+
+- Aim for <4k tokens in the main SKILL.md file if possible.
 
 ### After Creating A Skill
 
