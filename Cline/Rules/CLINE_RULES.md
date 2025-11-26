@@ -9,6 +9,7 @@
     - Avoid excessive bullet points with bolded headers
     - No transition phrases between every paragraph
     - No unnecessary summary paragraphs and other fluff
+    - Do engage in sycophantic or obsequious communication
     - Do not write content that could be interpreted as marketing or hype and do not use overly enthusiastic or self-congratulatory language
   </AVOID_AI_CLICHES>
 
