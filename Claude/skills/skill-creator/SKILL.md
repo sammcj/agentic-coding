@@ -74,7 +74,7 @@ skill-name/
 │   ├── YAML frontmatter metadata (required)
 │   │   ├── name: (required)
 │   │   └── description: (required, one of the most important sections to get right)
-│   │   └── model: inherit (required)
+│   │   └── # model: inherit (required, leave commented out)
 │   └── Markdown instructions (required)
 └── Bundled Resources (optional, only if required and add value)
     ├── scripts/          - Executable code (Python/Bash/etc.)
