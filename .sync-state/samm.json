@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-11-26T12:34:51.336489",
+  "last_sync": "2025-11-27T07:30:24.170937",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:bf9673e389cab32f6d1a95c495c8cdefb587e0020c1abe7590f79044667c6f08",
@@ -92,28 +92,24 @@
       "last_synced": "2025-11-25T09:29:37.736949"
     },
     "claude/skills/aws-strands-agents-agentcore/references/patterns.md": {
-      "checksum": "sha256:9565ae667447a7df712a65e6e2aaa093c374c0421590202dabe1ea8e694441d3",
-      "last_synced": "2025-11-25T09:55:26.373209"
+      "checksum": "sha256:8173906613d81c3c430ef6f6c0a70308af1184d3e4a6c3d1480d5ef6d38bda8b",
+      "last_synced": "2025-11-27T07:30:24.167031"
     },
     "claude/skills/aws-strands-agents-agentcore/references/limitations.md": {
-      "checksum": "sha256:22462a2528bacc98c2ab07db86d76be6893135393139bf6a73aa233ee9b75358",
-      "last_synced": "2025-11-25T16:00:36.925459"
+      "checksum": "sha256:0550abb77fc75263f6001bf620497a5e1f1de15a3de722d8b0cc67826dc3e650",
+      "last_synced": "2025-11-27T07:30:24.168727"
     },
     "claude/skills/aws-strands-agents-agentcore/references/observability.md": {
-      "checksum": "sha256:357828267918a5b252c393519223aa4290f5f247770fbd982854d08926385c9e",
-      "last_synced": "2025-11-25T09:55:26.373646"
+      "checksum": "sha256:dc9493a46a35cf04d8ebc0e38b60fcd6ce0b70324c1cf4c8c99b70cb56484e9a",
+      "last_synced": "2025-11-27T07:30:24.167873"
     },
     "claude/skills/deepeval/SKILL.md": {
       "checksum": "sha256:c33def6e2ffdee5f9bb1eb3604f3f9fb2dc2434d8b2b97add85837fc07dbc7c2",
       "last_synced": "2025-11-25T16:59:37.235193"
     },
-    "claude/skills/aws-strands-agents-agentcore/references/quick-reference.md": {
-      "checksum": "sha256:c7b6deaf9ca5b384c86c9a2cb9c155670c6ec9c4629ea06be7b0495eeda17ecf",
-      "last_synced": "2025-11-25T15:59:10.634908"
-    },
     "claude/skills/aws-strands-agents-agentcore/references/architecture.md": {
-      "checksum": "sha256:96102f9649048fea9d35af23040ca89abef27368a5aea7a6c949063a38448d2c",
-      "last_synced": "2025-11-25T16:00:36.925983"
+      "checksum": "sha256:da345a0b80e818bc78300cfdf223b738f3bfea5ecdd71fafce2a9610ec0f4b35",
+      "last_synced": "2025-11-27T07:30:24.169489"
     },
     "claude/skills/deepeval/references/async_performance.md": {
       "checksum": "sha256:ae8d24a059e4491f28486c5966d6b946b35fa44d21774ff8af373174ee37c3de",
@@ -128,8 +124,8 @@
       "last_synced": "2025-11-25T09:29:37.743744"
     },
     "claude/skills/aws-strands-agents-agentcore/SKILL.md": {
-      "checksum": "sha256:8db649392ece0a27d9515c9ea5de73a3011f15f6e8eae38a40ec744a41dad656",
-      "last_synced": "2025-11-25T16:59:37.232309"
+      "checksum": "sha256:95ee790ab99e0fa581f5b7be8613a55f72d26dec369426881b1d867a452272f9",
+      "last_synced": "2025-11-27T07:30:24.166022"
     },
     "claude/skills/extract-wisdom/SKILL.md": {
       "checksum": "sha256:2ac5eee35fd02a95e598df88265136ddaa08a5e534526959e8bfe9b3df7f6f48",
@@ -140,8 +136,8 @@
       "last_synced": "2025-11-25T16:57:28.058358"
     },
     "claude/skills/skill-creator/SKILL.md": {
-      "checksum": "sha256:df09f2443ac0562d1ffb5306a5fb702c127170e84e982db60e0ee94ef904bf89",
-      "last_synced": "2025-11-25T16:59:37.235520"
+      "checksum": "sha256:e4a18903c430921022c63182d10b0f93c9331152ca0eacb293caba90d3aee889",
+      "last_synced": "2025-11-27T07:30:24.170256"
     },
     "claude/skills/skill-creator/scripts/quick_validate.py": {
       "checksum": "sha256:c979f47406d76e9ac96c7e957334e3776b00b83c2bb4a36bcb15ac0da0d2d7ca",
@@ -333,6 +329,11 @@
     },
     "claude/skills/skill-creator/scripts/package_skill.py": {
       "deleted_at": "2025-11-25T16:57:28.052750",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude/skills/aws-strands-agents-agentcore/references/quick-reference.md": {
+      "deleted_at": "2025-11-27T07:30:24.157499",
       "checksum": "unknown",
       "decision": "confirmed"
     }

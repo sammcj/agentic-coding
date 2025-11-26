@@ -360,3 +360,19 @@ After testing the skill, users may request improvements. Often this happens righ
 2. Notice struggles or inefficiencies
 3. Identify how SKILL.md or bundled resources should be updated
 4. Implement changes and test again
+
+## Important Skill Design Considerations
+
+**Remember**:
+
+- Claude / Claude Code 'Skill' for acquiring knowledge when working with a specific domain, technology or task that is unlikely to be detailed or up to date in the model's training data.
+- It's important that the content contains valuable information and guidance for AI coding agents - but at the same time if the skill content is too large and wordy it will bloat the coding agents context window, reducing the signal to noise ratio and leave less context available for doing the work - so we need to strike a balance.
+- Do not duplicate information throughout the skill - focus on concise, high-value information that will add valuable knowledge to the agent without creating a novel.
+- Only include code samples if they are critical to understanding a unique aspect, pattern or approach that could not simply be considered 'good quality coding'.
+- If a word, sentence, paragraph or section does not add any knowledge or concise clarification - it should be removed.
+
+### After Creating A Skill
+
+After creating a skill you **must** always perform a critical self-review and improvement the skill you've created to ensure it's information is valuable, concise, free of duplication, fluff or other low-value prose, then go through a process of refining and 'thinning' the language used in the skill so that the important information is more prominent but the overall word count is reduced - making the skill more effective and efficient to use.
+
+**IMPORTANT FRAMING: Verbosity is not rewarded - knowledge quality is!**

@@ -18,54 +18,24 @@ class BaseAgentFactory:
     """Platform standard agent factory."""
 
     @staticmethod
-    def create_agent(
-        agent_id: str,
-        system_prompt: str,
-        tools: list,
-        session_backend: str = "dynamodb",
-        enable_observability: bool = True
-    ) -> Agent:
+    def create_agent(agent_id: str, system_prompt: str, tools: list) -> Agent:
         """Create agent with organisational defaults."""
-
-        model = BedrockModel(
-            model_id=os.getenv("DEFAULT_MODEL_ID", "anthropic.claude-sonnet-4-5-20250929-v1:0"),
-            temperature=0.7,
-            region_name=os.getenv("AWS_REGION", "us-east-1")
-        )
-
-        session_manager = DynamoDBSessionManager(
-            table_name=os.getenv("SESSION_TABLE"),
-            region_name=os.getenv("AWS_REGION")
-        ) if session_backend == "dynamodb" else None
-
-        conversation_manager = SlidingWindowConversationManager(
-            max_messages=20,
-            min_messages=2
-        )
-
-        hooks = []
-        if enable_observability:
-            from foundation.observability import StandardObservabilityHook
-            hooks.append(StandardObservabilityHook())
-
         return Agent(
             agent_id=agent_id,
-            model=model,
+            model=BedrockModel(
+                model_id=os.getenv("DEFAULT_MODEL_ID", "anthropic.claude-sonnet-4-5-20250929-v1:0"),
+                region_name=os.getenv("AWS_REGION", "us-east-1")
+            ),
             system_prompt=system_prompt,
             tools=tools,
-            session_manager=session_manager,
-            conversation_manager=conversation_manager,
-            hooks=hooks
+            session_manager=DynamoDBSessionManager(table_name=os.getenv("SESSION_TABLE")),
+            conversation_manager=SlidingWindowConversationManager(max_messages=20)
         )
-```
 
-**Usage by Product Teams**:
-```python
-from foundation.agent_factory import BaseAgentFactory
-
+# Usage
 agent = BaseAgentFactory.create_agent(
     agent_id="customer-support",
-    system_prompt="You are a helpful customer support agent.",
+    system_prompt="You are helpful.",
     tools=[tool1, tool2]
 )
 ```
@@ -74,7 +44,7 @@ agent = BaseAgentFactory.create_agent(
 
 ### Pattern 2: MCP Server Registry
 
-Create a catalogue of organisation-wide MCP servers:
+Organisation-wide MCP server catalogue:
 
 ```python
 # foundation/mcp_loader.py
@@ -82,9 +52,8 @@ from strands.tools.mcp import MCPClient
 from mcp import streamablehttp_client
 
 class MCPRegistry:
-    """Load MCP servers from organisational catalogue."""
+    """Load MCP servers from catalogue."""
 
-    # ECS-hosted MCP servers (always persistent)
     MCP_ENDPOINTS = {
         "database-query": "http://mcp-database.internal:8000/mcp",
         "aws-tools": "http://mcp-aws-tools.internal:8000/mcp",
@@ -95,24 +64,16 @@ class MCPRegistry:
     def load_servers(server_names: list[str]) -> list:
         """Load tools from specified MCP servers."""
         all_tools = []
-
         for name in server_names:
             endpoint = MCPRegistry.MCP_ENDPOINTS[name]
             client = MCPClient(lambda e=endpoint: streamablehttp_client(e))
-
             with client:
-                tools = client.list_tools_sync()
-                all_tools.extend(tools)
-
+                all_tools.extend(client.list_tools_sync())
         return all_tools
 
 # Usage
 tools = MCPRegistry.load_servers(["database-query", "aws-tools"])
-agent = BaseAgentFactory.create_agent(
-    agent_id="support-agent",
-    system_prompt="You are helpful.",
-    tools=tools
-)
+agent = BaseAgentFactory.create_agent("support-agent", "You are helpful.", tools)
 ```
 
 ---
@@ -127,35 +88,27 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 
 class DynamicToolLoader:
-    """Load relevant tools based on query for large tool sets."""
+    """Load relevant tools based on query."""
 
     def __init__(self, all_tools: list):
         self.all_tools = all_tools
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
-
-        # Pre-compute embeddings
-        self.tool_embeddings = self.model.encode([
-            tool.__doc__ for tool in all_tools
-        ])
+        self.tool_embeddings = self.model.encode([tool.__doc__ for tool in all_tools])
 
     def get_relevant_tools(self, query: str, top_k: int = 10) -> list:
-        """Find top-k relevant tools for query."""
+        """Find top-k relevant tools."""
         query_embedding = self.model.encode([query])
-
         similarities = np.dot(self.tool_embeddings, query_embedding.T).flatten()
         top_indices = np.argsort(similarities)[-top_k:]
-
         return [self.all_tools[i] for i in top_indices]
 
-# Usage with large tool sets
+# Usage
 tool_loader = DynamicToolLoader(all_organisational_tools)  # 100+ tools
-
-# For each agent invocation
 relevant_tools = tool_loader.get_relevant_tools(user_query, top_k=10)
 agent = Agent(tools=relevant_tools)  # Only 10 tools, not 100+
 ```
 
-**Why This Matters**: Models struggle with > 50-100 tools. AWS internal agents with 6,000 tools use semantic search instead of describing all tools to the model.
+**Why**: Models struggle with > 50-100 tools. AWS internal agents with 6,000 tools use semantic search.
 
 ---
 
@@ -191,35 +144,25 @@ def get_customer_profile(customer_email: str) -> dict:
     orders = _get_user_orders(user["id"])
     preferences = _get_user_preferences(user["id"])
 
-    return {
-        "user": user,
-        "orders": orders,
-        "preferences": preferences
-    }
+    return {"user": user, "orders": orders, "preferences": preferences}
 ```
 
 ---
 
 ### Rule 2: Structured Error Handling
 
-**Always return structured results, never raise exceptions to the model.**
+Always return structured results, never raise exceptions to the model.
 
 ```python
-# ✅ GOOD: Graceful error handling
+# ✅ GOOD
 @tool
 def query_database(sql: str) -> dict:
     """Execute SQL query and return results."""
     try:
         results = database.execute(sql)
-        return {
-            "status": "success",
-            "content": [{"text": json.dumps(results)}]
-        }
+        return {"status": "success", "content": [{"text": json.dumps(results)}]}
     except DatabaseError as e:
-        return {
-            "status": "error",
-            "content": [{"text": f"Query failed: {str(e)}. Check syntax and permissions."}]
-        }
+        return {"status": "error", "content": [{"text": f"Query failed: {str(e)}"}]}
 ```
 
 ---
@@ -231,7 +174,7 @@ For large datasets, use pagination:
 ```python
 @tool
 def query_large_dataset(query: str, page: int = 1, page_size: int = 10) -> dict:
-    """Query dataset with pagination to avoid large responses."""
+    """Query dataset with pagination."""
     results = database.query(query, offset=(page-1)*page_size, limit=page_size)
 
     return {
@@ -252,7 +195,6 @@ def query_large_dataset(query: str, page: int = 1, page_size: int = 10) -> dict:
 ### Tool-Level Permissions
 
 ```python
-from strands import Agent, tool
 from strands.hooks import BeforeToolCallEvent, HookProvider, HookRegistry
 
 TOOL_PERMISSIONS = {
@@ -262,8 +204,6 @@ TOOL_PERMISSIONS = {
 }
 
 class PermissionValidator(HookProvider):
-    """Validate tool permissions before execution."""
-
     def __init__(self, user_permissions: list[str]):
         self.user_permissions = user_permissions
 
@@ -272,15 +212,13 @@ class PermissionValidator(HookProvider):
 
     def validate_permissions(self, event: BeforeToolCallEvent):
         tool_name = event.tool_use["name"]
-        required_permission = TOOL_PERMISSIONS.get(tool_name)
+        required = TOOL_PERMISSIONS.get(tool_name)
+        if required and required not in self.user_permissions:
+            event.cancel_tool = f"Permission denied: {required} required"
 
-        if required_permission and required_permission not in self.user_permissions:
-            event.cancel_tool = f"Permission denied: {required_permission} required"
-
-# Usage
 agent = Agent(
     tools=[delete_database, query_database],
-    hooks=[PermissionValidator(user_permissions=["user:read_data"])]
+    hooks=[PermissionValidator(["user:read_data"])]
 )
 ```
 
@@ -290,8 +228,6 @@ agent = Agent(
 
 ```python
 class ApprovalHook(HookProvider):
-    """Require approval for sensitive operations."""
-
     SENSITIVE_TOOLS = ["delete_database", "send_company_email", "transfer_funds"]
 
     def register_hooks(self, registry: HookRegistry, **kwargs):
@@ -299,14 +235,10 @@ class ApprovalHook(HookProvider):
 
     def require_approval(self, event: BeforeToolCallEvent):
         if event.tool_use["name"] in self.SENSITIVE_TOOLS:
-            approval = event.interrupt(
-                "approval-required",
-                reason={
-                    "action": event.tool_use["name"],
-                    "params": event.tool_use["input"]
-                }
-            )
-
+            approval = event.interrupt("approval-required", reason={
+                "action": event.tool_use["name"],
+                "params": event.tool_use["input"]
+            })
             if approval.lower() != "approved":
                 event.cancel_tool = "Action denied by user"
 
@@ -322,25 +254,19 @@ agent = Agent(hooks=[ApprovalHook()], tools=[delete_database])
 ```python
 from strands.tools.executors import ConcurrentToolExecutor
 
-# For thread-safe tools that can run in parallel
 agent = Agent(
     tools=[fetch_api_data, query_database, check_cache],
     tool_executor=ConcurrentToolExecutor()
 )
 ```
 
-**When to Use**:
-- Tools are I/O bound (API calls, database queries)
-- Tools are thread-safe
-- Order of execution doesn't matter
+**When to Use**: Tools are I/O bound, thread-safe, order doesn't matter
 
-**When to Avoid**:
-- Tools modify shared state
-- Tools depend on each other
+**When to Avoid**: Tools modify shared state or depend on each other
 
 ---
 
-### Tool Caching Strategy
+### Tool Caching
 
 ```python
 from functools import lru_cache
@@ -348,40 +274,32 @@ from functools import lru_cache
 @tool
 @lru_cache(maxsize=100)
 def get_product_catalogue() -> dict:
-    """Get product catalogue (cached for performance)."""
+    """Get product catalogue (cached)."""
     return database.get_all_products()
 ```
 
 ---
 
-## Conversation Management Strategies
+## Conversation Management
 
 ### For Short Sessions (< 10 Exchanges)
 
 ```python
 from strands.agent.conversation_manager import SlidingWindowConversationManager
 
-conversation_manager = SlidingWindowConversationManager(
-    max_messages=15,  # Keep last 15 messages
-    min_messages=2
-)
-
-agent = Agent(conversation_manager=conversation_manager)
+manager = SlidingWindowConversationManager(max_messages=15, min_messages=2)
+agent = Agent(conversation_manager=manager)
 ```
 
 ---
 
-### For Long Sessions (Need Historical Context)
+### For Long Sessions (Need History)
 
 ```python
 from strands.agent.conversation_manager import SummarizingConversationManager
 
-conversation_manager = SummarizingConversationManager(
-    max_messages=30,
-    summarize_messages_count=25
-)
-
-agent = Agent(conversation_manager=conversation_manager)
+manager = SummarizingConversationManager(max_messages=30, summarize_messages_count=25)
+agent = Agent(conversation_manager=manager)
 ```
 
 ---
@@ -391,13 +309,10 @@ agent = Agent(conversation_manager=conversation_manager)
 ### Unit Testing Tools
 
 ```python
-# test_tools.py
 from myapp.tools import analyse_data
 
 def test_analyse_data():
-    """Test tool in isolation."""
     result = analyse_data(data="sample data")
-
     assert result["status"] == "success"
     assert "insights" in result["content"][0]["text"]
 ```
@@ -407,13 +322,10 @@ def test_analyse_data():
 ### Integration Testing Agents
 
 ```python
-# test_agent.py
 from foundation.agent_factory import BaseAgentFactory
 from unittest.mock import Mock
 
 def test_agent_with_mocked_tools():
-    """Test agent with mocked tools."""
-
     mock_tool = Mock(return_value={
         "status": "success",
         "content": [{"text": "mocked result"}]
@@ -422,100 +334,10 @@ def test_agent_with_mocked_tools():
     agent = BaseAgentFactory.create_agent(
         agent_id="test-agent",
         system_prompt="You are a test agent.",
-        tools=[mock_tool],
-        session_backend="memory"  # Use in-memory for tests
+        tools=[mock_tool]
     )
 
     result = agent("Test query")
-
     assert mock_tool.called
     assert "mocked result" in str(result.message)
 ```
-
----
-
-## Common Anti-Patterns to Avoid
-
-### ❌ 1. Overloading Agents with Too Many Tools
-
-**Problem**: Models struggle with > 50 tools
-
-**Solution**: Use semantic search (Pattern 3 above)
-
----
-
-### ❌ 2. Hardcoding Business Logic in System Prompts
-
-**Problem**: Changes require code deployment
-
-**Solution**: Store system prompts in configuration (S3, Parameter Store)
-
----
-
-### ❌ 3. Ignoring Token Limits
-
-**Problem**: Agents fail when context exceeds model limits
-
-**Solution**: Implement conversation management (sliding window or summarisation)
-
----
-
-### ❌ 4. No Timeout Configuration
-
-**Problem**: Runaway agents consume resources indefinitely
-
-**Solution**: Always set execution timeouts and max loop counts
-
-```python
-from strands.multiagent import GraphBuilder
-
-builder = GraphBuilder()
-# ... add nodes and edges ...
-builder.set_execution_timeout(300)  # 5 minute timeout
-builder.set_max_node_executions(10)  # Max 10 loops
-```
-
----
-
-### ❌ 5. MCP Server Deployment to Lambda
-
-**Problem**: Connection errors, cold starts, pool failures
-
-**Solution**: NEVER deploy MCP servers to Lambda. Use ECS/Fargate or AgentCore Runtime.
-
----
-
-### ❌ 6. No Cost Monitoring
-
-**Problem**: Unexpected bills from multi-agent token usage
-
-**Solution**: Implement cost tracking hooks (see observability.md)
-
----
-
-## Key Metrics to Track
-
-| Metric | Threshold | Alert Condition |
-|--------|-----------|-----------------|
-| **Token Usage** | > 100K tokens/hour | Cost anomaly |
-| **Tool Failure Rate** | > 5% | Reliability issue |
-| **Agent Loop Count** | > 10 cycles | Potential runaway |
-| **Response Latency** | > 30 seconds | Performance degradation |
-| **Error Rate** | > 2% | System issue |
-
----
-
-## Production Deployment Checklist
-
-Before production deployment:
-
-- [ ] Conversation management configured (SlidingWindow or Summarising)
-- [ ] Observability hooks implemented
-- [ ] Cost tracking enabled
-- [ ] OpenTelemetry tracing configured
-- [ ] Error handling in all tools
-- [ ] Security permissions validated
-- [ ] MCP servers deployed to ECS/Fargate (NOT Lambda)
-- [ ] Timeout limits set (agents, multi-agent graphs, tools)
-- [ ] Session backend configured (DynamoDB for production)
-- [ ] CloudWatch dashboards created
