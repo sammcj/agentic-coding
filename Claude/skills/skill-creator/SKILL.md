@@ -1,6 +1,6 @@
 ---
 name: skill-creator
-description: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Claude's capabilities with specialised knowledge, workflows, or tool integrations.
+description: Guide for creating effective Claude Skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Claude's capabilities with specialised knowledge, workflows, or tool integrations.
 # model: inherit
 ---
 
@@ -29,7 +29,7 @@ Understanding how skills work helps you design more effective ones:
 
 **Progressive disclosure keeps context lean.** Skills use a three-level loading system:
 
-1. **Level 1: Metadata** (name + description) - Always loaded into Claude's context (~100 words)
+1. **Level 1: Metadata** (name + description) - Always loaded into Claude's context and is how Claude knows when it should use the skill (~100 words)
 2. **Level 2: SKILL.md body** - Loaded only after the skill triggers (<5k words)
 3. **Level 3: Bundled resources** - Loaded by Claude as needed (unlimited, since scripts can execute without reading)
 
@@ -73,9 +73,10 @@ skill-name/
 ├── SKILL.md (required)
 │   ├── YAML frontmatter metadata (required)
 │   │   ├── name: (required)
-│   │   └── description: (required)
+│   │   └── description: (required, one of the most important sections to get right)
+│   │   └── model: inherit (required)
 │   └── Markdown instructions (required)
-└── Bundled Resources (optional)
+└── Bundled Resources (optional, only if required and add value)
     ├── scripts/          - Executable code (Python/Bash/etc.)
     ├── references/       - Documentation intended to be loaded into context as needed
     └── assets/           - Files used in output (templates, icons, fonts, etc.)
@@ -121,12 +122,13 @@ Files not intended to be loaded into context, but rather used within the output 
 
 #### What to Not Include in a Skill
 
-A skill should only contain essential files that directly support its functionality. Do NOT create extraneous documentation or auxiliary files, including:
+A skill should **only contain essential files that directly support its functionality. Do NOT create extraneous documentation or auxiliary files**, including:
 
 - README.md
 - INSTALLATION_GUIDE.md
 - QUICK_REFERENCE.md
 - CHANGELOG.md
+- QUICK_START.md
 - etc.
 
 The skill should only contain the information needed for an AI agent to do the job at hand. It should not contain auxiliary context about the process that went into creating it, setup and testing procedures, user-facing documentation, etc. Creating additional documentation files just adds clutter and confusion.
@@ -163,6 +165,7 @@ Extract text with pdfplumber:
 ```
 
 Claude loads FORMS.md, REFERENCE.md, or EXAMPLES.md only when needed.
+Note: Be careful not to duplicate information across files as this will only lead to context bloat and a reduced signal to noise ratio.
 
 **Pattern 2: Domain-specific organisation**
 
@@ -178,6 +181,8 @@ bigquery-skill/
     └── marketing.md (campaigns, attribution)
 ```
 
+This allows the agent using the skill to decide to only read in the relevant domain information that is needed for the task.
+
 When a user asks about sales metrics, Claude only reads sales.md.
 
 Similarly, for skills supporting multiple frameworks or variants, organise by variant:
@@ -188,7 +193,6 @@ cloud-deploy/
 └── references/
     ├── aws.md (AWS deployment patterns)
     ├── gcp.md (GCP deployment patterns)
-    └── azure.md (Azure deployment patterns)
 ```
 
 When the user chooses AWS, Claude only reads aws.md.
