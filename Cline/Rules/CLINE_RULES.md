@@ -7,7 +7,6 @@
     - **You must NEVER use overused AI phrases especially those that are not quantifiable or measurable such as: comprehensive , robust , best-in-class , feature-rich , production-ready , enterprise-grade**
     - NEVER write with smart quotes or em dashes
     - Avoid excessive bullet points with bolded headers
-    - No transition phrases between every paragraph
     - No unnecessary summary paragraphs and other fluff
     - Do engage in sycophantic or obsequious communication
     - Do not write content that could be interpreted as marketing or hype and do not use overly enthusiastic or self-congratulatory language
@@ -55,7 +54,7 @@
     - Configuration and examples over feature lists
     - "Setup" not "🚀 Getting Started"
     - "Exports to PDF" not "Seamlessly transforms content"
-    - Include concrete examples for every major feature
+    - Include concrete examples for major features
     - Document the "why" only for non-obvious decisions
     - Aim to keep README files under 500 lines
     - **You must **NOT** create new markdown documentation files (implementation notes, usage guides, troubleshooting docs, changelogs, etc. other than a development plan document if you're working from one) unless explicitly requested - update existing README.md instead (if you need to) or keep notes in conversation.**
@@ -111,13 +110,10 @@
 </CODE_QUALITY_METRICS>
 
 <CONFIGURATION_MANAGEMENT>
-- ALWAYS use .env or config files as single source of truth
-- Never commit .env files (use .gitignore)
+- ALWAYS use .env or config files as single source of truth and ensure .env files are gitignored
 - Provide .env.example with all required variables
 - Validate environment variables on startup
-- Use structured config objects, not scattered process.env
 - Group related configuration together
-- Use sensible defaults
 </CONFIGURATION_MANAGEMENT>
 
 ---
@@ -129,9 +125,8 @@
     1. Write failing test for bugs (test-first)
     2. Fix the bug
     3. Verify test passes
-    4. Run test suite
-    5. Check no other tests broken
-    6. Only then declare fixed
+    4. Check no other tests broken
+    5. Only then declare fixed
   </TESTING_WORKFLOW>
 
   <TEST_STANDARDS>
@@ -147,8 +142,8 @@
 
 <VERIFICATION_CHECKLIST>
 Before declaring any task complete:
-- [ ] Code builds without warnings
 - [ ] Linting passes with no warnings or errors
+- [ ] Code builds without warnings
 - [ ] All tests pass (new and existing)
 - [ ] No debug statements or console.log remain
 - [ ] Error cases and logging handled appropriately
@@ -175,18 +170,16 @@ Before declaring any task complete:
     - Use parameterised queries/prepared statements
     - Implement rate limiting for APIs
     - Follow principle of least privilege
-    - Hash passwords with bcrypt/scrypt/argon2
-    - Use HTTPS/TLS for data transmission
+    - Hash passwords appropriately
     - Keep dependencies updated
-    - Scan for known vulnerabilities
+    - Scan for vulnerabilities
   </SECURITY_PRACTICES>
 </SECURITY_STANDARDS>
 
 <ERROR_HANDLING>
   <ERROR_STRATEGY>
-    - Return meaningful errors for developers
-    - Return safe errors for end users
-    - Log errors with context and stack traces
+    - Return meaningful errors for developers, safe errors to end users
+    - Log errors with context
     - Make use of error boundaries where applicable
     - Implement retry logic with exponential backoff
     - Graceful degradation over complete failure
@@ -197,7 +190,7 @@ Before declaring any task complete:
     - Use structured logging (JSON)
     - Include correlation IDs for tracing
     - Log levels: ERROR, WARN, INFO, DEBUG
-    - Never log sensitive data (passwords, tokens)
+    - Never log sensitive data
     - Include timestamp, service, and context
     - Avoid excessive logging in production
   </LOGGING_STANDARDS>
@@ -213,12 +206,11 @@ Before declaring any task complete:
     - Use os and io packages (not deprecated ioutil)
     - Always handle errors explicitly
     - Use context for cancellation and timeouts
-    - Build with -ldflags="-s -w" for smaller binaries
+    - Always build with -ldflags="-s -w" for smaller binaries
     - Check go code modernity with `go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix -test ./...`
     - When configuring golangci copy $HOME/git/sammcj/mcp-devtools/.golangci.yml to the project
     - Use table-driven tests
     - Follow standard project layout
-    - Use go mod for dependencies
   </GO_STANDARDS>
 
   <GO_PATTERNS>
@@ -281,14 +273,12 @@ Before declaring any task complete:
 ## Tool Usage
 
 <TOOL_PRIORITIES note="**IMPORTANT**">
-- Use purpose-built tools over manual approaches
-- Prioritise using specific tools is often a better approach than searching the web (e.g. using get_library_docs for library documentation)
-- Use tools to reduce token usage
-- Search documentation before making assumptions
-- If you stuck don't just keep making things up - use the tools available to you to lookup package documentation or search the web
+- Use purpose-built tools over manual approaches, using specific tools is often a better approach than searching the web (e.g. using get_library_docs for library documentation)
+- Use tools to search documentation before making assumptions
+- If you are stuck don't just keep making things up - use the tools available to you to lookup package documentation or search the web
 - When asked to do math that's more than adding one or two items, use the calculator tool to ensure accuracy
 - If you're exploring a large codebase or potentially very large files, use of the 'code_skim' tool (if you have it) to quickly understand the structure of the file(s) without all the implementation details
-- Remember can delegate tasks to a sub-agents with instructions to use specific tools and provide you with only the key information you're looking for to reduce token usage and optionally speed up the process further by doing this in parallel where it makes sense to do so
+- Delegate tasks to a sub-agents with instructions to use specific tools and instruct sub-agents to provide you with only the key information you're looking for, do this in parallel where possible
 </TOOL_PRIORITIES>
 
 
@@ -336,8 +326,8 @@ Before declaring any task complete:
 - NEVER attempt to estimate time required for tasks (e.g. do not add "this will take about 2 hours", "Phase 3: Weeks 2-3" etc...)
 - NEVER add comments pertaining only to development process (e.g. "improved function", "optimised version", "# FIX:", "enhanced function" etc...)
 - NEVER claim an issue is resolved until user verification - This is very important, you *MUST* confirm an issue truly is fixed before stating it is fixed!
-- NEVER implement placeholder or mocked functionality unless explicitly instructed - don't be lazy!
-- NEVER build or develop for Windows - we do not ever need or want Windows support
+- NEVER implement placeholder or mocked functionality unless explicitly instructed - **don't be lazy**!
+- NEVER build or develop for Windows - we do not ever need or want Windows support unless explicitly instructed
 - **You MUST NOT EVER state something is fixed unless you have confirmed it is by means of testing or measuring output and building the application**
 </NEVER_DO_THESE>
 
@@ -348,10 +338,9 @@ Before declaring any task complete:
 
 <REMINDER note="**IMPORTANT** you must follow these reminders for all tasks unless directly instructed otherwise by the user">
 - IMPORTANT: Edit only what's necessary! Make precise, minimal changes to existing structures unless instructed
-- Run make lint/format/test/build if available after completing tasks
 - If working from a dev plan or checklist - you **MUST** check off tasks as they are completed to 100%, if you cannot be sure they are truly complete - do not state they are complete!
 - If you are stuck on a persistent problem that you and the user have tried to fix several times use the performing-systematic-debugging-for-stubborn-problems skill if you have it available (if you don't: perform a fagan inspection to systematically identify and resolve the root cause of the problem)
-- Create a todo lists when working on complex tasks to track progress and remain on track
+- Create a task and todo lists when working on complex tasks to track progress and remain on track
 - You **MUST** fix all failing tests before marking task complete
 - If the user asks you to ensure the code builds you **MUST** ensure you run a build or any other related commands before stating you've completed the work.
 </REMINDER>
