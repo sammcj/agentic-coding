@@ -49,6 +49,15 @@ The script outputs the location of the transcript. Read the transcript file from
 
 Read the transcript file to analyse content. Transcripts are cleaned and formatted as continuous text with minimal whitespace.
 
+#### Step 2.1: Rename the directory
+
+Rename the directory to use today's date concise description of instead of the video for easier identification, e.g:
+
+```bash
+DATE=$(date +%Y-%m-%d)
+mv ~/Downloads/videos/<video-id>/ "~/Downloads/videos/${DATE}-<concise-description>/"
+```
+
 ### Step 3: Analyse and Extract Wisdom
 
 Perform comprehensive analysis on the transcript, extracting:
