@@ -1,7 +1,6 @@
 ---
 name: skill-creator
 description: Guide for creating effective Claude Skills. This skill should be used when users want to create (or update) a skill that extends Claude's capabilities with specialised knowledge, workflows, or tool integrations.
-# model: inherit
 ---
 
 # Skill Creator
@@ -74,8 +73,7 @@ skill-name/
 │   ├── YAML frontmatter metadata (required)
 │   │   ├── name: (required)
 │   │   └── description: (required, one of the most important sections to get right)
-│   │   └── # model: inherit (required, leave commented out)
-│   │   └── notes: any notes about the skill that are only for human consumption (optional, not parsed by Claude)
+│   │   └── metadata: any notes about the skill that are only for human consumption (optional, not parsed by Claude)
 │   └── Markdown instructions (required)
 └── Bundled Resources (optional, only if required and add value)
     ├── scripts/          - Executable code (Python/Bash/etc.)

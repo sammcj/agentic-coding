@@ -1,7 +1,7 @@
 ---
 name: claude-agent-sdk
 description: Use when working with Anthropic Claude Agent SDK. Provides architecture guidance, implementation patterns, best practices, and common pitfalls.
-# model: inherit
+: inherit
 ---
 
 # Claude Agent SDK

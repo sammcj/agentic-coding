@@ -1,7 +1,7 @@
 ---
 name: aws-strands-agents-agentcore
 description: Use when working with AWS Strands Agents SDK or Amazon Bedrock AgentCore platform for building AI agents. Provides architecture guidance, implementation patterns, deployment strategies, observability setup, multi-agent orchestration, and MCP server integration.
-# model: inherit
+: inherit
 ---
 
 # AWS Strands Agents & AgentCore
@@ -124,7 +124,7 @@ See **[architecture.md](references/architecture.md)** for examples.
 
 ---
 
-## Model-Driven Philosophy
+#-Driven Philosophy
 
 **Key Concept**: Strands Agents delegates orchestration to the model rather than requiring explicit control flow code.
 
@@ -142,12 +142,12 @@ agent = Agent(
     tools=[research_tool, analysis_tool]
 )
 result = agent("What are the top tech trends?")
-# Model automatically orchestrates: research_tool → analysis_tool → respond
+ automatically orchestrates: research_tool → analysis_tool → respond
 ```
 
 ---
 
-## Model Selection
+# Selection
 
 **Primary Provider**: Anthropic Claude via AWS Bedrock
 

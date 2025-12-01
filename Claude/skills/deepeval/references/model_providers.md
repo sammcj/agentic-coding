@@ -884,7 +884,7 @@ DEEPEVAL_PER_ATTEMPT_TIMEOUT_SECONDS=30
 export DEEPEVAL_DISABLE_DOTENV=1
 ```
 
-### Model Selection Strategy
+## Selection Strategy
 
 **Development Phase**:
 - Use cheaper models (`gpt-4o-mini`, `claude-haiku`) for rapid iteration

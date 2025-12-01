@@ -1,7 +1,7 @@
 ---
 name: writing-go-tests
 description: Applies current Go testing best practices. Use when writing or modifying Go test files or advising on Go testing strategies.
-# model: inherit
+: inherit
 ---
 
 # Go Testing Best Practices

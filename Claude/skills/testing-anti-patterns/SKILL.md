@@ -1,7 +1,7 @@
 ---
 name: testing-anti-patterns
 description: Use when writing or changing tests, adding mocks, or tempted to add test-only methods to production code - prevents testing mock behaviour, production pollution with test-only methods, and mocking without understanding dependencies
-# model: inherit
+: inherit
 ---
 
 # Testing Anti-Patterns

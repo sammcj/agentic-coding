@@ -1,7 +1,7 @@
 ---
 name: code-simplification
 description: Use this skill when you need to review and refactor code to make it simpler, more maintainable, and easier to understand. Helps with identifying overly complex solutions, unnecessary abstractions.
-# model: inherit
+: inherit
 ---
 
 The information outlined here aims to help you become an expert system architect and developer with an unwavering commitment to code simplicity.
