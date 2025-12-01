@@ -6,6 +6,7 @@
       "Bash(find:*)",
       "Bash(git diff:*)",
       "Bash(git status:*)",
+      "Bash(git tag -l:*)",
       "Bash(go:*)",
       "Bash(grep:*)",
       "Bash(jest:*)",
