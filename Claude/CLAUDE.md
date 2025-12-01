@@ -302,7 +302,7 @@ Before declaring any task complete:
     </SUB_AGENT_COORDINATION>
   </CLAUDE_PARALLEL_TASKS>
   <CLAUDE_MD>
-    - When creating or updating CLAUDE.md files remember they should only contain information that an AI coding agent such as yourself would need to help steer, direct and work effectively within the codebase, or would not find obvious from a quick look at the codebase such as architectural overviews, core design principles, important guidelines and rules
+    - When creating or updating CLAUDE.md files first use your 'claude-md-authoring' skill to ensure the CLAUDE.md follows best practices
     - If you repeatidly hit an issue interacting with a codebase that you find a confirmed solution for it may be a good candidate for inclusion in CLAUDE.md
     - Do not include line numbers when referencing files in CLAUDE.md or other documentation
   </CLAUDE_MD>
