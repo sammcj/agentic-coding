@@ -1,7 +1,6 @@
 ---
 name: deepeval
 description: Use when discussing or working with DeepEval (the python AI evaluation framework)
-: inherit
 ---
 
 # DeepEval

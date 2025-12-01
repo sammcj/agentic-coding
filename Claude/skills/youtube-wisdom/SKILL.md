@@ -1,7 +1,6 @@
 ---
 name: youtube-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos. Use when asked to analyse, summarise, or extract key learnings from YouTube content. Downloads transcripts only (no video files), performs comprehensive analysis including key insights, notable quotes, structured summaries, and actionable takeaways, then saves the analysis to a markdown file.
-: inherit
 ---
 
 # YouTube Wisdom Extraction

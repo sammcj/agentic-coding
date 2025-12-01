@@ -1,7 +1,6 @@
 ---
 name: shell-scripting
 description: Practical bash scripting guidance emphasising defensive programming, ShellCheck compliance, and simplicity. Use when writing shell scripts that need to be reliable and maintainable.
-: inherit
 ---
 
 # Bash Scripting Best Practices

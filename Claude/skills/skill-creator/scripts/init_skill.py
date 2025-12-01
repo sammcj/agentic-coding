@@ -20,8 +20,7 @@ from pathlib import Path
 SKILL_TEMPLATE = """---
 name: {skill_name}
 description: [TODO: This is THE MOST CRITICAL field. Claude uses pure LLM reasoning to select skills based solely on this description. Be comprehensive yet concise. Include: (1) What the skill does, (2) WHEN to use it - specific scenarios, file types, or tasks, (3) Key capabilities that distinguish it. Front-load the most important information. Example: "Extract and analyse data from spreadsheets (.xlsx, .csv). Use when working with tabular data for: (1) Reading cell values, (2) Generating reports, (3) Data transformation, (4) Creating charts."]
-model: inherit
-# allowedTools: []
+model# allowedTools: []
 ---
 
 # {skill_title}

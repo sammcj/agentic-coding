@@ -1,7 +1,6 @@
 ---
 name: aws-strands-agents-agentcore
 description: Use when working with AWS Strands Agents SDK or Amazon Bedrock AgentCore platform for building AI agents. Provides architecture guidance, implementation patterns, deployment strategies, observability setup, multi-agent orchestration, and MCP server integration.
-: inherit
 ---
 
 # AWS Strands Agents & AgentCore
