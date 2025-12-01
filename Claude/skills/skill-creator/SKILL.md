@@ -75,6 +75,7 @@ skill-name/
 │   │   ├── name: (required)
 │   │   └── description: (required, one of the most important sections to get right)
 │   │   └── # model: inherit (required, leave commented out)
+│   │   └── notes: any notes about the skill that are only for human consumption (optional, not parsed by Claude)
 │   └── Markdown instructions (required)
 └── Bundled Resources (optional, only if required and add value)
     ├── scripts/          - Executable code (Python/Bash/etc.)

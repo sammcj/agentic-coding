@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-11-27T13:35:39.488885",
+  "last_sync": "2025-12-01T11:13:43.489618",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:bf9673e389cab32f6d1a95c495c8cdefb587e0020c1abe7590f79044667c6f08",
       "last_synced": "2025-11-19T09:28:13.560026"
     },
     "claude/CLAUDE.md": {
-      "checksum": "sha256:321931b35e75374ae5db974fb9701055e618de227c608199fe9e5be91d336c6b",
-      "last_synced": "2025-11-27T11:19:47.417950"
+      "checksum": "sha256:8d2ab5dc0befb1d9a0e825657b599cf10cf32d18129ce8bcad686b47087649c4",
+      "last_synced": "2025-12-01T10:51:51.233342"
     },
     "claude/settings.json": {
       "checksum": "sha256:80489036f4c799124770e571688b025e1c79ac8212af963a5f3c5693bd93aea1",
@@ -124,8 +124,8 @@
       "last_synced": "2025-11-25T16:57:28.058358"
     },
     "claude/skills/skill-creator/SKILL.md": {
-      "checksum": "sha256:b7ffc587cfe740d1dcc5c3e8d250bde0d85508099db09e00035d7fe3e5f2ef86",
-      "last_synced": "2025-11-27T07:48:00.513733"
+      "checksum": "sha256:12161a5473c48c33a4304a4a511c255c89989d4136b687beb1739f19faf4c0fa",
+      "last_synced": "2025-12-01T10:35:34.298231"
     },
     "claude/skills/skill-creator/scripts/quick_validate.py": {
       "checksum": "sha256:c979f47406d76e9ac96c7e957334e3776b00b83c2bb4a36bcb15ac0da0d2d7ca",
@@ -198,6 +198,14 @@
     "claude/skills/code-simplification/SKILL.md": {
       "checksum": "sha256:d207a594f42b3e47835d567c615480d3f55e8d8a6d80cdaeb42afbce5cdae365",
       "last_synced": "2025-11-27T13:35:39.488469"
+    },
+    "claude/skills/claude-md-authoring/SKILL.md": {
+      "checksum": "sha256:a339ee16bff9f3c2db3561da401b45020fe711afe4cfce879a53b52c8670f80f",
+      "last_synced": "2025-12-01T11:13:13.896695"
+    },
+    "claude/skills/claude-agent-sdk/SKILL.md": {
+      "checksum": "sha256:beafd6cb9225d655fc1d1207790c9a1c3be17f04d71734a7b5756e2aea23a3fb",
+      "last_synced": "2025-12-01T11:13:43.489461"
     }
   },
   "deletions": {

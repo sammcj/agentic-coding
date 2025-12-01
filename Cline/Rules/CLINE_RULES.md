@@ -248,6 +248,7 @@ Before declaring any task complete:
   <PYTHON_STANDARDS>
     - Use Python 3.14+ features
     - Type hints for all functions
+    - Use `uvx ty check` for type checking
     - Use dataclasses for data structures
     - Follow PEP 8 style guide
     - Use pathlib over os.path
