@@ -37,7 +37,7 @@ Since around May 2025 I've been using Claude Code far more any other tool:
 
 The only real down side to Claude Code is that it's not open source, which is a shame as I believe open source always wins in the long run.
 
-When setup correctly you can do fantastic work in either Claude Code or Cline, but beware of other tools (especially those like Cursor or Kiro with large marketing departments and low monthly subscription costs).
+When setup correctly you can do fantastic work in either Claude Code or Cline (and the Cline developers are a fantastic bunch!), but beware of other tools (especially those like Cursor or Kiro with large marketing departments and low monthly subscription costs).
 
 I have a table where I'm trying to keep track of coding agent tools here: https://smcleod.net/agentic-coding-tools/
 
