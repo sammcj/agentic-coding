@@ -3,7 +3,7 @@
 - [Sam's Agentic Coding Rules, Templates and Examples](#sams-agentic-coding-rules-templates-and-examples)
   - [Coding Agent Rules, Agents, Templates and Skills](#coding-agent-rules-agents-templates-and-skills)
   - [Patterns / Workflows](#patterns--workflows)
-  - [MCP Servers](#mcp-servers)
+  - [MCP Servers (Agent Tools)](#mcp-servers-agent-tools)
   - [Tips For Agentic Coding](#tips-for-agentic-coding)
   - [Links](#links)
   - [Notes](#notes)
@@ -22,11 +22,11 @@ Note: While the most well kept content lives under a `Claude` directory, most ru
 
 ### Client Tooling - Not All Created Equal
 
-**I recommend Claude Code or Cline as the best agentic coding tools.**
+**I _highly_ recommend Claude Code or Cline as the best agentic coding tools.**
 
 I find they both _far_ outperform the many other tools I've tried including Copilot Agent, Gemini CLI, Codex, Cursor (probably one of the lowest performing tools I've used down at the bottom with with Amazon Kiro), Kiro, Windsurf, Augment Code, OpenCode, Aider and many others over the past 3 years.
 
-Both Claude Code and Cline are equally good in different ways. Claude Code provides the best value for money if you can pair it with the Claude Max 5 subscription ($100 USD / month).
+Claude Code and Cline are both good in different ways. Claude Code provides the best value for money if you can pair it with the Claude Max 5 subscription ($100 USD / month).
 
 > _You may also find other rules for other tools that I've tried but did not find as effective such as Github Copilot Agent, Charm, Gemini CLI and [Amazon Kiro](./Kiro/kiro-specific-rules.md) - be mindful they might not be as well maintained as the Claude Code and Cline rules. I have a table where I keep track of coding agent tools here:_ https://smcleod.net/agentic-coding-tools/
 
@@ -34,17 +34,18 @@ Both Claude Code and Cline are equally good in different ways. Claude Code provi
 
 - See a rough overview of workflow (Setup -> Plan -> Act -> Review & Iterate) in a blog post [here (smcleod.net)](https://smcleod.net/2025/04/my-plan-document-act-review-flow-for-agentic-software-development/)
 
-## MCP Servers
+## MCP Servers (Agent Tools)
 
-- [MCP DevTools](https://github.com/sammcj/mcp-devtools): This has become the only MCP server I _always_ have enabled. I wrote it to provide the most common tooling I use with Agentic Coding.
-  - [Example MCP DevTools client config](https://github.com/sammcj/agentic-coding/blob/main/MCP/mcp-config-mvp.json)
+For 99% of my work I only use a single MCP server: [MCP DevTools](https://github.com/sammcj/mcp-devtools)
+
+I wrote it to provide the most common tooling I use with Agentic Coding.
 
 - Always have tools available to the agent that allow it to:
   - Search the web.
   - Efficiently retrieve web page content as markdown.
   - Lookup package documentation.
   - Perform math calculations.
-- Be mindful of how many tokens each MCP server adds to your context window (`/context` in Claude Code), some tools abuse their descriptions and pollute the context window - for example Github's official MCP server alone uses ¼ of the entire context window of Claude Sonnet 4.
+- Be mindful of how many tokens each MCP server adds to your context window (`/context` in Claude Code), some tools abuse their descriptions and pollute the context window - for example Github's official MCP server alone uses ¼ of the entire context window of Claude Sonnet 4.5.
 
 ---
 
