@@ -24,15 +24,32 @@ Note: While the most well kept content lives under a `Claude` directory, most ru
 
 **I _highly_ recommend Claude Code or Cline as the best agentic coding tools.**
 
-I find they both _far_ outperform the many other tools I've tried including Copilot Agent, Gemini CLI, Codex, Cursor (probably one of the lowest performing tools I've used down at the bottom with with Amazon Kiro), Kiro, Windsurf, Augment Code, OpenCode, Aider and many others over the past 3 years.
+I find both Claude Code and Cline _far_ outperform the many other tools I've tried including Copilot Agent, Gemini CLI, Codex, Cursor (probably one of the lowest performing tools I've used down at the bottom with with Amazon Kiro), Kiro, Windsurf, Augment Code, OpenCode, Aider and many others over the past 3 years.
 
 Claude Code and Cline are both good in different ways. Claude Code provides the best value for money if you can pair it with the Claude Max 5 subscription ($100 USD / month).
 
-> _You may also find other rules for other tools that I've tried but did not find as effective such as Github Copilot Agent, Charm, Gemini CLI and [Amazon Kiro](./Kiro/kiro-specific-rules.md) - be mindful they might not be as well maintained as the Claude Code and Cline rules. I have a table where I keep track of coding agent tools here:_ https://smcleod.net/agentic-coding-tools/
+Since around May 2025 I've been using Claude Code far more any other tool:
+
+- I've had a number of issues with both VSCode and VSCode fork based agents that annoy me. Stealing focus from the editor, opening panels on IDE launch, UI and state glitches etc. and generally have found moving to TUI based tooling more efficient for my workflow.
+- [Claude Skills](https://www.claude.com/blog/skills) are a simple, highly effective way to extend coding agents with new knowledge and capabilities dynamically without bloating the context.
+- I delegate work to [Claude Sub-Agents](https://code.claude.com/docs/en/sub-agents) all the time to vastly reduce context bloat and parallelise tasks.
+- The Claude Max 5 subscription (`$100USD+GST/mo`) provides me with _far_ better value for money than what I would have to spend with consumption based pricing (`$2000USD+GST/mo`).
+
+The only real down side to Claude Code is that it's not open source, which is a shame as I believe open source always wins in the long run.
+
+When setup correctly you can do fantastic work in either Claude Code or Cline, but beware of other tools (especially those like Cursor or Kiro with large marketing departments and low monthly subscription costs).
+
+I have a table where I'm trying to keep track of coding agent tools here: https://smcleod.net/agentic-coding-tools/
 
 ## Patterns / Workflows
 
-- See a rough overview of workflow (Setup -> Plan -> Act -> Review & Iterate) in a blog post [here (smcleod.net)](https://smcleod.net/2025/04/my-plan-document-act-review-flow-for-agentic-software-development/)
+I've shared (somewhat out of date) overview of workflow (Setup -> Plan -> Act -> Review & Iterate) in a blog post [here (smcleod.net)](https://smcleod.net/2025/04/my-plan-document-act-review-flow-for-agentic-software-development/).
+
+The TLDR is that this is a lightweight approach of having coding agents help me design a documented plan with the goal, context, requirements / constraints and a phased checklist of tasks to complete and have them update the plan as they work through the tasks in each phase.
+
+Note: I've tried '_Spec Driven Development_' but find it often leads to over-engineering and heavy documentation debt.
+
+![Setup -> Plan -> Act -> Review & Iterate Diagram](setup-plan-act-iterate.png)
 
 ## MCP Servers (Agent Tools)
 
