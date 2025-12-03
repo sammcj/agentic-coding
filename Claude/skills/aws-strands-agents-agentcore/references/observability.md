@@ -7,6 +7,8 @@ Two observability approaches:
 1. **AWS AgentCore Observability** - Managed service with GenAI dashboard, automatic instrumentation (for agents using AgentCore services)
 2. **OpenTelemetry** - Standard OTLP configuration for self-hosted agents or third-party platforms
 
+For quality assessment, see **[evaluations.md](evaluations.md)**.
+
 ---
 
 ## AWS AgentCore Observability

@@ -1,6 +1,6 @@
 ---
 name: aws-strands-agents-agentcore
-description: Use when working with AWS Strands Agents SDK or Amazon Bedrock AgentCore platform for building AI agents. Provides architecture guidance, implementation patterns, deployment strategies, observability setup, multi-agent orchestration, and MCP server integration.
+description: Use when working with AWS Strands Agents SDK or Amazon Bedrock AgentCore platform for building AI agents. Provides architecture guidance, implementation patterns, deployment strategies, observability, quality evaluations, multi-agent orchestration, and MCP server integration.
 ---
 
 # AWS Strands Agents & AgentCore
@@ -111,6 +111,13 @@ See **[architecture.md](references/architecture.md)** for examples.
 - OpenTelemetry setup
 - Cost tracking hooks
 - Production observability patterns
+
+### [evaluations.md](references/evaluations.md)
+- **AWS AgentCore Evaluations** - Quality assessment with LLM-as-a-Judge
+- 13 built-in evaluators (Helpfulness, Correctness, GoalSuccessRate, etc.)
+- Custom evaluators with your own prompts and models
+- Online (continuous) and on-demand evaluation modes
+- CloudWatch integration and alerting
 
 ### [limitations.md](references/limitations.md)
 - MCP server deployment issues
@@ -328,6 +335,7 @@ Before deploying:
 
 - [ ] Conversation management configured
 - [ ] **AgentCore Observability enabled** or OpenTelemetry configured
+- [ ] **AgentCore Evaluations configured** for quality monitoring
 - [ ] Observability hooks implemented
 - [ ] Cost tracking enabled
 - [ ] Error handling in all tools
@@ -345,6 +353,7 @@ Before deploying:
 - **[patterns.md](references/patterns.md)** - Foundation components, tool design, security, testing, performance optimisation
 - **[limitations.md](references/limitations.md)** - Known constraints, workarounds, mitigation strategies, challenges
 - **[observability.md](references/observability.md)** - AgentCore Observability platform, ADOT, GenAI dashboard, OpenTelemetry, hooks, cost tracking
+- **[evaluations.md](references/evaluations.md)** - AgentCore Evaluations, built-in evaluators, custom evaluators, quality monitoring
 
 ---
 
@@ -357,7 +366,7 @@ Before deploying:
 5. **Set timeout limits everywhere**
 6. **Error handling in tools is non-negotiable**
 7. **Lambda for stateless, AgentCore for interactive**
-8. **AgentCore Observability for production**
+8. **AgentCore Observability and Evaluations for production**
 9. **Start simple, evolve complexity**
 10. **Security by default**
 11. **Separate config from code**
