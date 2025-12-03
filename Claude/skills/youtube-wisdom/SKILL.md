@@ -31,7 +31,7 @@ bash ~/.claude/skills/youtube-wisdom/scripts/download_video.sh <youtube-url>
 
 The script will:
 - Extract the video ID from the URL
-- Create directory structure: `~/Downloads/videos/<video-id>/`
+- Create directory structure: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/`
 - Download English subtitles or auto-generated transcripts (no video file)
 - Convert subtitle JSON3 format to clean text files
 - Save transcript to the video ID directory
@@ -44,18 +44,18 @@ The script outputs the location of the transcript. Read the transcript file from
 
 ```bash
 # The transcript will be at:
-~/Downloads/videos/<video-id>/<video-title>.en.txt
+~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<video-title>.en.txt
 ```
 
 Read the transcript file to analyse content. Transcripts are cleaned and formatted as continuous text with minimal whitespace.
 
 #### Step 2.1: Rename the directory
 
-Rename the directory to use today's date concise description of instead of the video for easier identification, e.g:
+Rename the directory to use today's date concise (2-6 word) description of instead of the video for easier identification, e.g:
 
 ```bash
 DATE=$(date +%Y-%m-%d)
-mv ~/Downloads/videos/<video-id>/ "~/Downloads/videos/${DATE}-<concise-description>/"
+mv ~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/ "~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/${DATE}-<concise-description>/"
 ```
 
 ### Step 3: Analyse and Extract Wisdom
@@ -148,8 +148,8 @@ Context: [Brief context if needed]
 ```
 
 After writing the analysis file, inform the user of the location:
-- Transcript location: `~/Downloads/videos/<video-id>/<title>.en.txt`
-- Analysis location: `~/Downloads/videos/<video-id>/analysis.md`
+- Transcript location: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<title>.en.txt`
+- Analysis location: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/analysis.md`
 
 ## Additional Capabilities
 
