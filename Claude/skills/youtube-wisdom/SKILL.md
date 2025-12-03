@@ -1,6 +1,6 @@
 ---
 name: youtube-wisdom
-description: Extract wisdom, insights, and actionable takeaways from YouTube videos. Use when asked to analyse, summarise, or extract key learnings from YouTube content. Downloads transcripts only (no video files), performs comprehensive analysis including key insights, notable quotes, structured summaries, and actionable takeaways, then saves the analysis to a markdown file.
+description: Extract wisdom, insights, and actionable takeaways from YouTube videos. Use when asked to analyse, summarise, or extract key learnings from YouTube content. Downloads video transcripts, performs analysis including summarisation, extracts key insights, notable quotes, structured summaries, and actionable takeaways.
 ---
 
 # YouTube Wisdom Extraction
@@ -11,7 +11,7 @@ Extract meaningful insights, key learnings, and actionable wisdom from YouTube v
 
 ## When to Use This Skill
 
-Activate this skill when users request:
+This skill is useful when users request:
 - Analysis or summary of YouTube video content
 - Extraction of key insights or learnings from videos
 - Identification of notable quotes or important statements
@@ -102,12 +102,23 @@ Format the analysis using this structure:
 **Analysis Date:** [Current date in YYYY-MM-DD]
 
 ## Summary
-[Brief 2-3 sentence overview of the video's main topic and purpose]
+[Brief 2 sentence overview of the video's main topic and purpose]
+
+### Simplified Explanation
+[Explain It Like I'm 10: A simple 1-2 sentence explanation of the core concept in a way a 10-year-old could understand]
+
+### Key Takeaways
+- [Concise takeaway 1]
+- [Concise takeaway 2]
+- [Concise takeaway 3]
 
 ## Key Insights
-- [Insight 1 with supporting detail]
-- [Insight 2 with supporting detail]
-- [Insight 3 with supporting detail]
+- [Insight 1]
+  - [Supporting detail]
+- [Insight 2]
+  - [Supporting detail]
+- [Insight 3]
+  - [Supporting detail]
 - etc..
 
 ## Notable Quotes (Only add this if there are notable quotes / statements)
@@ -168,6 +179,7 @@ When user requests focused analysis on specific topics:
 - Do not use em-dashes or smart quotes
 - Only use **bold* where emphasis is truly needed
 - Ensure clarity and conciseness in summaries and takeaways
+- Consider if the text you're adding actually adds value to the analysis, don't add filler or padding
 
 ## Resources
 
