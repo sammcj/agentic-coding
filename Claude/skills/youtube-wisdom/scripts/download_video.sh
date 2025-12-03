@@ -46,7 +46,7 @@ main() {
 
     # Download ONLY transcripts/subtitles (skip video download)
     echo "Downloading transcripts from: $video_url"
-    if ! yt-dlp \
+    yt-dlp \
         --skip-download \
         --write-subs \
         --write-auto-subs \
@@ -55,44 +55,39 @@ main() {
         --cookies-from-browser firefox \
         --restrict-filenames \
         -o "${video_dir}/%(title)s.%(ext)s" \
-        "$video_url"; then
-        echo "Error: yt-dlp failed to download transcripts"
+        "$video_url" || true
+
+    # Check if we actually got any subtitle files
+    if [[ -z "$(find "$video_dir" -maxdepth 1 -name "*.json3" -print -quit)" ]]; then
+        echo "Error: No subtitle files were downloaded"
+        echo "Check: $video_dir"
         exit 1
     fi
 
-    # Convert JSON3 subtitle files to clean text
+    # Convert JSON3 subtitle files to clean text with proper naming
     while IFS= read -r -d '' file; do
         local base_name="${file%.json3}"
-        local output_file="${base_name}.txt"
+        # Remove language code suffix (e.g., .en, .es, .fr, etc.)
+        base_name="${base_name%.*}"
+        local output_file="${base_name} - transcript.txt"
 
         echo "Converting: ${file##*/}"
 
         # Extract and clean subtitle text
         if jq -r '[.events[].segs[]?.utf8] | join("") | gsub("[\n ]+"; " ")' "$file" > "$output_file"; then
             rm -f "$file"
-            echo "Cleaned up: ${file##*/}"
-            ((converted_count++))
+            echo "Created: ${output_file##*/}"
+            converted_count=$((converted_count + 1))
         else
             echo "Error: Failed to convert ${file##*/}"
         fi
-    done < <(find "$video_dir" -maxdepth 1 -name "*.json3" -print0)
+    done < <(find "$video_dir" -maxdepth 1 -name "*.json3" -print0 || true)
 
-    # Append '- transcript' to the file name
-    while IFS= read -r -d '' txt_file; do
-        local dir_name
-        local base_name
-        local new_name
-
-        dir_name=$(dirname "$txt_file")
-        base_name=$(basename "$txt_file" .txt)
-        new_name="${dir_name}/${base_name} - transcript.txt"
-
-        if mv "$txt_file" "$new_name"; then
-            echo "Renamed: ${base_name}.txt → ${base_name} - transcript.txt"
-        else
-            echo "Error: Failed to rename ${txt_file##*/}"
-        fi
-    done < <(find "$video_dir" -maxdepth 1 -name "*.txt" -print0)
+    # Clean up any stray .txt files without the - transcript suffix or with language codes
+    while IFS= read -r -d '' old_file; do
+        echo "Removing unwanted file: ${old_file##*/}"
+        rm -f "$old_file"
+    done < <(find "$video_dir" -maxdepth 1 -type f -name "*.txt" ! -name "*- transcript.txt" -print0 || true)
 
     # Report results
     if [[ $converted_count -eq 0 ]]; then
@@ -102,6 +97,7 @@ main() {
     else
         echo "Success: Downloaded and extracted $converted_count transcript(s)"
         echo "Location: $video_dir"
+        exit 0
     fi
 }
 
