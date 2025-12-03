@@ -24,7 +24,7 @@ main() {
     local video_url="$1"
     local video_id
     local video_dir
-    local base_videos_dir="${HOME}/Downloads/videos"
+    local base_videos_dir="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom"
     local converted_count=0
 
     # Validate input
@@ -53,30 +53,46 @@ main() {
         --sub-format json3 \
         --sub-lang en \
         --cookies-from-browser firefox \
-        -o "$video_dir/%(title)s.%(ext)s" \
+        --restrict-filenames \
+        -o "${video_dir}/%(title)s.%(ext)s" \
         "$video_url"; then
         echo "Error: yt-dlp failed to download transcripts"
         exit 1
     fi
 
     # Convert JSON3 subtitle files to clean text
-    for file in "$video_dir"/*.json3; do
-        [[ -e "$file" ]] || continue
-
+    while IFS= read -r -d '' file; do
         local base_name="${file%.json3}"
         local output_file="${base_name}.txt"
 
-        echo "Converting $file to $output_file"
+        echo "Converting: ${file##*/}"
 
         # Extract and clean subtitle text
         if jq -r '[.events[].segs[]?.utf8] | join("") | gsub("[\n ]+"; " ")' "$file" > "$output_file"; then
-            rm "$file"
-            echo "Cleaned up $file"
+            rm -f "$file"
+            echo "Cleaned up: ${file##*/}"
             ((converted_count++))
         else
-            echo "Error: Failed to convert $file"
+            echo "Error: Failed to convert ${file##*/}"
         fi
-    done
+    done < <(find "$video_dir" -maxdepth 1 -name "*.json3" -print0)
+
+    # Append '- transcript' to the file name
+    while IFS= read -r -d '' txt_file; do
+        local dir_name
+        local base_name
+        local new_name
+
+        dir_name=$(dirname "$txt_file")
+        base_name=$(basename "$txt_file" .txt)
+        new_name="${dir_name}/${base_name} - transcript.txt"
+
+        if mv "$txt_file" "$new_name"; then
+            echo "Renamed: ${base_name}.txt → ${base_name} - transcript.txt"
+        else
+            echo "Error: Failed to rename ${txt_file##*/}"
+        fi
+    done < <(find "$video_dir" -maxdepth 1 -name "*.txt" -print0)
 
     # Report results
     if [[ $converted_count -eq 0 ]]; then

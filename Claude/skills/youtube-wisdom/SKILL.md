@@ -1,7 +1,7 @@
 ---
 name: youtube-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos. Use when asked to analyse, summarise, or extract key learnings from YouTube content. Downloads video transcripts, performs analysis including summarisation, extracts key insights, notable quotes, structured summaries, and actionable takeaways.
-model: opus
+model: claude-opus-4-5-20251101
 ---
 
 # YouTube Wisdom Extraction
@@ -44,14 +44,16 @@ The script outputs the location of the transcript. Read the transcript file from
 
 ```bash
 # The transcript will be at:
-~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<video-title>.en.txt
+~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<video-title> - transcript.txt
 ```
 
 Read the transcript file to analyse content. Transcripts are cleaned and formatted as continuous text with minimal whitespace.
 
+**Note:** The download script uses `--restrict-filenames` to sanitise special characters (brackets, quotes, etc.) in filenames for safer handling.
+
 #### Step 2.1: Rename the directory
 
-Rename the directory to use today's date concise (2-6 word) description of instead of the video for easier identification, e.g:
+Rename the directory to use today's date and concise (2-6 word) description instead of the video ID for easier identification, e.g:
 
 ```bash
 DATE=$(date +%Y-%m-%d)
@@ -92,7 +94,7 @@ Perform comprehensive analysis on the transcript, extracting:
 
 Write the complete analysis to a markdown file in the video's directory:
 
-**File location:** `~/Downloads/videos/<video-id>/analysis.md`
+**File location:** `~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<title> - analysis.md`
 
 Format the analysis using this structure:
 
@@ -148,8 +150,7 @@ Context: [Brief context if needed]
 ```
 
 After writing the analysis file, inform the user of the location:
-- Transcript location: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<title>.en.txt`
-- Analysis location: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/analysis.md`
+- Analysis location: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<title> - analysis.md`
 
 ## Additional Capabilities
 
@@ -186,4 +187,4 @@ When user requests focused analysis on specific topics:
 ## Resources
 
 ### scripts/
-- `download_video.sh`: Bash script that downloads YouTube transcripts (no video files) using yt-dlp with optimised settings. Organises files by video ID in `~/Downloads/videos/<video-id>/`.
+- `download_video.sh`: Bash script that downloads YouTube transcripts (no video files) using yt-dlp with optimised settings. Organises files by video ID in `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/`.
