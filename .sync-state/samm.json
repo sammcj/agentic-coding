@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-12-03T17:19:36.793474",
+  "last_sync": "2025-12-04T10:58:19.003038",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:bf9673e389cab32f6d1a95c495c8cdefb587e0020c1abe7590f79044667c6f08",
@@ -108,8 +108,8 @@
       "last_synced": "2025-11-25T16:57:28.059895"
     },
     "claude/skills/systematic-debugging/SKILL.md": {
-      "checksum": "sha256:255d118db7b4a969a252cd52156d635f73eed62f448728523e94b229933e971b",
-      "last_synced": "2025-11-25T16:57:28.060488"
+      "checksum": "sha256:c5447d8d25bee0d7c5ad81aed3ee9975a95355abfce1cc28da9d7935a9b1abd1",
+      "last_synced": "2025-12-04T10:58:19.002855"
     },
     "claude/skills/skill-creator/references/workflows.md": {
       "checksum": "sha256:ef4846877d5dab47511a01a6cf31476ad64f5bc5945635459295794575338980",
