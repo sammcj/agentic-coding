@@ -180,6 +180,7 @@ When user requests focused analysis on specific topics:
 - Only use **bold* where emphasis is truly needed
 - Ensure clarity and conciseness in summaries and takeaways
 - Consider if the text you're adding actually adds value to the analysis, don't add filler or padding
+- If the video mentions a specific tool, resource or website task a sub-agent to look it up and provide brief a brief summary, then include it in the Additional Resources section
 
 ## Resources
 
