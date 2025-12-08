@@ -148,8 +148,7 @@
       "Bash(rm -r -f /Users/samm:*)",
       "Bash(rm -r -f /Users/samm)",
       "Bash(rm -f -r /Users/samm:*)",
-      "Bash(rm -f -r /Users/samm)",
-      "Bash(:(){:*)"
+      "Bash(rm -f -r /Users/samm)"
     ]
   }
 }
