@@ -306,6 +306,9 @@ Before declaring any task complete:
     - If you repeatidly hit an issue interacting with a codebase that you find a confirmed solution for it may be a good candidate for inclusion in CLAUDE.md
     - Do not include line numbers when referencing files in CLAUDE.md or other documentation
   </CLAUDE_MD>
+  <CLAUDE_TASKS>
+    - Make use of tasks and TODOs to track work in progress
+    - When operating from a dev plan or other markdown checklist of work to complete, always use your tasks / todo tool to track the tasks in progress and when your tasks / todos are complete update the dev plan to keep it in sync
 </CLAUDE_FEATURES>
 
 ---
