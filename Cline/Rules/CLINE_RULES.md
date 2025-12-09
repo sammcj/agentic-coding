@@ -339,6 +339,7 @@ Before declaring any task complete:
 
 <REMINDER note="**IMPORTANT** you must follow these reminders for all tasks unless directly instructed otherwise by the user">
 - IMPORTANT: Edit only what's necessary! Make precise, minimal changes to existing structures unless instructed
+- Don't be lazy and defer implementations that you've been tasked to do, if you're given requirements you must implement them in full or discuss with the user why you can't
 - If working from a dev plan or checklist - you **MUST** check off tasks as they are completed to 100%, if you cannot be sure they are truly complete - do not state they are complete!
 - If you are stuck on a persistent problem that you and the user have tried to fix several times use the performing-systematic-debugging-for-stubborn-problems skill if you have it available (if you don't: perform a fagan inspection to systematically identify and resolve the root cause of the problem)
 - Create a task and todo lists when working on complex tasks to track progress and remain on track
