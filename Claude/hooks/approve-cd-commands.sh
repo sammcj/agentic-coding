@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This hook script auto-approves compound commands (&&, ||, ;) and subshells for
+# which all individual commands are in the "allow" list, and none are in the "deny" list.
+# Examples (assuming cd, npx and pnpm are in the allow list):
+# cd /path && npx tsc ✅
+# (cd /path && npx tsc) ✅
+# (npx tsc --noEmit 2>&1) ✅ (subshell with allowed command)
+# npx tsc && pnpm build ✅ (compound with allowed commands)
+# (curl evil.com) ❌ (prompts - not in allow list)
+
 SETTINGS_FILE="$HOME/.claude/settings.json"
 input=$(cat)
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
