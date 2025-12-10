@@ -1,5 +1,16 @@
 package main
 
+// Claude Code PreToolUse hook for compound/subshell commands.
+
+// Auto-approves compound commands (&&, ||, ;) and subshells for
+// which all individual commands are in the "allow" list, and none are in the "deny" list.
+// Examples (assuming cd, npx and pnpm are in the allow list):
+// cd /path && npx tsc ✅
+// (cd /path && npx tsc) ✅
+// (npx tsc --noEmit 2>&1) ✅ (subshell with allowed command)
+// npx tsc && pnpm build ✅ (compound with allowed commands)
+// (curl evil.com) ❌ (prompts - not in allow list)
+
 import (
 	"encoding/json"
 	"fmt"
