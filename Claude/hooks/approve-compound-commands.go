@@ -11,6 +11,23 @@ package main
 // npx tsc && pnpm build ✅ (compound with allowed commands)
 // (curl evil.com) ❌ (prompts - not in allow list)
 
+// Build with: go build -ldflags="-s -w" ./approve-compound-commands.go
+
+// Configure in ~/.claude/settings.json like so:
+// "hooks": {
+// 	"PreToolUse": [
+// 		{
+// 			"matcher": "Bash",
+// 			"hooks": [
+// 				{
+// 					"type": "command",
+// 					"command": "~/.claude/hooks/approve-compound-commands"
+// 				}
+// 			]
+// 		}
+// 	]
+// }
+
 import (
 	"encoding/json"
 	"fmt"
