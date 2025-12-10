@@ -1,5 +1,11 @@
 {
   "permissions": {
+    "additionalDirectories": [
+      "/Users/samm/git",
+      "/Users/samm/Downloads/videos",
+      "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
+      "/Users/samm/Library/Application Support/com.meetingassist"
+    ],
     "allow": [
       "Bash(cat:*)",
       "Bash(eslint:*)",
@@ -108,6 +114,58 @@
       "mcp__dev-tools",
       "WebSearch"
     ],
+    "ask": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh add:*)",
+      "Bash(gh commit:*)",
+      "Bash(nc:*)",
+      "Bash(ssh:*)",
+      "Bash(rsync:*)",
+      "Bash(scp:*)",
+      "Bash(tcpdump:*)",
+      "Bash(wireshark:*)",
+      "Bash(npx -y:*)",
+      "Bash(uvx:*)",
+      "Bash(go run:*)",
+      "Bash(env)",
+      "Bash(printenv:*)",
+      "Bash(pipx:*)",
+      "Edit(./**/*.bak)",
+      "Edit(./**/*.backup)",
+      "Read(**/credentials.json)",
+      "Read(**/.env)",
+      "Read(**/*.pem)",
+      "Read(**/*.sock)",
+      "Read(**/*.socket)",
+      "Read(//Users/samm/Library/**)",
+      "Read(/Users/samm/Library/**)",
+      "Read(~/Library/**)",
+      "Read(//Library/**)",
+      "Read(/Library/**)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)",
+      "Bash(rm -r -f:*)",
+      "Bash(rm -f -r:*)",
+      "Bash(yes | rm:*)",
+      "Bash(yes |rm:*)",
+      "Bash(yes| rm:*)",
+      "Bash(yes|rm:*)",
+      "Bash(echo y |:*)",
+      "Bash(echo y|:*)",
+      "Bash(echo yes |:*)",
+      "Bash(echo yes|:*)",
+      "Bash(dd:*)",
+      "Bash(mkfs:*)",
+      "Bash(fdisk:*)",
+      "Bash(diskutil:*)",
+      "Bash(parted:*)",
+      "Bash(history -c:*)",
+      "Bash(unset HISTFILE:*)",
+      "Bash(chmod -R:*)",
+      "Bash(chown -R:*)"
+    ],
+    "defaultMode": "acceptEdits",
     "deny": [
       "Read(.vscode/**)",
       "Read(**/secrets/**)",
@@ -175,73 +233,18 @@
       "Bash(rm -r -f /Users/samm)",
       "Bash(rm -f -r /Users/samm:*)",
       "Bash(rm -f -r /Users/samm)"
-    ],
-    "ask": [
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(gh add:*)",
-      "Bash(gh commit:*)",
-      "Bash(nc:*)",
-      "Bash(ssh:*)",
-      "Bash(rsync:*)",
-      "Bash(scp:*)",
-      "Bash(tcpdump:*)",
-      "Bash(wireshark:*)",
-      "Bash(npx -y:*)",
-      "Bash(uvx:*)",
-      "Bash(go run:*)",
-      "Bash(env)",
-      "Bash(printenv:*)",
-      "Bash(pipx:*)",
-      "Edit(./**/*.bak)",
-      "Edit(./**/*.backup)",
-      "Read(**/credentials.json)",
-      "Read(**/.env)",
-      "Read(**/*.pem)",
-      "Read(//Users/samm/Library/**)",
-      "Read(/Users/samm/Library/**)",
-      "Read(~/Library/**)",
-      "Read(//Library/**)",
-      "Read(/Library/**)",
-      "Bash(rm -rf:*)",
-      "Bash(rm -fr:*)",
-      "Bash(rm -r -f:*)",
-      "Bash(rm -f -r:*)",
-      "Bash(yes | rm:*)",
-      "Bash(yes |rm:*)",
-      "Bash(yes| rm:*)",
-      "Bash(yes|rm:*)",
-      "Bash(echo y |:*)",
-      "Bash(echo y|:*)",
-      "Bash(echo yes |:*)",
-      "Bash(echo yes|:*)",
-      "Bash(dd:*)",
-      "Bash(mkfs:*)",
-      "Bash(fdisk:*)",
-      "Bash(diskutil:*)",
-      "Bash(parted:*)",
-      "Bash(history -c:*)",
-      "Bash(unset HISTFILE:*)",
-      "Bash(chmod -R:*)",
-      "Bash(chown -R:*)"
-    ],
-    "defaultMode": "acceptEdits",
-    "additionalDirectories": [
-      "/Users/samm/git",
-      "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
-      "/Users/samm/Library/Application Support/com.meetingassist"
     ]
   },
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
         "hooks": [
           {
-            "type": "command",
-            "command": "~/.claude/hooks/approve-compound-commands"
+            "command": "~/.claude/hooks/approve-compound-commands",
+            "type": "command"
           }
-        ]
+        ],
+        "matcher": "Bash"
       }
     ]
   }
