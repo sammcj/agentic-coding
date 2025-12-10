@@ -94,6 +94,7 @@
       "Edit(./**/*.y*ml)",
       "Edit(./**/*.toml)",
       "Edit(./**/*.html*)",
+      "Edit(./**/*.xhtml)",
       "Edit(./**/*.css)",
       "Edit(./**/*.scss)",
       "Edit(./**/*.sass)",
@@ -114,7 +115,8 @@
       "Edit(./**/*.lua)",
       "Edit(./**/CLAUDE.md)",
       "mcp__dev-tools",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch"
     ],
     "ask": [
       "Bash(git add:*)",
