@@ -184,7 +184,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/approve-cd-commands.sh"
+            "command": "go run ~/.claude/hooks/approve-compound-commands.go"
           }
         ]
       }
