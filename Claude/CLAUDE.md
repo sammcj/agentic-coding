@@ -309,6 +309,8 @@ Before declaring any task complete:
   <CLAUDE_TASKS>
     - Make use of tasks and TODOs to track work in progress
     - When operating from a dev plan or other markdown checklist of work to complete, always use your tasks / todo tool to track the tasks in progress and when your tasks / todos are complete update the dev plan to keep it in sync
+  </CLAUDE_TASKS>
+- Always quote all paths in bash commands
 </CLAUDE_FEATURES>
 
 ---
