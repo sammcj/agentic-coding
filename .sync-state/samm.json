@@ -1,19 +1,19 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-12-12T07:58:01.998254",
+  "last_sync": "2025-12-12T08:21:08.962129",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:bf9673e389cab32f6d1a95c495c8cdefb587e0020c1abe7590f79044667c6f08",
       "last_synced": "2025-11-19T09:28:13.560026"
     },
     "claude/CLAUDE.md": {
-      "checksum": "sha256:c66076a8e6aea3e1041885490bf833ad3a9186dc8de2e382d52ab5bce405942e",
-      "last_synced": "2025-12-12T07:58:01.998133"
+      "checksum": "sha256:acb8ad7fc0d54dd91dad960f53be39829e274b2b6a04cf62b8d0087a9383db7a",
+      "last_synced": "2025-12-12T08:21:08.961407"
     },
     "claude/settings.json": {
-      "checksum": "sha256:ada7195f6b1eff2834318a9fa98e4ec47fd2728ad7e597b27e25cc910e5ab71b",
-      "last_synced": "2025-12-12T07:58:01.996386"
+      "checksum": "sha256:7ff27d5d001887767d5f8aeffccbb561d473d2175908ccd3c4db865e31fb728c",
+      "last_synced": "2025-12-12T08:21:08.962006"
     },
     "claude/commands/review-development-plan.md": {
       "checksum": "sha256:eebf95698c15f4774bc19474e89acfa70a3bc2ce1e20145bedb910f522f7c531",
@@ -44,8 +44,8 @@
       "last_synced": "2025-12-03T17:19:36.762885"
     },
     "claude/skills/youtube-wisdom/SKILL.md": {
-      "checksum": "sha256:14ab81ceef412afcfee285f35da1d1194ea23dac67e86bf2b6a84b2fb408d5c7",
-      "last_synced": "2025-12-12T07:58:01.997016"
+      "checksum": "sha256:3776eb3d1519cc17b375c6d6408a5c4a978473dfd666d76bbaf89d892e75b63f",
+      "last_synced": "2025-12-12T08:21:08.960994"
     },
     "claude/skills/apply-mantel-styles/SKILL.md": {
       "checksum": "sha256:2d6b078fb68d28500b3503ca170b999bdc385b40d1055320797bb5346d4dfd69",

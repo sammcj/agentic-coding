@@ -49,7 +49,7 @@
 </SPELLING_AND_LOCALISATION>
 
 <DOCUMENTATION_STANDARDS>
-    - IMPORTANT: When writing any form of documentation one of your primary goals is to avoid signal dilution, context collaps, quality degradation and degraded reasoning for future understanding of the project by ensuring you keep the signal to noise ratio high and that domain insights are preserved while not introducing unnecessary filler or fluff in documentation.
+    - IMPORTANT: When writing any form of documentation one of your primary goals is to avoid signal dilution, context collapse, quality degradation and degraded reasoning for future understanding of the project by ensuring you keep the signal to noise ratio high and that domain insights are preserved while not introducing unnecessary filler or fluff in documentation.
   <TECHNICAL_DOCS>
     - Start with what it does, not why it's amazing
     - Configuration and examples over feature lists

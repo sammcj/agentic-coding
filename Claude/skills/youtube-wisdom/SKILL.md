@@ -62,7 +62,7 @@ mv ~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/ 
 
 ### Step 3: Analyse and Extract Wisdom
 
-IMPORTANT: One of your goals is to avoid signal dilution, context collaps, quality degradation and degraded reasoning for future understanding of the content by ensuring you keep the signal to noise ratio high and that domain insights are preserved while not introducing unnecessary filler or fluff in documentation.
+IMPORTANT: One of your goals is to avoid signal dilution, context collapse, quality degradation and degraded reasoning for future understanding of the content by ensuring you keep the signal to noise ratio high and that domain insights are preserved while not introducing unnecessary filler or fluff in documentation.
 
 Perform comprehensive analysis on the transcript, extracting:
 
@@ -76,7 +76,7 @@ Perform comprehensive analysis on the transcript, extracting:
 - Extract memorable, impactful, or particularly well-articulated statements
 - Include context for each quote when relevant
 - Focus on quotes that encapsulate key ideas or provide unique perspectives
-- Preserve the original wording exactly as spoken
+- Preserve the original wording exactly as spoken, except correct American spellings to Australian English
 
 #### 3. Structured Summary
 - Create hierarchical organisation of content
@@ -96,7 +96,7 @@ Perform comprehensive analysis on the transcript, extracting:
 
 Write the complete analysis to a markdown file in the video's directory:
 
-**File location:** `~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<title> - analysis.md`
+**File location:** `~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom/<date>-<description>/<title> - analysis.md`
 
 Format the analysis using this structure:
 
@@ -152,22 +152,22 @@ Context: [Brief context if needed]
 ```
 
 After writing the analysis file, inform the user of the location:
-- Analysis location: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<title> - analysis.md`
+- Analysis location: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<date>-<description>/<title> - analysis.md`
 
 ## Step 5: Critical Self-Review
 
 Conduct a critical self-review of YOUR summarisation and analysis.
 
-Create tasks to track the following:
+Create tasks to track the following (mechanical checks first, then content quality):
+- [ ] No American English spelling - check and fix (e.g. judgment→judgement, practicing→practising, organize→organise)
+- [ ] No em-dashes, smart quotes, or non-standard typography
+- [ ] Proper markdown formatting
 - [ ] Accuracy & faithfulness to the original content
 - [ ] Completeness
-- [ ] Concise, clear content with no fluff, marketing speak, filler, or padding (ensure the content has a high singal to noise ratio)
+- [ ] Concise, clear content with no fluff, marketing speak, filler, or padding (ensure the content has a high signal to noise ratio)
 - [ ] Logical organisation & structure
-- [ ] No em-dashes or smart quotes or other non-standard typography
-- [ ] No American English spelling throughout the document
-- [ ] Proper markdown formatting
 
-Check your work and mark any tasks completed, making any necessary revisions to improve the quality of the analysis based that you discover during your review.
+Re-read the analysis file, verify each item, fix any issues found, then mark tasks completed.
 
 ## Step 6: Send Completion Notification
 
@@ -203,14 +203,14 @@ When user requests focused analysis on specific topics:
 
 ## Tips
 
-- Don't had new lines between items in a list
+- Don't add new lines between items in a list
 - Avoid marketing speak or fluff
 - Always use Australian English spelling
 - Do not use em-dashes or smart quotes
-- Only use **bold* where emphasis is truly needed
+- Only use **bold** where emphasis is truly needed
 - Ensure clarity and conciseness in summaries and takeaways
 - Consider if the text you're adding actually adds value to the analysis, don't add filler or padding
-- If the video mentions a specific tool, resource or website task a sub-agent to look it up and provide brief a brief summary, then include it in the Additional Resources section
+- If the video mentions a specific tool, resource or website, task a sub-agent to look it up and provide a brief summary, then include it in the Additional Resources section
 
 ## Resources
 
