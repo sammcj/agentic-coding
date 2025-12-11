@@ -53,7 +53,7 @@ Read the transcript file to analyse content. Transcripts are cleaned and formatt
 
 #### Step 2.1: Rename the directory
 
-Rename the directory to use today's date and concise (2-6 word) description instead of the video ID for easier identification, e.g:
+Rename the directory to use today's date and concise (1-4 word) description instead of the video ID for easier identification, e.g:
 
 ```bash
 DATE=$(date +%Y-%m-%d)
