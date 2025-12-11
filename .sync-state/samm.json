@@ -1,19 +1,19 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-12-11T07:16:21.750387",
+  "last_sync": "2025-12-12T07:58:01.998254",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:bf9673e389cab32f6d1a95c495c8cdefb587e0020c1abe7590f79044667c6f08",
       "last_synced": "2025-11-19T09:28:13.560026"
     },
     "claude/CLAUDE.md": {
-      "checksum": "sha256:bc34ddf263d9fae65f34a735b8901bf218abc4d358e1845bc28b1b7cc3ac0915",
-      "last_synced": "2025-12-10T22:36:44.467720"
+      "checksum": "sha256:c66076a8e6aea3e1041885490bf833ad3a9186dc8de2e382d52ab5bce405942e",
+      "last_synced": "2025-12-12T07:58:01.998133"
     },
     "claude/settings.json": {
-      "checksum": "sha256:fce0814b6e649e698362ea65f69b5e9ffda0de4c02ea372fb74613151999d725",
-      "last_synced": "2025-12-11T07:16:21.750237"
+      "checksum": "sha256:ada7195f6b1eff2834318a9fa98e4ec47fd2728ad7e597b27e25cc910e5ab71b",
+      "last_synced": "2025-12-12T07:58:01.996386"
     },
     "claude/commands/review-development-plan.md": {
       "checksum": "sha256:eebf95698c15f4774bc19474e89acfa70a3bc2ce1e20145bedb910f522f7c531",
@@ -44,8 +44,8 @@
       "last_synced": "2025-12-03T17:19:36.762885"
     },
     "claude/skills/youtube-wisdom/SKILL.md": {
-      "checksum": "sha256:708fbca7e1cf2764f96ed0fa705734f034366ad6e76a6d12bcb11591a2f9c5cb",
-      "last_synced": "2025-12-03T15:47:10.800125"
+      "checksum": "sha256:14ab81ceef412afcfee285f35da1d1194ea23dac67e86bf2b6a84b2fb408d5c7",
+      "last_synced": "2025-12-12T07:58:01.997016"
     },
     "claude/skills/apply-mantel-styles/SKILL.md": {
       "checksum": "sha256:2d6b078fb68d28500b3503ca170b999bdc385b40d1055320797bb5346d4dfd69",
@@ -590,6 +590,10 @@
     "claude/hooks/approve-compound-commands": {
       "checksum": "sha256:0e68c5a472a08a10fd4c26e985de3dbeac01591c2729a3f7edc295ec13e682d0",
       "last_synced": "2025-12-10T22:58:06.399772"
+    },
+    "claude/skills/youtube-wisdom/scripts/send_notification.sh": {
+      "checksum": "sha256:ca04e5b4834d3448860a8689b9a7323aa5750503a6f7aad4557c22af07c80155",
+      "last_synced": "2025-12-12T07:58:01.997741"
     }
   },
   "deletions": {

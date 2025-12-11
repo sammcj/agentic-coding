@@ -62,6 +62,8 @@ mv ~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/ 
 
 ### Step 3: Analyse and Extract Wisdom
 
+IMPORTANT: One of your goals is to avoid signal dilution, context collaps, quality degradation and degraded reasoning for future understanding of the content by ensuring you keep the signal to noise ratio high and that domain insights are preserved while not introducing unnecessary filler or fluff in documentation.
+
 Perform comprehensive analysis on the transcript, extracting:
 
 #### 1. Key Insights & Takeaways
@@ -152,6 +154,31 @@ Context: [Brief context if needed]
 After writing the analysis file, inform the user of the location:
 - Analysis location: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<title> - analysis.md`
 
+## Step 5: Critical Self-Review
+
+Conduct a critical self-review of YOUR summarisation and analysis.
+
+Create tasks to track the following:
+- [ ] Accuracy & faithfulness to the original content
+- [ ] Completeness
+- [ ] Concise, clear content with no fluff, marketing speak, filler, or padding (ensure the content has a high singal to noise ratio)
+- [ ] Logical organisation & structure
+- [ ] No em-dashes or smart quotes or other non-standard typography
+- [ ] No American English spelling throughout the document
+- [ ] Proper markdown formatting
+
+Check your work and mark any tasks completed, making any necessary revisions to improve the quality of the analysis based that you discover during your review.
+
+## Step 6: Send Completion Notification
+
+Use `scripts/send_notification.sh` to send a desktop notification to the user that the analysis is complete and provide the file location:
+
+```bash
+TITLE="Wisdom Extracted" MESSAGE="<short 3-5 word description of the video>" PLAY_SOUND=true DIR="/path/to/extracted/wisdom/" bash ~/.claude/skills/youtube-wisdom/scripts/send_notification.sh
+```
+
+Then stop unless further instructions are given.
+
 ## Additional Capabilities
 
 ### Multiple Video Analysis
@@ -160,6 +187,7 @@ When analysing multiple videos:
 - Each video gets its own directory by video ID
 - Create comparative analysis highlighting common themes or contrasting viewpoints
 - Synthesise insights across multiple sources in a separate summary file
+- Notify once only at the end of the entire batch process
 
 ### Time-Stamped Analysis
 If timestamps are needed:

@@ -49,6 +49,7 @@
 </SPELLING_AND_LOCALISATION>
 
 <DOCUMENTATION_STANDARDS>
+    - IMPORTANT: When writing any form of documentation one of your primary goals is to avoid signal dilution, context collaps, quality degradation and degraded reasoning for future understanding of the project by ensuring you keep the signal to noise ratio high and that domain insights are preserved while not introducing unnecessary filler or fluff in documentation.
   <TECHNICAL_DOCS>
     - Start with what it does, not why it's amazing
     - Configuration and examples over feature lists
@@ -280,6 +281,7 @@ Before declaring any task complete:
 - When asked to do math that's more than adding one or two items, use the calculator tool to ensure accuracy
 - If you're exploring a large codebase or potentially very large files, use of the 'code_skim' tool (if you have it) to quickly understand the structure of the file(s) without all the implementation details
 - Delegate tasks to a sub-agents with instructions to use specific tools and instruct sub-agents to provide you with only the key information you're looking for, do this in parallel where possible
+- IMPORTANT: The `run_silent` command wrapper reduces token usage by only providing the exit status and any stderr. You MUST use run_silent to wrap any CLI command that you do not truly need to see all the output from such as installs, builds, tests, linting etc... example: `run_silent pnpm install`.
 </TOOL_PRIORITIES>
 
 
