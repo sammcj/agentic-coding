@@ -53,7 +53,18 @@ Read the transcript file to analyse content. Transcripts are cleaned and formatt
 
 #### Step 2.1: Rename the directory
 
-Rename the directory to use today's date and concise (1-4 word) description instead of the video ID for easier identification, e.g:
+Rename the directory to use today's date and concise description instead of the video ID for easier identification on the filesystem.
+
+- Keep the description used for the file name as short and relevant as possible (1-3 words or up 6 words if they're short).
+- Avoid spaces, special characters, or punctuation in the file name.
+- Take the video content as well as the title into consideration.
+
+E.g:
+
+- Example video:
+  - Title: "My Interview With Demis Hassabis, CEO of DeepMind. We Talk AI, AGI, and the Future"
+  - Content: The video is an interview, but really mostly focuses on his career and views.
+- Example file name: "2025-12-05-Demis-Hassabis-Interview.md"
 
 ```bash
 DATE=$(date +%Y-%m-%d)
