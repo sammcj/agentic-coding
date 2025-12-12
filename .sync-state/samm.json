@@ -1,11 +1,11 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-12-12T11:24:30.730267",
+  "last_sync": "2025-12-13T10:00:14.832454",
   "files": {
     "claude/commands/create-development-plan.md": {
       "checksum": "sha256:bf9673e389cab32f6d1a95c495c8cdefb587e0020c1abe7590f79044667c6f08",
-      "last_synced": "2025-11-19T09:28:13.560026"
+      "last_synced": "2025-12-13T09:59:09.362855"
     },
     "claude/CLAUDE.md": {
       "checksum": "sha256:acb8ad7fc0d54dd91dad960f53be39829e274b2b6a04cf62b8d0087a9383db7a",
@@ -17,7 +17,7 @@
     },
     "claude/commands/review-development-plan.md": {
       "checksum": "sha256:eebf95698c15f4774bc19474e89acfa70a3bc2ce1e20145bedb910f522f7c531",
-      "last_synced": "2025-11-11T16:37:49.468932"
+      "last_synced": "2025-12-13T09:59:09.361403"
     },
     "cline/Rules/CLINE_RULES.md": {
       "checksum": "sha256:a473aa986ab320ce9f711b94992b59633e73ea0cf8e8a033be7cf42ddc5f0805",
@@ -189,11 +189,11 @@
     },
     "cline/Rules/adhoc/_repeat-back-rules.xml": {
       "checksum": "sha256:0a24a5ef238b9ee8c84d3d5f30cab8cac86f33d355b62655f4c3581f7d5b5d6d",
-      "last_synced": "2025-12-03T07:18:02.481449"
+      "last_synced": "2025-12-13T09:59:09.417751"
     },
     "cline/Rules/adhoc/_mermaid-rules.xml": {
       "checksum": "sha256:6e58358c53022ecb32dad92e81fb077c5162ecd4cd6347bee6faa04641318799",
-      "last_synced": "2025-12-03T07:18:02.482697"
+      "last_synced": "2025-12-13T09:59:09.418412"
     },
     "claude/skills/.git/objects/97/3e3f42d29d6b828a3831e348e076ce4b8583a8": {
       "checksum": "sha256:b08f418f7a879f041c9dd507eb2731c8daa42b3e5e3934b18791c1b37a0f86c8",
@@ -594,6 +594,26 @@
     "claude/skills/youtube-wisdom/scripts/send_notification.sh": {
       "checksum": "sha256:ca04e5b4834d3448860a8689b9a7323aa5750503a6f7aad4557c22af07c80155",
       "last_synced": "2025-12-12T07:58:01.997741"
+    },
+    "claude/commands/create-new-custom-command.md": {
+      "checksum": "sha256:5aebef7ea0e8e40f83726b31b4389d298d0cb2d97c3f2bc395ce10cdbeca8b41",
+      "last_synced": "2025-12-13T09:59:09.355160"
+    },
+    "claude/agents/software-research-assistant.md": {
+      "checksum": "sha256:41b19d7ef6572ca74502e24430c8cd72efcce4f4ec6d09d01795c2cc12a1dc1e",
+      "last_synced": "2025-12-13T09:59:09.358202"
+    },
+    "claude/commands/design-review-slash-command.md": {
+      "checksum": "sha256:ad8c3c3f0459a4e9addf3f32771e6a443d560bbe9cc77296606fc07e47076e1f",
+      "last_synced": "2025-12-13T09:59:09.359836"
+    },
+    "claude/commands/go-unit-testing-best-practices.md": {
+      "checksum": "sha256:a75528e2cb03ce5e47925459c9fb68141a9f77a66b7c055cdc3c1f7a84d9189a",
+      "last_synced": "2025-12-13T09:59:09.364329"
+    },
+    "claude/commands/create-skill.md": {
+      "checksum": "sha256:7940e0a29511b6afd3f81f89737134389e97a2e650e2ff39b2a63e2a05e1c0ab",
+      "last_synced": "2025-12-13T09:59:09.365719"
     }
   },
   "deletions": {
