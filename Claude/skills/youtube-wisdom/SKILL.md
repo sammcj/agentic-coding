@@ -160,6 +160,8 @@ Context: [Brief context if needed]
 
 ## Additional Resources
 [Any tools, links, or references mentioned in the video]
+
+_Wisdom Extraction Skill Generated: [Current date in YYYY-MM-DD]_
 ```
 
 After writing the analysis file, inform the user of the location:
