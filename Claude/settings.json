@@ -270,6 +270,17 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/samm/.claude/count_tokens.js"
+          }
+        ]
+      }
     ]
   }
 }
