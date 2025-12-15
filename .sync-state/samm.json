@@ -1,11 +1,11 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-12-16T09:43:15.053965",
+  "last_sync": "2025-12-16T09:45:32.119056",
   "files": {
     "claude/agents/software-research-assistant.md": {
-      "checksum": "sha256:b05b3ad3b84636b560522ba69cc9821be239fbeb886a7e4141c808694e6e5e6e",
-      "last_synced": "2025-12-16T09:43:15.053803"
+      "checksum": "sha256:5c9bc970eb725b9093268b11f497b273266286c8b427a51d760bad524012aca2",
+      "last_synced": "2025-12-16T09:45:32.118848"
     },
     "claude/settings.json": {
       "checksum": "sha256:3a8efcacef460dc89a738f08a6613ad375be92616f5a2ac7365387c9cf27864c",
