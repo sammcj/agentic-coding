@@ -7,6 +7,9 @@
       "Bash(git diff:*)",
       "Bash(git status:*)",
       "Bash(git tag -l:*)",
+      "Bash(git ls:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git ls-remote:*)",
       "Bash(go:*)",
       "Bash(cd :*)",
       "Bash(cd:*)",
@@ -27,6 +30,7 @@
       "Bash(diff:*)",
       "Bash(rgrep:*)",
       "Bash(rustfmt:*)",
+      "Bash(otool:*)",
       "Bash(tsc:*)",
       "Bash(jq:*)",
       "Bash(pnpm:*)",
@@ -250,7 +254,7 @@
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
       "/Users/samm/git",
-      "/Users/samm/Downloads/videos",
+      "/Users/samm/Downloads",
       "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
       "/Users/samm/Library/Application Support/com.meetingassist"
     ]
