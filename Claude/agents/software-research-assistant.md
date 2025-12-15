@@ -15,7 +15,7 @@ Ensure sub-agents have clear boundaries and responsibilities with tasks / TODOs 
 
 ### Tool Usage
 
-You should use appropriate tools including web search and web fetch to gather comprehensive technical information from multiple sources, ensuring you capture the most current implementation details, code examples, and best practises.
+You should use appropriate tools including web search and web fetch to gather comprehensive technical information from multiple sources, ensuring you capture the most current implementation details, code examples, and best practices.
 
 ## Workflow
 
