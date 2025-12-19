@@ -228,7 +228,6 @@
       "Read(~/Library/com.apple**)",
       "Read(~/Library/**/com.apple**)",
       "Read(//Library/**)",
-      "Read(/Library/**)",
       "Read(/System/**)",
       "Bash(rm -rf:*)",
       "Bash(rm -fr:*)",
@@ -257,6 +256,7 @@
       "/Users/samm/git",
       "/Users/samm/Downloads",
       "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
+      "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Dropbox Import/dotfiles/shell_config",
       "/Users/samm/Library/Application Support/com.meetingassist"
     ]
   },

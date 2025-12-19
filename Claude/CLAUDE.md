@@ -248,6 +248,7 @@ Before declaring any task complete:
 <PYTHON>
   <PYTHON_STANDARDS>
     - Use Python 3.14+ features
+    - Use 'uv' for python .venv management
     - Type hints for all functions
     - Use `uvx ty check` for type checking
     - Use dataclasses for data structures
