@@ -295,6 +295,17 @@ Before declaring any task complete:
 </TOOL_PRIORITIES>
 
 <CLAUDE_FEATURES>
+  <TMUX-CLI>
+    tmux-cli Command to interact with CLI applications
+
+    `tmux-cli` is a bash command that enables Claude Code to control CLI applications running in separate tmux panes - launch programs, send input, capture output and manage interactive sessions. Run `tmux-cli --help` for detailed usage instructions.
+
+    Example uses:
+    - Interact with a script that waits for user input
+    - Launch another Claude Code instance to have it perform some analysis or review or
+      debugging etc
+    - Run a Python script with the Pdb debugger to step through its execution, for code-understanding and debugging
+  </TMUX-CLI>
   <SKILLS>
     - Remember to use relevant skills to help extend your knowledge and capabilities
   </SKILLS>
