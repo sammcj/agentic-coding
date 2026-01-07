@@ -14,6 +14,8 @@ specialised knowledge, workflows, and tools. Think of them as "onboarding guides
 domains or tasks - they transform Claude from a general-purpose agent into a specialised agent
 equipped with procedural knowledge that no model can fully possess.
 
+Agent Skills Specification: https://agentskills.io/specification
+
 ### How Skills Actually Work
 
 Understanding how skills work helps you design more effective ones:
@@ -349,6 +351,8 @@ Write the YAML frontmatter with `name` and `description`:
 - `allowed-tools`: Comma-separated list of tools the skill can use without user approval. When a skill is invoked, these tools are automatically pre-approved in the execution context. Example: `"Read,Write,Bash(git:*),Grep"`. Use wildcards to scope permissions (e.g., `Bash(git:*)` allows all git commands). The idea is to only include tools your skill actually needs - however we should make sure we don't over-restrict and accidentally block needed functionality so it's usually best to leave this filed commented out with what you _think_ the skill needs which will let the user uncomment and use it if they wish.
 
 - `model`: Override the model for this skill's execution. Add this field but leave it with the value of `"inherit"` to use the session's current model (default), the user may wish to change it to a specific model later e.g. `"claude-opus-4-5-20250514"`.
+
+- `context`: Controls how the skill executes relative to the main conversation. Set to `"fork"` to run the skill in a forked sub-agent context - this keeps the skill's execution separate from the main conversation, which can be useful for skills that perform extensive exploration or generate large outputs that would otherwise bloat the primary context window.
 
 ##### Body
 

@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2025-12-28T07:40:54.807638",
+  "last_sync": "2026-01-08T10:14:44.414801",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:80c4b0f6dc66aa6b65b1317d25fdbb35a3a20ecc63f07bc67bc0f0b79efb96a5",
@@ -30,6 +30,18 @@
     "claude/skills/ghostty-config/references/keybindings.md": {
       "checksum": "sha256:9801c1696571abb4c18d6d3aa42c7cdf3cadd212a88704b8e0573b736f707c21",
       "last_synced": "2025-12-20T09:08:44.598038"
+    },
+    "claude/skills/skill-creator/scripts/init_skill.py": {
+      "checksum": "sha256:8d04fb4899c9d15db0b05596d4ac0ccdd25e793127bb536e05d99dac50283a8a",
+      "last_synced": "2026-01-08T10:14:44.413912"
+    },
+    "claude/skills/skill-creator/scripts/quick_validate.py": {
+      "checksum": "sha256:5b1b02162d670ae5dd070d0adf90c3ff666651a9310984aa70fde6898359410b",
+      "last_synced": "2026-01-08T10:14:44.414295"
+    },
+    "claude/skills/skill-creator/SKILL.md": {
+      "checksum": "sha256:b20707b254b6d677eb4637884b23e48af1d02faf8fdc12ab407601549db5f33a",
+      "last_synced": "2026-01-08T10:14:44.414667"
     }
   },
   "deletions": {}
