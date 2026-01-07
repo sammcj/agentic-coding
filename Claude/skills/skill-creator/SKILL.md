@@ -354,6 +354,10 @@ Write the YAML frontmatter with `name` and `description`:
 
 - `context`: Controls how the skill executes relative to the main conversation. Set to `"fork"` to run the skill in a forked sub-agent context - this keeps the skill's execution separate from the main conversation, which can be useful for skills that perform extensive exploration or generate large outputs that would otherwise bloat the primary context window.
 
+- `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide the skill from the slash command menu - useful for skills intended only for programmatic invocation or auto-loading by agents.
+
+- `agent`: Specify the agent type to use when executing the skill (e.g., `"task"` for a task agent). When omitted, the skill runs in the current agent context.
+
 ##### Body
 
 Write instructions for using the skill and its bundled resources.
