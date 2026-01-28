@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-01-28T21:35:38.792945",
+  "last_sync": "2026-01-28T21:37:00.860605",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:80c4b0f6dc66aa6b65b1317d25fdbb35a3a20ecc63f07bc67bc0f0b79efb96a5",
@@ -46,6 +46,10 @@
     "claude/skills/prompt-enhancer/SKILL.md": {
       "checksum": "sha256:9c2fd1e374dd152faa1883e8f857d2d06cd8e9e1a6dd7df8a7edd2a8dc1aa5bb",
       "last_synced": "2026-01-28T21:35:38.792795"
+    },
+    "claude/skills/youtube-wisdom/SKILL.md": {
+      "checksum": "sha256:3c16c1ba27e3ee466a4c6cef4380ee4521d9847c7fc21621125d56a697b73193",
+      "last_synced": "2026-01-28T21:37:00.860421"
     }
   },
   "deletions": {}
