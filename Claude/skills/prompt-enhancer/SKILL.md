@@ -1,29 +1,7 @@
 ---
 name: prompt-enhancer
 description: |
-  Use this skill when a user has written a vague, casual, or imprecise prompt and wants it transformed into expert-level framing. Triggers include: user explicitly asking to improve/refine/rewrite their prompt, user frustrated with generic AI responses, user saying they don't know how to ask for something properly, or user requesting help framing a request for another AI system.
-
-  <example>
-  Context: User wants help asking for something but isn't sure how to phrase it.
-  user: "I wrote this prompt but I keep getting rubbish answers: 'Help me with my anxiety'"
-  assistant: "I'll use the prompt-enhancer skill to transform this into expert-level framing."
-  <Skill tool called with prompt-enhancer>
-  assistant: "Here's the expert rewrite that should yield better responses..."
-  </example>
-
-  <example>
-  Context: User has a request they want to make more effective.
-  user: "Can you make this prompt better? 'Write me some code to handle errors'"
-  assistant: "Let me use the prompt-enhancer skill to reframe this as a domain expert would."
-  <Skill tool called with prompt-enhancer>
-  </example>
-
-  <example>
-  Context: User is getting generic responses and suspects their prompt is the problem.
-  user: "I keep asking Claude to help me learn guitar but I just get generic tips. Here's what I've been saying: 'teach me guitar'"
-  assistant: "The issue is likely in the framing. I'll use the prompt-enhancer skill to transform this into a more precise request."
-  <Skill tool called with prompt-enhancer>
-  </example>
+ Knowledge for transforming poor or overly simple user prompts with expert-level framing. Triggers include: user explicitly asking to improve/refine/rewrite their prompt or user requesting help framing a request for another AI system.
 # model: inherit
 # context: fork
 # user-invocable: true

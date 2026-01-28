@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-01-28T17:43:41.414637",
+  "last_sync": "2026-01-28T21:35:38.792945",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:80c4b0f6dc66aa6b65b1317d25fdbb35a3a20ecc63f07bc67bc0f0b79efb96a5",
@@ -12,8 +12,8 @@
       "last_synced": "2025-12-28T07:40:54.807462"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
-      "checksum": "sha256:be5e9ceb0e115e8271dfae28ed631e7616bb6d0a96cbbf82df2ca320cfb78333",
-      "last_synced": "2025-12-18T09:53:16.932129"
+      "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
+      "last_synced": "2026-01-28T21:35:38.792339"
     },
     "claude/skills/ghostty-config/SKILL.md": {
       "checksum": "sha256:807e79c6a4af6e42108773b13a3adbabe8c64f66544c107e1dcedbce1e1fe600",
@@ -44,8 +44,8 @@
       "last_synced": "2026-01-08T10:19:09.821760"
     },
     "claude/skills/prompt-enhancer/SKILL.md": {
-      "checksum": "sha256:f10850fd01b81bec980ad1d7e647ac70be7cca72c87ae46e9e637fed0ee0a7bf",
-      "last_synced": "2026-01-28T17:43:41.413725"
+      "checksum": "sha256:9c2fd1e374dd152faa1883e8f857d2d06cd8e9e1a6dd7df8a7edd2a8dc1aa5bb",
+      "last_synced": "2026-01-28T21:35:38.792795"
     }
   },
   "deletions": {}

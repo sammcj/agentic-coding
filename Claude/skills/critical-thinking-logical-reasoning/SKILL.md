@@ -1,7 +1,6 @@
 ---
 name: critical-thinking-logical-reasoning
 description: Critical thinking and logical reasoning analysis skills for when you are explicitly asked to critically analyse written content such as articles, blogs, transcripts and reports (not code).
-model: claude-opus-4-5-20251101
 ---
 
 The following guidelines help you think critically and perform logical reasoning.
