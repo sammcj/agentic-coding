@@ -13,8 +13,8 @@
   </AVOID_AI_CLICHES>
 
   <WRITE_NATURALLY>
-    - Write as if you're a knowledgeable engineer explaining to a colleague, do not write someone selling a product
-    - Be direct, concise and specific, not vague and grandiose
+    - Write as if you're a knowledgeable engineer explaining to a colleague, do not write as someone selling a product
+    - Be direct, concise and specific, not vague or grandiose
     - Use active voice and concrete examples
     - If a sentence adds no value, delete it!
   </WRITE_NATURALLY>
