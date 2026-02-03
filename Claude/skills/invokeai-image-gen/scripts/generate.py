@@ -415,6 +415,30 @@ def find_flux_vae() -> dict[str, Any] | None:
     return None
 
 
+def find_qwen3_encoder() -> dict[str, Any] | None:
+    """Find a Qwen3 encoder model for use with quantized Z-Image models."""
+    models = api_request("/api/v2/models/?model_type=qwen3_encoder")
+    if not isinstance(models, dict):
+        return None
+    # Prefer the official Z-Image Qwen3 encoder (quantized or full precision)
+    zimage_quantized = None
+    zimage_full = None
+    any_qwen3 = None
+    for model in models.get("models", []):
+        name = model.get("name", "").lower()
+        model_format = model.get("format", "")
+        # Specifically look for Z-Image encoders
+        if "z-image" in name and "qwen3" in name:
+            if model_format == "gguf_quantized":
+                zimage_quantized = model
+            elif model_format == "qwen3_encoder":
+                zimage_full = model
+        elif any_qwen3 is None and model.get("variant") == "qwen3_4b":
+            any_qwen3 = model
+    # Prefer quantized Z-Image encoder, then full, then any qwen3_4b
+    return zimage_quantized or zimage_full or any_qwen3
+
+
 def build_zimage_graph(
     model: dict[str, Any],
     prompt: str,
@@ -442,7 +466,7 @@ def build_zimage_graph(
         "is_intermediate": True,
     }
 
-    # Quantized models (GGUF) need a separate VAE
+    # Quantized models (GGUF) need a separate VAE and Qwen3 encoder
     if "gguf" in model_format.lower():
         flux_vae = find_flux_vae()
         if flux_vae:
@@ -455,6 +479,18 @@ def build_zimage_graph(
             }
         else:
             print("Warning: GGUF model requires a FLUX VAE but none found", file=sys.stderr)
+
+        qwen3_encoder = find_qwen3_encoder()
+        if qwen3_encoder:
+            model_loader_node["qwen3_encoder_model"] = {
+                "key": qwen3_encoder["key"],
+                "hash": qwen3_encoder.get("hash", ""),
+                "name": qwen3_encoder.get("name", ""),
+                "base": qwen3_encoder.get("base", "any"),
+                "type": "qwen3_encoder",
+            }
+        else:
+            print("Warning: GGUF model requires a Qwen3 encoder but none found", file=sys.stderr)
 
     return {
         "id": f"zimage-{int(time.time())}",
