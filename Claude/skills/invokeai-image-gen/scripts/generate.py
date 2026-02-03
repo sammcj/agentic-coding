@@ -174,6 +174,12 @@ MODEL_TYPE_INVOCATIONS: dict[str, list[str]] = {
         "FluxDenoiseInvocation",
         "FluxVaeDecodeInvocation",
     ],
+    "zimage": [
+        "ZImageModelLoaderInvocation",
+        "ZImageTextEncoderInvocation",
+        "ZImageDenoiseInvocation",
+        "ZImageL2IInvocation",
+    ],
     "sdxl": [
         "SDXLModelLoaderInvocation",
         "SDXLCompelPromptInvocation",
@@ -251,9 +257,9 @@ def detect_model_type(model: dict[str, Any]) -> str:
     # FLUX.2 Klein detection (includes GGUF variants)
     if "flux2" in base or "klein" in name:
         return "flux2_klein"
-    # Z-Image Turbo (SDXL-based turbo model)
-    if "z-image" in name or "zimage" in name:
-        return "sdxl_turbo"
+    # Z-Image (has its own architecture)
+    if "z-image" in base or "zimage" in base or "z-image" in name or "zimage" in name:
+        return "zimage"
     # Standard FLUX.1
     if "flux" in base:
         return "flux"
@@ -347,6 +353,7 @@ def build_flux_graph(
 ) -> dict[str, Any]:
     """Build FLUX.1 text-to-image graph."""
     model_key = model["key"]
+    model_hash = model.get("hash", "")
 
     return {
         "id": f"flux-{int(time.time())}",
@@ -354,7 +361,13 @@ def build_flux_graph(
             "model_loader": {
                 "id": "model_loader",
                 "type": "flux_model_loader",
-                "model": {"key": model_key},
+                "model": {
+                    "key": model_key,
+                    "hash": model_hash,
+                    "name": model.get("name", ""),
+                    "base": model.get("base", "flux"),
+                    "type": "main",
+                },
                 "is_intermediate": True,
             },
             "text_encoder": {
@@ -390,6 +403,94 @@ def build_flux_graph(
     }
 
 
+def find_flux_vae() -> dict[str, Any] | None:
+    """Find a FLUX VAE model for use with quantized Z-Image models."""
+    models = api_request("/api/v2/models/?model_type=vae")
+    if not isinstance(models, dict):
+        return None
+    for model in models.get("models", []):
+        # Look for FLUX VAE (base: flux)
+        if model.get("base") == "flux":
+            return model
+    return None
+
+
+def build_zimage_graph(
+    model: dict[str, Any],
+    prompt: str,
+    width: int,
+    height: int,
+    steps: int,
+    seed: int,
+) -> dict[str, Any]:
+    """Build Z-Image text-to-image graph."""
+    model_key = model["key"]
+    model_hash = model.get("hash", "")
+    model_format = model.get("format", "")
+
+    # Build the model loader node
+    model_loader_node: dict[str, Any] = {
+        "id": "model_loader",
+        "type": "z_image_model_loader",
+        "model": {
+            "key": model_key,
+            "hash": model_hash,
+            "name": model.get("name", ""),
+            "base": model.get("base", "z-image"),
+            "type": "main",
+        },
+        "is_intermediate": True,
+    }
+
+    # Quantized models (GGUF) need a separate VAE
+    if "gguf" in model_format.lower():
+        flux_vae = find_flux_vae()
+        if flux_vae:
+            model_loader_node["vae_model"] = {
+                "key": flux_vae["key"],
+                "hash": flux_vae.get("hash", ""),
+                "name": flux_vae.get("name", ""),
+                "base": flux_vae.get("base", "flux"),
+                "type": "vae",
+            }
+        else:
+            print("Warning: GGUF model requires a FLUX VAE but none found", file=sys.stderr)
+
+    return {
+        "id": f"zimage-{int(time.time())}",
+        "nodes": {
+            "model_loader": model_loader_node,
+            "text_encoder": {
+                "id": "text_encoder",
+                "type": "z_image_text_encoder",
+                "prompt": prompt,
+                "is_intermediate": True,
+            },
+            "denoise": {
+                "id": "denoise",
+                "type": "z_image_denoise",
+                "width": width,
+                "height": height,
+                "steps": steps,
+                "seed": seed,
+                "is_intermediate": True,
+            },
+            "decode": {
+                "id": "decode",
+                "type": "z_image_l2i",
+                "is_intermediate": False,
+            },
+        },
+        "edges": [
+            {"source": {"node_id": "model_loader", "field": "transformer"}, "destination": {"node_id": "denoise", "field": "transformer"}},
+            {"source": {"node_id": "model_loader", "field": "qwen3_encoder"}, "destination": {"node_id": "text_encoder", "field": "qwen3_encoder"}},
+            {"source": {"node_id": "text_encoder", "field": "conditioning"}, "destination": {"node_id": "denoise", "field": "positive_conditioning"}},
+            {"source": {"node_id": "denoise", "field": "latents"}, "destination": {"node_id": "decode", "field": "latents"}},
+            {"source": {"node_id": "model_loader", "field": "vae"}, "destination": {"node_id": "decode", "field": "vae"}},
+        ],
+    }
+
+
 def build_sdxl_graph(
     model: dict[str, Any],
     prompt: str,
@@ -403,6 +504,7 @@ def build_sdxl_graph(
 ) -> dict[str, Any]:
     """Build SDXL text-to-image graph."""
     model_key = model["key"]
+    model_hash = model.get("hash", "")
 
     return {
         "id": f"sdxl-{int(time.time())}",
@@ -410,7 +512,13 @@ def build_sdxl_graph(
             "model_loader": {
                 "id": "model_loader",
                 "type": "sdxl_model_loader",
-                "model": {"key": model_key},
+                "model": {
+                    "key": model_key,
+                    "hash": model_hash,
+                    "name": model.get("name", ""),
+                    "base": model.get("base", "sdxl"),
+                    "type": "main",
+                },
                 "is_intermediate": True,
             },
             "pos_prompt": {
@@ -445,7 +553,7 @@ def build_sdxl_graph(
             },
             "decode": {
                 "id": "decode",
-                "type": "latents_to_image",
+                "type": "l2i",
                 "is_intermediate": False,
             },
         },
@@ -468,6 +576,7 @@ def build_sdxl_graph(
 # Note: 'guidance' is specific to FLUX.1 dev models (ignored for schnell)
 MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
     "flux2_klein": {"width": 1024, "height": 1024, "steps": 4, "cfg": 1.0, "scheduler": "euler"},
+    "zimage": {"width": 1024, "height": 1024, "steps": 8, "cfg": 1.0, "scheduler": "euler"},
     "sdxl_turbo": {"width": 1024, "height": 1024, "steps": 8, "cfg": 1.0, "scheduler": "dpmpp_sde"},
     "flux": {"width": 1024, "height": 1024, "steps": 25, "cfg": 1.0, "scheduler": "euler", "guidance": 4.0},
     "sdxl": {"width": 1024, "height": 1024, "steps": 25, "cfg": 6.0, "scheduler": "dpmpp_2m_k"},
@@ -501,8 +610,16 @@ def wait_for_completion(batch_id: str, item_id: str, timeout: int = 300) -> dict
         failed = result.get("failed", 0)
 
         if failed > 0:
-            print("Generation failed", file=sys.stderr)
-            return {"status": "failed"}
+            # Fetch the error details from the queue item
+            item_data = api_request(f"/api/v1/queue/default/i/{item_id}")
+            error_msg = None
+            if isinstance(item_data, dict):
+                error_msg = item_data.get("error_message") or item_data.get("error")
+            if error_msg:
+                print(f"Generation failed: {error_msg}", file=sys.stderr)
+            else:
+                print("Generation failed", file=sys.stderr)
+            return {"status": "failed", "error": error_msg}
 
         if completed > 0 and pending == 0 and in_progress == 0:
             # Get the image name from the queue item
@@ -548,13 +665,25 @@ def generate_image(
     selected_model: dict[str, Any] | None = None
 
     if model_key:
-        # Find the specified model
+        # Find the specified model by key or fuzzy name match
+        search_term = model_key.lower()
+        # First try exact key match
         for m in models:
             if m["key"] == model_key:
                 selected_model = m
                 break
+        # Then try fuzzy name match
         if not selected_model:
-            return {"error": f"Model {model_key} not found"}
+            for m in models:
+                name = m.get("name", "").lower()
+                # Match if search term is substring of name (ignoring spaces/hyphens)
+                normalised_name = name.replace(" ", "").replace("-", "").replace("_", "")
+                normalised_search = search_term.replace(" ", "").replace("-", "").replace("_", "")
+                if normalised_search in normalised_name:
+                    selected_model = m
+                    break
+        if not selected_model:
+            return {"error": f"Model '{model_key}' not found. Use --list-models to see available models."}
     else:
         # Auto-select with strict priority: FLUX.2 Klein 9b > FLUX.2 Klein > Z-Image Turbo > FLUX.1 > SDXL
         # Search in priority order, not model list order
@@ -611,6 +740,8 @@ def generate_image(
         graph = build_flux2_klein_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed)
     elif model_type == "flux":
         graph = build_flux_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed, final_guidance)
+    elif model_type == "zimage":
+        graph = build_zimage_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed)
     else:
         graph = build_sdxl_graph(selected_model, prompt, negative, final_width, final_height, final_steps, final_cfg, final_scheduler, final_seed)
 
@@ -646,6 +777,10 @@ def generate_image(
         status = wait_for_completion(batch_id, item_id)
         print(file=sys.stderr)  # Newline after progress dots
         response["status"] = status.get("status", "unknown") if status else "unknown"
+
+        # Propagate error message if present
+        if status and status.get("error"):
+            response["error"] = status["error"]
 
         if status and status.get("image_name"):
             response["image_name"] = status["image_name"]
@@ -781,6 +916,8 @@ def main() -> None:
             print(f"  File: {result['output_file']}")
         if result.get("status"):
             print(f"  Status: {result['status']}")
+        if result.get("error"):
+            print(f"  Error: {result['error']}")
 
 
 if __name__ == "__main__":
