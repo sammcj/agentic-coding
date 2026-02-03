@@ -9,21 +9,22 @@ description: Generate images using InvokeAI's local API. Use when asked to gener
 
 # InvokeAI Image Generation
 
-Generate images via InvokeAI's REST API. Supports FLUX.2 Klein, Z-Image Turbo, FLUX.1, and SDXL.
-
-## Prerequisites
-
-```bash
-export INVOKEAI_API_URL='http://localhost:9090'
-export INVOKEAI_AUTH_TOKEN='your-token'  # Optional
-```
+Generate images via InvokeAI's REST API. Supports FLUX.2 Klein (default), Z-Image Turbo, FLUX.1, and SDXL.
 
 ## Quick Start
 
+Simply call the script with your prompt and the output file name:
+
+```bash
+python scripts/generate.py -p "A dramatic sunset over snow-capped mountains, warm orange light reflecting off a still alpine lake in the foreground. Soft clouds catch the fading light." -o sunset.png
+```
+
+## Using Specific Models
+
+If the user asks you to use a specific model, first find the model key, then use it in the command:
+
 ```bash
 python scripts/generate.py --list-models | grep -i 'flux'
-
-python scripts/generate.py -p "A dramatic sunset over snow-capped mountains, warm orange light reflecting off a still alpine lake in the foreground. Soft clouds catch the fading light."
 
 python scripts/generate.py -p "A tabby cat with bright green eyes sits on a weathered wooden windowsill, soft afternoon light streaming through lace curtains. Cosy, intimate mood." --model MODEL_KEY -o cat.png
 ```
@@ -45,6 +46,8 @@ python scripts/generate.py -p "A tabby cat with bright green eyes sits on a weat
 | `--json` | JSON output |
 
 ## Model Defaults
+
+Note: FLUX.2 Klein is the latest model which is used by default.
 
 | Model | Steps | CFG | Scheduler |
 |-------|-------|-----|-----------|
@@ -94,6 +97,13 @@ Append style tags: `Style: Country chic. Mood: Serene, romantic.`
 | Model not found | Use `--list-models` for valid keys |
 | Dimensions error | FLUX: multiples of 16, SDXL: 8 |
 | Black images (macOS) | Set `precision: bfloat16` in invokeai.yaml |
+
+If the script fails to find the URL or authentication token, you can set or ask the user to set environment variables:
+
+```bash
+export INVOKEAI_API_URL='http://localhost:9090'
+export INVOKEAI_AUTH_TOKEN='your-token'  # Optional
+```
 
 ## Resources
 

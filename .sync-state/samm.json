@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-03T15:23:57.092479",
+  "last_sync": "2026-02-03T15:45:58.909439",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:80c4b0f6dc66aa6b65b1317d25fdbb35a3a20ecc63f07bc67bc0f0b79efb96a5",
@@ -72,9 +72,25 @@
       "last_synced": "2026-02-03T15:23:57.091743"
     },
     "claude/skills/invokeai-image-gen/SKILL.md": {
-      "checksum": "sha256:ade44b1a566ac4870455b7ba23afe6691b4dd8a36e5efce3308d12da0ac79207",
-      "last_synced": "2026-02-03T15:23:57.092320"
+      "checksum": "sha256:162dc931f18718083214a0bb64909448ffaf2629d29779147ddab3ed33e941b7",
+      "last_synced": "2026-02-03T15:45:23.694127"
     }
   },
-  "deletions": {}
+  "deletions": {
+    "claude/skills/skill-creator/ghostty-config/SKILL.md": {
+      "deleted_at": "2026-02-03T15:45:57.709906",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude/skills/skill-creator/ghostty-config/references/options.md": {
+      "deleted_at": "2026-02-03T15:45:58.446450",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude/skills/skill-creator/ghostty-config/references/keybindings.md": {
+      "deleted_at": "2026-02-03T15:45:58.905959",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    }
+  }
 }
