@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-03T16:40:21.878544",
+  "last_sync": "2026-02-03T16:40:45.458083",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:80c4b0f6dc66aa6b65b1317d25fdbb35a3a20ecc63f07bc67bc0f0b79efb96a5",
@@ -78,10 +78,6 @@
     "claude/skills/invokeai-image-gen/scripts/__pycache__/generate.cpython-314.pyc": {
       "checksum": "sha256:dae6f0939b28846640495cc472670fae9a51181140939764ff03391a852bec0d",
       "last_synced": "2026-02-03T16:07:24.310330"
-    },
-    "claude/skills/invokeai-image-gen/scripts/invokeai-2832827837.png": {
-      "checksum": "sha256:09593accb714a0ace305eb66247e63d316e4be325d4bed73302d8a0cd66b12cc",
-      "last_synced": "2026-02-03T16:40:21.877895"
     }
   },
   "deletions": {
@@ -97,6 +93,11 @@
     },
     "claude/skills/skill-creator/ghostty-config/references/keybindings.md": {
       "deleted_at": "2026-02-03T15:45:58.905959",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude/skills/invokeai-image-gen/scripts/invokeai-2832827837.png": {
+      "deleted_at": "2026-02-03T16:40:45.452383",
       "checksum": "unknown",
       "decision": "confirmed"
     }
