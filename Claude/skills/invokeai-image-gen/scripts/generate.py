@@ -394,30 +394,87 @@ def build_flux_graph(
     steps: int,
     seed: int,
     guidance: float = 4.0,
+    is_schnell: bool = False,
 ) -> dict[str, Any]:
-    """Build FLUX.1 text-to-image graph."""
+    """Build FLUX.1 text-to-image graph.
+
+    FLUX.1 models require separate T5 encoder, CLIP embed, and VAE models
+    which are automatically discovered from installed models.
+
+    Args:
+        is_schnell: If True, uses T5 max seq len of 256 (schnell), otherwise 512 (dev).
+    """
     model_key = model["key"]
     model_hash = model.get("hash", "")
+
+    # Find required component models
+    t5_encoder = find_t5_encoder()
+    clip_embed = find_clip_embed()
+    flux_vae = find_flux_vae()
+
+    if not t5_encoder:
+        print("Warning: No T5 encoder found for FLUX.1 model", file=sys.stderr)
+    if not clip_embed:
+        print("Warning: No CLIP embed model found for FLUX.1 model", file=sys.stderr)
+    if not flux_vae:
+        print("Warning: No FLUX VAE found for FLUX.1 model", file=sys.stderr)
+
+    # Build model loader node with component models
+    model_loader_node: dict[str, Any] = {
+        "id": "model_loader",
+        "type": "flux_model_loader",
+        "model": {
+            "key": model_key,
+            "hash": model_hash,
+            "name": model.get("name", ""),
+            "base": model.get("base", "flux"),
+            "type": "main",
+        },
+        "is_intermediate": True,
+    }
+
+    # Add T5 encoder if found
+    if t5_encoder:
+        model_loader_node["t5_encoder_model"] = {
+            "key": t5_encoder["key"],
+            "hash": t5_encoder.get("hash", ""),
+            "name": t5_encoder.get("name", ""),
+            "base": t5_encoder.get("base", "any"),
+            "type": "t5_encoder",
+        }
+
+    # Add CLIP embed if found
+    if clip_embed:
+        model_loader_node["clip_embed_model"] = {
+            "key": clip_embed["key"],
+            "hash": clip_embed.get("hash", ""),
+            "name": clip_embed.get("name", ""),
+            "base": clip_embed.get("base", "any"),
+            "type": "clip_embed",
+        }
+
+    # Add VAE if found
+    if flux_vae:
+        model_loader_node["vae_model"] = {
+            "key": flux_vae["key"],
+            "hash": flux_vae.get("hash", ""),
+            "name": flux_vae.get("name", ""),
+            "base": flux_vae.get("base", "flux"),
+            "type": "vae",
+        }
+
+    # T5 max sequence length: 256 for schnell, 512 for dev models
+    t5_max_seq_len = 256 if is_schnell else 512
 
     return {
         "id": f"flux-{int(time.time())}",
         "nodes": {
-            "model_loader": {
-                "id": "model_loader",
-                "type": "flux_model_loader",
-                "model": {
-                    "key": model_key,
-                    "hash": model_hash,
-                    "name": model.get("name", ""),
-                    "base": model.get("base", "flux"),
-                    "type": "main",
-                },
-                "is_intermediate": True,
-            },
+            "model_loader": model_loader_node,
             "text_encoder": {
                 "id": "text_encoder",
                 "type": "flux_text_encoder",
                 "prompt": prompt,
+                "t5_max_seq_len": t5_max_seq_len,
                 "is_intermediate": True,
             },
             "denoise": {
@@ -448,7 +505,7 @@ def build_flux_graph(
 
 
 def find_flux_vae() -> dict[str, Any] | None:
-    """Find a FLUX VAE model for use with quantized Z-Image models."""
+    """Find a FLUX VAE model for use with FLUX.1 models."""
     models = api_request("/api/v2/models/?model_type=vae")
     if not isinstance(models, dict):
         return None
@@ -457,6 +514,33 @@ def find_flux_vae() -> dict[str, Any] | None:
         if model.get("base") == "flux":
             return model
     return None
+
+
+def find_t5_encoder() -> dict[str, Any] | None:
+    """Find a T5 encoder model for use with FLUX.1 models."""
+    models = api_request("/api/v2/models/?model_type=t5_encoder")
+    if not isinstance(models, dict):
+        return None
+    # Prefer full precision T5, fall back to quantized
+    full_precision = None
+    quantized = None
+    for model in models.get("models", []):
+        name = model.get("name", "").lower()
+        if "quantized" in name or "int8" in name or "bnb" in name:
+            quantized = model
+        else:
+            full_precision = model
+    return full_precision or quantized
+
+
+def find_clip_embed() -> dict[str, Any] | None:
+    """Find a CLIP embed model for use with FLUX.1 models."""
+    models = api_request("/api/v2/models/?model_type=clip_embed")
+    if not isinstance(models, dict):
+        return None
+    # Return first available CLIP embed model
+    model_list = models.get("models", [])
+    return model_list[0] if model_list else None
 
 
 def find_qwen3_encoder() -> dict[str, Any] | None:
@@ -880,7 +964,8 @@ def generate_image(
     if model_type == "flux2_klein":
         graph = build_flux2_klein_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed, negative, final_cfg)
     elif model_type in ("flux", "flux_krea", "flux_kontext", "flux_schnell"):
-        graph = build_flux_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed, final_guidance)
+        is_schnell = model_type == "flux_schnell"
+        graph = build_flux_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed, final_guidance, is_schnell)
     elif model_type == "zimage":
         graph = build_zimage_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed)
     else:
