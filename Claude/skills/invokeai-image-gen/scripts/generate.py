@@ -279,66 +279,91 @@ def build_flux2_klein_graph(
     height: int,
     steps: int,
     seed: int,
+    negative: str = "",
+    cfg: float = 1.0,
 ) -> dict[str, Any]:
-    """Build FLUX.2 Klein text-to-image graph."""
+    """Build FLUX.2 Klein text-to-image graph.
+
+    When cfg > 1.0 and negative prompt is provided, uses classifier-free guidance.
+    Otherwise, cfg_scale is set to 1.0 (no CFG).
+    """
     model_key = model["key"]
     model_hash = model.get("hash", "")
 
+    # CFG requires negative conditioning
+    use_cfg = cfg > 1.0 and negative
+
+    nodes: dict[str, Any] = {
+        "model_loader": {
+            "id": "model_loader",
+            "type": "flux2_klein_model_loader",
+            "model": {
+                "key": model_key,
+                "hash": model_hash,
+                "name": model.get("name", ""),
+                "base": model.get("base", "flux2"),
+                "type": "main",
+            },
+            "qwen3_source_model": {
+                "key": model_key,
+                "hash": model_hash,
+                "name": model.get("name", ""),
+                "base": model.get("base", "flux2"),
+                "type": "main",
+            },
+            "max_seq_len": 512,
+            "is_intermediate": True,
+        },
+        "pos_text_encoder": {
+            "id": "pos_text_encoder",
+            "type": "flux2_klein_text_encoder",
+            "prompt": prompt,
+            "max_seq_len": 512,
+            "is_intermediate": True,
+        },
+        "denoise": {
+            "id": "denoise",
+            "type": "flux2_denoise",
+            "width": width,
+            "height": height,
+            "num_steps": steps,
+            "cfg_scale": cfg if use_cfg else 1.0,
+            "scheduler": "euler",
+            "seed": seed,
+            "is_intermediate": True,
+        },
+        "vae_decode": {
+            "id": "vae_decode",
+            "type": "flux2_vae_decode",
+            "is_intermediate": False,
+        },
+    }
+
+    edges = [
+        {"source": {"node_id": "model_loader", "field": "transformer"}, "destination": {"node_id": "denoise", "field": "transformer"}},
+        {"source": {"node_id": "model_loader", "field": "vae"}, "destination": {"node_id": "denoise", "field": "vae"}},
+        {"source": {"node_id": "model_loader", "field": "qwen3_encoder"}, "destination": {"node_id": "pos_text_encoder", "field": "qwen3_encoder"}},
+        {"source": {"node_id": "pos_text_encoder", "field": "conditioning"}, "destination": {"node_id": "denoise", "field": "positive_text_conditioning"}},
+        {"source": {"node_id": "denoise", "field": "latents"}, "destination": {"node_id": "vae_decode", "field": "latents"}},
+        {"source": {"node_id": "model_loader", "field": "vae"}, "destination": {"node_id": "vae_decode", "field": "vae"}},
+    ]
+
+    # Add negative conditioning if using CFG
+    if use_cfg:
+        nodes["neg_text_encoder"] = {
+            "id": "neg_text_encoder",
+            "type": "flux2_klein_text_encoder",
+            "prompt": negative,
+            "max_seq_len": 512,
+            "is_intermediate": True,
+        }
+        edges.append({"source": {"node_id": "model_loader", "field": "qwen3_encoder"}, "destination": {"node_id": "neg_text_encoder", "field": "qwen3_encoder"}})
+        edges.append({"source": {"node_id": "neg_text_encoder", "field": "conditioning"}, "destination": {"node_id": "denoise", "field": "negative_text_conditioning"}})
+
     return {
         "id": f"flux2-klein-{int(time.time())}",
-        "nodes": {
-            "model_loader": {
-                "id": "model_loader",
-                "type": "flux2_klein_model_loader",
-                "model": {
-                    "key": model_key,
-                    "hash": model_hash,
-                    "name": model.get("name", ""),
-                    "base": model.get("base", "flux2"),
-                    "type": "main",
-                },
-                "qwen3_source_model": {
-                    "key": model_key,
-                    "hash": model_hash,
-                    "name": model.get("name", ""),
-                    "base": model.get("base", "flux2"),
-                    "type": "main",
-                },
-                "max_seq_len": 512,
-                "is_intermediate": True,
-            },
-            "text_encoder": {
-                "id": "text_encoder",
-                "type": "flux2_klein_text_encoder",
-                "prompt": prompt,
-                "max_seq_len": 512,
-                "is_intermediate": True,
-            },
-            "denoise": {
-                "id": "denoise",
-                "type": "flux2_denoise",
-                "width": width,
-                "height": height,
-                "num_steps": steps,
-                "cfg_scale": 1.0,
-                "scheduler": "euler",
-                "seed": seed,
-                "is_intermediate": True,
-            },
-            "vae_decode": {
-                "id": "vae_decode",
-                "type": "flux2_vae_decode",
-                "is_intermediate": False,
-            },
-        },
-        "edges": [
-            {"source": {"node_id": "model_loader", "field": "transformer"}, "destination": {"node_id": "denoise", "field": "transformer"}},
-            {"source": {"node_id": "model_loader", "field": "vae"}, "destination": {"node_id": "denoise", "field": "vae"}},
-            {"source": {"node_id": "model_loader", "field": "qwen3_encoder"}, "destination": {"node_id": "text_encoder", "field": "qwen3_encoder"}},
-            {"source": {"node_id": "text_encoder", "field": "conditioning"}, "destination": {"node_id": "denoise", "field": "positive_text_conditioning"}},
-            {"source": {"node_id": "denoise", "field": "latents"}, "destination": {"node_id": "vae_decode", "field": "latents"}},
-            {"source": {"node_id": "model_loader", "field": "vae"}, "destination": {"node_id": "vae_decode", "field": "vae"}},
-        ],
+        "nodes": nodes,
+        "edges": edges,
     }
 
 
@@ -611,11 +636,43 @@ def build_sdxl_graph(
 # Model type -> default parameters (based on community research)
 # Note: 'guidance' is specific to FLUX.1 dev models (ignored for schnell)
 MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
-    "flux2_klein": {"width": 1024, "height": 1024, "steps": 4, "cfg": 1.0, "scheduler": "euler"},
-    "zimage": {"width": 1024, "height": 1024, "steps": 8, "cfg": 1.0, "scheduler": "euler"},
-    "sdxl_turbo": {"width": 1024, "height": 1024, "steps": 8, "cfg": 1.0, "scheduler": "dpmpp_sde"},
-    "flux": {"width": 1024, "height": 1024, "steps": 25, "cfg": 1.0, "scheduler": "euler", "guidance": 4.0},
-    "sdxl": {"width": 1024, "height": 1024, "steps": 25, "cfg": 6.0, "scheduler": "dpmpp_2m_k"},
+    "flux2_klein": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 4,
+        "cfg": 1.0,
+        "scheduler": "euler",
+        "guidance": 3.5,
+    },
+    "zimage": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 9,
+        "cfg": 1.0,
+        "scheduler": "euler",
+    },
+    "sdxl_turbo": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 8,
+        "cfg": 1.0,
+        "scheduler": "dpmpp_sde",
+    },
+    "flux": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 25,
+        "cfg": 1.0,
+        "scheduler": "euler",
+        "guidance": 3.5,
+    },
+    "sdxl": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 25,
+        "cfg": 6.0,
+        "scheduler": "dpmpp_2m_k",
+    },
 }
 
 
@@ -773,7 +830,7 @@ def generate_image(
 
     # Build appropriate graph
     if model_type == "flux2_klein":
-        graph = build_flux2_klein_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed)
+        graph = build_flux2_klein_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed, negative, final_cfg)
     elif model_type == "flux":
         graph = build_flux_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed, final_guidance)
     elif model_type == "zimage":
@@ -805,7 +862,7 @@ def generate_image(
         "cfg_scale": final_cfg,
         "scheduler": final_scheduler,
     }
-    # Include guidance for FLUX.1 models
+    # Include guidance for FLUX.1 models (Klein uses cfg_scale=1.0 always)
     if model_type == "flux":
         response["guidance"] = final_guidance
 
