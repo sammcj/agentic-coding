@@ -35,10 +35,11 @@ python scripts/generate.py -p "A tabby cat with bright green eyes sits on a weat
 |--------|-------------|
 | `--prompt, -p` | Generation prompt (required) |
 | `--negative, -n` | Negative prompt (SDXL only) |
-| `--model, -m` | Model key (UUID) |
+| `--model, -m` | Model key (UUID) or partial name match |
 | `--width, -W` / `--height, -H` | Dimensions |
 | `--steps, -s` | Denoising steps |
 | `--cfg, -c` | CFG scale |
+| `--guidance, -g` | Guidance strength (FLUX.1 only) |
 | `--scheduler` | Sampling scheduler |
 | `--seed` | Random seed |
 | `--output, -o` | Output path (default: invokeai-{seed}.png) |
