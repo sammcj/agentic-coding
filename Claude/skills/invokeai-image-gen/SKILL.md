@@ -19,7 +19,7 @@ Simply call the script with your prompt and the output file name:
 python scripts/generate.py -p "A dramatic sunset over snow-capped mountains, warm orange light reflecting off a still alpine lake in the foreground. Soft clouds catch the fading light." -o sunset.png
 ```
 
-## Using Specific Models
+## Overriding The Default Model
 
 If the user asks you to use a specific model, first find the model key, then use it in the command:
 
