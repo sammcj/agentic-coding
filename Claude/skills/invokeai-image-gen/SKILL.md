@@ -64,9 +64,9 @@ Auto-priority: Klein > Z-Image > FLUX > SDXL
 
 Detection by name/base:
 - **flux2_klein**: "klein" in name or "flux2" in base
-- **sdxl_turbo**: "z-image" or "turbo/lightning" in name
+- **zimage**: "z-image" in base or "z-image/zimage" in name
 - **flux**: "flux" in base
-- **sdxl**: "sdxl" in base
+- **sdxl**: "sdxl" in base (turbo/lightning variants auto-detect)
 
 ## Prompting (general information, but especially useful for FLUX.2 Klein)
 

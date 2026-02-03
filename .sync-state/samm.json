@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-03T16:28:55.461942",
+  "last_sync": "2026-02-03T16:29:39.540254",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:80c4b0f6dc66aa6b65b1317d25fdbb35a3a20ecc63f07bc67bc0f0b79efb96a5",
@@ -72,8 +72,8 @@
       "last_synced": "2026-02-03T15:23:57.091743"
     },
     "claude/skills/invokeai-image-gen/SKILL.md": {
-      "checksum": "sha256:39a144aea0c82e4a5e1c3df0c4dad29ef88bcab6ce14ee30d7e396a874fb11dd",
-      "last_synced": "2026-02-03T15:47:24.043213"
+      "checksum": "sha256:5b4870c53cdab00b5a2aa455d178092ec82e4769d2c1991d31b47f309931deae",
+      "last_synced": "2026-02-03T16:29:39.540067"
     },
     "claude/skills/invokeai-image-gen/scripts/__pycache__/generate.cpython-314.pyc": {
       "checksum": "sha256:dae6f0939b28846640495cc472670fae9a51181140939764ff03391a852bec0d",
