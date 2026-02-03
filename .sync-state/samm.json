@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-03T14:36:32.669730",
+  "last_sync": "2026-02-03T15:23:57.092479",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:80c4b0f6dc66aa6b65b1317d25fdbb35a3a20ecc63f07bc67bc0f0b79efb96a5",
@@ -50,6 +50,30 @@
     "claude/skills/youtube-wisdom/SKILL.md": {
       "checksum": "sha256:3c16c1ba27e3ee466a4c6cef4380ee4521d9847c7fc21621125d56a697b73193",
       "last_synced": "2026-01-28T21:37:00.860421"
+    },
+    "claude/skills/piper-tts-training/references/localisation.md": {
+      "checksum": "sha256:6bea4496514773b02c104da2b2a3b1c1e8e31c205bfeb444cbbc1214cf1c38a8",
+      "last_synced": "2026-02-03T15:23:57.089019"
+    },
+    "claude/skills/invokeai-image-gen/scripts/generate.py": {
+      "checksum": "sha256:cb0938881b758a18b121a66d2d2a185c3f2310463ae925a74e5eb6c7efd49574",
+      "last_synced": "2026-02-03T15:23:57.089887"
+    },
+    "claude/skills/piper-tts-training/SKILL.md": {
+      "checksum": "sha256:3922b5095af2ebdf220185c4736cfd812adffc8b5e208bb3661801c82b205452",
+      "last_synced": "2026-02-03T15:23:57.090454"
+    },
+    "claude/skills/piper-tts-training/scripts/convert_spelling.py": {
+      "checksum": "sha256:dda9b6ebedf9f216e5f8acca856670ee46686dc28ad6a4908f8f903fb9cc8a14",
+      "last_synced": "2026-02-03T15:23:57.091051"
+    },
+    "claude/skills/piper-tts-training/references/american_spellings.json": {
+      "checksum": "sha256:ba7cf805e2783f63a478d3bdc690778b9b960870c7b18421d8b6342657732668",
+      "last_synced": "2026-02-03T15:23:57.091743"
+    },
+    "claude/skills/invokeai-image-gen/SKILL.md": {
+      "checksum": "sha256:ade44b1a566ac4870455b7ba23afe6691b4dd8a36e5efce3308d12da0ac79207",
+      "last_synced": "2026-02-03T15:23:57.092320"
     }
   },
   "deletions": {}
