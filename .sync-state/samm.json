@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-03T15:47:24.043393",
+  "last_sync": "2026-02-03T16:07:24.310981",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:80c4b0f6dc66aa6b65b1317d25fdbb35a3a20ecc63f07bc67bc0f0b79efb96a5",
@@ -56,8 +56,8 @@
       "last_synced": "2026-02-03T15:23:57.089019"
     },
     "claude/skills/invokeai-image-gen/scripts/generate.py": {
-      "checksum": "sha256:cb0938881b758a18b121a66d2d2a185c3f2310463ae925a74e5eb6c7efd49574",
-      "last_synced": "2026-02-03T15:23:57.089887"
+      "checksum": "sha256:62e8934b5c4aef96f91572299a75974767dd562e47b07ab5ee2b5fed3451b977",
+      "last_synced": "2026-02-03T16:07:24.310828"
     },
     "claude/skills/piper-tts-training/SKILL.md": {
       "checksum": "sha256:3922b5095af2ebdf220185c4736cfd812adffc8b5e208bb3661801c82b205452",
@@ -74,6 +74,10 @@
     "claude/skills/invokeai-image-gen/SKILL.md": {
       "checksum": "sha256:39a144aea0c82e4a5e1c3df0c4dad29ef88bcab6ce14ee30d7e396a874fb11dd",
       "last_synced": "2026-02-03T15:47:24.043213"
+    },
+    "claude/skills/invokeai-image-gen/scripts/__pycache__/generate.cpython-314.pyc": {
+      "checksum": "sha256:dae6f0939b28846640495cc472670fae9a51181140939764ff03391a852bec0d",
+      "last_synced": "2026-02-03T16:07:24.310330"
     }
   },
   "deletions": {
