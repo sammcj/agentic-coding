@@ -49,14 +49,25 @@ python scripts/generate.py -p "A tabby cat with bright green eyes sits on a weat
 
 Note: FLUX.2 Klein is the latest model which is used by default.
 
-| Model | Steps | CFG | Scheduler |
-|-------|-------|-----|-----------|
-| FLUX.2 Klein | 4 | 1.0 | euler |
-| Z-Image Turbo | 8 | 1.0 | dpmpp_sde |
-| FLUX.1 | 25 | 1.0 | euler |
-| SDXL | 25 | 6.0 | dpmpp_2m_k |
+| Model | Steps | Guidance | CFG | Scheduler |
+|-------|-------|----------|-----|-----------|
+| FLUX.2 Klein | 4 | 3.5 | 1.0 | euler |
+| Z-Image Turbo | 9 | - | 1.0 | euler |
+| **FLUX.1 dev** | 28 | 3.5 | 1.0 | euler |
+| **FLUX.1 Krea dev** | 28 | 4.5 | 1.0 | euler |
+| **FLUX.1 Kontext dev** | 28 | 2.5 | 1.0 | euler |
+| **FLUX.1 schnell** | 4 | 0.0 | 1.0 | euler |
+| SDXL | 25 | - | 6.0 | dpmpp_2m_k |
+| SDXL Turbo | 8 | - | 1.0 | dpmpp_sde |
 
 All models default to 1024x1024. FLUX requires dimensions divisible by 16, SDXL by 8.
+
+### FLUX.1 Variant Notes
+
+- **FLUX.1 dev**: Standard text-to-image model, balanced quality/speed
+- **FLUX.1 Krea dev**: Fine-tuned for aesthetic photography, use higher guidance (4.5)
+- **FLUX.1 Kontext dev**: Image editing model, use lower guidance (2.5)
+- **FLUX.1 schnell**: Distilled fast model, 4 steps, no guidance needed
 
 ## Model Selection
 
@@ -64,8 +75,11 @@ Auto-priority: Klein > Z-Image > FLUX > SDXL
 
 Detection by name/base:
 - **flux2_klein**: "klein" in name or "flux2" in base
+- **flux_krea**: "krea" in name (FLUX.1 base)
+- **flux_kontext**: "kontext" in name (FLUX.1 base)
+- **flux_schnell**: "schnell" in name (FLUX.1 base)
+- **flux**: "flux" in base (standard dev)
 - **zimage**: "z-image" in base or "z-image/zimage" in name
-- **flux**: "flux" in base
 - **sdxl**: "sdxl" in base (turbo/lightning variants auto-detect)
 
 ## Prompting (general information, but especially useful for FLUX.2 Klein)

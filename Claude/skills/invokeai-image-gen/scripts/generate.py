@@ -160,6 +160,14 @@ def extract_configurable_params(schema: dict[str, Any]) -> list[dict[str, Any]]:
     return params
 
 
+# FLUX.1 variants all use the same invocation types
+_FLUX_INVOCATIONS = [
+    "FluxModelLoaderInvocation",
+    "FluxTextEncoderInvocation",
+    "FluxDenoiseInvocation",
+    "FluxVaeDecodeInvocation",
+]
+
 # Mapping from model type to relevant invocation schemas
 MODEL_TYPE_INVOCATIONS: dict[str, list[str]] = {
     "flux2_klein": [
@@ -168,12 +176,10 @@ MODEL_TYPE_INVOCATIONS: dict[str, list[str]] = {
         "Flux2DenoiseInvocation",
         "Flux2VaeDecodeInvocation",
     ],
-    "flux": [
-        "FluxModelLoaderInvocation",
-        "FluxTextEncoderInvocation",
-        "FluxDenoiseInvocation",
-        "FluxVaeDecodeInvocation",
-    ],
+    "flux": _FLUX_INVOCATIONS,
+    "flux_krea": _FLUX_INVOCATIONS,
+    "flux_kontext": _FLUX_INVOCATIONS,
+    "flux_schnell": _FLUX_INVOCATIONS,
     "zimage": [
         "ZImageModelLoaderInvocation",
         "ZImageTextEncoderInvocation",
@@ -250,7 +256,10 @@ def get_model_params(model_key: str | None = None) -> dict[str, Any]:
 
 
 def detect_model_type(model: dict[str, Any]) -> str:
-    """Detect model architecture from model config."""
+    """Detect model architecture from model config.
+
+    Identifies specific FLUX.1 variants (Krea, Kontext, schnell) for optimal defaults.
+    """
     base = model.get("base", "").lower()
     name = model.get("name", "").lower()
 
@@ -260,8 +269,18 @@ def detect_model_type(model: dict[str, Any]) -> str:
     # Z-Image (has its own architecture)
     if "z-image" in base or "zimage" in base or "z-image" in name or "zimage" in name:
         return "zimage"
-    # Standard FLUX.1
-    if "flux" in base:
+    # FLUX.1 variants - check specific variants before generic flux
+    if "flux" in base or "flux" in name:
+        # FLUX.1 Krea dev - aesthetic photography focus
+        if "krea" in name:
+            return "flux_krea"
+        # FLUX.1 Kontext dev - image editing
+        if "kontext" in name:
+            return "flux_kontext"
+        # FLUX.1 schnell - distilled fast model (4 steps)
+        if "schnell" in name:
+            return "flux_schnell"
+        # Standard FLUX.1 dev
         return "flux"
     # SDXL (including turbo/lightning variants)
     if "sdxl" in base:
@@ -633,8 +652,8 @@ def build_sdxl_graph(
     }
 
 
-# Model type -> default parameters (based on community research)
-# Note: 'guidance' is specific to FLUX.1 dev models (ignored for schnell)
+# Model type -> default parameters (based on official recommendations)
+# Note: 'guidance' is specific to FLUX.1 models (ignored for schnell)
 MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
     "flux2_klein": {
         "width": 1024,
@@ -658,13 +677,41 @@ MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
         "cfg": 1.0,
         "scheduler": "dpmpp_sde",
     },
+    # FLUX.1 dev (standard) - balanced quality/speed
     "flux": {
         "width": 1024,
         "height": 1024,
-        "steps": 25,
+        "steps": 28,
         "cfg": 1.0,
         "scheduler": "euler",
         "guidance": 3.5,
+    },
+    # FLUX.1 Krea dev - optimised for aesthetic photography
+    "flux_krea": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 28,
+        "cfg": 1.0,
+        "scheduler": "euler",
+        "guidance": 4.5,  # Higher guidance for aesthetic focus
+    },
+    # FLUX.1 Kontext dev - image editing model
+    "flux_kontext": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 28,
+        "cfg": 1.0,
+        "scheduler": "euler",
+        "guidance": 2.5,  # Lower guidance for editing tasks
+    },
+    # FLUX.1 schnell - distilled fast model
+    "flux_schnell": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 4,
+        "cfg": 1.0,
+        "scheduler": "euler",
+        "guidance": 0.0,  # Schnell ignores guidance
     },
     "sdxl": {
         "width": 1024,
@@ -829,9 +876,10 @@ def generate_image(
     final_height = (final_height // divisor) * divisor
 
     # Build appropriate graph
+    # FLUX.1 variants (krea, kontext, schnell) all use the same graph structure as flux dev
     if model_type == "flux2_klein":
         graph = build_flux2_klein_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed, negative, final_cfg)
-    elif model_type == "flux":
+    elif model_type in ("flux", "flux_krea", "flux_kontext", "flux_schnell"):
         graph = build_flux_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed, final_guidance)
     elif model_type == "zimage":
         graph = build_zimage_graph(selected_model, prompt, final_width, final_height, final_steps, final_seed)
@@ -862,8 +910,8 @@ def generate_image(
         "cfg_scale": final_cfg,
         "scheduler": final_scheduler,
     }
-    # Include guidance for FLUX.1 models (Klein uses cfg_scale=1.0 always)
-    if model_type == "flux":
+    # Include guidance for all FLUX.1 variants (Klein uses cfg_scale instead)
+    if model_type in ("flux", "flux_krea", "flux_kontext", "flux_schnell"):
         response["guidance"] = final_guidance
 
     if wait and batch_id and item_id:
