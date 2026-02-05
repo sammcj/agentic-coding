@@ -25,52 +25,41 @@ This skill is useful when users request:
 Execute the download script to fetch only the transcript (no video file):
 
 ```bash
-bash ~/.claude/skills/youtube-wisdom/scripts/download_video.sh <youtube-url>
+bash scripts/download_video.sh <youtube-url>
 ```
 
 The script will:
-- Extract the video ID from the URL
-- Create directory structure: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/`
-- Download English subtitles or auto-generated transcripts (no video file)
-- Convert subtitle JSON3 format to clean text files
-- Save transcript to the video ID directory
+- Auto-detect your environment (Claude Code or OpenClaw) and OS (macOS or Linux)
+- Download English subtitles or auto-generated transcripts
+- Output the transcript path and next steps
 
-**Note:** The script uses Firefox cookies to handle age-restricted or login-required videos.
+**Cookie handling:** The script first attempts to download using browser cookies (for access restricted videos). If no browser is found or cookies fail, it automatically falls back to trying cookie-less download.
 
-### Step 2: Locate and Read Transcript
+### Step 2: Rename Directory
 
-The script outputs the location of the transcript. Read the transcript file from the video ID directory:
+The script outputs a `NEXT_STEP` line. Execute the rename command it provides:
 
 ```bash
-# The transcript will be at:
-~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/<video-title> - transcript.txt
+mv <OUTPUT_DIR> <OUTPUT_DIR>/../YYYY-MM-DD-<concise-description>
 ```
 
-Read the transcript file to analyse content. Transcripts are cleaned and formatted as continuous text with minimal whitespace.
+- Keep the description short (1-6 words)
+- Use hyphens instead of spaces
+- Take the video content and title into consideration
 
-**Note:** The download script uses `--restrict-filenames` to sanitise special characters (brackets, quotes, etc.) in filenames for safer handling.
+Example:
+- Video: "My Interview With Demis Hassabis, CEO of DeepMind"
+- Rename to: `2026-02-05-Demis-Hassabis-Interview`
 
-#### Step 2.1: Rename the directory
+### Step 3: Read Transcript
 
-Rename the directory to use today's date and concise description instead of the video ID for easier identification on the filesystem.
+Read the transcript file from the path provided by the script (`TRANSCRIPT_PATH`).
 
-- Keep the description used for the file name as short and relevant as possible (1-3 words or up 6 words if they're short).
-- Avoid spaces, special characters, or punctuation in the file name.
-- Take the video content as well as the title into consideration.
+Transcripts are cleaned and formatted as continuous text with minimal whitespace.
 
-E.g:
+**Note:** The download script uses `--restrict-filenames` to sanitise special characters in filenames for safer handling.
 
-- Example video:
-  - Title: "My Interview With Demis Hassabis, CEO of DeepMind. We Talk AI, AGI, and the Future"
-  - Content: The video is an interview, but really mostly focuses on his career and views.
-- Example file name: "2025-12-05-Demis-Hassabis-Interview.md"
-
-```bash
-DATE=$(date +%Y-%m-%d)
-mv ~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/ "~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/${DATE}-<concise-description>/"
-```
-
-### Step 3: Analyse and Extract Wisdom
+### Step 4: Analyse and Extract Wisdom
 
 IMPORTANT: One of your goals is to avoid signal dilution, context collapse, quality degradation and degraded reasoning for future understanding of the content by ensuring you keep the signal to noise ratio high and that domain insights are preserved while not introducing unnecessary filler or fluff in documentation.
 
@@ -102,11 +91,11 @@ Perform comprehensive analysis on the transcript, extracting:
 - Include any tools, resources, or techniques mentioned
 - Distinguish between immediate actions and longer-term strategies
 
-### Step 4: Write Analysis to Markdown File
+### Step 5: Write Analysis to Markdown File
 
-Write the complete analysis to a markdown file in the video's directory:
+Write the complete analysis to a markdown file in the renamed directory:
 
-**File location:** `~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom/<date>-<description>/<title> - analysis.md`
+**File location:** `<renamed-directory>/<video-title> - analysis.md`
 
 Format the analysis using this structure:
 
@@ -163,10 +152,11 @@ Context: [Brief context if needed]
 _Wisdom Extraction Skill Generated: [Current date in YYYY-MM-DD]_
 ```
 
-After writing the analysis file, inform the user of the location:
-- Analysis location: `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<date>-<description>/<title> - analysis.md`
+After writing the analysis file, inform the user of the location.
 
-## Step 5: Critical Self-Review
+**OpenClaw note:** When running via OpenClaw (in a chat session), also return the full analysis content to the user in your response — don't just save it to file. Users often want to read the insights immediately without opening a separate file.
+
+## Step 6: Critical Self-Review
 
 Conduct a critical self-review of YOUR summarisation and analysis.
 
@@ -181,12 +171,12 @@ Create tasks to track the following (mechanical checks first, then content quali
 
 Re-read the analysis file, verify each item, fix any issues found, then mark tasks completed.
 
-## Step 6: Send Completion Notification
+## Step 7: Send Completion Notification (Claude Code Only & Optional)
 
-Use `scripts/send_notification.sh` to send a desktop notification to the user that the analysis is complete and provide the file location:
+Use `scripts/send_notification.sh` to send a desktop notification:
 
 ```bash
-TITLE="Wisdom Extracted" MESSAGE="<short 3-5 word description of the video>" PLAY_SOUND=true DIR="/path/to/extracted/wisdom/" bash ~/.claude/skills/youtube-wisdom/scripts/send_notification.sh
+TITLE="Wisdom Extracted" MESSAGE="<short description>" PLAY_SOUND=true DIR="<renamed-directory>" bash scripts/send_notification.sh
 ```
 
 Then stop unless further instructions are given.
@@ -227,4 +217,10 @@ When user requests focused analysis on specific topics:
 ## Resources
 
 ### scripts/
-- `download_video.sh`: Bash script that downloads YouTube transcripts (no video files) using yt-dlp with optimised settings. Organises files by video ID in `~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents/Wisdom/<video-id>/`.
+- `download_video.sh`: Bash script that downloads YouTube transcripts (no video files) using yt-dlp with optimised settings. Auto-detects environment (Claude Code/OpenClaw) and OS, outputs paths and next steps for the agent.
+- `send_notification.sh`: Sends desktop notifications when analysis is complete (Claude Code only, optional).
+
+### Installation Paths
+This skill works with both Claude Code and OpenClaw:
+- **Claude Code:** `~/.claude/skills/youtube-wisdom/`
+- **OpenClaw:** `~/.openclaw/workspace/skills/youtube-wisdom/`

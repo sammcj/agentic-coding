@@ -3,7 +3,119 @@ set -euo pipefail
 
 # YouTube Transcript Downloader
 # Downloads only transcripts/subtitles from YouTube videos (no video file)
-# Organises files by video ID in ~/Downloads/videos/<video-id>/
+# Organises files by video ID in the Wisdom directory
+# Auto-detects macOS or Linux and uses appropriate paths
+# Falls back to no-cookie download if browser cookies unavailable
+
+# Detect environment and set appropriate base directory
+detect_environment_and_set_paths() {
+    local base_dir=""
+    local detected_env=""
+    
+    # Detect if running under OpenClaw
+    if [[ -n "${OPENCLAW_WORKSPACE:-}" ]] || [[ -d "${HOME}/.openclaw/workspace" ]]; then
+        detected_env="openclaw"
+    elif [[ -d "${HOME}/.claude/skills" ]]; then
+        detected_env="claude-code"
+    fi
+    
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        if [[ "$detected_env" == "openclaw" ]]; then
+            # OpenClaw on macOS - use .openclaw/workspace
+            base_dir="${HOME}/.openclaw/workspace/wisdom"
+        elif [[ "$detected_env" == "claude-code" ]]; then
+            # Claude Code on macOS - use iCloud if available
+            if [[ -d "${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents" ]]; then
+                base_dir="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom"
+            else
+                base_dir="${HOME}/Wisdom"
+            fi
+        else
+            # Unknown environment - default to iCloud if available
+            if [[ -d "${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents" ]]; then
+                base_dir="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom"
+            else
+                base_dir="${HOME}/Wisdom"
+            fi
+        fi
+    else
+        # Linux and other Unix-like systems
+        if [[ "$detected_env" == "openclaw" ]]; then
+            # OpenClaw on Linux
+            if [[ -n "${OPENCLAW_WISDOM_DIR:-}" ]]; then
+                base_dir="${OPENCLAW_WISDOM_DIR}"
+            else
+                base_dir="${HOME}/.openclaw/workspace/wisdom"
+            fi
+        elif [[ "$detected_env" == "claude-code" ]]; then
+            # Claude Code on Linux
+            base_dir="${HOME}/.claude/wisdom"
+        else
+            # Unknown environment - use generic fallback
+            if [[ -n "${OPENCLAW_WISDOM_DIR:-}" ]]; then
+                base_dir="${OPENCLAW_WISDOM_DIR}"
+            else
+                base_dir="${HOME}/Wisdom"
+            fi
+        fi
+    fi
+    
+    # Export detected environment for later use
+    export DETECTED_ENV="$detected_env"
+    echo "$base_dir"
+}
+
+# Download transcript with optional cookie support
+download_transcript() {
+    local video_url="$1"
+    local video_dir="$2"
+    local use_cookies="${3:-false}"
+    local cookie_arg=""
+    
+    # Build cookie argument if requested
+    if [[ "$use_cookies" == "true" ]]; then
+        # Try to detect available browsers
+        local browser=""
+        for b in firefox chrome chromium safari edge brave; do
+            if command -v "$b" &>/dev/null || [[ -d "${HOME}/.config/$b" ]] || [[ -d "${HOME}/.var/app/com.google.Chrome" ]]; then
+                browser="$b"
+                break
+            fi
+        done
+        
+        if [[ -n "$browser" ]]; then
+            cookie_arg="--cookies-from-browser $browser"
+            echo "Using browser cookies from: $browser"
+        else
+            echo "No supported browser found for cookies, proceeding without..."
+        fi
+    fi
+    
+    # Run yt-dlp with or without cookies
+    if [[ -n "$cookie_arg" ]]; then
+        eval yt-dlp \
+            --skip-download \
+            --write-subs \
+            --write-auto-subs \
+            --sub-format json3 \
+            --sub-lang en \
+            $cookie_arg \
+            --restrict-filenames \
+            -o "${video_dir}/%(title)s.%(ext)s" \
+            "$video_url" 2>&1 || return 1
+    else
+        yt-dlp \
+            --skip-download \
+            --write-subs \
+            --write-auto-subs \
+            --sub-format json3 \
+            --sub-lang en \
+            --restrict-filenames \
+            -o "${video_dir}/%(title)s.%(ext)s" \
+            "$video_url" 2>&1 || return 1
+    fi
+}
 
 extract_video_id() {
     local url="$1"
@@ -13,7 +125,7 @@ extract_video_id() {
     video_id=$(yt-dlp --get-id "$url" 2>/dev/null || echo "")
 
     if [[ -z "$video_id" ]]; then
-        echo "Error: Could not extract video ID from URL"
+        echo "Error: Could not extract video ID from URL" >&2
         exit 1
     fi
 
@@ -21,18 +133,26 @@ extract_video_id() {
 }
 
 main() {
-    local video_url="$1"
+    local video_url="${1:-}"
     local video_id
     local video_dir
-    local base_videos_dir="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom"
+    local base_videos_dir
     local converted_count=0
+    local download_success=false
 
     # Validate input
     if [[ -z "$video_url" ]]; then
         echo "Error: No video URL provided"
         echo "Usage: $0 <youtube-url>"
+        echo ""
+        echo "Environment variables:"
+        echo "  OPENCLAW_WISDOM_DIR - Override the output directory (Linux only)"
         exit 1
     fi
+
+    # Detect environment and set base directory
+    base_videos_dir=$(detect_environment_and_set_paths)
+    echo "Using output directory: $base_videos_dir"
 
     # Extract video ID
     echo "Extracting video ID from URL..."
@@ -45,22 +165,31 @@ main() {
     echo "Created directory: $video_dir"
 
     # Download ONLY transcripts/subtitles (skip video download)
+    # First try with cookies, then fallback to without
     echo "Downloading transcripts from: $video_url"
-    yt-dlp \
-        --skip-download \
-        --write-subs \
-        --write-auto-subs \
-        --sub-format json3 \
-        --sub-lang en \
-        --cookies-from-browser firefox \
-        --restrict-filenames \
-        -o "${video_dir}/%(title)s.%(ext)s" \
-        "$video_url" || true
+    echo "Attempting download with browser cookies..."
+    
+    if download_transcript "$video_url" "$video_dir" "true"; then
+        download_success=true
+        echo "Download successful with cookies"
+    else
+        echo "Cookie-based download failed, trying without cookies..."
+        if download_transcript "$video_url" "$video_dir" "false"; then
+            download_success=true
+            echo "Download successful without cookies"
+        fi
+    fi
 
     # Check if we actually got any subtitle files
-    if [[ -z "$(find "$video_dir" -maxdepth 1 -name "*.json3" -print -quit)" ]]; then
+    if [[ "$download_success" != "true" ]] || [[ -z "$(find "$video_dir" -maxdepth 1 -name "*.json3" -print -quit 2>/dev/null || true)" ]]; then
         echo "Error: No subtitle files were downloaded"
         echo "Check: $video_dir"
+        echo ""
+        echo "This may be due to:"
+        echo "  - Age-restricted video requiring login"
+        echo "  - Video has no available subtitles"
+        echo "  - Video is private or unlisted"
+        echo "  - Rate limiting from YouTube"
         exit 1
     fi
 
@@ -74,31 +203,44 @@ main() {
         echo "Converting: ${file##*/}"
 
         # Extract and clean subtitle text
-        if jq -r '[.events[].segs[]?.utf8] | join("") | gsub("[\n ]+"; " ")' "$file" > "$output_file"; then
+        if jq -r '[.events[].segs[]?.utf8] | join("") | gsub("[\\n ]+"; " ")' "$file" > "$output_file" 2>/dev/null; then
             rm -f "$file"
             echo "Created: ${output_file##*/}"
             converted_count=$((converted_count + 1))
         else
             echo "Error: Failed to convert ${file##*/}"
         fi
-    done < <(find "$video_dir" -maxdepth 1 -name "*.json3" -print0 || true)
+    done < <(find "$video_dir" -maxdepth 1 -name "*.json3" -print0 2>/dev/null || true)
 
     # Clean up any stray .txt files without the - transcript suffix or with language codes
     while IFS= read -r -d '' old_file; do
         echo "Removing unwanted file: ${old_file##*/}"
         rm -f "$old_file"
-    done < <(find "$video_dir" -maxdepth 1 -type f -name "*.txt" ! -name "*- transcript.txt" -print0 || true)
+    done < <(find "$video_dir" -maxdepth 1 -type f -name "*.txt" ! -name "*- transcript.txt" -print0 2>/dev/null || true)
 
     # Report results
     if [[ $converted_count -eq 0 ]]; then
-        echo "Warning: No subtitles found or downloaded for this video"
+        echo "Error: No subtitles found or downloaded for this video"
         echo "Check: $video_dir"
         exit 1
-    else
-        echo "Success: Downloaded and extracted $converted_count transcript(s)"
-        echo "Location: $video_dir"
-        exit 0
     fi
+    
+    # Find the transcript file path
+    local transcript_file
+    transcript_file=$(find "$video_dir" -maxdepth 1 -name "*- transcript.txt" -print -quit 2>/dev/null || true)
+    
+    if [[ -z "$transcript_file" ]]; then
+        echo "Error: Transcript file not found after conversion"
+        exit 1
+    fi
+    
+    # Output compact format for the agent
+    echo ""
+    echo "TRANSCRIPT_PATH: $transcript_file"
+    echo "OUTPUT_DIR: $video_dir"
+    echo "NEXT_STEP: mv $video_dir ${base_videos_dir}/$(date +%Y-%m-%d)-<description>"
+    
+    exit 0
 }
 
 main "$@"

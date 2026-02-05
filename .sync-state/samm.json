@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-03T16:59:02.929041",
+  "last_sync": "2026-02-05T15:27:09.562305",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:80c4b0f6dc66aa6b65b1317d25fdbb35a3a20ecc63f07bc67bc0f0b79efb96a5",
       "last_synced": "2025-12-16T10:15:42.951184"
     },
     "claude/settings.json": {
-      "checksum": "sha256:04035449816dc53c98a8553d9ea338283acc76724d5770be201c8b484ed97bea",
-      "last_synced": "2025-12-28T07:40:54.807462"
+      "checksum": "sha256:0b8404a4da397e8517bdf1b4bd9b54b860251539d99fd01bb7a14cfa6c52bdd9",
+      "last_synced": "2026-02-05T15:27:09.562153"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
       "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
@@ -48,8 +48,8 @@
       "last_synced": "2026-01-29T13:07:50.577496"
     },
     "claude/skills/youtube-wisdom/SKILL.md": {
-      "checksum": "sha256:3c16c1ba27e3ee466a4c6cef4380ee4521d9847c7fc21621125d56a697b73193",
-      "last_synced": "2026-01-28T21:37:00.860421"
+      "checksum": "sha256:8aae32846048414a9dd297766bddccfcbc0792cadf2768a7159fb2847de28a27",
+      "last_synced": "2026-02-05T15:22:23.675751"
     },
     "claude/skills/piper-tts-training/references/localisation.md": {
       "checksum": "sha256:6bea4496514773b02c104da2b2a3b1c1e8e31c205bfeb444cbbc1214cf1c38a8",
@@ -78,6 +78,10 @@
     "claude/skills/invokeai-image-gen/scripts/__pycache__/generate.cpython-314.pyc": {
       "checksum": "sha256:dae6f0939b28846640495cc472670fae9a51181140939764ff03391a852bec0d",
       "last_synced": "2026-02-03T16:07:24.310330"
+    },
+    "claude/skills/youtube-wisdom/scripts/download_video.sh": {
+      "checksum": "sha256:11253c608e61dc34d05da96a1561f39c4b7ea0e2d19f231a412c2c0a599d0fa6",
+      "last_synced": "2026-02-05T15:22:23.675204"
     }
   },
   "deletions": {
