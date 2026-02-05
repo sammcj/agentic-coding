@@ -149,7 +149,8 @@ Example:
 
 - [Blog - smcleod.net](https://smcleod.net)
 - [GitHub - sammcj](https://github.com/sammcj)
-- [Cline](https://cline.bot): IMO The best agentic coding tool.
+- [Claude Code](https://claude.com/product/claude-code)
+- [Cline](https://cline.bot)
 
 ## Notes
 
