@@ -13,12 +13,14 @@ A collection of coding rules, templates, MCP servers and examples for working wi
 
 ## Coding Agent Rules, Agents, Templates and Skills
 
-Note: While the most well kept content lives under a `Claude` directory, most rules etc. are portal between agentic coding tools, the exception being Claude _Skills_, which I'm yet to see other tools support - but have no doubt they will as they're one of the most powerful and useful agentic coding concepts.
+The repository is organised with tool-agnostic content at the root level:
 
-- [Agent Rules](./Claude/CLAUDE.md)
-- [Agent Skills](./Claude/skills/)
-- [Agents / Sub-Agents](./Claude/agents/)
-- [Agent Commands (Prompt Templates)](./Claude/commands/)
+- [Agent Rules](./Rules/) - Agent instruction files (e.g. CLAUDE.md)
+- [Agent Skills](./Skills/) - Reusable skills that extend agent capabilities
+- [Claude-specific](./Claude/) - Commands, agents, hooks specific to Claude Code
+- [Cline-specific](./Cline/) - Rules and workflows specific to Cline
+
+Note: Most rules and skills are portable between agentic coding tools. The exception being Claude _Skills_, which I'm yet to see other tools support - but have no doubt they will as they're one of the most powerful and useful agentic coding concepts.
 
 ### Client Tooling - Not All Created Equal
 
