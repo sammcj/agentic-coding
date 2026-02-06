@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-05T15:38:43.363884",
+  "last_sync": "2026-02-06T14:08:12.198120",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:80c4b0f6dc66aa6b65b1317d25fdbb35a3a20ecc63f07bc67bc0f0b79efb96a5",
       "last_synced": "2025-12-16T10:15:42.951184"
     },
     "claude/settings.json": {
-      "checksum": "sha256:0b8404a4da397e8517bdf1b4bd9b54b860251539d99fd01bb7a14cfa6c52bdd9",
-      "last_synced": "2026-02-05T15:27:09.562153"
+      "checksum": "sha256:b520ff07da763cbce2f6a063291cce7360f09e60af2f58bd4616d343fe486d3e",
+      "last_synced": "2026-02-06T14:08:12.197991"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
       "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
@@ -82,6 +82,46 @@
     "claude/skills/youtube-wisdom/scripts/download_video.sh": {
       "checksum": "sha256:11253c608e61dc34d05da96a1561f39c4b7ea0e2d19f231a412c2c0a599d0fa6",
       "last_synced": "2026-02-05T15:22:23.675204"
+    },
+    "claude-skills/authoring-claude-md/SKILL.md": {
+      "checksum": "sha256:50bbce2393dc3c9e51573e900e31324ac64ceebe0c5fa1be2cc0e0521093dc2c",
+      "last_synced": "2026-02-06T14:08:11.672345"
+    },
+    "claude-skills/piper-tts-training/scripts/convert_spelling.py": {
+      "checksum": "sha256:dda9b6ebedf9f216e5f8acca856670ee46686dc28ad6a4908f8f903fb9cc8a14",
+      "last_synced": "2026-02-06T14:08:11.673883"
+    },
+    "claude-skills/deepeval/references/model_providers.md": {
+      "checksum": "sha256:163fac388c6f917ce85a5efb1166129f215a6e23ac0b1233c4f0136b1a9ee63f",
+      "last_synced": "2026-02-06T14:08:11.675584"
+    },
+    "claude-skills/deepeval/references/custom_metrics.md": {
+      "checksum": "sha256:1cb8ce6432deab578f8fb521b5193b8578894037ebcb712034f0199d274091d2",
+      "last_synced": "2026-02-06T14:08:11.677101"
+    },
+    "claude-skills/piper-tts-training/references/localisation.md": {
+      "checksum": "sha256:6bea4496514773b02c104da2b2a3b1c1e8e31c205bfeb444cbbc1214cf1c38a8",
+      "last_synced": "2026-02-06T14:08:11.678454"
+    },
+    "claude-skills/deepeval/SKILL.md": {
+      "checksum": "sha256:bf71040754747bf5663111489006fa0ff4aad21283a41bd2443ec2885ff120fb",
+      "last_synced": "2026-02-06T14:08:11.679711"
+    },
+    "claude-skills/piper-tts-training/references/american_spellings.json": {
+      "checksum": "sha256:ba7cf805e2783f63a478d3bdc690778b9b960870c7b18421d8b6342657732668",
+      "last_synced": "2026-02-06T14:08:11.680964"
+    },
+    "claude-skills/piper-tts-training/SKILL.md": {
+      "checksum": "sha256:3922b5095af2ebdf220185c4736cfd812adffc8b5e208bb3661801c82b205452",
+      "last_synced": "2026-02-06T14:08:11.682022"
+    },
+    "claude-skills/deepeval/references/dataset_management.md": {
+      "checksum": "sha256:06353820153f30f3b9fb83beb7821d867b7347cd1cf96b60b4446f2f690ac1e8",
+      "last_synced": "2026-02-06T14:08:11.683109"
+    },
+    "claude-skills/deepeval/references/async_performance.md": {
+      "checksum": "sha256:ae8d24a059e4491f28486c5966d6b946b35fa44d21774ff8af373174ee37c3de",
+      "last_synced": "2026-02-06T14:08:11.684148"
     }
   },
   "deletions": {
@@ -107,6 +147,11 @@
     },
     "claude/output-styles/concise-only.md": {
       "deleted_at": "2026-02-05T15:38:43.359171",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/claude-md-authoring/SKILL.md": {
+      "deleted_at": "2026-02-06T14:08:11.664927",
       "checksum": "unknown",
       "decision": "confirmed"
     }

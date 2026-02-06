@@ -129,6 +129,26 @@
       "Edit(//Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom/**)",
       "Edit(~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom/**)",
       "mcp__dev-tools",
+      "mcp__plugin_serena_serena__find_file",
+      "mcp__plugin_serena_serena__list_dir",
+      "mcp__plugin_serena_serena__search_for_pattern",
+      "mcp__plugin_serena_serena__get_symbols_overview",
+      "mcp__plugin_serena_serena__find_referencing_symbols",
+      "mcp__plugin_serena_serena__write_memory",
+      "mcp__plugin_serena_serena__read_memory",
+      "mcp__plugin_serena_serena__list_memories",
+      "mcp__plugin_serena_serena__delete_memory",
+      "mcp__plugin_serena_serena__edit_memory",
+      "mcp__plugin_serena_serena__open_dashboard",
+      "mcp__plugin_serena_serena__get_current_config",
+      "mcp__plugin_serena_serena__check_onboarding_performed",
+      "mcp__plugin_serena_serena__onboarding",
+      "mcp__plugin_serena_serena__activate_project",
+      "mcp__plugin_serena_serena__think_about_collected_information",
+      "mcp__plugin_serena_serena__think_about_task_adherence",
+      "mcp__plugin_serena_serena__think_about_whether_you_are_done",
+      "mcp__plugin_serena_serena__prepare_for_new_conversation",
+      "mcp__plugin_serena_serena__initial_instructions",
       "WebSearch",
       "WebFetch",
       "Skill"
@@ -274,17 +294,6 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/approve-compound-commands"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/samm/.claude/count_tokens.js"
           }
         ]
       }
