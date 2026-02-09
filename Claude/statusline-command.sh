@@ -41,6 +41,28 @@ fi
 
 [ -z "$session_pct" ] && session_pct=0
 
+# Parse reset time from cached data
+resets_at=""
+if [ -f "$CACHE_FILE" ]; then
+    resets_iso=$(jq -r '.five_hour.resets_at // empty' "$CACHE_FILE" 2>/dev/null)
+    if [ -n "$resets_iso" ]; then
+        # Strip fractional seconds and colon from tz offset for macOS date
+        clean_ts=$(echo "$resets_iso" | sed -E 's/\.[0-9]+//; s/:([0-9]{2})$/\1/')
+        reset_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S%z" "$clean_ts" +%s 2>/dev/null) || reset_epoch=0
+        now=$(date +%s)
+        diff=$((reset_epoch - now))
+        if [ "$diff" -gt 0 ]; then
+            hrs=$((diff / 3600))
+            mins=$(( (diff % 3600) / 60 ))
+            if [ "$hrs" -gt 0 ]; then
+                resets_at="${hrs}h${mins}m"
+            else
+                resets_at="${mins}m"
+            fi
+        fi
+    fi
+fi
+
 progress_bar() {
     local percentage=$1
     local width=10
@@ -71,7 +93,18 @@ context_colour=$(get_colour "$used_pct")
 session_colour=$(get_colour "$session_pct")
 dir_name=$(basename "$cwd")
 
-printf "%s%s\033[0m %s%% | %s%s\033[0m %s%% | %s" \
+reset_str=""
+if [ -n "$resets_at" ]; then
+    if [ "$diff" -lt 1800 ]; then
+        # Light blue when under 30 minutes
+        reset_str=$' \033[94mResets: '"${resets_at}"$'\033[0m'
+    else
+        # Bright white
+        reset_str=$' Resets:\033[97m '"${resets_at}"$'\033[0m'
+    fi
+fi
+
+printf "Context: %s%s\033[0m %s%% | 5hr limit: %s%s\033[0m %s%%%s | Project: %s" \
     "$context_colour" "$context_bar" "$used_pct" \
-    "$session_colour" "$session_bar" "$session_pct" \
+    "$session_colour" "$session_bar" "$session_pct" "$reset_str" \
     "$dir_name"
