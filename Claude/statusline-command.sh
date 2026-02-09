@@ -3,8 +3,7 @@ set -euo pipefail
 
 input=$(cat)
 
-used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
-cwd=$(echo "$input" | jq -r '.workspace.current_dir // ""')
+eval "$(jq -r '@sh "used_pct=\(.context_window.used_percentage // 0) cwd=\(.workspace.current_dir // "")"' <<< "$input")"
 
 # Fetch 5-hour usage from Anthropic OAuth API (cached for n seconds)
 CACHE_FILE="/tmp/claude_usage_cache.json"
@@ -14,7 +13,7 @@ session_pct=0
 fetch_usage() {
     local creds token response
     creds=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null) || return 1
-    token=$(echo "$creds" | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null) || return 1
+    token=$(jq -r '.claudeAiOauth.accessToken // empty' <<< "$creds" 2>/dev/null) || return 1
     [ -z "$token" ] && return 1
 
     response=$(curl -s --max-time 5 \
@@ -27,27 +26,29 @@ fetch_usage() {
 }
 
 # Use cache if fresh, otherwise fetch in background
+read_cache=false
 if [ -f "$CACHE_FILE" ]; then
     cache_age=$(( $(date +%s) - $(stat -f %m "$CACHE_FILE") ))
     if [ "$cache_age" -gt "$CACHE_MAX_AGE" ]; then
         fetch_usage &>/dev/null &
     fi
-    session_pct=$(jq -r '.five_hour.utilization // 0' "$CACHE_FILE" 2>/dev/null | awk '{printf "%d", $1}')
+    read_cache=true
 else
     # First run - fetch synchronously
     fetch_usage
-    session_pct=$(jq -r '.five_hour.utilization // 0' "$CACHE_FILE" 2>/dev/null | awk '{printf "%d", $1}')
+    read_cache=true
 fi
 
-[ -z "$session_pct" ] && session_pct=0
-
-# Parse reset time from cached data
+# Single jq call to read both values from cache
 resets_at=""
-if [ -f "$CACHE_FILE" ]; then
-    resets_iso=$(jq -r '.five_hour.resets_at // empty' "$CACHE_FILE" 2>/dev/null)
+diff=0
+if [ "$read_cache" = true ] && [ -f "$CACHE_FILE" ]; then
+    eval "$(jq -r '@sh "session_pct=\(.five_hour.utilization // 0) resets_iso=\(.five_hour.resets_at // "")"' "$CACHE_FILE" 2>/dev/null)"
+    session_pct=${session_pct%.*}  # truncate to int
+    [ -z "$session_pct" ] && session_pct=0
+
     if [ -n "$resets_iso" ]; then
-        # Strip fractional seconds and colon from tz offset for macOS date
-        clean_ts=$(echo "$resets_iso" | sed -E 's/\.[0-9]+//; s/:([0-9]{2})$/\1/')
+        clean_ts=$(sed -E 's/\.[0-9]+//; s/:([0-9]{2})$/\1/' <<< "$resets_iso")
         reset_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S%z" "$clean_ts" +%s 2>/dev/null) || reset_epoch=0
         now=$(date +%s)
         diff=$((reset_epoch - now))
