@@ -298,5 +298,9 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "/Users/samm/.claude/statusline-command.sh"
   }
 }
