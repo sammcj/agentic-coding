@@ -7,7 +7,7 @@ eval "$(jq -r '@sh "used_pct=\(.context_window.used_percentage // 0) cwd=\(.work
 
 # Fetch 5-hour usage from Anthropic OAuth API (cached for n seconds)
 CACHE_FILE="/tmp/claude_usage_cache.json"
-CACHE_MAX_AGE=90 # seconds
+CACHE_MAX_AGE=60 # seconds
 session_pct=0
 
 fetch_usage() {
