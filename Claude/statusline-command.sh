@@ -6,9 +6,9 @@ input=$(cat)
 used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
 cwd=$(echo "$input" | jq -r '.workspace.current_dir // ""')
 
-# Fetch 5-hour usage from Anthropic OAuth API (cached for 60s)
+# Fetch 5-hour usage from Anthropic OAuth API (cached for n seconds)
 CACHE_FILE="/tmp/claude_usage_cache.json"
-CACHE_MAX_AGE=120
+CACHE_MAX_AGE=90 # seconds
 session_pct=0
 
 fetch_usage() {
