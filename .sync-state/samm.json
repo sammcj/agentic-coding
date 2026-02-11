@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-09T17:38:16.149262",
+  "last_sync": "2026-02-11T11:01:31.009766",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -142,6 +142,98 @@
     "claude/commands/self-review.md": {
       "checksum": "sha256:f999b6b1b463df28ecdb843d058a81c528a35739e9db6714270a3d4cd84820f5",
       "last_synced": "2026-02-09T17:38:16.149092"
+    },
+    "claude-skills/claude-scheduler/launchd/com.claude.scheduler.plist": {
+      "checksum": "sha256:eec8939fe503ba49ecc60474d46293d15991cf99679251f8796523345f9b9cc9",
+      "last_synced": "2026-02-11T11:01:30.970346"
+    },
+    "claude-skills/claude-scheduler/scripts/install.sh": {
+      "checksum": "sha256:d6af6ec9722902f3e0fb65a30c74b79fe41abfd8c0a7539df6571e76ce21c460",
+      "last_synced": "2026-02-11T11:01:30.970931"
+    },
+    "claude-skills/claude-scheduler/tests/__init__.py": {
+      "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "last_synced": "2026-02-11T11:01:30.971393"
+    },
+    "claude-skills/claude-scheduler/.gitignore": {
+      "checksum": "sha256:eaf5e8fdd9f8933adb475c7f4461de1874a2a666b2357a0275e04ad4ff0fa244",
+      "last_synced": "2026-02-11T11:01:30.971816"
+    },
+    "claude-skills/claude-scheduler/tests/test_state.py": {
+      "checksum": "sha256:36b13431f21140c9de5a6df8dc7d053bf3dcf79d6aa02a42b1bf95f132a3eb66",
+      "last_synced": "2026-02-11T11:01:30.972367"
+    },
+    "claude-skills/claude-scheduler/tests/test_schedule.py": {
+      "checksum": "sha256:a0b383d83e21f04b10ef5927a46c593f9a2057d039c5612f9f2baa4d76e872de",
+      "last_synced": "2026-02-11T11:01:30.973097"
+    },
+    "claude-skills/claude-scheduler/scheduler/schedule.py": {
+      "checksum": "sha256:7f41c965f70b1ddab8f86a7d3587561a3bae926434807da39a13fb8b3198923e",
+      "last_synced": "2026-02-11T11:01:30.973570"
+    },
+    "claude-skills/claude-scheduler/README.md": {
+      "checksum": "sha256:3ea29295870dc1d0bbf8ae5f1945ffbd64d58043c04e327e135c188fe2aab008",
+      "last_synced": "2026-02-11T11:01:30.973969"
+    },
+    "claude-skills/claude-scheduler/SKILL.md": {
+      "checksum": "sha256:8637ed491f6be8b5fa66c2a28ec7015e6db2a7d837b98a4334d5a38a5984e7b9",
+      "last_synced": "2026-02-11T11:01:30.974405"
+    },
+    "claude-skills/claude-scheduler/tests/test_task_runner.py": {
+      "checksum": "sha256:cb22f6e5e61bfb5f5f8c5ab169c26809cb4d3f7a1ddee16b3b1b03db31905f69",
+      "last_synced": "2026-02-11T11:01:30.974999"
+    },
+    "claude-skills/claude-scheduler/state/.gitkeep": {
+      "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "last_synced": "2026-02-11T11:01:30.975620"
+    },
+    "claude-skills/claude-scheduler/config.yml": {
+      "checksum": "sha256:cf3194146516e3e0c1b0648c25a21b4f7e196072163af36c99210840f1b7de4b",
+      "last_synced": "2026-02-11T11:01:30.976166"
+    },
+    "claude-skills/claude-scheduler/logs/.gitkeep": {
+      "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "last_synced": "2026-02-11T11:01:30.976892"
+    },
+    "claude-skills/claude-scheduler/scheduler/state.py": {
+      "checksum": "sha256:5b65d87bb5034c24b3029ce94630101451edc10280cd86f94ac2ceb7c59c4b04",
+      "last_synced": "2026-02-11T11:01:30.977654"
+    },
+    "claude-skills/claude-scheduler/uv.lock": {
+      "checksum": "sha256:74a3c45f6a9dfa56b06720cb3afd497760fc0c515d0e8d68763d8b3667594f2d",
+      "last_synced": "2026-02-11T11:01:30.978495"
+    },
+    "claude-skills/claude-scheduler/pyproject.toml": {
+      "checksum": "sha256:429db7544dcdfb4938eca162185cafd8f2d6cd9348dcdb4458fbc28e267a7be5",
+      "last_synced": "2026-02-11T11:01:30.979012"
+    },
+    "claude-skills/claude-scheduler/scripts/uninstall.sh": {
+      "checksum": "sha256:506c09851c8f48926b69b0aafa142ade28504c18902dd5c29ffbceee76f4c49b",
+      "last_synced": "2026-02-11T11:01:30.979461"
+    },
+    "claude-skills/claude-scheduler/pre_checks/check_youtube_channels.py": {
+      "checksum": "sha256:083ea55da679ae5547f00e5dea66d0245d16670c7bea1ee5fd17e909f3ee19fd",
+      "last_synced": "2026-02-11T11:01:30.979941"
+    },
+    "claude-skills/claude-scheduler/scheduler/task_runner.py": {
+      "checksum": "sha256:92e79ca6721ffeae8574e855f11f2a0bb911004ae43ba68f5e56d471b624e0c7",
+      "last_synced": "2026-02-11T11:01:30.980546"
+    },
+    "claude-skills/claude-scheduler/scheduler/main.py": {
+      "checksum": "sha256:22dc97b631a634ae1940f1df4c01314f6284337c8ac1e15b33a555a012bbe16e",
+      "last_synced": "2026-02-11T11:01:30.981166"
+    },
+    "claude-skills/claude-scheduler/tasks/youtube-channels.yml": {
+      "checksum": "sha256:3e51a97c0c5bb16deb71638a4a123e5871b3f13be3bdc1ed273c22684a89d96f",
+      "last_synced": "2026-02-11T11:01:30.981843"
+    },
+    "claude-skills/claude-scheduler/scheduler/__init__.py": {
+      "checksum": "sha256:7d1617e60e0cbbffacf0bdded283453293ca962b371b2b1869d2389fff54fb57",
+      "last_synced": "2026-02-11T11:01:30.982442"
+    },
+    "claude-skills-disabled/create-mcp-app/SKILL.md": {
+      "checksum": "sha256:1b3acd45a208773974a96932c468df1cc0041b7b42e6010f51fcc01755ba671d",
+      "last_synced": "2026-02-11T11:01:31.009551"
     }
   },
   "deletions": {
