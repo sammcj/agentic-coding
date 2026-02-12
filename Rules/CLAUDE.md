@@ -160,6 +160,10 @@ classDef error fill:#FFCDD2,stroke:#EF5350,color:#C62828
 ```
 </MERMAID>
 
+## Self-Review Protocol
+
+After implementing a list of changes, perform a critical self-review pass before reporting completion, fixing any issues you find.
+
 ## Rules
 
 <RULES>
