@@ -5,21 +5,6 @@ description: Extract wisdom, insights, and actionable takeaways from YouTube vid
 
 # Wisdom Extraction
 
-## Overview
-
-Extract meaningful insights, key learnings, and actionable wisdom from any content source: YouTube videos, web articles, blog posts, or local text files. This skill handles the complete workflow from content acquisition through analysis to organised markdown output.
-
-## When to Use This Skill
-
-Activate this skill when users request:
-- Analysis or summary of YouTube video content
-- Analysis or summary of blog posts, articles, or web content
-- Extraction of key insights or learnings from any source
-- Identification of notable quotes or important statements
-- Structured breakdown of written or spoken content
-- Actionable takeaways from educational or informational content
-- Analysis of local text or markdown files
-
 ## Workflow
 
 ### Step 1: Identify Source and Acquire Content
@@ -216,16 +201,6 @@ If timestamps are needed:
 - Note that basic transcripts don't preserve timestamps
 - Can reference general flow (beginning, middle, end) of content
 - For precise timestamps, may need to cross-reference with the actual video
-
-### Supported Content Types
-- YouTube videos (via transcript download)
-- Blog posts and articles (via URL)
-- Markdown documentation
-- Plain text files
-- Technical papers (as text)
-- Meeting transcripts
-- Long-form essays
-- Any web page with readable text content
 
 ## Tips
 

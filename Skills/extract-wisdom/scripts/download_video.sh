@@ -71,11 +71,19 @@ download_transcript() {
     local video_url="$1"
     local video_dir="$2"
     local use_cookies="${3:-false}"
-    local cookie_arg=""
-    
-    # Build cookie argument if requested
+
+    local args=(
+        yt-dlp
+        --skip-download
+        --write-subs
+        --write-auto-subs
+        --sub-format json3
+        --sub-lang en
+        --restrict-filenames
+        -o "${video_dir}/%(title)s.%(ext)s"
+    )
+
     if [[ "$use_cookies" == "true" ]]; then
-        # Try to detect available browsers
         local browser=""
         for b in firefox chrome chromium safari edge brave; do
             if command -v "$b" &>/dev/null || [[ -d "${HOME}/.config/$b" ]] || [[ -d "${HOME}/.var/app/com.google.Chrome" ]]; then
@@ -83,38 +91,16 @@ download_transcript() {
                 break
             fi
         done
-        
+
         if [[ -n "$browser" ]]; then
-            cookie_arg="--cookies-from-browser $browser"
+            args+=(--cookies-from-browser "$browser")
             echo "Using browser cookies from: $browser"
         else
             echo "No supported browser found for cookies, proceeding without..."
         fi
     fi
-    
-    # Run yt-dlp with or without cookies
-    if [[ -n "$cookie_arg" ]]; then
-        eval yt-dlp \
-            --skip-download \
-            --write-subs \
-            --write-auto-subs \
-            --sub-format json3 \
-            --sub-lang en \
-            $cookie_arg \
-            --restrict-filenames \
-            -o "${video_dir}/%(title)s.%(ext)s" \
-            "$video_url" 2>&1 || return 1
-    else
-        yt-dlp \
-            --skip-download \
-            --write-subs \
-            --write-auto-subs \
-            --sub-format json3 \
-            --sub-lang en \
-            --restrict-filenames \
-            -o "${video_dir}/%(title)s.%(ext)s" \
-            "$video_url" 2>&1 || return 1
-    fi
+
+    "${args[@]}" "$video_url" 2>&1 || return 1
 }
 
 extract_video_id() {
