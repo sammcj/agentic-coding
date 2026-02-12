@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-12T11:52:58.781213",
+  "last_sync": "2026-02-12T12:52:26.028128",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -238,6 +238,18 @@
     "claude-skills/code-review/SKILL.md": {
       "checksum": "sha256:6074259985961917f6f1d78670aae8c16220b1e215c03081a804a024cff94ee1",
       "last_synced": "2026-02-12T11:52:58.403784"
+    },
+    "claude-skills/extract-wisdom/scripts/send_notification.sh": {
+      "checksum": "sha256:ca04e5b4834d3448860a8689b9a7323aa5750503a6f7aad4557c22af07c80155",
+      "last_synced": "2026-02-12T12:52:26.023113"
+    },
+    "claude-skills/extract-wisdom/scripts/download_video.sh": {
+      "checksum": "sha256:11253c608e61dc34d05da96a1561f39c4b7ea0e2d19f231a412c2c0a599d0fa6",
+      "last_synced": "2026-02-12T12:52:26.024674"
+    },
+    "claude-skills/extract-wisdom/SKILL.md": {
+      "checksum": "sha256:fad5a84f201e413b665a47c1a3cff230c8196530394b62be3e0454b9fccdf25e",
+      "last_synced": "2026-02-12T12:52:26.025731"
     }
   },
   "deletions": {
@@ -268,6 +280,21 @@
     },
     "claude-skills/claude-md-authoring/SKILL.md": {
       "deleted_at": "2026-02-06T14:08:11.664927",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/youtube-wisdom/scripts/download_video.sh": {
+      "deleted_at": "2026-02-12T12:52:26.016710",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/youtube-wisdom/scripts/send_notification.sh": {
+      "deleted_at": "2026-02-12T12:52:26.016736",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/youtube-wisdom/SKILL.md": {
+      "deleted_at": "2026-02-12T12:52:26.016746",
       "checksum": "unknown",
       "decision": "confirmed"
     }

@@ -1,106 +1,143 @@
 ---
 name: extract-wisdom
-description: Extract wisdom, insights, and actionable takeaways from text sources. Use when asked to analyse, summarise, or extract key learnings from blog posts, articles, markdown files, or other text content.
+description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
 ---
 
-# Text Wisdom Extraction
+# Wisdom Extraction
 
 ## Overview
 
-Extract meaningful insights, key learnings, and actionable wisdom from written content. This skill handles both web-based sources (blog posts, articles) and local text files (markdown, plain text), performing analysis and presenting findings conversationally or saving to markdown files. The user will likely want you to use this skill when they need to gain understanding from large amounts of text, identify important points, or distil complex information into practical takeaways.
+Extract meaningful insights, key learnings, and actionable wisdom from any content source: YouTube videos, web articles, blog posts, or local text files. This skill handles the complete workflow from content acquisition through analysis to organised markdown output.
 
 ## When to Use This Skill
 
 Activate this skill when users request:
+- Analysis or summary of YouTube video content
 - Analysis or summary of blog posts, articles, or web content
-- Extraction of key insights or learnings from text sources
+- Extraction of key insights or learnings from any source
 - Identification of notable quotes or important statements
-- Structured breakdown of written content
-- Actionable takeaways from informational or educational text
+- Structured breakdown of written or spoken content
+- Actionable takeaways from educational or informational content
 - Analysis of local text or markdown files
-
-If the user provides a Youtube URL, stop and use the youtube-wisdom skill instead if it is available.
 
 ## Workflow
 
-### Step 1: Identify Source Type
+### Step 1: Identify Source and Acquire Content
 
-Determine whether the source is a URL or local file:
+Determine the source type and acquire content accordingly:
 
-**URL patterns**:
-- Use WebFetch tool to extract content
-- WebFetch automatically converts HTML to markdown
+**YouTube URL** (contains youtube.com or youtu.be):
 
-**File paths**:
-- Use Read tool to load content directly
-- Handles .txt, .md, and other text formats
+Execute the download script to fetch only the transcript (no video file):
 
-### Step 2: Extract Content
-
-**For URLs (blog posts, articles)**:
+```bash
+bash scripts/download_video.sh <youtube-url>
 ```
-Use WebFetch with prompt: "Extract the main article content"
+
+The script will:
+- Auto-detect your environment (Claude Code or OpenClaw) and OS (macOS or Linux)
+- Download English subtitles or auto-generated transcripts
+- Output the transcript path and next steps
+
+**Cookie handling:** The script first attempts to download using browser cookies (for access-restricted videos). If no browser is found or cookies fail, it automatically falls back to trying cookie-less download.
+
+After downloading, execute the rename command the script provides:
+
+```bash
+mv <OUTPUT_DIR> <OUTPUT_DIR>/../YYYY-MM-DD-<concise-description>
+```
+
+- Keep the description short (1-6 words), use hyphens instead of spaces
+- Take the video content and title into consideration
+- Example: Video "My Interview With Demis Hassabis" becomes `2026-02-05-Demis-Hassabis-Interview`
+
+Then read the transcript file from `TRANSCRIPT_PATH`. Transcripts are cleaned and formatted as continuous text with minimal whitespace.
+
+**Note:** The download script uses `--restrict-filenames` to sanitise special characters in filenames for safer handling.
+
+**Web URL** (blog posts, articles, any non-YouTube URL):
+
+Use WebFetch to extract content:
+```
+WebFetch with prompt: "Extract the main article content"
 ```
 WebFetch returns cleaned markdown-formatted content ready for analysis.
 
-**For local files**:
-```
-Use Read tool with the file path
-```
-Read returns the raw file content for analysis.
+**Local file path** (.txt, .md, or other text formats):
 
-### Step 3: Analyse and Extract Wisdom
+Use the Read tool to load content directly.
+
+### Step 2: Analyse and Extract Wisdom
+
+IMPORTANT: Avoid signal dilution, context collapse, quality degradation and degraded reasoning for future understanding of the content. Keep the signal-to-noise ratio high. Preserve domain insights while excluding filler or fluff.
 
 Perform analysis on the content, extracting:
 
 #### 1. Key Insights & Takeaways
-- Identify main ideas, core concepts, and central arguments
+- Identify the main ideas, core concepts, and central arguments
 - Extract fundamental learnings and important revelations
 - Highlight expert advice, best practices, or recommendations
 - Note any surprising or counterintuitive information
 
-#### 2. Notable Quotes (if applicable)
+#### 2. Notable Quotes
 - Extract memorable, impactful, or particularly well-articulated statements
-- Include context when relevant
+- Include context for each quote when relevant
 - Focus on quotes that encapsulate key ideas or provide unique perspectives
-- Preserve original wording exactly
+- Preserve the original wording exactly, except correct American spellings to Australian English
 
 #### 3. Structured Summary
 - Create hierarchical organisation of content
 - Break down into logical sections or themes
-- Provide clear headings reflecting content structure
+- Provide clear section headings that reflect content structure
 - Include high-level overview followed by detailed breakdowns
-- Note important examples, case studies, or data points
+- Note any important examples, case studies, or demonstrations
 
 #### 4. Actionable Takeaways
-- List specific, concrete actions readers can implement
+- List specific, concrete actions the audience can implement
 - Frame as clear, executable steps
 - Prioritise practical advice over theoretical concepts
 - Include any tools, resources, or techniques mentioned
 - Distinguish between immediate actions and longer-term strategies
 
-### Step 4: Present Findings
+### Step 3: Write Analysis to Markdown File
 
-**Default behaviour**: Present analysis in conversation
+Determine the output directory:
 
-**Optional file save**: When user requests markdown output, create a file with this structure:
+**YouTube sources:** The renamed directory from Step 1.
 
-**File location**: User-specified or `~/Downloads/text-wisdom/<sanitised-title>.md`
+**Web and text sources:** `~/Downloads/text-wisdom/YYYY-MM-DD-<concise-description>/`
+- Create the directory if it doesn't exist
+- Use the same date-prefixed naming convention as YouTube sources
 
-**Format**:
+**File name:** `<source-title> - analysis.md`
+
+Format the analysis using this structure:
+
 ```markdown
-# Analysis: [Title or URL]
+# Analysis: [Title]
 
-**Source**: [URL or file path]
+**Source**: [YouTube URL, web URL, or file path]
 **Analysis Date**: [YYYY-MM-DD]
 
 ## Summary
-[2-3 sentence overview of the main topic and key points]
+[Brief 2-3 sentence overview of the main topic and purpose]
+
+### Simplified Explanation
+[Explain It Like I'm 10: A simple 1-2 sentence explanation of the core concept in a way a 10-year-old could understand]
+
+### Key Takeaways
+- [Concise takeaway 1]
+- [Concise takeaway 2]
+- [Concise takeaway 3]
 
 ## Key Insights
-- [Insight 1 with supporting detail]
-- [Insight 2 with supporting detail]
-- [Insight 3 with supporting detail]
+- [Insight 1]
+  - [Supporting detail]
+- [Insight 2]
+  - [Supporting detail]
+- [Insight 3]
+  - [Supporting detail]
+- etc..
 
 ## Notable Quotes (Only include if there are notable quotes)
 > "[Quote 1]"
@@ -125,17 +162,48 @@ Context: [Brief context if needed]
 
 ## Additional Resources
 [Any tools, links, or references mentioned in the content]
+
+_Wisdom Extraction: [Current date in YYYY-MM-DD]_
 ```
 
-After writing the analysis file (if requested), inform the user of the location.
+After writing the analysis file, inform the user of the location.
+
+**OpenClaw note:** When running via OpenClaw, also return the full analysis content in your response. Users often want to read the insights immediately without opening a separate file.
+
+### Step 4: Critical Self-Review
+
+Conduct a critical self-review of your summarisation and analysis.
+
+Create tasks to track the following (mechanical checks first, then content quality):
+- [ ] No American English spelling - check and fix (e.g. judgment->judgement, practicing->practising, organize->organise)
+- [ ] No em-dashes, smart quotes, or non-standard typography
+- [ ] Proper markdown formatting
+- [ ] Accuracy & faithfulness to the original content
+- [ ] Completeness
+- [ ] Concise, clear content with no fluff, marketing speak, filler, or padding (high signal-to-noise ratio)
+- [ ] Logical organisation & structure
+
+Re-read the analysis file, verify each item, fix any issues found, then mark tasks completed.
+
+### Step 5: Send Completion Notification (Claude Code Only & Optional)
+
+Use `scripts/send_notification.sh` to send a desktop notification:
+
+```bash
+TITLE="Wisdom Extracted" MESSAGE="<short description>" PLAY_SOUND=true DIR="<output-directory>" bash scripts/send_notification.sh
+```
+
+Then stop unless further instructions are given.
 
 ## Additional Capabilities
 
 ### Multiple Source Analysis
 When analysing multiple sources:
 - Process each source sequentially using the workflow above
+- Each source gets its own directory
 - Create comparative analysis highlighting common themes or contrasting viewpoints
-- Synthesise insights across sources in a unified summary
+- Synthesise insights across multiple sources in a separate summary file
+- Notify once only at the end of the entire batch process
 
 ### Topic-Specific Focus
 When user requests focused analysis on specific topics:
@@ -143,8 +211,14 @@ When user requests focused analysis on specific topics:
 - Extract only content related to specified topics
 - Provide concentrated analysis on areas of interest
 
-### Different Content Types
-Handles various text formats:
+### Time-Stamped Analysis (YouTube only)
+If timestamps are needed:
+- Note that basic transcripts don't preserve timestamps
+- Can reference general flow (beginning, middle, end) of content
+- For precise timestamps, may need to cross-reference with the actual video
+
+### Supported Content Types
+- YouTube videos (via transcript download)
 - Blog posts and articles (via URL)
 - Markdown documentation
 - Plain text files
@@ -162,4 +236,16 @@ Handles various text formats:
 - Only use **bold** where emphasis is truly needed
 - Ensure clarity and conciseness in summaries and takeaways
 - Always ask yourself if the sentence adds value - if not, remove it
-- You can consider creating mermaid diagrams to explain complex concepts, relationships, or workflows found in the text
+- If the source mentions a specific tool, resource or website, task a sub-agent to look it up and provide a brief summary, then include it in the Additional Resources section
+- You can consider creating mermaid diagrams to explain complex concepts, relationships, or workflows found in the content
+
+## Resources
+
+### scripts/
+- `download_video.sh`: Downloads YouTube transcripts (no video files) using yt-dlp. Auto-detects environment (Claude Code/OpenClaw) and OS, outputs paths and next steps.
+- `send_notification.sh`: Sends desktop notifications when analysis is complete (Claude Code only, optional).
+
+### Installation Paths
+This skill works with both Claude Code and OpenClaw:
+- **Claude Code:** `~/.claude/skills/extract-wisdom/`
+- **OpenClaw:** `~/.openclaw/workspace/skills/extract-wisdom/`
