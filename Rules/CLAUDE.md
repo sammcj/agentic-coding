@@ -141,7 +141,8 @@ Example patterns:
 
 ## Diagramming
 
-<MERMAID>
+## Mermaid
+
 - You MUST NOT use round brackets ( ) within item labels or descriptions
 - Use `<br>` instead of `\n` for line breaks
 - Mermaid does not support unordered lists within item labels
@@ -158,7 +159,6 @@ classDef storage fill:#F1F8E9,stroke:#9CCC65,color:#689F38
 classDef api fill:#FFF9C4,stroke:#FDD835,color:#F9A825
 classDef error fill:#FFCDD2,stroke:#EF5350,color:#C62828
 ```
-</MERMAID>
 
 ## Self-Review Protocol
 

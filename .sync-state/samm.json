@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-12T13:30:21.120691",
+  "last_sync": "2026-02-16T09:27:27.519188",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -84,8 +84,8 @@
       "last_synced": "2026-02-05T15:22:23.675204"
     },
     "claude-skills/authoring-claude-md/SKILL.md": {
-      "checksum": "sha256:50bbce2393dc3c9e51573e900e31324ac64ceebe0c5fa1be2cc0e0521093dc2c",
-      "last_synced": "2026-02-06T14:08:11.672345"
+      "checksum": "sha256:53d99a0aed866d3cb0a52fc898d266ffcb327a9ba748e97b613188e558484074",
+      "last_synced": "2026-02-16T09:27:27.280088"
     },
     "claude-skills/piper-tts-training/scripts/convert_spelling.py": {
       "checksum": "sha256:dda9b6ebedf9f216e5f8acca856670ee46686dc28ad6a4908f8f903fb9cc8a14",
@@ -124,8 +124,8 @@
       "last_synced": "2026-02-06T14:08:11.684148"
     },
     "claude-rules/CLAUDE.md": {
-      "checksum": "sha256:647e33cf79803d0e2c84cd6cd1cf82c8ca7653014d34f286118ae98c2c8803c7",
-      "last_synced": "2026-02-12T11:52:58.781038"
+      "checksum": "sha256:b585c245a4abee24be48f333d031c3ca591bcf26b9635db462140cb1badd9a3f",
+      "last_synced": "2026-02-16T09:27:27.519044"
     },
     "claude-skills/deferred-task-execution/scripts/wait-until.sh": {
       "checksum": "sha256:4d9ca37330834653a9bf595c83ce9447a18986e808cd5ccebed5674ca6e22ca8",
@@ -250,6 +250,22 @@
     "claude-skills/extract-wisdom/SKILL.md": {
       "checksum": "sha256:67b6a76bde9ebc75660926a5e8fbe144730239008c3352df5cd629336d27e28c",
       "last_synced": "2026-02-12T13:30:21.120097"
+    },
+    "claude-skills/excalidraw-diagrams/_note.md": {
+      "checksum": "sha256:ce83fe5fa8f89f06a4844833aa38d9fbc7e47bb51836d9447a02aafb51c211d9",
+      "last_synced": "2026-02-16T09:27:27.280658"
+    },
+    "claude-skills/excalidraw-diagrams/scripts/generate_excalidraw.py": {
+      "checksum": "sha256:39e1e1da5f75dbf2593330f47b57ff579059465287ba675d06365c854d70925d",
+      "last_synced": "2026-02-16T09:27:27.281198"
+    },
+    "claude-skills/analyse-design/SKILL.md": {
+      "checksum": "sha256:aa4bdb639957efaadbf194d3b48fcc309615702bae123e6eb719f18033ad8e68",
+      "last_synced": "2026-02-16T09:27:27.281676"
+    },
+    "claude-skills/excalidraw-diagrams/SKILL.md": {
+      "checksum": "sha256:2be4f888e6f5795bc52df752a727be7d1be8ca5b4af4c5eda9cd9cd1bfadf6ca",
+      "last_synced": "2026-02-16T09:27:27.282079"
     }
   },
   "deletions": {

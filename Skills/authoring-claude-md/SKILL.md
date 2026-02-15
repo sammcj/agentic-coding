@@ -27,16 +27,8 @@ CLAUDE.md files provide AI agents with:
 
 ## Structure
 
-Use XML-style tags for organisation. Common sections:
-
-```xml
-<ARCHITECTURE>  System design, key patterns, data flow
-<CONVENTIONS>   Project-specific patterns, naming
-<GOTCHAS>       Non-obvious issues and solutions to recurring problems
-<TESTING>       Test organisation, special requirements
-```
-
-Use 2-4 sections. Only include what adds value.
+- Use headings for clear organisation. Suggested sections:
+- Use 2-4 sections. Only include what adds value.
 
 ## What to Include
 
@@ -75,13 +67,11 @@ Use 2-4 sections. Only include what adds value.
 Point to existing docs rather than duplicating content. Provide context about when to read them:
 
 **Good**:
-```xml
-<ARCHITECTURE>
+# Architecture
 Event-driven architecture using AWS EventBridge.
 
 - For database schema: see src/database/SCHEMA.md when working with data models
 - For auth flows: see src/auth/README.md when working with authentication
-</ARCHITECTURE>
 ```
 
 **Bad**: Copying schema tables, pasting deployment steps, or duplicating API flows into CLAUDE.md
@@ -121,31 +111,30 @@ Always use Australian English spelling
 
 ## Example Structure
 
-```xml
-<ARCHITECTURE>
+```markdown
+# Architecture
 Event-driven architecture using AWS EventBridge. Services communicate via events, not direct calls.
 
 Auth: JWT tokens with refresh mechanism. See src/auth/README.md for detailed flows when working on authentication.
 Database schema and relationships: see src/database/SCHEMA.md when working with data models.
-</ARCHITECTURE>
 
-<CONVENTIONS>
+# Conventions
 - API routes: Plural nouns (`/users`, `/orders`), no verbs in paths
 - Error codes: 4-digit format `ERRR-1001`, defined in src/errors/codes.ts
 - Feature flags: Check in middleware, not in business logic
 - Dates: Always UTC in database, format client-side via src/utils/dates.ts
-</CONVENTIONS>
 
-<GOTCHAS>
+# Gotchas
+
 **Cache race conditions**: Always acquire lock before checking cache status
 
 **Background job authentication**: Tokens expire after 1 hour. Refresh using
 `refreshToken()` in src/auth/refresh.ts before making API calls.
-</GOTCHAS>
 
-<TESTING>
-Run `make test` before committing. Integration tests require Docker.
-</TESTING>
+# Testing
+
+- Tests should never have external API calls or dependencies.
+- Run `make test` before committing.
 ```
 
 ## Token Budget
