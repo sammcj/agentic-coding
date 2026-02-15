@@ -102,7 +102,10 @@ By default, arrows float free - moving a shape leaves the arrow behind. Use `bou
 
 `fixedPoint` values for connection points on shapes: top=`[0.5, 0]`, right=`[1, 0.5]`, bottom=`[0.5, 1]`, left=`[0, 0.5]`. Any `[fx, fy]` value works where 0,0 is the shape's top-left corner and 1,1 is bottom-right.
 
-**Important**: shapes must already exist in `elements` before calling `bound_arrow`, since it looks them up and mutates their `boundElements`.
+**Important**:
+- Shapes must already exist in `elements` before calling `bound_arrow`, since it looks them up and mutates their `boundElements`.
+- **Minimum 60px between connected shapes.** Excalidraw recalculates bound arrow geometry at render time. When shapes are too close together (under ~60px gap), arrows overlap and pass through boxes instead of connecting at edges. The script warns if this threshold is violated. Plan layouts with adequate spacing.
+- **Avoid large background rectangles that overlap connectable shapes.** Excalidraw's binding resolution can misfire when a bound arrow's endpoint falls inside a background rect that overlaps the intended target shape. If you need section backgrounds, add them after all bound arrows, or use standalone text labels and colour-coded boxes instead.
 
 For the inline `create_view` workflow, use `startBinding`/`endBinding` with `fixedPoint` directly on arrow elements.
 

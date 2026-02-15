@@ -334,6 +334,15 @@ def bound_arrow(
 
     dx = ex - sx
     dy = ey - sy
+    dist = (dx**2 + dy**2) ** 0.5
+    if dist < 60:
+        import warnings
+        warnings.warn(
+            f"bound_arrow '{id}': distance between '{start_id}' and '{end_id}' is {dist:.0f}px. "
+            f"Excalidraw recalculates bound arrow geometry and needs at least ~60px between "
+            f"connection points to render correctly. Increase spacing between shapes.",
+            stacklevel=2,
+        )
     w = abs(dx)
     h = abs(dy)
 

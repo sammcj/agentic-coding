@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-16T09:27:27.519188",
+  "last_sync": "2026-02-16T09:40:55.771319",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -256,16 +256,16 @@
       "last_synced": "2026-02-16T09:27:27.280658"
     },
     "claude-skills/excalidraw-diagrams/scripts/generate_excalidraw.py": {
-      "checksum": "sha256:39e1e1da5f75dbf2593330f47b57ff579059465287ba675d06365c854d70925d",
-      "last_synced": "2026-02-16T09:27:27.281198"
+      "checksum": "sha256:ba20ea787c99a9628e174028ac39afdd54dcf83d8f1a56d1c7ee5c6dc8d636e4",
+      "last_synced": "2026-02-16T09:40:55.770767"
     },
     "claude-skills/analyse-design/SKILL.md": {
       "checksum": "sha256:aa4bdb639957efaadbf194d3b48fcc309615702bae123e6eb719f18033ad8e68",
       "last_synced": "2026-02-16T09:27:27.281676"
     },
     "claude-skills/excalidraw-diagrams/SKILL.md": {
-      "checksum": "sha256:2be4f888e6f5795bc52df752a727be7d1be8ca5b4af4c5eda9cd9cd1bfadf6ca",
-      "last_synced": "2026-02-16T09:27:27.282079"
+      "checksum": "sha256:352d83ec33f9148c645a1de2b1de87de24e7daf92423536a876d35cf88468458",
+      "last_synced": "2026-02-16T09:40:55.771183"
     }
   },
   "deletions": {
