@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-16T09:40:55.771319",
+  "last_sync": "2026-02-18T10:38:12.401828",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -136,8 +136,8 @@
       "last_synced": "2026-02-07T11:54:10.264911"
     },
     "claude/statusline-command.sh": {
-      "checksum": "sha256:5f4d371bcc817c87529938697c11c62db9dcdd304ae9029ad3c9569889bfface",
-      "last_synced": "2026-02-09T17:31:00.642959"
+      "checksum": "sha256:decfa21723b34ce8c150b536e7c48f4539851cd52e0827b1ed35aa0f7e837bcf",
+      "last_synced": "2026-02-18T10:38:12.401690"
     },
     "claude/commands/self-review.md": {
       "checksum": "sha256:f999b6b1b463df28ecdb843d058a81c528a35739e9db6714270a3d4cd84820f5",
@@ -266,6 +266,10 @@
     "claude-skills/excalidraw-diagrams/SKILL.md": {
       "checksum": "sha256:352d83ec33f9148c645a1de2b1de87de24e7daf92423536a876d35cf88468458",
       "last_synced": "2026-02-16T09:40:55.771183"
+    },
+    "claude/hooks/claude-notify": {
+      "checksum": "sha256:b06a59af5164be54d55e1ad8bcd873dd9ad06c71374ed3fc6cb3a8dec5d349c1",
+      "last_synced": "2026-02-18T10:38:12.401256"
     }
   },
   "deletions": {
