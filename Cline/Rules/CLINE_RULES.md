@@ -1,7 +1,6 @@
 # Global Instructions
 
 ## Writing Style
-
 - Never use overused AI phrases: comprehensive, robust, best-in-class, feature-rich, production-ready, enterprise-grade, seamlessly, smoking gun
 - No smart quotes, em dashes, or emojis unless requested
 - No sycophancy, marketing speak, or unnecessary summary paragraphs
@@ -11,7 +10,6 @@
 - Final check: does it sound like a person or Wikipedia crossed with a press release?
 
 ## Spelling
-
 **Always use Australian English spelling in all responses, documentation, comments, and code identifiers.**
 
 Example patterns:
@@ -57,7 +55,6 @@ Example patterns:
 - Validate environment variables on startup
 
 ## Security
-
 - Never hardcode credentials, tokens, or secrets. Never commit sensitive data
 - Never trust user input - validate and sanitise all inputs
 - Parameterised queries only - never string concatenation for SQL
@@ -70,7 +67,6 @@ Example patterns:
 - Graceful degradation over complete failure. Retry with exponential backoff for transient failures
 
 ## Testing
-
 - Test-first for bugs: write failing test, fix, verify, check no regressions
 - Descriptive test names. Arrange-Act-Assert pattern. Table-driven tests for multiple cases
 - One assertion per test where practical. Test edge cases and error paths
@@ -79,11 +75,14 @@ Example patterns:
 ## Language Preferences
 
 ### Golang
-
 - Use latest Go version (verify, don't assume). Build with `-ldflags="-s -w"`
 - Check modernity: `go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix -test ./...`
 - Copy golangci config: `$HOME/git/sammcj/mcp-devtools/.golangci.yml`
 - Idiomatic Go: explicit error handling, early returns, small interfaces, composition, defer for cleanup, table-driven tests
+
+### Python
+- Favour Python 3.14+ features. Use `uv` for .venv management. Use `uvx ty check` for type checking
+- Type hints for all functions. Dataclasses for data structures. Pathlib over os.path. f-strings
 
 ### TypeScript
 - Prefer TypeScript over JavaScript. Strict mode always
@@ -91,10 +90,11 @@ Example patterns:
 - Const by default, async/await over promise chains, optional chaining and nullish coalescing
 - Never hardcode styles - use theme/config
 
-### Python
-
-- Favour Python 3.14+ features. Use `uv` for .venv management. Use `uvx ty check` for type checking
-- Type hints for all functions. Dataclasses for data structures. Pathlib over os.path. f-strings
+### Rust
+- Use the latest Rust and Cargo versions and features to ensure optimal performance
+- Consider using rust workspaces and divide the project into distinct internal crates to reduce build times
+- Avoid exposing generics via public or inter-crate APIs (unless there is a really good reason)
+- Only activate required features on external crates
 
 ### Bash
 - `#!/usr/bin/env bash` with `set -euo pipefail`
