@@ -70,6 +70,21 @@ I wrote it to provide the most common tooling I use with Agentic Coding.
 
 ## Tips For Agentic Coding
 
+### Claude Code
+
+- Use plan mode to plan tasks for Claude to work from before diving into making changes.
+- Lean into skills, dynamical context acquisition is very powerful.
+- Encourage Claude to use sub-agents where it makes sense to do so.
+- Create a command (prompt template) that prompts Claude to perform a critical self review and to fix any issues it may find, use this after it completes work.
+- Adding a rule to remind Claude to pipe the output of potentially noisy shell commands to null can help reduce token usage.
+- Adding your context usage, and limits consumption (if you're on a plan) to the statusline is useful.
+- Using voice to text with a tool like Handy to dictate work to Claude Code is super useful, sometimes with voice you capture intent that you'd otherwise edit out.
+- If Claude gets stuck on a complex issue, get it to stop and perform a systematic debug of the issue.
+- Setup your permissions (in settings.json) to pre-approve/deny/ask commands and file paths that Claude may want to use. If you're not sure of the syntax the docs are OK but you can also ask Claude for the correct way to write them.
+- Use Anthropic's official PPTX/DOCX skills to create documents.
+- Use the Excalidraw MCP to create diagrams.
+- Create shell aliases for the various claude CLI commands you use, e.g. `alias cc='claude --continue`, `alias ccd='claude --continue --dangerously-skip-permissions` , `alias ccr='claude --resume` etc.
+
 ### Writing Rules
 
 - **Using pseudo-XML for your rules can help LLM adherence**

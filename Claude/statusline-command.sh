@@ -186,7 +186,7 @@ if [ -n "$resets_at" ]; then
     fi
 fi
 
-printf "[%s] 🧠%s%s\033[0m %s%% | 📶%s%s\033[0m%s%%%s | 🧑‍💻%b %b" \
+printf "[\033[37m%s\033[0m] 🧠 %s%s\033[0m%s%% | 📶 %s%s\033[0m%s%%%s | 🧑‍💻 %b %b" \
     "$dir_name" "$context_colour" "$context_bar" "$used_pct" \
     "$session_colour" "$session_bar" "$session_pct" "$reset_str" \
     "$model_bar" "$model_legend"
