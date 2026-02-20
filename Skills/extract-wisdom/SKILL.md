@@ -164,6 +164,9 @@ Context: [Brief context if needed]
 2. [Specific action item 2]
 3. [Specific action item 3]
 
+## Insights & Commentary
+[Your own insights, analysis, reflections, or commentary on the content, if applicable]
+
 ## Additional Resources
 [Any tools, links, or references mentioned in the content]
 
