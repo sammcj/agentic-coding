@@ -57,6 +57,8 @@ Use the Read tool to load content directly.
 
 IMPORTANT: Avoid signal dilution, context collapse, quality degradation and degraded reasoning for future understanding of the content. Keep the signal-to-noise ratio high. Preserve domain insights while excluding filler or fluff.
 
+If the content is very long and you have the ability to ask the user questions - ask the user what level of detail they want in the document, use multi-choice if possible with: "Highly detailed", "Medium detail", "Concise"
+
 Perform analysis on the content, extracting:
 
 #### 1. Key Insights & Takeaways
@@ -79,11 +81,17 @@ Perform analysis on the content, extracting:
 - Note any important examples, case studies, or demonstrations
 
 #### 4. Actionable Takeaways
-- List specific, concrete actions the audience can implement
+- List specific, concrete actions the audience can implement with examples (if applicable)
+- Do not add your own advice, input or recommendations outside of what is in the content unless the user has asked you to do so
 - Frame as clear, executable steps
 - Prioritise practical advice over theoretical concepts
 - Include any tools, resources, or techniques mentioned
 - Distinguish between immediate actions and longer-term strategies
+
+#### 5. Your Own Insights On The Content
+- Provide your own analysis, insights, or reflections on the content
+- Identify any gaps, contradictions, or areas for further exploration (if applicable, keep this concise)
+- Note any implications for the field, industry, or audience
 
 ### Step 3: Write Analysis to Markdown File
 
