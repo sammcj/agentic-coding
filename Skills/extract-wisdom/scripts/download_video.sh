@@ -7,61 +7,65 @@ set -euo pipefail
 # Auto-detects macOS or Linux and uses appropriate paths
 # Falls back to no-cookie download if browser cookies unavailable
 
-# Detect environment and set appropriate base directory
+# Resolve the script's real location for environment detection.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+
+# Detect environment and set appropriate base directory.
+# Claw-based environments are detected automatically from the script path:
+#   ~/.openclaw/workspace/...  ->  openclaw
+#   ~/.zeroclaw/workspace/...  ->  zeroclaw
+#   ~/.anyclaw/workspace/...   ->  anyclaw   (no code changes needed)
+# On Linux, set <UPPERNAME>_WISDOM_DIR to override the output directory.
 detect_environment_and_set_paths() {
     local base_dir=""
     local detected_env=""
-    
-    # Detect if running under OpenClaw
-    if [[ -n "${OPENCLAW_WORKSPACE:-}" ]] || [[ -d "${HOME}/.openclaw/workspace" ]]; then
-        detected_env="openclaw"
-    elif [[ -d "${HOME}/.claude/skills" ]]; then
+    local ws_dir=""
+
+    # Detect from script path: ~/.{name}/workspace/...
+    if [[ "$SCRIPT_DIR" =~ ^"${HOME}"/\.([^/]+)/workspace(/|$) ]]; then
+        detected_env="${BASH_REMATCH[1]}"
+        ws_dir="${HOME}/.${detected_env}/workspace"
+    elif [[ "$SCRIPT_DIR" =~ ^"${HOME}"/\.claude(/|$) ]]; then
         detected_env="claude-code"
     fi
-    
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS
-        if [[ "$detected_env" == "openclaw" ]]; then
-            # OpenClaw on macOS - use .openclaw/workspace
-            base_dir="${HOME}/.openclaw/workspace/wisdom"
-        elif [[ "$detected_env" == "claude-code" ]]; then
-            # Claude Code on macOS - use iCloud if available
+
+    if [[ -n "$detected_env" && "$detected_env" != "claude-code" ]]; then
+        # Claw-based environment
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            base_dir="${ws_dir}/wisdom"
+        else
+            # Convention: <UPPERNAME>_WISDOM_DIR overrides output on Linux
+            local wisdom_env
+            wisdom_env="$(printf '%s' "$detected_env" | tr '[:lower:]' '[:upper:]')_WISDOM_DIR"
+            if [[ -n "${!wisdom_env:-}" ]]; then
+                base_dir="${!wisdom_env}"
+            else
+                base_dir="${ws_dir}/wisdom"
+            fi
+        fi
+    elif [[ "$detected_env" == "claude-code" ]]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
             if [[ -d "${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents" ]]; then
                 base_dir="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom"
             else
                 base_dir="${HOME}/Wisdom"
             fi
         else
-            # Unknown environment - default to iCloud if available
-            if [[ -d "${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents" ]]; then
-                base_dir="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom"
-            else
-                base_dir="${HOME}/Wisdom"
-            fi
+            base_dir="${HOME}/.claude/wisdom"
         fi
     else
-        # Linux and other Unix-like systems
-        if [[ "$detected_env" == "openclaw" ]]; then
-            # OpenClaw on Linux
-            if [[ -n "${OPENCLAW_WISDOM_DIR:-}" ]]; then
-                base_dir="${OPENCLAW_WISDOM_DIR}"
-            else
-                base_dir="${HOME}/.openclaw/workspace/wisdom"
-            fi
-        elif [[ "$detected_env" == "claude-code" ]]; then
-            # Claude Code on Linux
-            base_dir="${HOME}/.claude/wisdom"
-        else
-            # Unknown environment - use generic fallback
-            if [[ -n "${OPENCLAW_WISDOM_DIR:-}" ]]; then
-                base_dir="${OPENCLAW_WISDOM_DIR}"
+        # Unknown environment -- sensible defaults
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            if [[ -d "${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents" ]]; then
+                base_dir="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom"
             else
                 base_dir="${HOME}/Wisdom"
             fi
+        else
+            base_dir="${HOME}/Wisdom"
         fi
     fi
-    
-    # Export detected environment for later use
+
     export DETECTED_ENV="$detected_env"
     echo "$base_dir"
 }
@@ -131,8 +135,8 @@ main() {
         echo "Error: No video URL provided"
         echo "Usage: $0 <youtube-url>"
         echo ""
-        echo "Environment variables:"
-        echo "  OPENCLAW_WISDOM_DIR - Override the output directory (Linux only)"
+        echo "Environment variables (Linux only - override output directory):"
+        echo "  <UPPERNAME>_WISDOM_DIR  e.g. OPENCLAW_WISDOM_DIR, ZEROCLAW_WISDOM_DIR"
         exit 1
     fi
 

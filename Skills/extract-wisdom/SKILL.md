@@ -1,6 +1,7 @@
 ---
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
+allowed-tools: Read,Write,Bash,WebFetch,WebSearch
 ---
 
 # Wisdom Extraction
@@ -20,7 +21,7 @@ bash scripts/download_video.sh <youtube-url>
 ```
 
 The script will:
-- Auto-detect your environment (Claude Code or OpenClaw) and OS (macOS or Linux)
+- Auto-detect your environment (Claude Code or Claw based agents) and OS (macOS or Linux)
 - Download English subtitles or auto-generated transcripts
 - Output the transcript path and next steps
 
@@ -153,7 +154,7 @@ _Wisdom Extraction: [Current date in YYYY-MM-DD]_
 
 After writing the analysis file, inform the user of the location.
 
-**OpenClaw note:** When running via OpenClaw, also return the full analysis content in your response. Users often want to read the insights immediately without opening a separate file.
+**Claw note:** When running via Claw, also return the full analysis content in your response. Users often want to read the insights immediately without opening a separate file.
 
 ### Step 4: Critical Self-Review
 
@@ -217,10 +218,11 @@ If timestamps are needed:
 ## Resources
 
 ### scripts/
-- `download_video.sh`: Downloads YouTube transcripts (no video files) using yt-dlp. Auto-detects environment (Claude Code/OpenClaw) and OS, outputs paths and next steps.
+- `download_video.sh`: Downloads YouTube transcripts (no video files) using yt-dlp. Auto-detects environment (Claude Code/Claw) and OS, outputs paths and next steps.
 - `send_notification.sh`: Sends desktop notifications when analysis is complete (Claude Code only, optional).
 
 ### Installation Paths
-This skill works with both Claude Code and OpenClaw:
+This skill works with both Claude Code and Claw based agents:
 - **Claude Code:** `~/.claude/skills/extract-wisdom/`
 - **OpenClaw:** `~/.openclaw/workspace/skills/extract-wisdom/`
+- **ZeroClaw:** `~/.zeroclaw/workspace/skills/extract-wisdom/`
