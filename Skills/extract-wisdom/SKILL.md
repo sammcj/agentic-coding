@@ -91,7 +91,15 @@ Determine the output directory:
 
 **YouTube sources:** The renamed directory from Step 1.
 
-**Web and text sources:** `~/Downloads/text-wisdom/YYYY-MM-DD-<concise-description>/`
+**Web and text sources:** Run the following to determine the base output directory, then use it as described below:
+
+```bash
+bash scripts/download_video.sh --output-dir
+```
+
+If the command fails or is unavailable, fall back to `~/Downloads/text-wisdom/`.
+
+Save to `<base-output-dir>/YYYY-MM-DD-<concise-description>/`:
 - Create the directory if it doesn't exist
 - Use the same date-prefixed naming convention as YouTube sources
 

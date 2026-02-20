@@ -130,6 +130,12 @@ main() {
     local converted_count=0
     local download_success=false
 
+    # Print the resolved output directory and exit (used by SKILL.md for non-YouTube sources)
+    if [[ "$video_url" == "--output-dir" ]]; then
+        detect_environment_and_set_paths
+        exit 0
+    fi
+
     # Validate input
     if [[ -z "$video_url" ]]; then
         echo "Error: No video URL provided"

@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-20T12:05:51.007015",
+  "last_sync": "2026-02-20T16:10:04.194486",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -244,12 +244,12 @@
       "last_synced": "2026-02-12T12:52:26.023113"
     },
     "claude-skills/extract-wisdom/scripts/download_video.sh": {
-      "checksum": "sha256:3d28c9e88a5b2429924691d76e6e43fb1a2d6c83cbda44b00163f03ec30082b8",
-      "last_synced": "2026-02-20T12:05:51.006108"
+      "checksum": "sha256:ab1d0f0d177a2711a5d49cc95d126766a9f8fb451ada0cf65392e022114d4437",
+      "last_synced": "2026-02-20T16:10:04.194331"
     },
     "claude-skills/extract-wisdom/SKILL.md": {
-      "checksum": "sha256:b95e020056dda97ac2c37148725deee09d85c000e77a3fa84ad8a9a36b8292a2",
-      "last_synced": "2026-02-20T12:05:51.006869"
+      "checksum": "sha256:56d5f3918aca69594942dba2dc57bf13224b554ee1d69da3afd3cffd5765f546",
+      "last_synced": "2026-02-20T16:10:04.193860"
     },
     "claude-skills/excalidraw-diagrams/_note.md": {
       "checksum": "sha256:ce83fe5fa8f89f06a4844833aa38d9fbc7e47bb51836d9447a02aafb51c211d9",
