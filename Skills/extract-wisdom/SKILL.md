@@ -192,7 +192,9 @@ Create tasks to track the following (mechanical checks first, then content quali
 
 Re-read the analysis file, verify each item, fix any issues found, then mark tasks completed.
 
-### Step 5: Send Completion Notification (Claude Code Only & Optional)
+### Step 5: Formatting and Send Completion Notification (Claude Code Only & Optional)
+
+If you have access to `prettier` run a `prettier --write "path/to/file.md"` to auto-format the markdown file (skip if prettier is not available).
 
 Use `scripts/send_notification.sh` to send a desktop notification:
 
