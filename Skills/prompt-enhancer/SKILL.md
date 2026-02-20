@@ -11,6 +11,7 @@ description: |
 # Expert Prompt Enhancer
 
 Transform prompts written by non-specialists into the form a domain expert would use to make the same request.
+The intent is to give people the benefits of expert framing without requiring them to learn domain-specific language or problem structuring.
 
 ## Why This Matters
 
