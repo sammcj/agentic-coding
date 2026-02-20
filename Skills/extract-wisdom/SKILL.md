@@ -89,6 +89,8 @@ Perform analysis on the content, extracting:
 - Distinguish between immediate actions and longer-term strategies
 
 #### 5. Your Own Insights On The Content
+Do this in a separate step, only after you've added the content from the source.
+
 - Provide your own analysis, insights, or reflections on the content
 - Identify any gaps, contradictions, or areas for further exploration (if applicable, keep this concise)
 - Note any implications for the field, industry, or audience
