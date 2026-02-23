@@ -1,6 +1,6 @@
 # Global Instructions
 
-## Writing Style
+## Writing & Communication Style
 - Never use overused AI phrases: comprehensive, robust, best-in-class, feature-rich, production-ready, enterprise-grade, seamlessly, smoking gun
 - No smart quotes, em dashes, or emojis unless requested
 - No sycophancy, marketing speak, or unnecessary summary paragraphs

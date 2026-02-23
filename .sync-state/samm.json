@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-20T16:29:47.562082",
+  "last_sync": "2026-02-23T16:35:00.053173",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -124,8 +124,8 @@
       "last_synced": "2026-02-06T14:08:11.684148"
     },
     "claude-rules/CLAUDE.md": {
-      "checksum": "sha256:c462350114daf93f28f6e3b01ddee5a8487ce10ea22e83e9fc3c7ebeb3a14e6d",
-      "last_synced": "2026-02-19T15:24:13.772782"
+      "checksum": "sha256:5c4d9b73de54f6179d523f4c72bff80c7a9ebdf99d4b9b0d369d49d05a291179",
+      "last_synced": "2026-02-23T16:34:59.736530"
     },
     "claude-skills/deferred-task-execution/scripts/wait-until.sh": {
       "checksum": "sha256:4d9ca37330834653a9bf595c83ce9447a18986e808cd5ccebed5674ca6e22ca8",
@@ -136,8 +136,8 @@
       "last_synced": "2026-02-07T11:54:10.264911"
     },
     "claude/statusline-command.sh": {
-      "checksum": "sha256:c5d9e05e036f0dbc457239e6d874289b2186cd2dcec24cda4a83867605f7c97b",
-      "last_synced": "2026-02-19T13:01:11.119774"
+      "checksum": "sha256:abd48c48ee24051314a81b810f90965eeede05f8607cb0af8a8ebbdc04bd1711",
+      "last_synced": "2026-02-23T16:35:00.053010"
     },
     "claude/commands/self-review.md": {
       "checksum": "sha256:f999b6b1b463df28ecdb843d058a81c528a35739e9db6714270a3d4cd84820f5",
@@ -236,8 +236,8 @@
       "last_synced": "2026-02-11T11:01:31.009551"
     },
     "claude-skills/code-review/SKILL.md": {
-      "checksum": "sha256:6074259985961917f6f1d78670aae8c16220b1e215c03081a804a024cff94ee1",
-      "last_synced": "2026-02-12T11:52:58.403784"
+      "checksum": "sha256:ae3fed656797d7e14a9612eb078acf65b2b59876e594f561d4bb337007dfe942",
+      "last_synced": "2026-02-23T16:34:59.502700"
     },
     "claude-skills/extract-wisdom/scripts/send_notification.sh": {
       "checksum": "sha256:ca04e5b4834d3448860a8689b9a7323aa5750503a6f7aad4557c22af07c80155",
@@ -278,6 +278,30 @@
     "claude-skills/prompt-enhancer/SKILL.md": {
       "checksum": "sha256:cf0cddb801b35251a52389c1abbf81421203889fc6eb5f9918782165721abc12",
       "last_synced": "2026-02-20T16:29:47.561893"
+    },
+    "claude-skills/team-ideation/templates/idea-report.md": {
+      "checksum": "sha256:919bba35f80e22a6fba8ec8a9ca03dc4c6bfb92abb9ee38a7f597abe9d114842",
+      "last_synced": "2026-02-23T16:34:59.500634"
+    },
+    "claude-skills/team-ideation/SKILL.md": {
+      "checksum": "sha256:e22398cd267840069c510d3cf24e6eaf5d1f3837d70c4a127ddb5833193a6645",
+      "last_synced": "2026-02-23T16:34:59.501433"
+    },
+    "claude-skills/team-ideation/templates/session-summary.md": {
+      "checksum": "sha256:8125c016f94c01ff7e2e8823465cfe99620e179caf75380567292d1d9e15e7db",
+      "last_synced": "2026-02-23T16:34:59.501877"
+    },
+    "claude-skills/team-ideation/templates/ideation-graph.md": {
+      "checksum": "sha256:25ffc3cafd2c0be1f5fe775fe45e4a3585d34311637429329d4337f5ea0f9523",
+      "last_synced": "2026-02-23T16:34:59.502305"
+    },
+    "claude-skills/team-ideation/templates/vision-document.md": {
+      "checksum": "sha256:7fe3038b7e32614dfaae79ccac3375a57f73270b12627a35acf4f0c4fd738497",
+      "last_synced": "2026-02-23T16:34:59.503082"
+    },
+    "claude-skills/team-ideation/templates/idea-brief.md": {
+      "checksum": "sha256:e509005911c4c0a8a41cf62a3ad6ca466fb0774bd4c8aae248d68611a324b27b",
+      "last_synced": "2026-02-23T16:34:59.503478"
     }
   },
   "deletions": {
