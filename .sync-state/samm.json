@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-23T16:35:00.053173",
+  "last_sync": "2026-02-24T08:56:57.010339",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
       "last_synced": "2026-02-09T08:43:39.194546"
     },
     "claude/settings.json": {
-      "checksum": "sha256:4d25b826b76ae78a4dcd2e13e3c9b32245ea893272a1ff90c796168df2d02858",
-      "last_synced": "2026-02-09T17:10:22.113581"
+      "checksum": "sha256:28c5e435b6334a65a95cc678c2890a66df9a6d0f1d507d576d9aabd3c44dc685",
+      "last_synced": "2026-02-24T08:46:51.792178"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
       "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
@@ -302,6 +302,10 @@
     "claude-skills/team-ideation/templates/idea-brief.md": {
       "checksum": "sha256:e509005911c4c0a8a41cf62a3ad6ca466fb0774bd4c8aae248d68611a324b27b",
       "last_synced": "2026-02-23T16:34:59.503478"
+    },
+    "claude/hooks/format-markdown.sh": {
+      "checksum": "sha256:8494558a64ec291de709962d346ab145993cd3b67cffbb8ec9267e225fa21fe3",
+      "last_synced": "2026-02-24T08:56:57.010201"
     }
   },
   "deletions": {
@@ -347,6 +351,11 @@
     },
     "claude-skills/youtube-wisdom/SKILL.md": {
       "deleted_at": "2026-02-12T12:52:26.016746",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude/hooks/approve-compound-commands.py": {
+      "deleted_at": "2026-02-24T08:45:05.042525",
       "checksum": "unknown",
       "decision": "confirmed"
     }

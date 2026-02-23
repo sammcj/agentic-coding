@@ -1,5 +1,12 @@
 {
   "permissions": {
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "/Users/samm/git",
+      "/Users/samm/Downloads",
+      "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
+      "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Dropbox Import/dotfiles/shell_config"
+    ],
     "allow": [
       "Bash(cat:*)",
       "Bash(eslint:*)",
@@ -153,6 +160,62 @@
       "WebFetch",
       "Skill"
     ],
+    "ask": [
+      "Edit(~/.claude/commands/**)",
+      "Edit(~/.claude/hooks/**)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh add:*)",
+      "Bash(gh commit:*)",
+      "Bash(nc:*)",
+      "Bash(ssh:*)",
+      "Bash(rsync:*)",
+      "Bash(scp:*)",
+      "Bash(tcpdump:*)",
+      "Bash(wireshark:*)",
+      "Bash(npx -y:*)",
+      "Bash(uvx:*)",
+      "Bash(go run:*)",
+      "Bash(env)",
+      "Bash(printenv:*)",
+      "Bash(pipx:*)",
+      "Bash(./target/**:*)",
+      "Bash(./bin/**:*)",
+      "Bash(./build/**:*)",
+      "Bash(./out/**:*)",
+      "Edit(./**/*.bak)",
+      "Edit(./**/*.backup)",
+      "Read(**/credentials.json)",
+      "Read(**/.env)",
+      "Read(**/*.pem)",
+      "Read(**/*.sock)",
+      "Read(**/*.socket)",
+      "Read(~/Library/com.apple**)",
+      "Read(~/Library/**/com.apple**)",
+      "Read(//Library/**)",
+      "Read(/System/**)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)",
+      "Bash(rm -r -f:*)",
+      "Bash(rm -f -r:*)",
+      "Bash(yes | rm:*)",
+      "Bash(yes |rm:*)",
+      "Bash(yes| rm:*)",
+      "Bash(yes|rm:*)",
+      "Bash(echo y |:*)",
+      "Bash(echo y|:*)",
+      "Bash(echo yes |:*)",
+      "Bash(echo yes|:*)",
+      "Bash(dd:*)",
+      "Bash(mkfs:*)",
+      "Bash(fdisk:*)",
+      "Bash(diskutil:*)",
+      "Bash(parted:*)",
+      "Bash(history -c:*)",
+      "Bash(unset HISTFILE:*)",
+      "Bash(chmod -R:*)",
+      "Bash(chown -R:*)"
+    ],
     "deny": [
       "Read(.vscode/**)",
       "Read(**/secrets/**)",
@@ -220,87 +283,55 @@
       "Bash(rm -r -f /Users/samm)",
       "Bash(rm -f -r /Users/samm:*)",
       "Bash(rm -f -r /Users/samm)"
-    ],
-    "ask": [
-      "Edit(~/.claude/commands/**)",
-      "Edit(~/.claude/hooks/**)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(gh add:*)",
-      "Bash(gh commit:*)",
-      "Bash(nc:*)",
-      "Bash(ssh:*)",
-      "Bash(rsync:*)",
-      "Bash(scp:*)",
-      "Bash(tcpdump:*)",
-      "Bash(wireshark:*)",
-      "Bash(npx -y:*)",
-      "Bash(uvx:*)",
-      "Bash(go run:*)",
-      "Bash(env)",
-      "Bash(printenv:*)",
-      "Bash(pipx:*)",
-      "Bash(./target/**:*)",
-      "Bash(./bin/**:*)",
-      "Bash(./build/**:*)",
-      "Bash(./out/**:*)",
-      "Edit(./**/*.bak)",
-      "Edit(./**/*.backup)",
-      "Read(**/credentials.json)",
-      "Read(**/.env)",
-      "Read(**/*.pem)",
-      "Read(**/*.sock)",
-      "Read(**/*.socket)",
-      "Read(~/Library/com.apple**)",
-      "Read(~/Library/**/com.apple**)",
-      "Read(//Library/**)",
-      "Read(/System/**)",
-      "Bash(rm -rf:*)",
-      "Bash(rm -fr:*)",
-      "Bash(rm -r -f:*)",
-      "Bash(rm -f -r:*)",
-      "Bash(yes | rm:*)",
-      "Bash(yes |rm:*)",
-      "Bash(yes| rm:*)",
-      "Bash(yes|rm:*)",
-      "Bash(echo y |:*)",
-      "Bash(echo y|:*)",
-      "Bash(echo yes |:*)",
-      "Bash(echo yes|:*)",
-      "Bash(dd:*)",
-      "Bash(mkfs:*)",
-      "Bash(fdisk:*)",
-      "Bash(diskutil:*)",
-      "Bash(parted:*)",
-      "Bash(history -c:*)",
-      "Bash(unset HISTFILE:*)",
-      "Bash(chmod -R:*)",
-      "Bash(chown -R:*)"
-    ],
-    "defaultMode": "acceptEdits",
-    "additionalDirectories": [
-      "/Users/samm/git",
-      "/Users/samm/Downloads",
-      "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
-      "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Dropbox Import/dotfiles/shell_config",
-      "/Users/samm/Library/Application Support/com.meetingassist"
     ]
   },
   "hooks": {
-    "PreToolUse": [
+    "PostToolUse": [
       {
-        "matcher": "Bash",
         "hooks": [
           {
-            "type": "command",
-            "command": "~/.claude/hooks/approve-compound-commands"
+            "command": "~/.claude/hooks/format-markdown.sh",
+            "timeout": 3000,
+            "type": "command"
           }
-        ]
+        ],
+        "matcher": "Edit|Write|MultiEdit"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/approve-compound-commands",
+            "timeout": 2000,
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
       }
     ]
   },
   "statusLine": {
-    "type": "command",
-    "command": "/Users/samm/.claude/statusline-command.sh"
-  }
+    "command": "~/.claude/statusline-command.sh",
+    "type": "command"
+  },
+  "enabledPlugins": {
+    "clangd-lsp@claude-plugins-official": true,
+    "frontend-design@claude-code-plugins": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "hookify@claude-plugins-official": true,
+    "playground@claude-plugins-official": true,
+    "playwright-skill@playwright-skill": false,
+    "pyright-lsp@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "safety-net@cc-marketplace": true,
+    "swift-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true
+  },
+  "language": "Australian English",
+  "thinking": {
+    "type": "adaptive"
+  },
+  "includeCoAuthoredBy": false
 }
