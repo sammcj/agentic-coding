@@ -1,0 +1,14 @@
+# Gitleaks allowlist configuration
+# All entries below are verified false positives.
+
+[allowlist]
+  # Placeholder API keys in documentation curl examples (e.g. "any-value", "your-api-key")
+  # and Jinja2 template filename mappings mistaken for API keys (e.g. KeyDecisions => "key-decisions.j2")
+  paths = [
+    '''docs/archive/llama-cpp-server-parameters\.md''',
+  ]
+
+  # Template filename mappings containing "key" that trigger generic-api-key rule
+  regexes = [
+    '''KeyDecisions\s*=>\s*"key[_-]decisions\.j2"''',
+  ]
