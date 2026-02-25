@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-24T17:58:31.711472",
+  "last_sync": "2026-02-25T17:24:30.193556",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
       "last_synced": "2026-02-09T08:43:39.194546"
     },
     "claude/settings.json": {
-      "checksum": "sha256:71bb3ec2beaa676af346556313fe6b7472d675a321a50651fc4f9a43b3227e50",
-      "last_synced": "2026-02-24T09:00:25.019788"
+      "checksum": "sha256:154e655fa648237542e75704bc25054f87fd46e16a1aed20b072fb00ae002f82",
+      "last_synced": "2026-02-25T17:24:30.193368"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
       "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
@@ -248,8 +248,8 @@
       "last_synced": "2026-02-20T16:10:04.194331"
     },
     "claude-skills/extract-wisdom/SKILL.md": {
-      "checksum": "sha256:e60dd2843fb15c7335f7fb91f0ac5ee107b8a55b33f6ced5871093c2126e4f3e",
-      "last_synced": "2026-02-20T16:26:04.123147"
+      "checksum": "sha256:43b59106df01ed431d1e5e5d42ca3f091da619a3aea26bc85cabdb605cc481ec",
+      "last_synced": "2026-02-25T17:24:29.383240"
     },
     "claude-skills/excalidraw-diagrams/_note.md": {
       "checksum": "sha256:ce83fe5fa8f89f06a4844833aa38d9fbc7e47bb51836d9447a02aafb51c211d9",
@@ -310,6 +310,18 @@
     "claude-skills/apply-mantel-styles/SKILL.md": {
       "checksum": "sha256:5ff44c535aa00133db3a972240a0fd7cf2aca8880819f1e79fd7e1d135db058d",
       "last_synced": "2026-02-24T17:58:31.711300"
+    },
+    "claude-skills/extract-wisdom/scripts/render_pdf.sh": {
+      "checksum": "sha256:1280fbb04f83cdaa21c0d66419308e74f2778f0f063e7201206977fb13035974",
+      "last_synced": "2026-02-25T17:24:29.383872"
+    },
+    "claude-skills/extract-wisdom/styles/wisdom-pdf.css": {
+      "checksum": "sha256:cef1806fbf02a8a4518f421f1b4129f7306a947aaf114abe8f431150720ac68e",
+      "last_synced": "2026-02-25T17:24:29.384750"
+    },
+    "claude-skills/.gitignore": {
+      "checksum": "sha256:3e2b3eb80e1765a359052c45f9558b4cf9f3605e9f930fbd2adc5e7051bc8ee5",
+      "last_synced": "2026-02-25T17:24:29.385595"
     }
   },
   "deletions": {

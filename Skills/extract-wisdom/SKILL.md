@@ -1,7 +1,7 @@
 ---
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
-allowed-tools: Read,Write,Bash,WebFetch,WebSearch
+allowed-tools: Read Write Edit Glob Grep Task AskUserQuestion Fetch WebFetch WebSearch Bash(bash scripts/download_video.sh *) Bash(bash scripts/send_notification.sh) Bash(TITLE=* bash scripts/send_notification.sh) Bash(bash scripts/render_pdf.sh *) Bash(mv *) Bash(mkdir *) Bash(prettier *) Bash(npx prettier *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)
 ---
 
 # Wisdom Extraction
@@ -12,7 +12,7 @@ allowed-tools: Read,Write,Bash,WebFetch,WebSearch
 
 Determine the source type and acquire content accordingly:
 
-**YouTube URL** (contains youtube.com or youtu.be):
+#### **YouTube URL** (contains youtube.com or youtu.be)
 
 Execute the download script to fetch only the transcript (no video file):
 
@@ -41,23 +41,31 @@ Then read the transcript file from `TRANSCRIPT_PATH`. Transcripts are cleaned an
 
 **Note:** The download script uses `--restrict-filenames` to sanitise special characters in filenames for safer handling.
 
-**Web URL** (blog posts, articles, any non-YouTube URL):
+#### **Web URL or Document Path** (blog posts, articles, any non-YouTube URL)
 
-Use WebFetch to extract content:
+Use WebFetch to extract content, for example:
 ```
 WebFetch with prompt: "Extract the main article content"
 ```
 WebFetch returns cleaned markdown-formatted content ready for analysis.
 
+Note: Ensure the Webfetch tool does not truncate the content that we likely want to keep! If you have problems with Webfetch you can always use the Fetch tool (or similar).
+
 **Local file path** (.txt, .md, or other text formats):
 
 Use the Read tool to load content directly.
+
+If the content clearly indicates there was an image that is highly likely to contain important information that would not be captured or inferred from the text alone (e.g. a diagram of a complex concept, but NOT things like a photo the author, memes, product logos, screenshots etc...) and if you have the link to the image URL, you may wish to:
+- Fetch the image to a temporary location
+- Read the image to understand the content
+- Validate if the content of the image adds value beyond what is already captured in the text or not
+- If it does you could add a concise written description of what the image is trying to convey (but only if the content doesn't already convey this!), - OR if it's a diagram, use Mermaid within the Markdown wisdom document you're creating.
 
 ### Step 2: Analyse and Extract Wisdom
 
 IMPORTANT: Avoid signal dilution, context collapse, quality degradation and degraded reasoning for future understanding of the content. Keep the signal-to-noise ratio high. Preserve domain insights while excluding filler or fluff.
 
-If the content is very long and you have the ability to ask the user questions - ask the user what level of detail they want in the document, use multi-choice if possible with: "Highly detailed", "Medium detail", "Concise"
+If the content is very long and you have the ability to ask the user questions using `AskUserQuestion` or similar - ask the user what level of detail they want in the document, use multi-choice if possible with: "Highly detailed", "Medium detail", "Concise"
 
 Perform analysis on the content, extracting:
 
@@ -220,6 +228,22 @@ When user requests focused analysis on specific topics:
 - Extract only content related to specified topics
 - Provide concentrated analysis on areas of interest
 
+### PDF Export (Optional)
+
+The analysis markdown can be rendered to a styled PDF for sharing with people who prefer not to read raw markdown.
+
+After all content is created and reviewed, you can offer to render the markdown analysis to a styled PDF for easier sharing, do so using a multi-choice question (with `AskUserQuestion` or similar).
+
+If the user chooses yes, run:
+
+```bash
+bash scripts/render_pdf.sh "<path-to-analysis.md>"
+```
+
+The PDF is saved alongside the markdown file with a `.pdf` extension. Use `--open` to open it after rendering, or `--css <file>` to provide an alternative stylesheet.
+
+Dependencies: `pandoc` and `weasyprint` (You may offer to run `brew install pandoc weasyprint` if these are not installed).
+
 ### Time-Stamped Analysis (YouTube only)
 If timestamps are needed:
 - Note that basic transcripts don't preserve timestamps
@@ -243,9 +267,12 @@ If timestamps are needed:
 ### scripts/
 - `download_video.sh`: Downloads YouTube transcripts (no video files) using yt-dlp. Auto-detects environment (Claude Code/Claw) and OS, outputs paths and next steps.
 - `send_notification.sh`: Sends desktop notifications when analysis is complete (Claude Code only, optional).
+- `render_pdf.sh`: Converts analysis markdown to a styled PDF using pandoc + weasyprint. Optional, only run when user requests PDF output.
+
+### styles/
+- `wisdom-pdf.css`: CSS stylesheet for PDF rendering. Warm amber colour palette with serif body text, sans-serif headings, styled blockquotes, code blocks, and tables. Customisable or replaceable via `--css` flag.
 
 ### Installation Paths
 This skill works with both Claude Code and Claw based agents:
 - **Claude Code:** `~/.claude/skills/extract-wisdom/`
-- **OpenClaw:** `~/.openclaw/workspace/skills/extract-wisdom/`
-- **ZeroClaw:** `~/.zeroclaw/workspace/skills/extract-wisdom/`
+- **Claw:** `~/.<open|zero>claw/workspace/skills/extract-wisdom/`
