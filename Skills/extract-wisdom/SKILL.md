@@ -228,13 +228,9 @@ When user requests focused analysis on specific topics:
 - Extract only content related to specified topics
 - Provide concentrated analysis on areas of interest
 
-### PDF Export (Optional)
+### PDF Export
 
-The analysis markdown can be rendered to a styled PDF for sharing with people who prefer not to read raw markdown.
-
-After all content is created and reviewed, you can offer to render the markdown analysis to a styled PDF for easier sharing, do so using a multi-choice question (with `AskUserQuestion` or similar).
-
-If the user chooses yes, run:
+After all content is created and reviewed, render the markdown analysis to a styled PDF for easier sharing with the following command:
 
 ```bash
 bash scripts/render_pdf.sh "<path-to-analysis.md>"
@@ -242,7 +238,7 @@ bash scripts/render_pdf.sh "<path-to-analysis.md>"
 
 The PDF is saved alongside the markdown file with a `.pdf` extension. Use `--open` to open it after rendering, or `--css <file>` to provide an alternative stylesheet.
 
-Dependencies: `pandoc` and `weasyprint` (You may offer to run `brew install pandoc weasyprint` if these are not installed).
+Dependencies: `pandoc` and `weasyprint` (Ask the user if they want you run `brew install pandoc weasyprint` if these are not installed).
 
 ### Time-Stamped Analysis (YouTube only)
 If timestamps are needed:
@@ -267,7 +263,7 @@ If timestamps are needed:
 ### scripts/
 - `download_video.sh`: Downloads YouTube transcripts (no video files) using yt-dlp. Auto-detects environment (Claude Code/Claw) and OS, outputs paths and next steps.
 - `send_notification.sh`: Sends desktop notifications when analysis is complete (Claude Code only, optional).
-- `render_pdf.sh`: Converts analysis markdown to a styled PDF using pandoc + weasyprint. Optional, only run when user requests PDF output.
+- `render_pdf.sh`: Converts analysis markdown to a styled PDF using pandoc + weasyprint.
 
 ### styles/
 - `wisdom-pdf.css`: CSS stylesheet for PDF rendering. Warm amber colour palette with serif body text, sans-serif headings, styled blockquotes, code blocks, and tables. Customisable or replaceable via `--css` flag.
