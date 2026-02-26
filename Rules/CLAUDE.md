@@ -12,16 +12,6 @@
 ## Spelling
 **Always use Australian English spelling in all responses, documentation, comments, and code identifiers.**
 
-Example patterns:
-1. -our not -or (colour, favour, behaviour)
-2. -ise/-yse not -ize/-yze (organise, analyse, optimise)
-3. -re not -er (centre, metre, theatre)
-4. -ogue not -og (catalogue, dialogue, analogue)
-5. -ae/-oe not -e (anaemia, oesophagus)
-6. -ll- not -l- (travelled, cancelled, modelling)
-7. -t not -ed where appropriate (learnt, dreamt, spelt)
-8. -ence not -ense for nouns (defence, licence, offence)
-
 ## Documentation
 
 - Keep signal-to-noise ratio high - preserve domain insights, omit filler and fluff

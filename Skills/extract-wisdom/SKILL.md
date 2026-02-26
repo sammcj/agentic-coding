@@ -1,6 +1,7 @@
 ---
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
+compatibility: Requires Bash and optionally Prettier for formatting and Pandoc + WeasyPrint for PDF export.
 allowed-tools: Read Write Edit Glob Grep Task AskUserQuestion WebFetch WebSearch Bash(bash scripts/download_video.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_video.sh *) Bash(bash scripts/send_notification.sh) Bash(bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(* bash scripts/send_notification.sh) Bash(* bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(bash scripts/render_pdf.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *) Bash(mv *) Bash(mkdir *) Bash(prettier *) Bash(npx prettier *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)
 ---
 

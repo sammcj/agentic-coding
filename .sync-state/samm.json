@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-26T09:54:46.310572",
+  "last_sync": "2026-02-26T14:56:49.902141",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
       "last_synced": "2026-02-09T08:43:39.194546"
     },
     "claude/settings.json": {
-      "checksum": "sha256:803d067679dfa4c329aaaf11e85f19b2e6729c956fc84ef4511d497a9a529605",
-      "last_synced": "2026-02-26T09:25:35.248774"
+      "checksum": "sha256:d665d11751f2cdfd3f36c2a19151fecce3b979566cc5d7e52fce943b635e87c5",
+      "last_synced": "2026-02-26T14:46:48.211334"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
       "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
@@ -124,8 +124,8 @@
       "last_synced": "2026-02-06T14:08:11.684148"
     },
     "claude-rules/CLAUDE.md": {
-      "checksum": "sha256:f0049ff830c9de4049d2476557576a5233a523ca642999ee7474703816815fcb",
-      "last_synced": "2026-02-24T11:55:46.426565"
+      "checksum": "sha256:341ae58cc485e5a25a18a6e205fa6c23d617839cd1c00abed925a11b6da664b2",
+      "last_synced": "2026-02-26T14:46:47.829514"
     },
     "claude-skills/deferred-task-execution/scripts/wait-until.sh": {
       "checksum": "sha256:4d9ca37330834653a9bf595c83ce9447a18986e808cd5ccebed5674ca6e22ca8",
@@ -248,8 +248,8 @@
       "last_synced": "2026-02-20T16:10:04.194331"
     },
     "claude-skills/extract-wisdom/SKILL.md": {
-      "checksum": "sha256:aed5b544b06e0f5c9218682f463fb1a4bcd37f26f2310194de566dd7a54d8b54",
-      "last_synced": "2026-02-26T09:54:46.310343"
+      "checksum": "sha256:6c1ed74fff35432b9ef1af7d15002da23e2260f4f8e693775bd7516df684540e",
+      "last_synced": "2026-02-26T14:46:47.438711"
     },
     "claude-skills/excalidraw-diagrams/_note.md": {
       "checksum": "sha256:ce83fe5fa8f89f06a4844833aa38d9fbc7e47bb51836d9447a02aafb51c211d9",
@@ -322,6 +322,18 @@
     "claude-skills/.gitignore": {
       "checksum": "sha256:3e2b3eb80e1765a359052c45f9558b4cf9f3605e9f930fbd2adc5e7051bc8ee5",
       "last_synced": "2026-02-25T17:24:29.385595"
+    },
+    "opencode/opencode.jsonc": {
+      "checksum": "sha256:411ddd0472f79ba7b5645e67485b1b8f720b3155953a5cc7f874b01bb11f6496",
+      "last_synced": "2026-02-26T14:55:53.860212"
+    },
+    "opencode/AGENTS.md": {
+      "checksum": "sha256:6ed8a9e533357574a402e1829de015cf36be823503aedd5d3b56faf5521636c9",
+      "last_synced": "2026-02-26T14:49:48.090498"
+    },
+    "opencode-config/opencode.jsonc": {
+      "checksum": "sha256:411ddd0472f79ba7b5645e67485b1b8f720b3155953a5cc7f874b01bb11f6496",
+      "last_synced": "2026-02-26T14:56:49.901986"
     }
   },
   "deletions": {

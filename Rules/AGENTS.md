@@ -14,7 +14,7 @@
 
 ## Documentation
 
-- Keep signal-to-noise ratio high - preserve domain insights, omit filler and fluff
+<!-- - Keep signal-to-noise ratio high - preserve domain insights, omit filler and fluff -->
 - Start with what it does, not why it's amazing
 - Configuration and examples over feature lists
 - "Setup" not "Getting Started with emojis". "Exports to PDF" not "Seamlessly transforms content"
@@ -92,6 +92,8 @@
 
 ## Tool Usage
 
+- Use relevant skills to extend capabilities
+
 ### CLI Commands
 **Use `run_silent` to wrap bash/CLI commands** unless you need stdout. It reduces token usage by returning only exit status and stderr.
 - Examples: `run_silent pnpm install`, `run_silent cargo check`, `run_silent make lint`
@@ -102,6 +104,13 @@
 - Use tools to search documentation before making assumptions - don't guess
 - Use `code_skim` for exploring large files/codebases without reading full implementations
 - Delegate to sub-agents in parallel where possible, instruct them to return only key information
+
+#### Sub-agent Coordination
+- Sub-agents have their own context window - good for parallel research, inspection, or separate features
+- Define clear boundaries per agent. Specify which files each agent owns
+- Include "you are one of several agents" in instructions
+- Set explicit success criteria. Combine small updates to prevent over-splitting
+- Sub-agents can compete and erase each other's changes - ensure no overlap
 
 ## Self-Review Protocol
 
