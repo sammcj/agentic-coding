@@ -116,6 +116,9 @@
 - Set explicit success criteria. Combine small updates to prevent over-splitting
 - Sub-agents can compete and erase each other's changes - ensure no overlap
 
+##### Agent Teams
+- Only use agent teams when the user has explicitly requested you to use agent teams
+
 ## Self-Review Protocol
 
 After implementing a list of changes, perform a critical self-review pass before reporting completion, fixing any issues you find.

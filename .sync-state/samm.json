@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-26T14:56:49.902141",
+  "last_sync": "2026-02-27T07:38:04.569733",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -124,8 +124,8 @@
       "last_synced": "2026-02-06T14:08:11.684148"
     },
     "claude-rules/CLAUDE.md": {
-      "checksum": "sha256:341ae58cc485e5a25a18a6e205fa6c23d617839cd1c00abed925a11b6da664b2",
-      "last_synced": "2026-02-26T14:46:47.829514"
+      "checksum": "sha256:e448650192c86e3f8a2254caee71a12a0a8140b949ebe2212dccf65e1ccbcdb4",
+      "last_synced": "2026-02-27T07:38:04.569599"
     },
     "claude-skills/deferred-task-execution/scripts/wait-until.sh": {
       "checksum": "sha256:4d9ca37330834653a9bf595c83ce9447a18986e808cd5ccebed5674ca6e22ca8",
@@ -334,6 +334,18 @@
     "opencode-config/opencode.jsonc": {
       "checksum": "sha256:411ddd0472f79ba7b5645e67485b1b8f720b3155953a5cc7f874b01bb11f6496",
       "last_synced": "2026-02-26T14:56:49.901986"
+    },
+    "claude-skills/view-team-session/SKILL.md": {
+      "checksum": "sha256:5be2cc43790b7a4e7b0ac192919126c9e7295c7bc6a76730b09f633f66c0ff3e",
+      "last_synced": "2026-02-27T07:38:03.982515"
+    },
+    "claude-skills/view-team-session/scripts/generate.py": {
+      "checksum": "sha256:1144bc2158f30adac877b532dd4464ebaaf3640cd91b6ecfe2ad9fb0a783b723",
+      "last_synced": "2026-02-27T07:38:03.983298"
+    },
+    "claude-skills/analyse-team-session/SKILL.md": {
+      "checksum": "sha256:c1f00f8584fbfd99d0b372e80234694df0b2d110b0fbead79b5fd9f4dc9587e0",
+      "last_synced": "2026-02-27T07:38:03.984020"
     }
   },
   "deletions": {
