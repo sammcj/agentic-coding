@@ -1,4 +1,29 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "includeCoAuthoredBy": false,
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "excludedCommands": [
+      "docker",
+      "go mod tidy",
+      "go mod vendor"
+    ],
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "*.npmjs.org",
+        "registry.yarnpkg.com",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "crates.io",
+        "api.crates.io",
+        "proxy.golang.org",
+        "sum.golang.org"
+      ],
+      "allowLocalBinding": true
+    }
+  },
   "permissions": {
     "allow": [
       "Bash(cat *)",
@@ -122,6 +147,7 @@
       "Read(~/.claude/skills/**)",
       "Read(~/.claude/commands/**)",
       "Read(~/.claude/hooks/**)",
+      "Edit(~/Library/Caches/go-build/**)",
       "Read(~/.claude/agents/**)",
       "Edit(~/Downloads/videos/**)",
       "Edit(//Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom/**)",
@@ -328,6 +354,5 @@
   "language": "Australian English",
   "thinking": {
     "type": "adaptive"
-  },
-  "includeCoAuthoredBy": false
+  }
 }

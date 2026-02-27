@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-02-27T07:38:04.569733",
+  "last_sync": "2026-02-27T11:36:53.179566",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
       "last_synced": "2026-02-09T08:43:39.194546"
     },
     "claude/settings.json": {
-      "checksum": "sha256:d665d11751f2cdfd3f36c2a19151fecce3b979566cc5d7e52fce943b635e87c5",
-      "last_synced": "2026-02-26T14:46:48.211334"
+      "checksum": "sha256:32d82841c03bfb99a90f346ae4457821b91f408c8b6028cab39ea4a3f7e5906f",
+      "last_synced": "2026-02-27T11:36:53.179418"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
       "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
@@ -333,7 +333,7 @@
     },
     "opencode-config/opencode.jsonc": {
       "checksum": "sha256:411ddd0472f79ba7b5645e67485b1b8f720b3155953a5cc7f874b01bb11f6496",
-      "last_synced": "2026-02-26T14:56:49.901986"
+      "last_synced": "2026-02-27T10:46:50.860775"
     },
     "claude-skills/view-team-session/SKILL.md": {
       "checksum": "sha256:5be2cc43790b7a4e7b0ac192919126c9e7295c7bc6a76730b09f633f66c0ff3e",
