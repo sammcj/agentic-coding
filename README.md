@@ -1,45 +1,42 @@
 # Sam's Agentic Coding Rules, Templates and Examples
 
 - [Sam's Agentic Coding Rules, Templates and Examples](#sams-agentic-coding-rules-templates-and-examples)
-  - [Coding Agent Rules, Agents, Templates and Skills](#coding-agent-rules-agents-templates-and-skills)
+  - [Coding Agent Rules, Skills and Templates](#coding-agent-rules-skills-and-templates)
   - [Patterns / Workflows](#patterns--workflows)
   - [MCP Servers (Agent Tools)](#mcp-servers-agent-tools)
   - [Tips For Agentic Coding](#tips-for-agentic-coding)
   - [Links](#links)
-  - [Notes](#notes)
   - [License](#license)
 
 A collection of coding rules, templates, MCP servers and examples for working with Agentic Coding tools
 
-## Coding Agent Rules, Agents, Templates and Skills
+## Coding Agent Rules, Skills and Templates
 
 The repository is organised with tool-agnostic content at the root level:
 
-- [Agent Rules](./Rules/) - Agent instruction files (e.g. CLAUDE.md)
+- [Agent Rules](./Rules/) - Agent instruction files
+  - [Rules/CLAUDE.md](./Rules/CLAUDE.md) is usually the most up to date and comprehensive
+  - [Rules/AGENTS.md](./Rules/AGENTS.md) is more generalised for use with other agentic coding tools.
 - [Agent Skills](./Skills/) - Reusable skills that extend agent capabilities
-- [Claude-specific](./Claude/) - Commands, agents, hooks specific to Claude Code
-- [Cline-specific](./Cline/) - Rules and workflows specific to Cline
+- [Agent Commands](./Claude/commands/) - (Prompt templates)
+- [Hooks](./Claude/hooks/) - Hooks that can be used when specific lifecycle events occur (e.g. after writing to a file)
+- [Custom Agents](./Claude/agents/) - Custom defined agents.
+- [Claude Code Statusline](./Claude/statusline-command.sh) - Custom statusline for Claude Code that shows usage and context information.
 
 Note: Most rules and skills are portable between agentic coding tools. The exception being Claude _Skills_, which I'm yet to see other tools support - but have no doubt they will as they're one of the most powerful and useful agentic coding concepts.
 
-### Client Tooling - Not All Created Equal
+### Agentic Coding Tools - Not All Created Equal
 
-**I _highly_ recommend Claude Code or Cline as the best agentic coding tools.**
+**I _highly_ recommend Claude Code as the best agentic coding tools.**
 
-I find both Claude Code and Cline _far_ outperform the many other tools I've tried including Copilot Agent, Gemini CLI, Codex, Cursor (probably one of the lowest performing tools I've used down at the bottom with with Amazon Kiro), Kiro, Windsurf, Augment Code, OpenCode, Aider and many others over the past 3 years.
+In my experience Claude Code _far_ outperforms the many other tools I've worked with over the past 3+ years including: Copilot Agent, Gemini CLI, Codex, Cursor, Kiro, Windsurf, Augment Code, AntiGravity, Aider and many, many others.
 
-Claude Code and Cline are both good in different ways. Claude Code provides the best value for money if you can pair it with the Claude Max 5 subscription ($100 USD / month).
+The next best thing to Claude Code? I think that's probably [OpenCode](https://opencode.ai/) or [Cline](https://cline.bot).
 
-Since around May 2025 I've been using Claude Code far more any other tool:
+- Claude Code offers the fastest agentic coding experience that leads to the highest quality outputs, it's often a trend setter when it comes to new features and provides the best value for money if you can pair it with the Claude Max 5 or Max 20 subscription ($100-200 USD / month) which is far better value for money than what you would have to spend with consumption based pricing (~$2000-$3000USD+GST/mo).
+- OpenCode and Cline are the best options for using with self-hosted and alternative models, they're also Open Source.
 
-- I've had a number of issues with both VSCode and VSCode fork based agents that annoy me. Stealing focus from the editor, opening panels on IDE launch, UI and state glitches etc. and generally have found moving to TUI based tooling more efficient for my workflow.
-- [Claude Skills](https://www.claude.com/blog/skills) are a simple, highly effective way to extend coding agents with new knowledge and capabilities dynamically without bloating the context.
-- I delegate work to [Claude Sub-Agents](https://code.claude.com/docs/en/sub-agents) all the time to vastly reduce context bloat and parallelise tasks.
-- The Claude Max 5 subscription (`$100USD+GST/mo`) provides me with _far_ better value for money than what I would have to spend with consumption based pricing (`$2000USD+GST/mo`).
-
-The only real down side to Claude Code is that it's not open source, which is a shame as I believe open source always wins in the long run.
-
-When setup correctly you can do fantastic work in either Claude Code or Cline (and the Cline developers are a fantastic bunch!), but beware of other tools (especially those like Cursor or Kiro with large marketing departments and low monthly subscription costs).
+When setup correctly you can do fantastic work using Claude Code, Cline or OpenCode, but beware of other tools especially those such as Cursor or Kiro that have flashy marketing and offer low monthly subscription costs on paper - they tend to be severely limited in terms of their real capabilities and any tool offering sub $100USD/month plan is going to be heavily rate limited.
 
 I have a table where I'm trying to keep track of coding agent tools here: https://smcleod.net/agentic-coding-tools/
 
@@ -49,9 +46,9 @@ I've shared (somewhat out of date) overview of workflow (Setup -> Plan -> Act ->
 
 The TLDR is that this is a lightweight approach of having coding agents help me design a documented plan with the goal, context, requirements / constraints and a phased checklist of tasks to complete and have them update the plan as they work through the tasks in each phase.
 
-Note: I've tried '_Spec Driven Development_' but find it often leads to over-engineering and heavy documentation debt.
-
 ![Setup -> Plan -> Act -> Review & Iterate Diagram](setup-plan-act-iterate.png)
+
+Note: I've tried full blown '_Spec Driven Development_' but find it can be overkill for small-medium size projects where it can lead to over-engineering and significant documentation debt.
 
 ## MCP Servers (Agent Tools)
 
@@ -60,11 +57,12 @@ For 99% of my work I only use a single MCP server: [MCP DevTools](https://github
 I wrote it to provide the most common tooling I use with Agentic Coding.
 
 - Always have tools available to the agent that allow it to:
-  - Search the web.
-  - Efficiently retrieve web page content as markdown.
+  - Search the web (if the agentic coding tool doesn't have this built in like Claude Code does).
+  - Efficiently retrieve web page content as markdown (likewise here).
   - Lookup package documentation.
-  - Perform math calculations.
+  - Perform correct math calculations.
 - Be mindful of how many tokens each MCP server adds to your context window (`/context` in Claude Code), some tools abuse their descriptions and pollute the context window - for example Github's official MCP server alone uses ¼ of the entire context window of Claude Sonnet 4.5.
+- If the tool or knowledge you want to give an agent access to already as an easy to use CLI tool I'd recommend simply instructing your agent to use the CLI tool when it needs to rather than providing a full blown MCP server for it.
 
 ---
 
@@ -135,7 +133,7 @@ Example:
 - Ideally try to keep the models context window usage under 75%, the higher the usage the slower and dumber the model becomes along with increased cost.
 - When you want to refresh the conversation ask the agent to document where it is up to and what's left to do (if you don't already have a dev plan with a checklist of tasks) and provide the document when starting a fresh session.
 - Use checkpoints to roll back to previous points in the conversation or code changes when you've gone down the wrong path or want to explore a different approach.
-- Ensure you enable prompt caching, some agentic coding tools will do this automatically, others like Cline with some providers require you to enable it in settings. Prompt caching can reduce the cost of agentic coding by 75-90%.
+- Ensure you enable prompt caching, some agentic coding tools will do this automatically, others like Cline with some providers may require you to enable it in settings. Prompt caching can reduce the cost of agentic coding by 75-90%.
 - Practice good code hygiene, keep files from getting too long as if the agent has to read or write the entire file it will be slower, costly and more at risk of errors, a good rule of thumb is a maximum of 700 lines.
 - Only use multimodal operations (images / screenshots as used by browser tools etc..) to a minimum - only when truly needed or where cost is not an issue as they use a lot of tokens.
 - Add files and directories you never want the agent to read to the agent's ignore file (e.g. `.clineignore` or claude.json's access rules).
@@ -165,11 +163,8 @@ Example:
 - [Blog - smcleod.net](https://smcleod.net)
 - [GitHub - sammcj](https://github.com/sammcj)
 - [Claude Code](https://claude.com/product/claude-code)
+- [OpenCode](https://opencode.ai)
 - [Cline](https://cline.bot)
-
-## Notes
-
-- If you see 'tmux-cli' in any rules, you need to install it - [pchalasani/claude-code-tools](https://github.com/pchalasani/claude-code-tools)
 
 ## License
 
