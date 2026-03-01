@@ -5,7 +5,8 @@ set -euo pipefail
 # Converts an extract-wisdom markdown analysis into a styled PDF
 # using pandoc + weasyprint with a custom CSS stylesheet.
 #
-# Usage: bash scripts/render_pdf.sh <markdown-file> [output.pdf]
+# Usage: bash scripts/render_pdf.sh [markdown-file] [output.pdf]
+#        If no file is given and only one .md exists in cwd, it is used automatically.
 #
 # Dependencies: pandoc, weasyprint
 # Both installable via: brew install pandoc weasyprint
@@ -16,12 +17,14 @@ CSS_FILE="${SKILL_DIR}/styles/wisdom-pdf.css"
 TEMPLATE_FILE="${SKILL_DIR}/styles/wisdom-pdf.html5"
 
 usage() {
-    echo "Usage: $0 <markdown-file> [output.pdf]"
+    echo "Usage: $0 [markdown-file] [output.pdf]"
     echo ""
     echo "Converts an extract-wisdom markdown analysis into a styled PDF."
+    echo "If no file is given and only one .md file exists in the current directory,"
+    echo "it is used automatically."
     echo ""
     echo "Arguments:"
-    echo "  markdown-file   Path to the .md file to render"
+    echo "  markdown-file   Path to the .md file to render (auto-detected if omitted)"
     echo "  output.pdf      Optional output path (defaults to same name with .pdf extension)"
     echo ""
     echo "Options:"
@@ -96,11 +99,24 @@ main() {
         esac
     done
 
-    # Validate input
+    # Auto-detect single .md file in current directory if none specified
     if [[ -z "$input_file" ]]; then
-        echo "Error: No input file specified" >&2
-        usage >&2
-        exit 1
+        local md_files=()
+        while IFS= read -r -d '' f; do
+            md_files+=("$f")
+        done < <(find . -maxdepth 1 -name '*.md' -print0)
+
+        if [[ ${#md_files[@]} -eq 1 ]]; then
+            input_file="${md_files[0]}"
+            echo "Auto-detected: $input_file"
+        elif [[ ${#md_files[@]} -eq 0 ]]; then
+            echo "Error: No .md files found in current directory" >&2
+            exit 1
+        else
+            echo "Error: Multiple .md files found, please specify one:" >&2
+            printf '  %s\n' "${md_files[@]}" >&2
+            exit 1
+        fi
     fi
 
     if [[ ! -f "$input_file" ]]; then
