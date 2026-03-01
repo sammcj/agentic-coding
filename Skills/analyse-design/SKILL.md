@@ -53,6 +53,6 @@ Structure findings as:
 
 ## Tips
 
-- If you have the ability to ask the user questions using `AskUserQuestion` or similar you can ask the user multi-choice questions to clarify the scope of the analysis, their desired goals and output format.
+- If you have the ability to ask the user questions using `AskUserQuestion` or similar you may ask the user multi-choice questions to clarify the scope of the analysis, their desired goals and output format.
 - Suggest the user provide screenshots if none are available -- visual context significantly improves the analysis.
 - Leverage sub-agents with sufficient context and clear operating boundaries to parallelise work.

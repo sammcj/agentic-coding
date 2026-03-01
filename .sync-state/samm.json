@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-03-02T09:21:24.376482",
+  "last_sync": "2026-03-02T09:22:00.985965",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -260,8 +260,8 @@
       "last_synced": "2026-02-16T09:40:55.770767"
     },
     "claude-skills/analyse-design/SKILL.md": {
-      "checksum": "sha256:e5550cf02ff8d19ab4ff602735f88675c82fb9777b8821f4f9be1b7420c2255b",
-      "last_synced": "2026-03-02T09:21:23.419842"
+      "checksum": "sha256:73929fab5e656bb715cc5c0bc1724ad338bb4461d9e3cae60a48acbc314f61f4",
+      "last_synced": "2026-03-02T09:22:00.985784"
     },
     "claude-skills/excalidraw-diagrams/SKILL.md": {
       "checksum": "sha256:352d83ec33f9148c645a1de2b1de87de24e7daf92423536a876d35cf88468458",
