@@ -13,6 +13,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 CSS_FILE="${SKILL_DIR}/styles/wisdom-pdf.css"
+TEMPLATE_FILE="${SKILL_DIR}/styles/wisdom-pdf.html5"
 
 usage() {
     echo "Usage: $0 <markdown-file> [output.pdf]"
@@ -129,7 +130,7 @@ main() {
     pandoc "$input_file" \
         --pdf-engine=weasyprint \
         --css="$css_file" \
-        --standalone \
+        --template="$TEMPLATE_FILE" \
         --from=markdown+smart \
         -o "$output_file"
 
