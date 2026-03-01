@@ -73,6 +73,7 @@
 ### Python
 - Favour Python 3.14+ features. Use `uv` for .venv management. Use `uvx ty check` for type checking
 - Type hints for all functions. Dataclasses for data structures. Pathlib over os.path. f-strings
+- For standalone scripts that have just a few dependencies leverage PEP 723 to declare dependencies in a TOML block inside `# ///` markers (e.g. `# /// script\n# dependencies = [\n#   "beautifulsoup4",\n# ]\n# ///`)
 
 ### TypeScript
 - Prefer TypeScript over JavaScript. Strict mode always

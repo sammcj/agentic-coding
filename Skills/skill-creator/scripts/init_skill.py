@@ -19,12 +19,12 @@ from pathlib import Path
 
 SKILL_TEMPLATE = """---
 name: {skill_name}
-description: [TODO: This is THE MOST CRITICAL field. Claude uses pure LLM reasoning to select skills based solely on this description. Be comprehensive yet concise. Include: (1) What the skill does, (2) WHEN to use it - specific scenarios, file types, or tasks, (3) Key capabilities that distinguish it. Front-load the most important information. Example: "Extract and analyse data from spreadsheets (.xlsx, .csv). Use when working with tabular data for: (1) Reading cell values, (2) Generating reports, (3) Data transformation, (4) Creating charts."]
+description: [TODO: This is THE MOST CRITICAL field. Claude uses pure LLM reasoning to select skills based solely on this description. Be comprehensive yet concise (20-60 words). Include: (1) What the skill does, (2) WHEN to use it - specific scenarios, file types, or tasks, (3) Key capabilities that distinguish it. Front-load the most important information. Example: "Extract and analyse data from spreadsheets (.xlsx, .csv). Use when working with tabular data for: (1) Reading cell values, (2) Generating reports, (3) Data transformation, (4) Creating charts."]
 # model: inherit
 # context: fork
 # user-invocable: true
 # agent: task
-# allowed-tools: Read,Write,Bash,Grep
+# allowed-tools: [TODO: List only the tools this skill needs. Scope where possible, e.g. Bash(uv run scripts/*.py *),Read,Write(*.md),Grep]
 ---
 
 # {skill_title}
@@ -119,7 +119,21 @@ Replace with actual implementation or delete if not needed.
 Example real scripts from other skills:
 - pdf/scripts/fill_fillable_fields.py - Fills PDF form fields
 - pdf/scripts/convert_pdf_to_images.py - Converts PDF pages to images
+
+Run with: uv run scripts/example.py
 """
+
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#   "example-package",
+# ]
+# ///
+# PEP 723 inline script metadata keeps scripts self-contained.
+# uv run automatically creates an isolated env and installs dependencies.
+# Pin versions with PEP 508 specifiers: "example-package>=1.0,<2"
+# See: https://agentskills.io/skill-creation/using-scripts#self-contained-scripts
+
 
 def main():
     print("This is an example script for {skill_name}")

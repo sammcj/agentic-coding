@@ -1,6 +1,7 @@
 ---
 name: skill-creator
 description: Guide for creating effective Claude Skills. This skill should be used when users want to create (or update) a skill that extends Claude's capabilities with specialised knowledge, workflows, or tool integrations.
+# allowed-tools: Read Write Edit Glob Grep Bash(python3:*) Bash(uv:*) Bash(ingest:*)
 ---
 
 # Skill Creator
@@ -73,9 +74,12 @@ Every skill consists of a required SKILL.md file and optional bundled resources:
 skill-name/
 ├── SKILL.md (required)
 │   ├── YAML frontmatter metadata (required)
-│   │   ├── name: (required)
-│   │   └── description: (required, one of the most important sections to get right)
-│   │   └── metadata: any notes about the skill that are only for human consumption (optional, not parsed by Claude)
+│   │   ├── name: (required, must match directory name)
+│   │   ├── description: (required, critical for skill selection)
+│   │   ├── license: (optional)
+│   │   ├── compatibility: (optional, environment requirements)
+│   │   ├── metadata: (optional, arbitrary key-value pairs)
+│   │   └── allowed-tools: (optional, experimental)
 │   └── Markdown instructions (required)
 └── Bundled Resources (optional, only if required and add value)
     ├── scripts/          - Executable code (Python/Bash/etc.)
@@ -139,7 +143,7 @@ The skill should only contain the information needed for an AI agent to do the j
 
 Skills use a three-level loading system to manage context efficiently:
 
-1. **Metadata (name + description)** - Always in context (~100 words)
+1. **Metadata (name + description)** - Always in context (~20-100 words)
 2. **SKILL.md body** - When skill triggers (<5k words)
 3. **Bundled resources** - As needed by Claude (Unlimited because scripts can be executed without reading into context window)
 
@@ -328,14 +332,16 @@ Any example files and directories not needed for the skill should be deleted. Th
 
 ##### Frontmatter
 
-Write the YAML frontmatter with `name` and `description`:
+Write the YAML frontmatter per the Agent Skills specification (https://agentskills.io/specification).
 
-- `name`: The skill name (must match directory name exactly, hyphen-case format)
+**Required fields:**
 
-- `description`: **This is the most critical field for your skill.** Since Claude uses pure language model reasoning to select skills (no algorithmic matching), this description is the only signal Claude has to decide when to invoke your skill.
+- `name`: Must match directory name exactly. Hyphen-case, max 64 characters, lowercase letters/digits/hyphens only, no leading/trailing/consecutive hyphens.
+
+- `description`: **This is the most critical field for your skill.** Max 1024 characters. Since Claude uses pure language model reasoning to select skills (no algorithmic matching), this description is the only signal Claude has to decide when to invoke your skill.
 
   **Writing effective descriptions:**
-  - **Be comprehensive yet concise**: Include what the skill does AND when to use it. You're competing for space in a ~15,000 character token budget alongside all other skills.
+  - **Be directed and concise**: Include what the skill does AND when to use it. You're competing for space in a ~15,000 character token budget alongside all other skills. A good description is ~20-60 words.
   - **Front-load key information**: Claude reads descriptions in the Skill tool's prompt. Put the most distinctive information first.
   - **Include specific triggers**: Mention file types, task types, or contexts that should trigger the skill.
   - **Think like Claude**: What would make this skill stand out when Claude is reasoning about which skill matches the user's request?
@@ -346,17 +352,21 @@ Write the YAML frontmatter with `name` and `description`:
 
   **Why this matters:** Claude receives your description as part of a formatted list in the Skill tool's prompt, reasons about which skill matches the user's intent, and makes a decision purely through its language understanding. There's no keyword matching or semantic search - just Claude reading and reasoning.
 
-**Optional frontmatter fields** (use only when needed):
+**Optional spec fields** (use only when needed):
 
-- `allowed-tools`: Comma-separated list of tools the skill can use without user approval. When a skill is invoked, these tools are automatically pre-approved in the execution context. Example: `"Read,Write,Bash(git:*),Grep"`. Use wildcards to scope permissions (e.g., `Bash(git:*)` allows all git commands). The idea is to only include tools your skill actually needs - however we should make sure we don't over-restrict and accidentally block needed functionality so it's usually best to leave this filed commented out with what you _think_ the skill needs which will let the user uncomment and use it if they wish.
+- `license`: License name or reference to a bundled license file.
+- `compatibility`: Max 500 characters. Environment requirements (intended product, system packages, network access). Example: `compatibility: Designed for Claude Code (or similar products)`.
+- `metadata`: Arbitrary key-value mapping for additional metadata not defined by the spec.
+- `allowed-tools`: Space-delimited list of pre-approved tools. Experimental - support varies between agent implementations. Example: `"Read Write Bash(git:*) Grep"`. Leave commented out with what you _think_ the skill needs so the user can uncomment and use it if they wish.
 
-- `model`: Override the model for this skill's execution. Add this field but leave it with the value of `"inherit"` to use the session's current model (default), the user may wish to change it to a specific model later e.g. `"claude-opus-4-5-20250514"`.
+**Claude Code extensions** (not part of the Agent Skills spec, Claude Code-specific):
 
-- `context`: Controls how the skill executes relative to the main conversation. Set to `"fork"` to run the skill in a forked sub-agent context - this keeps the skill's execution separate from the main conversation, which can be useful for skills that perform extensive exploration or generate large outputs that would otherwise bloat the primary context window.
+- `model`: Override the model for this skill's execution. Set to `"inherit"` to use the session's current model (default), the user may wish to change it later e.g. `"claude-opus-4-5-20250514"`.
+- `context`: Controls execution context. Set to `"fork"` to run in a forked sub-agent context, useful for skills that perform extensive exploration or generate large outputs.
+- `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide from the slash command menu.
+- `agent`: Specify the agent type (e.g., `"task"` for a task agent). When omitted, runs in the current agent context.
 
-- `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide the skill from the slash command menu - useful for skills intended only for programmatic invocation or auto-loading by agents.
-
-- `agent`: Specify the agent type to use when executing the skill (e.g., `"task"` for a task agent). When omitted, the skill runs in the current agent context.
+Validate the skill with: `uv run scripts/validate_skill.py <skill-directory>` (uses the official skills-ref validator).
 
 ##### Body
 

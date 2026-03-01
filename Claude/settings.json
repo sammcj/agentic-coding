@@ -7,7 +7,10 @@
     "excludedCommands": [
       "docker",
       "go mod tidy",
-      "go mod vendor"
+      "go mod vendor",
+      "ssh",
+      "container",
+      "uv run"
     ],
     "network": {
       "allowedDomains": [
@@ -36,6 +39,8 @@
         "*.schemastore.org",
         "*.search.brave.com",
         "*.wikipedia.org",
+        "*.youtube.com",
+        "*.youtu.be",
         "ghcr.io",
         "google.com.au",
         "google.com",
@@ -175,6 +180,8 @@
       "Edit(./**/*.env.example)",
       "Edit(./**/*.lua)",
       "Edit(./**/CLAUDE.md)",
+      "Edit(~/.cache/uv/**)",
+      "Edit(~/.local/share/uv/python/**)",
       "Read(~/.claude/skills/**)",
       "Read(~/.claude/commands/**)",
       "Read(~/.claude/hooks/**)",
@@ -274,7 +281,7 @@
       "Bash(scp *)",
       "Bash(tcpdump *)",
       "Bash(wireshark *)",
-      "Bash(npx -y *)",
+      "Bash(npx *)",
       "Bash(uvx *)",
       "Bash(go run *)",
       "Bash(env)",
@@ -332,6 +339,7 @@
     ],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
+      "../docs/",
       "/Users/samm/git",
       "/Users/samm/Downloads",
       "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",

@@ -2,12 +2,16 @@
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
 compatibility: Requires Bash and optionally Prettier for formatting and Pandoc + WeasyPrint for PDF export.
-allowed-tools: Read Write Edit Glob Grep Task AskUserQuestion WebFetch WebSearch Bash(bash scripts/download_video.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_video.sh *) Bash(bash scripts/send_notification.sh) Bash(bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(* bash scripts/send_notification.sh) Bash(* bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(bash scripts/render_pdf.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *) Bash(mv *) Bash(mkdir *) Bash(prettier *) Bash(npx prettier *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)
+allowed-tools: Read Write Edit Glob Grep Task AskUserQuestion WebFetch WebSearch Bash(bash scripts/download_video.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_video.sh *) Bash(bash scripts/send_notification.sh) Bash(bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(* bash scripts/send_notification.sh) Bash(* bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(bash scripts/render_pdf.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *) Bash(mv *) Bash(mkdir *) Bash(prettier *) Bash(npx prettier *) Bash(npx -y prettier *) Bash(OPENSSL_CONF=/dev/null npx -y prettier *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)
 ---
 
 # Wisdom Extraction
 
 ## Workflow
+
+### Step 0: Ask User Preferences
+
+If you have the ability to ask the user questions using `AskUserQuestion` or similar ask the user what level of detail they want in the document, use multi-choice if possible with: "Highly detailed", "Medium detail", "Concise"
 
 ### Step 1: Identify Source and Acquire Content
 
@@ -66,8 +70,6 @@ If the content clearly indicates there was an image that is highly likely to con
 
 IMPORTANT: Avoid signal dilution, context collapse, quality degradation and degraded reasoning for future understanding of the content. Keep the signal-to-noise ratio high. Preserve domain insights while excluding filler or fluff.
 
-If the content is very long and you have the ability to ask the user questions using `AskUserQuestion` or similar - ask the user what level of detail they want in the document, use multi-choice if possible with: "Highly detailed", "Medium detail", "Concise"
-
 Perform analysis on the content, extracting:
 
 #### 1. Key Insights & Takeaways
@@ -80,6 +82,7 @@ Perform analysis on the content, extracting:
 - Extract memorable, impactful, or particularly well-articulated statements
 - Include context for each quote when relevant
 - Focus on quotes that encapsulate key ideas or provide unique perspectives
+- If the content itself quotes other sources, ensure those quotes are also captured
 - Preserve the original wording exactly, except correct American spellings to Australian English
 
 #### 3. Structured Summary
@@ -130,6 +133,7 @@ Format the analysis using this structure:
 # Analysis: [Title]
 
 **Source**: [YouTube URL, web URL, or file path]
+
 **Analysis Date**: [YYYY-MM-DD]
 
 ## Summary
@@ -203,7 +207,7 @@ Re-read the analysis file, verify each item, fix any issues found, then mark tas
 
 ### Step 5: Formatting and Send Completion Notification (Claude Code Only & Optional)
 
-If you have access to `prettier` run a `prettier --write "path/to/file.md"` to auto-format the markdown file (skip if prettier is not available).
+Run `OPENSSL_CONF=/dev/null npx -y prettier --write "path/to/file.md"` to auto-format the markdown file.
 
 Use `scripts/send_notification.sh` to send a desktop notification:
 

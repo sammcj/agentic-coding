@@ -39,7 +39,7 @@
 }
 
 html {
-  font-size: 11pt;
+  font-size: 9pt;
 }
 
 body {
@@ -63,12 +63,25 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: 2em;
+  font-size: 1.65em;
   font-weight: 700;
   letter-spacing: -0.02em;
   margin-top: 0;
-  padding-bottom: 0.35em;
+  margin-bottom: 0.6em;
+  padding-bottom: 0.4em;
   border-bottom: 2.5px solid var(--colour-accent);
+}
+
+/* ── Title metadata block (Source, Date lines after h1) ─── */
+
+h1 + p,
+h1 + p + p,
+h1 + p + p + p {
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-size: 0.85em;
+  color: var(--colour-muted);
+  margin: 0.15em 0;
+  line-height: 1.4;
 }
 
 h2 {
@@ -109,17 +122,7 @@ a {
   text-decoration: none;
 }
 
-/* ── Source metadata block ──────────────────────────────── */
-/* The lines like **Source**: ... and **Analysis Date**: ... */
-
-h1 + p,
-h1 + p + p,
-h1 + p + p + p {
-  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
-  font-size: 0.9em;
-  color: var(--colour-muted);
-  margin: 0.2em 0;
-}
+/* (Source metadata block is styled above, after h1) */
 
 /* ── Lists ──────────────────────────────────────────────── */
 
