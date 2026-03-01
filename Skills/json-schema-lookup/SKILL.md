@@ -1,20 +1,14 @@
 ---
 name: json-schema-lookup
 description: >-
-  Query schemastore.org to validate config file structure, discover available
-  options, and check valid values for JSON/JSONC/YAML configuration files.
-  Use when editing or creating config files (tsconfig.json, package.json,
-  GitHub Actions workflows, docker-compose.yml, .eslintrc, renovate.json,
-  pyproject.toml, etc.) and you need to verify field names, check allowed
-  values, or discover what options are available. Also use when a user asks
-  about valid configuration for any tool/framework that publishes a JSON schema.
-# model: inherit
-# allowed-tools: Bash WebFetch
+  Guidelines for querying schemastore.org. Use when you need to validate or discover
+  options for config files relating to popular open source projects.
+allowed-tools: WebFetch Bash(curl *) Bash(jq *) Bash(yq *) Bash(grep *) Bash(head *) Bash(less *)
 ---
 
 # JSON Schema Lookup via SchemaStore
 
-Query schemastore.org's catalog of 800+ configuration file schemas to validate structure, discover options, and check allowed values.
+Query schemastore.org's catalog of public configuration file schemas to validate structure, discover options, and check allowed values.
 
 ## API
 
@@ -41,9 +35,6 @@ Alternatively, use WebFetch on the catalog URL and ask for the relevant entry.
 ### 2. Fetch and inspect the schema
 
 ```bash
-# Get the full schema
-curl -s SCHEMA_URL | jq .
-
 # List top-level properties
 curl -s SCHEMA_URL | jq '.properties | keys'
 
@@ -52,19 +43,22 @@ curl -s SCHEMA_URL | jq '.properties.FIELD_NAME'
 
 # Check definitions/shared types (schemas use $ref to these)
 curl -s SCHEMA_URL | jq '.definitions.DEF_NAME.properties'
+
+# Get the full schema (warning - might be large!)
+curl -s SCHEMA_URL | jq .
 ```
 
 ### 3. Common queries
 
 ```bash
-# Find all required fields
-curl -s SCHEMA_URL | jq '.required'
-
 # Find enum values for a field
 curl -s SCHEMA_URL | jq '.properties.FIELD.enum'
 
 # List nested properties (e.g. compilerOptions in tsconfig)
 curl -s SCHEMA_URL | jq '.definitions.compilerOptionsDefinition.properties.compilerOptions.properties | keys'
+
+# Find all required fields
+curl -s SCHEMA_URL | jq '.required'
 ```
 
 ## Tips
