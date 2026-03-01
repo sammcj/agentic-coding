@@ -5,9 +5,13 @@ description: Reverse-engineer an application's design system from its codebase a
 # model: inherit
 ---
 
-Act as a UI/UX design analyst conducting a visual audit. Reverse-engineer the design system from the codebase and any provided screenshots.
+# Analysing Design Systems
 
-Goal: produce a design system reference document a developer could use to build components that belong in this application.
+Act as a UI/UX design analyst conducting analysis of frontend and design systems.
+
+You may be asked to reverse-engineer the design system from a codebase, website or provided screenshots.
+
+Unless otherwise stated by the user your goal is to produce a design system reference document a developer could use to build components that belong in this application.
 
 ## Where to Look
 
@@ -47,4 +51,8 @@ Structure findings as:
 7. **Responsive Strategy** -- breakpoints and layout behaviour
 8. **Consistency Notes** -- any inconsistencies, one-off values, or areas where the design system breaks down
 
-Suggest the user provide screenshots if none are available -- visual context significantly improves the analysis.
+## Tips
+
+- If you have the ability to ask the user questions using `AskUserQuestion` or similar you can ask the user multi-choice questions to clarify the scope of the analysis, their desired goals and output format.
+- Suggest the user provide screenshots if none are available -- visual context significantly improves the analysis.
+- Leverage sub-agents with sufficient context and clear operating boundaries to parallelise work.

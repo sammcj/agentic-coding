@@ -106,6 +106,8 @@
       "Edit(./**/*.json*)",
       "Edit(./**/*.lua)",
       "Edit(./**/*.md)",
+      "Edit(./**/*.mdx)",
+      "Edit(./**/*.mermaid)",
       "Edit(./**/*.py)",
       "Edit(./**/*.rs)",
       "Edit(./**/*.sass)",
