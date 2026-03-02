@@ -140,6 +140,10 @@
       "Read(~/.claude/skills/**)",
       "WebFetch",
       "WebSearch",
+      "mcp__plugin_context-mode_context-mode__index",
+      "mcp__plugin_context-mode_context-mode__search",
+      "mcp__plugin_context-mode_context-mode__fetch_and_index",
+      "mcp__plugin_context-mode_context-mode__stats",
       "Skill"
     ],
     "deny": [
@@ -287,7 +291,9 @@
       "Read(~/Library/Mail/**)",
       "Read(~/Library/Messages/**)",
       "Read(~/Library/Reminders/**)",
-      "Read(~/Library/Safari/**)"
+      "Read(~/Library/Safari/**)",
+      "Read(//etc/systemd/**)",
+      "Read(//etc/ssl/**)"
     ],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [

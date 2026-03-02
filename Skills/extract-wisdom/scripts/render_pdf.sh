@@ -147,7 +147,7 @@ main() {
         --pdf-engine=weasyprint \
         --css="$css_file" \
         --template="$TEMPLATE_FILE" \
-        --from=markdown+smart \
+        --from=gfm \
         -o "$output_file"
 
     echo "PDF created: $output_file"

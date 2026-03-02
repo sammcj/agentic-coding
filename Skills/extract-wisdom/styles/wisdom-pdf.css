@@ -10,7 +10,8 @@
 
 @page {
   size: A4;
-  margin: 28mm 22mm 24mm 22mm;
+  /* top, right, bottom, left */
+  margin: 10mm 18mm 10mm 18mm;
 
   @bottom-center {
     content: counter(page);
@@ -21,7 +22,7 @@
 }
 
 @page :first {
-  margin-top: 20mm;
+  margin-top: 12mm;
   @bottom-center { content: none; }
 }
 
@@ -129,6 +130,15 @@ a {
 ul, ol {
   margin: 0.5em 0;
   padding-left: 1.6em;
+  list-style-position: inside;
+}
+
+ul {
+  list-style-type: disc;
+}
+
+ol {
+  list-style-type: decimal;
 }
 
 li {
@@ -141,6 +151,10 @@ li > ul, li > ol {
 }
 
 /* Nested list items (supporting details) */
+li > ul {
+  list-style-type: circle;
+}
+
 li > ul > li {
   font-size: 0.95em;
   color: var(--colour-muted);
