@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-03-02T14:56:51.234525",
+  "last_sync": "2026-03-02T14:57:18.042257",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -124,8 +124,8 @@
       "last_synced": "2026-02-06T14:08:11.684148"
     },
     "claude-rules/CLAUDE.md": {
-      "checksum": "sha256:7a58c118c934ad51c0e8d296a3fe320221da4e8ee861b1c339d19ca1b5a25e38",
-      "last_synced": "2026-03-02T14:56:51.234391"
+      "checksum": "sha256:d6479c994d057f504a9249b4e962288388b4e8a1d67de443bc333b476629f039",
+      "last_synced": "2026-03-02T14:57:18.042105"
     },
     "claude-skills/deferred-task-execution/scripts/wait-until.sh": {
       "checksum": "sha256:4d9ca37330834653a9bf595c83ce9447a18986e808cd5ccebed5674ca6e22ca8",

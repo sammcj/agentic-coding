@@ -104,7 +104,7 @@
 - Use `code_skim` for exploring large files/codebases without reading full implementations
 - Delegate to sub-agents in parallel where possible, instruct them to return only key information
 
-#### Code Intelligence
+### Code Intelligence
 - Prefer LSP over Grep/Glob/Read for code navigation, e.g:
   - `goToDefinition` / `goToImplementation` to jump to source
   - `findReferences` to see all usages across the codebase
