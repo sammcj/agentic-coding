@@ -48,9 +48,17 @@ check_dependencies() {
     fi
 
     if [[ ${#missing[@]} -gt 0 ]]; then
-        echo "Error: Missing required dependencies: ${missing[*]}" >&2
-        echo "Install with: brew install ${missing[*]}" >&2
-        exit 1
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            install_hint="brew install ${missing[*]}"
+        else
+            install_hint="pip install ${missing[*]}  OR  sudo apt install ${missing[*]}"
+        fi
+        cat >&2 <<MSG
+MISSING_DEPS: ${missing[*]}
+INSTALL: $install_hint
+ACTION: If you are allowed to, install the missing dependencies and call this script again. Otherwise, skip PDF generation and at the end of your analysis let the user know that PDF export was skipped because ${missing[*]} is not installed. The markdown analysis is complete and usable without the PDF.
+MSG
+        exit 2
     fi
 }
 

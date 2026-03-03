@@ -146,6 +146,21 @@ main() {
         exit 1
     fi
 
+    # Check yt-dlp is available
+    if ! command -v yt-dlp &>/dev/null; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            install_hint="brew install yt-dlp  OR  python3 -m pip install -U 'yt-dlp[default]'"
+        else
+            install_hint="python3 -m pip install -U 'yt-dlp[default]'"
+        fi
+        cat >&2 <<MSG
+MISSING_DEPS: yt-dlp
+INSTALL: $install_hint
+ACTION: If you are allowed to, install yt-dlp and call this script again. Otherwise, let the user know that yt-dlp is not installed and YouTube transcript download is not possible without it.
+MSG
+        exit 2
+    fi
+
     # Detect environment and set base directory
     base_videos_dir=$(detect_environment_and_set_paths)
     echo "Using output directory: $base_videos_dir"
@@ -194,7 +209,13 @@ main() {
         local base_name="${file%.json3}"
         # Remove language code suffix (e.g., .en, .es, .fr, etc.)
         base_name="${base_name%.*}"
-        local output_file="${base_name} - transcript.txt"
+        # Sanitise filename: only alphanumeric, dashes, underscores
+        local dir_part
+        dir_part="$(dirname "$base_name")"
+        local name_part
+        name_part="$(basename "$base_name")"
+        name_part="$(echo "$name_part" | sed 's/[^a-zA-Z0-9_-]/_/g; s/__*/_/g; s/^_//; s/_$//')"
+        local output_file="${dir_part}/${name_part}-transcript.txt"
 
         echo "Converting: ${file##*/}"
 
@@ -212,7 +233,7 @@ main() {
     while IFS= read -r -d '' old_file; do
         echo "Removing unwanted file: ${old_file##*/}"
         rm -f "$old_file"
-    done < <(find "$video_dir" -maxdepth 1 -type f -name "*.txt" ! -name "*- transcript.txt" -print0 2>/dev/null || true)
+    done < <(find "$video_dir" -maxdepth 1 -type f -name "*.txt" ! -name "*-transcript.txt" -print0 2>/dev/null || true)
 
     # Report results
     if [[ $converted_count -eq 0 ]]; then
@@ -223,7 +244,7 @@ main() {
     
     # Find the transcript file path
     local transcript_file
-    transcript_file=$(find "$video_dir" -maxdepth 1 -name "*- transcript.txt" -print -quit 2>/dev/null || true)
+    transcript_file=$(find "$video_dir" -maxdepth 1 -name "*-transcript.txt" -print -quit 2>/dev/null || true)
     
     if [[ -z "$transcript_file" ]]; then
         echo "Error: Transcript file not found after conversion"

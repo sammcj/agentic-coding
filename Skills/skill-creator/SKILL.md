@@ -79,7 +79,7 @@ skill-name/
 │   │   ├── license: (optional)
 │   │   ├── compatibility: (optional, environment requirements)
 │   │   ├── metadata: (optional, arbitrary key-value pairs)
-│   │   └── allowed-tools: (optional, experimental)
+│   │   └── allowed-tools: (optional)
 │   └── Markdown instructions (required)
 └── Bundled Resources (optional, only if required and add value)
     ├── scripts/          - Executable code (Python/Bash/etc.)
@@ -361,10 +361,10 @@ Write the YAML frontmatter per the Agent Skills specification (https://agentskil
 
 **Claude Code extensions** (not part of the Agent Skills spec, Claude Code-specific):
 
-- `model`: Override the model for this skill's execution. Set to `"inherit"` to use the session's current model (default), the user may wish to change it later e.g. `"claude-opus-4-5-20250514"`.
-- `context`: Controls execution context. Set to `"fork"` to run in a forked sub-agent context, useful for skills that perform extensive exploration or generate large outputs.
-- `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide from the slash command menu.
-- `agent`: Specify the agent type (e.g., `"task"` for a task agent). When omitted, runs in the current agent context.
+- `model`: Override the model for this skill's execution. Set to `"inherit"` to use the session's current model (default), the user may wish to change it later e.g. `"claude-opus-4-5-20250514"` - don't include unless asked by the user.
+- `context`: Controls execution context. Set to `"fork"` to run in a forked sub-agent context, useful for skills that perform extensive exploration or generate large outputs  - don't include unless asked by the user.
+- `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide from the slash command menu  - don't include unless asked by the user.
+- `agent`: Specify the agent type (e.g., `"task"` for a task agent). When omitted, runs in the current agent context  - don't include unless asked by the user.
 
 Validate the skill with: `uv run scripts/validate_skill.py <skill-directory>` (uses the official skills-ref validator).
 

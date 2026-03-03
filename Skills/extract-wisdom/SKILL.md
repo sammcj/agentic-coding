@@ -2,28 +2,35 @@
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
 compatibility: Requires Bash Prettier Pandoc & WeasyPrint
-allowed-tools: Read Write Edit Glob Grep Task AskUserQuestion WebFetch WebSearch Bash(bash scripts/download_video.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_video.sh *) Bash(bash scripts/send_notification.sh) Bash(bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(* bash scripts/send_notification.sh) Bash(* bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(bash scripts/render_pdf.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *) Bash(bash scripts/format.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/format.sh *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)
+allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_video.sh *) Bash(bash scripts/download_video.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/format.sh *) Bash(bash scripts/format.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *) Bash(bash scripts/render_pdf.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(bash scripts/send_notification.sh) Bash(* bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(* bash scripts/send_notification.sh) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)"
 ---
 
 # Wisdom Extraction
 
+Script paths below use `<skill-dir>` to refer to this skill's directory.
+Default location: `~/.claude/skills/extract-wisdom/`
+
 ## Workflow
 
-### Step 1: Identify Source and Acquire Content
+### Step 1: Ask User Preferences
 
-Determine the source type and acquire content accordingly:
+Use the `AskUserQuestion` tool to ask the user what level of detail they want. Use multi-choice with options: "Detailed", "Concise". **Do not call any other tools in the same turn as this question. Wait for the user's response before proceeding to Step 2.** If `AskUserQuestion` is unavailable, default to "Detailed".
+
+### Step 2: Identify Source and Acquire Content
+
+Once you know the level of detail, determine the source type and acquire content accordingly:
 
 #### **YouTube URL** (contains youtube.com or youtu.be)
 
 Execute the download script to fetch only the transcript (no video file):
 
 ```bash
-bash scripts/download_video.sh <youtube-url>
+bash <skill-dir>/scripts/download_video.sh <youtube-url>
 ```
 
 The script will:
 
-- Auto-detect your environment (Claude Code or Claw based agents) and OS (macOS or Linux)
+- Auto-detect your environment
 - Download English subtitles or auto-generated transcripts
 - Output the transcript path and next steps
 
@@ -57,7 +64,7 @@ Note: Ensure the Webfetch tool does not truncate the content that we likely want
 
 **Local file path** (.txt, .md, or other text formats):
 
-Use the Read tool to load content directly.
+Use your standard file reading tool (e.g. `Read`) to load the full content directly.
 
 If the content clearly indicates there was an image that is highly likely to contain important information that would not be captured or inferred from the text alone (e.g. a diagram of a complex concept, but NOT things like a photo the author, memes, product logos, screenshots etc...) and if you have the link to the image URL, you may wish to:
 
@@ -65,10 +72,6 @@ If the content clearly indicates there was an image that is highly likely to con
 - Read the image to understand the content
 - Validate if the content of the image adds value beyond what is already captured in the text or not
 - If it does you could add a concise written description of what the image is trying to convey (but only if the content doesn't already convey this!), - OR if it's a diagram, use Mermaid within the Markdown wisdom document you're creating.
-
-### Step 2: Ask User Preferences
-
-If you have the ability to ask the user questions using `AskUserQuestion` or similar ask the user what level of detail they want in the document, use multi-choice if possible with: "Highly detailed", "Medium detail", "Concise"
 
 ### Step 3: Analyse and Extract Wisdom
 
@@ -125,7 +128,7 @@ Determine the output directory:
 **Web and text sources:** Run the following to determine the base output directory, then use it as described below:
 
 ```bash
-bash scripts/download_video.sh --output-dir
+bash <skill-dir>/scripts/download_video.sh --output-dir
 ```
 
 If the command fails or is unavailable, fall back to `~/Downloads/text-wisdom/`.
@@ -209,8 +212,6 @@ _Wisdom Extraction: [Current date in YYYY-MM-DD]_
 
 After writing the analysis file, inform the user of the location.
 
-**Claw note:** When running via Claw, also return the full analysis content in your response. Users often want to read the insights immediately without opening a separate file.
-
 ### Step 5: Critical Self-Review
 
 Conduct a critical self-review of your summarisation and analysis.
@@ -230,7 +231,7 @@ Re-read the analysis file, verify each item, fix any issues found, then mark tas
 After completing your review and edits, format the markdown:
 
 ```bash
-bash scripts/format.sh "path/to/file.md"
+bash <skill-dir>/scripts/format.sh "path/to/file.md"
 ```
 
 ### Step 7: PDF Export
@@ -238,12 +239,12 @@ bash scripts/format.sh "path/to/file.md"
 After all content is created and reviewed, render the markdown analysis to a styled PDF for easier sharing with the following command:
 
 ```bash
-bash scripts/render_pdf.sh "<path-to-analysis.md>"
+bash <skill-dir>/scripts/render_pdf.sh "<path-to-analysis.md>"
 ```
 
 The PDF is saved alongside the markdown file with a `.pdf` extension. Use `--open` to open it after rendering, or `--css <file>` to provide an alternative stylesheet.
 
-Dependencies: `pandoc` and `weasyprint` (Ask the user if they want you run `brew install pandoc weasyprint` if these are not installed).
+The script will check for required dependencies (`pandoc`, `weasyprint`) and tell you what to do if they're missing.
 
 ### Step 6: Provide A Short Summary For Sharing & Notify User
 
@@ -254,7 +255,7 @@ Format: plain text, no markdown formatting, no bullet points.
 Finally, use `scripts/send_notification.sh` to send a desktop notification:
 
 ```bash
-TITLE="Wisdom Extracted" MESSAGE="<short description>" PLAY_SOUND=true DIR="<output-directory>" bash scripts/send_notification.sh
+TITLE="Wisdom Extracted" MESSAGE="<short description>" PLAY_SOUND=true DIR="<output-directory>" bash <skill-dir>/scripts/send_notification.sh
 ```
 
 Then stop unless further instructions are given.
@@ -272,6 +273,7 @@ Then stop unless further instructions are given.
 - Always ask yourself if the sentence adds value - if not, remove it
 - If the source mentions a specific tool, resource or website, task a sub-agent to look it up and provide a brief summary, then include it in the Additional Resources section
 - You can consider creating mermaid diagrams to explain complex concepts, relationships, or workflows found in the content
+- When reading the content - it **must be read in FULL by you directly**, not partially or by an external tool or plugin that may alter it, if you have indexing or search tools or plugins installed (e.g. context-mode, serena etc.) do not use them, use your standard file reading tool.
 
 ### Multiple Source Analysis
 
