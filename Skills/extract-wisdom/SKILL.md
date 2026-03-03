@@ -273,7 +273,7 @@ Then stop unless further instructions are given.
 - Always ask yourself if the sentence adds value - if not, remove it
 - If the source mentions a specific tool, resource or website, task a sub-agent to look it up and provide a brief summary, then include it in the Additional Resources section
 - You can consider creating mermaid diagrams to explain complex concepts, relationships, or workflows found in the content
-- When reading the content - it **must be read in FULL by you directly**, not partially or by an external tool or plugin that may alter it, if you have indexing or search tools or plugins installed (e.g. context-mode, serena etc.) do not use them, use your standard file reading tool.
+- When reading the content - it **must be read in FULL**, avoid using external plugins such as context-mode, serena etc that may alter the content or that require the use of indexing + search which could lead to loss of content or context.
 
 ### Multiple Source Analysis
 

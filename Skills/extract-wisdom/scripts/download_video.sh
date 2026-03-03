@@ -219,8 +219,20 @@ MSG
 
         echo "Converting: ${file##*/}"
 
-        # Extract and clean subtitle text
-        if jq -r '[.events[].segs[]?.utf8] | join("") | gsub("[\\n ]+"; " ")' "$file" > "$output_file" 2>/dev/null; then
+        # Extract subtitle text, inserting paragraph breaks at natural pauses (>4s gaps between events)
+        if jq -r '
+          [.events[] | select(.segs) | {t: .tStartMs, text: ([.segs[]?.utf8 // ""] | join(""))}]
+          | reduce .[] as $e (
+              {prev_t: 0, out: ""};
+              if ($e.text | gsub("\\s+";"") | length) == 0 then .
+              elif ($e.t - .prev_t) > 4000 and (.out | length) > 0
+                then .out += "\n\n" + $e.text | .prev_t = $e.t
+              else .out += $e.text | .prev_t = $e.t
+              end
+            )
+          | .out | gsub("[ \\t]+"; " ") | gsub("\\n "; "\n") | gsub(" \\n"; "\n")
+          | ltrimstr(" ") | rtrimstr(" ")
+        ' "$file" > "$output_file" 2>/dev/null; then
             rm -f "$file"
             echo "Created: ${output_file##*/}"
             converted_count=$((converted_count + 1))
