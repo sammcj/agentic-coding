@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-03-03T15:18:49.391683",
+  "last_sync": "2026-03-03T16:48:22.955670",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -243,13 +243,9 @@
       "checksum": "sha256:09030bb6b8263f637d8b88ac33ddfb437ae46f2c5aaaa75664c6ffc7dc96a437",
       "last_synced": "2026-03-02T08:07:49.612800"
     },
-    "claude-skills/extract-wisdom/scripts/download_video.sh": {
-      "checksum": "sha256:2a5cc4e5f09a4561a23056ecc8ddc8c5d42784df30e922c98d76fcc24dd8de73",
-      "last_synced": "2026-03-03T15:18:49.391053"
-    },
     "claude-skills/extract-wisdom/SKILL.md": {
-      "checksum": "sha256:34025086b4519de4b351796c50148734e2e23ffcfb6458600e30f0c798ad3b26",
-      "last_synced": "2026-03-03T15:18:49.391525"
+      "checksum": "sha256:9ca0c3836113e41c2cb1efe1ef99bd3dc31ec79e60f85d75b2522bc375fb8436",
+      "last_synced": "2026-03-03T16:48:22.953705"
     },
     "claude-skills/excalidraw-diagrams/_note.md": {
       "checksum": "sha256:ce83fe5fa8f89f06a4844833aa38d9fbc7e47bb51836d9447a02aafb51c211d9",
@@ -386,6 +382,10 @@
     "claude-skills/extract-wisdom/scripts/format.sh": {
       "checksum": "sha256:f2605759a1dd4425ccee10570d6f53613fa583c6d07fe701b84ea7b79236be81",
       "last_synced": "2026-03-03T15:07:57.398502"
+    },
+    "claude-skills/extract-wisdom/scripts/download_transcript.sh": {
+      "checksum": "sha256:54a30e7e2b4cd127d3e3eab5af46314c0783bb7a9f70c1be5fe7ed58a8e4ac15",
+      "last_synced": "2026-03-03T16:48:22.954972"
     }
   },
   "deletions": {
@@ -441,6 +441,11 @@
     },
     "claude-skills/skill-creator/scripts/quick_validate.py": {
       "deleted_at": "2026-03-01T12:14:24.432373",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/extract-wisdom/scripts/download_video.sh": {
+      "deleted_at": "2026-03-03T16:48:22.946096",
       "checksum": "unknown",
       "decision": "confirmed"
     }

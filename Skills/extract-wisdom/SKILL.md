@@ -2,7 +2,7 @@
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
 compatibility: Requires Bash Prettier Pandoc & WeasyPrint
-allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_video.sh *) Bash(bash scripts/download_video.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/format.sh *) Bash(bash scripts/format.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *) Bash(bash scripts/render_pdf.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(bash scripts/send_notification.sh) Bash(* bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(* bash scripts/send_notification.sh) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)"
+allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_transcript.sh *) Bash(bash scripts/download_transcript.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/format.sh *) Bash(bash scripts/format.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *) Bash(bash scripts/render_pdf.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(bash scripts/send_notification.sh) Bash(* bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(* bash scripts/send_notification.sh) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)"
 ---
 
 # Wisdom Extraction
@@ -25,7 +25,7 @@ Once you know the level of detail, determine the source type and acquire content
 Execute the download script to fetch only the transcript (no video file):
 
 ```bash
-bash <skill-dir>/scripts/download_video.sh <youtube-url>
+bash <skill-dir>/scripts/download_transcript.sh <youtube-url>
 ```
 
 The script will:
@@ -128,7 +128,7 @@ Determine the output directory:
 **Web and text sources:** Run the following to determine the base output directory, then use it as described below:
 
 ```bash
-bash <skill-dir>/scripts/download_video.sh --output-dir
+bash <skill-dir>/scripts/download_transcript.sh --output-dir
 ```
 
 If the command fails or is unavailable, fall back to `~/Downloads/text-wisdom/`.
@@ -305,7 +305,7 @@ If timestamps are needed:
 
 ### scripts/
 
-- `download_video.sh`: Downloads YouTube transcripts (no video files) using yt-dlp. Auto-detects environment (Claude Code/Claw) and OS, outputs paths and next steps.
+- `download_transcript.sh`: Downloads YouTube transcripts (no video files) using yt-dlp. Auto-detects environment (Claude Code/Claw) and OS, outputs paths and next steps.
 - `format.sh`: Formats markdown files with prettier. Auto-detects bunx/npx, handles sandbox workarounds, silent on success.
 - `send_notification.sh`: Sends desktop notifications when analysis is complete (Claude Code only, optional).
 - `render_pdf.sh`: Converts analysis markdown to a styled PDF using pandoc + weasyprint.

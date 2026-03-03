@@ -8,7 +8,7 @@ set -euo pipefail
 # Falls back to no-cookie download if browser cookies unavailable
 
 # Minimum gap (ms) between subtitle events to insert a paragraph break.
-PARAGRAPH_GAP_MS=3000
+PARAGRAPH_GAP_MS=2500
 
 # Resolve the script's real location for environment detection.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -17,7 +17,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # Claw-based environments are detected automatically from the script path:
 #   ~/.openclaw/workspace/...  ->  openclaw
 #   ~/.zeroclaw/workspace/...  ->  zeroclaw
-#   ~/.anyclaw/workspace/...   ->  anyclaw   (no code changes needed)
 # On Linux, set <UPPERNAME>_WISDOM_DIR to override the output directory.
 detect_environment_and_set_paths() {
     local base_dir=""
@@ -149,17 +148,25 @@ main() {
         exit 1
     fi
 
-    # Check yt-dlp is available
-    if ! command -v yt-dlp &>/dev/null; then
+    # Check dependencies
+    local missing=()
+    command -v yt-dlp &>/dev/null || missing+=("yt-dlp")
+    command -v jq &>/dev/null || missing+=("jq")
+
+    if [[ ${#missing[@]} -gt 0 ]]; then
         if [[ "$OSTYPE" == "darwin"* ]]; then
-            install_hint="brew install yt-dlp  OR  python3 -m pip install -U 'yt-dlp[default]'"
+            install_hint="brew install ${missing[*]}"
         else
-            install_hint="python3 -m pip install -U 'yt-dlp[default]'"
+            install_hint="sudo apt install ${missing[*]}"
+        fi
+        # yt-dlp also installable via pip
+        if [[ " ${missing[*]} " == *" yt-dlp "* ]]; then
+            install_hint="$install_hint  OR  python3 -m pip install -U 'yt-dlp[default]' (for yt-dlp)"
         fi
         cat >&2 <<MSG
-MISSING_DEPS: yt-dlp
+MISSING_DEPS: ${missing[*]}
 INSTALL: $install_hint
-ACTION: If you are allowed to, install yt-dlp and call this script again. Otherwise, let the user know that yt-dlp is not installed and YouTube transcript download is not possible without it.
+ACTION: If you are allowed to, install the missing dependencies and call this script again. Otherwise, let the user know that ${missing[*]} is not installed and YouTube transcript download is not possible without it.
 MSG
         exit 2
     fi
