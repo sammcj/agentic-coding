@@ -14,7 +14,7 @@ Default location: `~/.claude/skills/extract-wisdom/`
 
 ### Step 1: Ask User Preferences
 
-Use the `AskUserQuestion` tool to ask the user what level of detail they want. Use multi-choice with options: "Detailed", "Concise". **Do not call any other tools in the same turn as this question. Wait for the user's response before proceeding to Step 2.** If `AskUserQuestion` is unavailable, default to "Detailed".
+Use the `AskUserQuestion` tool to ask the user what level of detail they want (unless they've already stated this in the ask). Use multi-choice with options: "Detailed", "Concise". **Do not call any other tools in the same turn as this question. Wait for the user's response before proceeding to Step 2.** If `AskUserQuestion` is unavailable, default to "Detailed".
 
 ### Step 2: Identify Source and Acquire Content
 

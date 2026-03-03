@@ -7,6 +7,9 @@ set -euo pipefail
 # Auto-detects macOS or Linux and uses appropriate paths
 # Falls back to no-cookie download if browser cookies unavailable
 
+# Minimum gap (ms) between subtitle events to insert a paragraph break.
+PARAGRAPH_GAP_MS=3000
+
 # Resolve the script's real location for environment detection.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
@@ -179,7 +182,7 @@ MSG
     # First try with cookies, then fallback to without
     echo "Downloading transcripts from: $video_url"
     echo "Attempting download with browser cookies..."
-    
+
     if download_transcript "$video_url" "$video_dir" "true"; then
         download_success=true
         echo "Download successful with cookies"
@@ -219,13 +222,13 @@ MSG
 
         echo "Converting: ${file##*/}"
 
-        # Extract subtitle text, inserting paragraph breaks at natural pauses (>4s gaps between events)
-        if jq -r '
+        # Extract subtitle text, inserting paragraph breaks at natural pauses
+        if jq -r --argjson gap "$PARAGRAPH_GAP_MS" '
           [.events[] | select(.segs) | {t: .tStartMs, text: ([.segs[]?.utf8 // ""] | join(""))}]
           | reduce .[] as $e (
               {prev_t: 0, out: ""};
               if ($e.text | gsub("\\s+";"") | length) == 0 then .
-              elif ($e.t - .prev_t) > 4000 and (.out | length) > 0
+              elif ($e.t - .prev_t) > $gap and (.out | length) > 0
                 then .out += "\n\n" + $e.text | .prev_t = $e.t
               else .out += $e.text | .prev_t = $e.t
               end
@@ -253,22 +256,22 @@ MSG
         echo "Check: $video_dir"
         exit 1
     fi
-    
+
     # Find the transcript file path
     local transcript_file
     transcript_file=$(find "$video_dir" -maxdepth 1 -name "*-transcript.txt" -print -quit 2>/dev/null || true)
-    
+
     if [[ -z "$transcript_file" ]]; then
         echo "Error: Transcript file not found after conversion"
         exit 1
     fi
-    
+
     # Output compact format for the agent
     echo ""
     echo "TRANSCRIPT_PATH: $transcript_file"
     echo "OUTPUT_DIR: $video_dir"
     echo "NEXT_STEP: mv $video_dir ${base_videos_dir}/$(date +%Y-%m-%d)-<description>"
-    
+
     exit 0
 }
 
