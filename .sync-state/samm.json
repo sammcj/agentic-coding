@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-03-02T14:57:18.042257",
+  "last_sync": "2026-03-03T12:20:04.638153",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
       "last_synced": "2026-02-09T08:43:39.194546"
     },
     "claude/settings.json": {
-      "checksum": "sha256:f2ba25ed1b9a14182a04aaa86f3fa3358ea0a531d0dc8c91db0ab48b515c5e56",
-      "last_synced": "2026-03-02T14:51:13.409596"
+      "checksum": "sha256:d8d33598f98bbfc1548d258a1dbbbece32fc7811712352e474d0f1b0dc9ac3d0",
+      "last_synced": "2026-03-03T12:20:04.638022"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
       "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
@@ -248,8 +248,8 @@
       "last_synced": "2026-02-20T16:10:04.194331"
     },
     "claude-skills/extract-wisdom/SKILL.md": {
-      "checksum": "sha256:9dcd86e9d639a49b209aa721d902f8742fde5528fd0d54c4b1b574090aaef25d",
-      "last_synced": "2026-03-02T08:07:49.612376"
+      "checksum": "sha256:38ec3641fcb7d838ec68d8c79998809e02c7d06b3650fef8e70639607379df47",
+      "last_synced": "2026-03-03T12:20:03.142934"
     },
     "claude-skills/excalidraw-diagrams/_note.md": {
       "checksum": "sha256:ce83fe5fa8f89f06a4844833aa38d9fbc7e47bb51836d9447a02aafb51c211d9",
@@ -332,8 +332,8 @@
       "last_synced": "2026-02-26T14:49:48.090498"
     },
     "opencode-config/opencode.jsonc": {
-      "checksum": "sha256:1364288db0de578ea8bef3e06aa17e15538f9430942d04ff94eafe1d7da7597c",
-      "last_synced": "2026-03-01T12:27:25.046301"
+      "checksum": "sha256:eced4a28b0730c25f469005e7dbb0688d56fd03faf9ae002eae635b16de80b25",
+      "last_synced": "2026-03-03T08:35:01.673037"
     },
     "claude-skills/view-team-session/SKILL.md": {
       "checksum": "sha256:5be2cc43790b7a4e7b0ac192919126c9e7295c7bc6a76730b09f633f66c0ff3e",
@@ -382,6 +382,10 @@
     "claude-skills/extract-wisdom/.serena/project.yml": {
       "checksum": "sha256:1ebbbb292c2a85a803519aa4d9e10d5ab3cf7bc8cbac8cb8c4f3528e04d0f4d4",
       "last_synced": "2026-03-02T14:51:12.232416"
+    },
+    "claude-skills/extract-wisdom/scripts/format.sh": {
+      "checksum": "sha256:380a182a3589c04e62e06044f6cbb58e236709bb4be9a60cacf569138f1bcb67",
+      "last_synced": "2026-03-03T12:20:03.143623"
     }
   },
   "deletions": {

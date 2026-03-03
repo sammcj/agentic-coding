@@ -2,7 +2,7 @@
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
 compatibility: Requires Bash Prettier Pandoc & WeasyPrint
-allowed-tools: Read Write Edit Glob Grep Task AskUserQuestion WebFetch WebSearch Bash(bash scripts/download_video.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_video.sh *) Bash(bash scripts/send_notification.sh) Bash(bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(* bash scripts/send_notification.sh) Bash(* bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(bash scripts/render_pdf.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *) Bash(mv *) Bash(mkdir *) Bash(prettier *) Bash(bunx prettier *) Bash(OPENSSL_CONF=/dev/null bunx prettier *) Bash(npx prettier *) Bash(npx -y prettier *) Bash(OPENSSL_CONF=/dev/null npx -y prettier *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)
+allowed-tools: Read Write Edit Glob Grep Task AskUserQuestion WebFetch WebSearch Bash(bash scripts/download_video.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_video.sh *) Bash(bash scripts/send_notification.sh) Bash(bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(* bash scripts/send_notification.sh) Bash(* bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh) Bash(bash scripts/render_pdf.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *) Bash(bash scripts/format.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/format.sh *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)
 ---
 
 # Wisdom Extraction
@@ -22,6 +22,7 @@ bash scripts/download_video.sh <youtube-url>
 ```
 
 The script will:
+
 - Auto-detect your environment (Claude Code or Claw based agents) and OS (macOS or Linux)
 - Download English subtitles or auto-generated transcripts
 - Output the transcript path and next steps
@@ -45,9 +46,11 @@ Then read the transcript file from `TRANSCRIPT_PATH`. Transcripts are cleaned an
 #### **Web URL or Document Path** (blog posts, articles, any non-YouTube URL)
 
 Use WebFetch to extract content, for example:
+
 ```
 WebFetch with prompt: "Extract the main article content"
 ```
+
 WebFetch returns cleaned markdown-formatted content ready for analysis.
 
 Note: Ensure the Webfetch tool does not truncate the content that we likely want to keep! If you have problems with Webfetch you can always use the Fetch tool (or similar).
@@ -57,6 +60,7 @@ Note: Ensure the Webfetch tool does not truncate the content that we likely want
 Use the Read tool to load content directly.
 
 If the content clearly indicates there was an image that is highly likely to contain important information that would not be captured or inferred from the text alone (e.g. a diagram of a complex concept, but NOT things like a photo the author, memes, product logos, screenshots etc...) and if you have the link to the image URL, you may wish to:
+
 - Fetch the image to a temporary location
 - Read the image to understand the content
 - Validate if the content of the image adds value beyond what is already captured in the text or not
@@ -73,12 +77,14 @@ IMPORTANT: Avoid signal dilution, context collapse, quality degradation and degr
 Perform analysis on the content, extracting:
 
 #### 1. Key Insights & Takeaways
+
 - Identify the main ideas, core concepts, and central arguments
 - Extract fundamental learnings and important revelations
 - Highlight expert advice, best practices, or recommendations
 - Note any surprising or counterintuitive information
 
 #### 2. Notable Quotes
+
 - Extract memorable, impactful, or particularly well-articulated statements
 - Include context for each quote when relevant
 - Focus on quotes that encapsulate key ideas or provide unique perspectives
@@ -86,6 +92,7 @@ Perform analysis on the content, extracting:
 - Preserve the original wording exactly, except correct American spellings to Australian English
 
 #### 3. Structured Summary
+
 - Create hierarchical organisation of content
 - Break down into logical sections or themes
 - Provide clear section headings that reflect content structure
@@ -93,6 +100,7 @@ Perform analysis on the content, extracting:
 - Note any important examples, case studies, or demonstrations
 
 #### 4. Actionable Takeaways
+
 - List specific, concrete actions the audience can implement with examples (if applicable)
 - Do not add your own advice, input or recommendations outside of what is in the content unless the user has asked you to do so
 - Frame as clear, executable steps
@@ -101,6 +109,7 @@ Perform analysis on the content, extracting:
 - Distinguish between immediate actions and longer-term strategies
 
 #### 5. Your Own Insights On The Content
+
 Do this in a separate step, only after you've added the content from the source.
 
 - Provide your own analysis, insights, or reflections on the content
@@ -122,6 +131,7 @@ bash scripts/download_video.sh --output-dir
 If the command fails or is unavailable, fall back to `~/Downloads/text-wisdom/`.
 
 Save to `<base-output-dir>/YYYY-MM-DD-<concise-description>/`:
+
 - Create the directory if it doesn't exist
 - Use the same date-prefixed naming convention as YouTube sources
 
@@ -137,17 +147,21 @@ Format the analysis using this structure:
 **Analysis Date**: [YYYY-MM-DD]
 
 ## Summary
+
 [Brief 2-3 sentence overview of the main topic and purpose]
 
 ### Simplified Explanation
+
 [Explain It Like I'm 10: A simple 1-2 sentence explanation of the core concept in a way a 10-year-old could understand]
 
 ### Key Takeaways
+
 - [Concise takeaway 1]
 - [Concise takeaway 2]
 - [Concise takeaway 3]
 
 ## Key Insights
+
 - [Insight 1]
   - [Supporting detail]
 - [Insight 2]
@@ -157,6 +171,7 @@ Format the analysis using this structure:
 - etc..
 
 ## Notable Quotes (Only include if there are notable quotes)
+
 > "[Quote 1]"
 
 Context: [Brief context if needed]
@@ -166,21 +181,27 @@ Context: [Brief context if needed]
 Context: [Brief context if needed]
 
 ## Structured Breakdown
+
 ### [Section 1 Title]
+
 [Content summary]
 
 ### [Section 2 Title]
+
 [Content summary]
 
 ## Actionable Takeaways
+
 1. [Specific action item 1]
 2. [Specific action item 2]
 3. [Specific action item 3]
 
 ## Insights & Commentary
+
 [Your own insights, analysis, reflections, or commentary on the content, if applicable]
 
 ## Additional Resources
+
 [Any tools, links, or references mentioned in the content]
 
 _Wisdom Extraction: [Current date in YYYY-MM-DD]_
@@ -195,6 +216,7 @@ After writing the analysis file, inform the user of the location.
 Conduct a critical self-review of your summarisation and analysis.
 
 Create tasks to track the following (mechanical checks first, then content quality):
+
 - [ ] No American English spelling - check and fix (e.g. judgment->judgement, practicing->practising, organize->organise)
 - [ ] No em-dashes, smart quotes, or non-standard typography
 - [ ] Proper markdown formatting
@@ -208,10 +230,8 @@ Re-read the analysis file, verify each item, fix any issues found, then mark tas
 After completing your review and edits, format the markdown:
 
 ```bash
-OPENSSL_CONF=/dev/null bunx prettier --write "path/to/file.md"
+bash scripts/format.sh "path/to/file.md"
 ```
-
-**Important:** Always use `bunx` (not `npx`) and always set `OPENSSL_CONF=/dev/null` to avoid sandbox permission errors with npm cache and OpenSSL.
 
 ### Step 7: PDF Export
 
@@ -254,7 +274,9 @@ Then stop unless further instructions are given.
 - You can consider creating mermaid diagrams to explain complex concepts, relationships, or workflows found in the content
 
 ### Multiple Source Analysis
+
 When analysing multiple sources:
+
 - Process each source sequentially using the workflow above
 - Each source gets its own directory
 - Create comparative analysis highlighting common themes or contrasting viewpoints
@@ -262,13 +284,17 @@ When analysing multiple sources:
 - Notify once only at the end of the entire batch process
 
 ### Topic-Specific Focus
+
 When user requests focused analysis on specific topics:
+
 - Search content for relevant keywords and themes
 - Extract only content related to specified topics
 - Provide concentrated analysis on areas of interest
 
 ### Time-Stamped Analysis (YouTube only)
+
 If timestamps are needed:
+
 - Note that basic transcripts don't preserve timestamps
 - Can reference general flow (beginning, middle, end) of content
 - For precise timestamps, may need to cross-reference with the actual video
@@ -276,11 +302,14 @@ If timestamps are needed:
 ## Resources
 
 ### scripts/
+
 - `download_video.sh`: Downloads YouTube transcripts (no video files) using yt-dlp. Auto-detects environment (Claude Code/Claw) and OS, outputs paths and next steps.
+- `format.sh`: Formats markdown files with prettier. Auto-detects bunx/npx, handles sandbox workarounds, silent on success.
 - `send_notification.sh`: Sends desktop notifications when analysis is complete (Claude Code only, optional).
 - `render_pdf.sh`: Converts analysis markdown to a styled PDF using pandoc + weasyprint.
 
 ### styles/
+
 - `wisdom-pdf.css`: CSS stylesheet for PDF rendering. Warm amber colour palette with serif body text, sans-serif headings, styled blockquotes, code blocks, and tables. Customisable or replaceable via `--css` flag.
 
 ---

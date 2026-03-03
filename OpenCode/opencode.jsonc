@@ -8,71 +8,85 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "llamaswap",
       "models": {
-        "qwen3-5-27b-ud-q4kxl-192k-coding-instruct": {
-          "name": "qwen3-5-27b-ud-q4kxl-192k-coding-instruct",
-          "limit": {
-            "context": 196608,
-            "output": 65536
-          }
-        },
-        "qwen3-5-27b-ud-q4kxl-192k-coding-thinking": {
-          "name": "qwen3-5-27b-ud-q4kxl-192k-coding-thinking",
-          "limit": {
-            "context": 196608,
-            "output": 65536
-          }
-        },
-        "qwen3-5-27b-ud-q6kxl-128k-coding-instruct": {
-          "name": "qwen3-5-27b-ud-q6kxl-128k-coding-instruct",
+        "qwen3-5-27b-ud-q4kxl-128k:coding-instruct": {
+          "name": "qwen3-5-27b-ud-q4kxl-128k:coding-instruct",
           "limit": {
             "context": 131072,
             "output": 65536
           }
         },
-        "qwen3-5-27b-ud-q6kxl-128k-coding-thinking": {
-          "name": "qwen3-5-27b-ud-q6kxl-128k-coding-thinking",
+        "qwen3-5-27b-ud-q4kxl-128k:coding-thinking": {
+          "name": "qwen3-5-27b-ud-q4kxl-128k:coding-thinking",
           "limit": {
             "context": 131072,
             "output": 65536
           }
         },
-        "qwen3-5-27b-ud-q6kxl-192k-coding-instruct": {
-          "name": "qwen3-5-27b-ud-q6kxl-192k-coding-instruct",
+        "qwen3-5-27b-ud-q4kxl-192k:coding-instruct": {
+          "name": "qwen3-5-27b-ud-q4kxl-192k:coding-instruct",
           "limit": {
             "context": 196608,
             "output": 65536
           }
         },
-        "qwen3-5-27b-ud-q6kxl-192k-coding-thinking": {
-          "name": "qwen3-5-27b-ud-q6kxl-192k-coding-thinking",
+        "qwen3-5-27b-ud-q4kxl-192k:coding-thinking": {
+          "name": "qwen3-5-27b-ud-q4kxl-192k:coding-thinking",
           "limit": {
             "context": 196608,
             "output": 65536
           }
         },
-        "qwen3-5-35b-a3b-ud-q5kxl-192k-coding-instruct": {
-          "name": "qwen3-5-35b-a3b-ud-q5kxl-192k-coding-instruct",
+        "qwen3-5-27b-ud-q6kxl-128k:coding-instruct": {
+          "name": "qwen3-5-27b-ud-q6kxl-128k:coding-instruct",
+          "limit": {
+            "context": 131072,
+            "output": 65536
+          }
+        },
+        "qwen3-5-27b-ud-q6kxl-128k:coding-thinking": {
+          "name": "qwen3-5-27b-ud-q6kxl-128k:coding-thinking",
+          "limit": {
+            "context": 131072,
+            "output": 65536
+          }
+        },
+        "qwen3-5-27b-ud-q6kxl-192k:coding-instruct": {
+          "name": "qwen3-5-27b-ud-q6kxl-192k:coding-instruct",
           "limit": {
             "context": 196608,
             "output": 65536
           }
         },
-        "qwen3-5-35b-a3b-ud-q5kxl-192k-coding-thinking": {
-          "name": "qwen3-5-35b-a3b-ud-q5kxl-192k-coding-thinking",
+        "qwen3-5-27b-ud-q6kxl-192k:coding-thinking": {
+          "name": "qwen3-5-27b-ud-q6kxl-192k:coding-thinking",
           "limit": {
             "context": 196608,
             "output": 65536
           }
         },
-        "qwen3-5-35b-a3b-ud-q6kxl-192k-coding-instruct": {
-          "name": "qwen3-5-35b-a3b-ud-q6kxl-192k-coding-instruct",
+        "qwen3-5-35b-a3b-ud-q4kxl-192k:coding-instruct": {
+          "name": "qwen3-5-35b-a3b-ud-q4kxl-192k:coding-instruct",
           "limit": {
             "context": 196608,
             "output": 65536
           }
         },
-        "qwen3-5-35b-a3b-ud-q6kxl-192k-coding-thinking": {
-          "name": "qwen3-5-35b-a3b-ud-q6kxl-192k-coding-thinking",
+        "qwen3-5-35b-a3b-ud-q4kxl-192k:coding-thinking": {
+          "name": "qwen3-5-35b-a3b-ud-q4kxl-192k:coding-thinking",
+          "limit": {
+            "context": 196608,
+            "output": 65536
+          }
+        },
+        "qwen3-5-35b-a3b-ud-q6kxl-192k:coding-instruct": {
+          "name": "qwen3-5-35b-a3b-ud-q6kxl-192k:coding-instruct",
+          "limit": {
+            "context": 196608,
+            "output": 65536
+          }
+        },
+        "qwen3-5-35b-a3b-ud-q6kxl-192k:coding-thinking": {
+          "name": "qwen3-5-35b-a3b-ud-q6kxl-192k:coding-thinking",
           "limit": {
             "context": 196608,
             "output": 65536
