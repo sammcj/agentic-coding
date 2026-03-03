@@ -31,7 +31,7 @@ notify_macos() {
         [[ -n "$message" ]] && args+=(-message "$message")
         [[ -n "$dir" ]] && args+=(-open "file://$dir")
         [[ "$play_sound" == "true" ]] && args+=(-sound "$sound")
-        terminal-notifier "${args[@]}" 2>/dev/null || {
+        terminal-notifier "${args[@]}" -timeout 5 2>/dev/null || {
             # terminal-notifier may fail in sandboxed environments - fall back to osascript
             local script="display notification \"$message\" with title \"$title\""
             [[ "$play_sound" == "true" ]] && script="$script sound name \"$sound\""
