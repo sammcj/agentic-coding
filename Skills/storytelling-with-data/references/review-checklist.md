@@ -8,14 +8,14 @@ Use this checklist when reviewing or critiquing any data communication: charts, 
 
 - [ ] **Clear audience**: Is it obvious who this is for? Is the complexity/detail level appropriate for them?
 - [ ] **Single key message**: Can you identify the ONE thing the audience should take away from each chart, panel, or section?
-- [ ] **Action title**: Does each title state the "so what" — not just describe the data? (e.g., "Churn increased 15% after price change" vs "Monthly Churn Rate")
+- [ ] **Action title**: Does each title state the "so what" - not just describe the data? (e.g., "Churn increased 15% after price change" vs "Monthly Churn Rate")
 - [ ] **Call to action**: Does the communication end with a clear recommendation or next step?
 - [ ] **Explanatory not exploratory**: Is this showing curated insights, or dumping raw analysis?
 
 **Common problems:**
 
 - Generic titles like "Overview", "Results", "Data"
-- No clear recommendation — ends with data and no interpretation
+- No clear recommendation - ends with data and no interpretation
 - Too much data shown "for completeness" rather than for the story
 
 ---
@@ -25,7 +25,7 @@ Use this checklist when reviewing or critiquing any data communication: charts, 
 - [ ] **Right chart for the message**: Does the visual type match what you're trying to show? (comparison → bars, trend → lines, composition → stacked bars)
 - [ ] **Simple over complex**: Could a simpler chart type work? (e.g., bar chart instead of radar chart)
 - [ ] **No pies or donuts**: If present, recommend replacing with horizontal bars
-- [ ] **No 3D effects**: If present, remove immediately — they distort data
+- [ ] **No 3D effects**: If present, remove immediately - they distort data
 - [ ] **No dual y-axes**: If present, split into two separate charts or use indexing
 - [ ] **No spaghetti**: If >4 overlapping lines, recommend small multiples, filtering, or highlighting one series
 
@@ -50,7 +50,7 @@ Use this checklist when reviewing or critiquing any data communication: charts, 
 
 **Common problems:**
 
-- Every data point labelled AND axis ticks AND gridlines — pick one approach
+- Every data point labelled AND axis ticks AND gridlines - pick one approach
 - Bright coloured backgrounds or borders that compete with data
 - Logos, clip art, or decorative images that add no informational value
 
@@ -66,8 +66,8 @@ Use this checklist when reviewing or critiquing any data communication: charts, 
 
 **Common problems:**
 
-- Rainbow colour palettes where every category gets a bright colour — nothing stands out
-- Everything is the same visual weight — no hierarchy
+- Rainbow colour palettes where every category gets a bright colour - nothing stands out
+- Everything is the same visual weight - no hierarchy
 - Red/green colour coding that's inaccessible to colour-blind viewers
 
 ---
@@ -100,7 +100,7 @@ Use this checklist when reviewing or critiquing any data communication: charts, 
 **Common problems:**
 
 - Titles that are just category labels ("Finance", "Operations") rather than insights
-- No clear narrative thread — feels like a collection of charts, not a story
+- No clear narrative thread - feels like a collection of charts, not a story
 - The conclusion introduces new data instead of synthesising and recommending
 
 ---
@@ -109,9 +109,9 @@ Use this checklist when reviewing or critiquing any data communication: charts, 
 
 When providing a review, structure feedback as:
 
-1. **Overall assessment** — 2-3 sentence summary of the biggest opportunities for improvement
-2. **Top 3 priority changes** — The changes that would have the most impact, ranked
-3. **Section-by-section / chart-by-chart feedback** — Specific, actionable items with clear recommendations
-4. **What's working well** — Reinforce the things that are already effective
+1. **Overall assessment** - 2-3 sentence summary of the biggest opportunities for improvement
+2. **Top 3 priority changes** - The changes that would have the most impact, ranked
+3. **Section-by-section / chart-by-chart feedback** - Specific, actionable items with clear recommendations
+4. **What's working well** - Reinforce the things that are already effective
 
 Always suggest _what to do instead_, not just what's wrong. Where possible, describe or sketch the improved version.

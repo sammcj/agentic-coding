@@ -24,7 +24,7 @@ This works because of **preattentive processing** - the brain detects colour dif
 
 ## Colour Selection Rules
 
-### Do:
+### Do
 
 - **Use colour meaningfully** - each colour should encode information, not just look pretty
 - **Be consistent** - same colour = same meaning throughout the entire piece
@@ -33,7 +33,7 @@ This works because of **preattentive processing** - the brain detects colour dif
 - **Use sequential palettes** for magnitude (light → dark of one hue)
 - **Use diverging palettes** only when there's a meaningful midpoint (e.g., positive/negative, above/below target)
 
-### Don't:
+### Don't
 
 - **Don't use rainbow palettes** - they have no natural order and create visual chaos
 - **Don't use red + green** as the only differentiator - ~8% of men are red-green colour blind

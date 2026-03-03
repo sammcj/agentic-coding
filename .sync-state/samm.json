@@ -1,7 +1,7 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-03-03T22:23:44.282822",
+  "last_sync": "2026-03-03T22:24:44.003242",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
@@ -388,16 +388,16 @@
       "last_synced": "2026-03-03T16:48:22.954972"
     },
     "claude-skills/storytelling-with-data/references/review-checklist.md": {
-      "checksum": "sha256:39f7f4bbefda7e3cb03d840d8d5e86a41d74cafe6b599ec7d07e5f7062e511e3",
-      "last_synced": "2026-03-03T22:23:44.280326"
+      "checksum": "sha256:8a4ecb7f510e57add18c31a3373db23c8a9e29d72ac8c58cd5505436044b2c36",
+      "last_synced": "2026-03-03T22:24:44.003074"
     },
     "claude-skills/storytelling-with-data/README.md": {
       "checksum": "sha256:c6c8ca7c06f968564e0cc032a1e8f2af54f685c9ef2ae2d95a6cdb3ce25ea9d7",
       "last_synced": "2026-03-03T22:23:44.281006"
     },
     "claude-skills/storytelling-with-data/references/colour-and-emphasis.md": {
-      "checksum": "sha256:cae194e9855cc780a682a36e03f412b50f8f1100b07b0d78512d66377aba5abb",
-      "last_synced": "2026-03-03T22:23:44.281575"
+      "checksum": "sha256:bd6763b2e672a737f75866840a3aad0ad2aa2f5c36bb0852bf5ad5184010e952",
+      "last_synced": "2026-03-03T22:24:44.002659"
     },
     "claude-skills/storytelling-with-data/SKILL.md": {
       "checksum": "sha256:621d035c963d846af6c4ce095c5b47720db3e5b39a9fd3c7113958ad0a2b8234",
