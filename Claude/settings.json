@@ -1,6 +1,5 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(~/go/bin/run_silent *)",
@@ -74,6 +73,7 @@
       "Bash(sort *)",
       "Bash(source .venv/bin/activate)",
       "Bash(source venv/bin/activate)",
+      "Bash(sscache *)",
       "Bash(sqlite *)",
       "Bash(sqlite3 *)",
       "Bash(stat *)",
@@ -154,12 +154,14 @@
       "Bash(1pw *)",
       "Bash(cfprefsd *)",
       "Bash(git push *)",
+      "Bash(init *)",
       "Bash(kubectl apply *)",
       "Bash(kubectl delete *)",
       "Bash(kubectl exec *)",
       "Bash(nc -l *)",
       "Bash(ncat -l *)",
       "Bash(netcat -l *)",
+      "Bash(reboot *)",
       "Bash(rm -f -r .. *)",
       "Bash(rm -f -r /Users/samm)",
       "Bash(rm -f -r /Users/samm*)",
@@ -185,6 +187,7 @@
       "Bash(rm -rf ~*)",
       "Bash(rm -rf $HOME*)",
       "Bash(security *)",
+      "Bash(shutdown *)",
       "Bash(su *)",
       "Bash(sudo *)",
       "Bash(vmmap *)",
@@ -212,6 +215,7 @@
     ],
     "ask": [
       "Bash(chmod -R *)",
+      "Bash(chmod 777 *)",
       "Bash(chown -R *)",
       "Bash(dd *)",
       "Bash(diskutil *)",
@@ -227,6 +231,7 @@
       "Bash(git commit *)",
       "Bash(go run *)",
       "Bash(history -c *)",
+      "Bash(kill -9 *)",
       "Bash(mkfs *)",
       "Bash(nc *)",
       "Bash(npx *)",
@@ -258,6 +263,10 @@
       "Read(**/*.pem)",
       "Read(**/*.sock)",
       "Read(**/*.socket)",
+      "Read(**/*credential*)",
+      "Read(**/*id_ed25519*)",
+      "Read(**/*id_rsa*)",
+      "Read(**/*secret*/**)",
       "Read(**/Biome/**)",
       "Read(**/com~apple~CloudDocs/Backups/**)",
       "Read(**/credentials.json)",
@@ -270,6 +279,7 @@
       "Read(**/Signal/**)",
       "Read(**/vpn/**)",
       "Read(**/VPN/**)",
+      "Read(//etc/systemd/**)",
       "Read(//Library/Application Support/**)",
       "Read(//Library/LaunchAgents/**)",
       "Read(//Library/LaunchDaemons/**)",
@@ -292,7 +302,6 @@
       "Read(~/Library/Messages/**)",
       "Read(~/Library/Reminders/**)",
       "Read(~/Library/Safari/**)",
-      "Read(//etc/systemd/**)",
       "Read(//etc/ssl/**)"
     ],
     "defaultMode": "acceptEdits",
@@ -325,6 +334,26 @@
             "type": "command",
             "command": "~/.claude/hooks/approve-compound-commands",
             "timeout": 2000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Read|Grep|WebFetch|Task|mcp__plugin_context-mode_context-mode__execute|mcp__plugin_context-mode_context-mode__execute_file|mcp__plugin_context-mode_context-mode__batch_execute",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/0.9.20/hooks/pretooluse.mjs"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/0.9.20/hooks/sessionstart.mjs"
           }
         ]
       }
@@ -415,5 +444,6 @@
   },
   "thinking": {
     "type": "adaptive"
-  }
+  },
+  "includeCoAuthoredBy": false
 }
