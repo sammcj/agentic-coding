@@ -1,8 +1,8 @@
 ---
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
-compatibility: Requires Bash Prettier Pandoc & WeasyPrint
-allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_transcript.sh *) Bash(bash scripts/download_transcript.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/format.sh *) Bash(bash scripts/format.sh *) Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *) Bash(bash scripts/render_pdf.sh *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)
+compatibility: Requires uv and Prettier (bunx/npx)
+allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)
 ---
 
 # Wisdom Extraction
@@ -14,7 +14,7 @@ Default location: `~/.claude/skills/extract-wisdom/`
 
 ### Step 1: Ask User Preferences
 
-Use the `AskUserQuestion` tool to ask the user what level of detail they want (unless they've already stated this in the ask). Use multi-choice with options: "Detailed", "Concise". **Do not call any other tools in the same turn as this question. Wait for the user's response before proceeding to Step 2.** If `AskUserQuestion` is unavailable, default to "Detailed".
+Use the `AskUserQuestion` tool to ask the user what level of detail they want (unless they've already stated the level of detail - in which case use that). Use multi-choice with options: "Detailed", "Concise". **Do not call any other tools in the same turn as this question. Wait for the user's response before proceeding to Step 2.** If `AskUserQuestion` is unavailable, default to "Detailed".
 
 ### Step 2: Identify Source and Acquire Content
 
@@ -25,7 +25,7 @@ Once you know the level of detail, determine the source type and acquire content
 Execute the download script to fetch only the transcript (no video file):
 
 ```bash
-bash <skill-dir>/scripts/download_transcript.sh <youtube-url>
+uv run <skill-dir>/scripts/wisdom.py transcript <youtube-url>
 ```
 
 The script will:
@@ -48,7 +48,7 @@ mv <OUTPUT_DIR> <OUTPUT_DIR>/../YYYY-MM-DD-<concise-description>
 
 Then read the transcript file from `TRANSCRIPT_PATH`. Transcripts are cleaned and formatted as continuous text with minimal whitespace.
 
-**Note:** The download script uses `--restrict-filenames` to sanitise special characters in filenames for safer handling.
+**Note:** The script uses `--restrict-filenames` to sanitise special characters in filenames for safer handling.
 
 #### **Web URL or Document Path** (blog posts, articles, any non-YouTube URL)
 
@@ -123,12 +123,12 @@ Do this in a separate step, only after you've added the content from the source.
 
 Determine the output directory:
 
-**YouTube sources:** The renamed directory from Step 1.
+**YouTube sources:** The renamed directory from Step 2.
 
 **Web and text sources:** Run the following to determine the base output directory, then use it as described below:
 
 ```bash
-bash <skill-dir>/scripts/download_transcript.sh --output-dir
+uv run <skill-dir>/scripts/wisdom.py output-dir
 ```
 
 If the command fails or is unavailable, fall back to `~/Downloads/text-wisdom/`.
@@ -231,7 +231,7 @@ Re-read the analysis file, verify each item, fix any issues found, then mark tas
 After completing your review and edits, format the markdown:
 
 ```bash
-bash <skill-dir>/scripts/format.sh "path/to/file.md"
+uv run <skill-dir>/scripts/wisdom.py format "path/to/file.md"
 ```
 
 ### Step 7: PDF Export
@@ -239,12 +239,10 @@ bash <skill-dir>/scripts/format.sh "path/to/file.md"
 After all content is created and reviewed, render the markdown analysis to a styled PDF for easier sharing with the following command:
 
 ```bash
-bash <skill-dir>/scripts/render_pdf.sh "<path-to-analysis.md>"
+uv run <skill-dir>/scripts/wisdom.py pdf "<path-to-analysis.md>"
 ```
 
 The PDF is saved alongside the markdown file with a `.pdf` extension. Use `--open` to open it after rendering, or `--css <file>` to provide an alternative stylesheet.
-
-The script will check for required dependencies (`pandoc`, `weasyprint`) and tell you what to do if they're missing.
 
 ### Step 6: Provide A Short Summary For Sharing
 
@@ -262,7 +260,7 @@ Then stop unless further instructions are given.
 - Avoid marketing speak, fluff or other unnecessary verbiage such as "comprehensive", "cutting-edge", "state-of-the-art", "enterprise-grade" etc.
 - Always use Australian English spelling
 - Do not use em-dashes or smart quotes
-- Only use **bold** where emphasis is truly needed
+- Do not use **bold** as a substitute for headings or to start list items. Use markdown headings (`###`, `####`) for section structure. Bold is only for emphasising a specific word or phrase inline, e.g. "The key difference is that RLHF optimises for **perceived** helpfulness, not **actual** helpfulness"
 - Ensure clarity and conciseness in summaries and takeaways
 - Always ask yourself if the sentence adds value - if not, remove it
 - If the source mentions a specific tool, resource or website, task a sub-agent to look it up and provide a brief summary, then include it in the Additional Resources section
@@ -299,12 +297,11 @@ If timestamps are needed:
 
 ### scripts/
 
-- `download_transcript.sh`: Downloads YouTube transcripts (no video files) using yt-dlp. Auto-detects environment (Claude Code/Claw) and OS, outputs paths and next steps.
-- `format.sh`: Formats markdown files with prettier. Auto-detects bunx/npx, handles sandbox workarounds, silent on success.
-- `render_pdf.sh`: Converts analysis markdown to a styled PDF using pandoc + weasyprint.
+- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, and PDF rendering. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `format`, `pdf`.
 
 ### styles/
 
 - `wisdom-pdf.css`: CSS stylesheet for PDF rendering. Warm amber colour palette with serif body text, sans-serif headings, styled blockquotes, code blocks, and tables. Customisable or replaceable via `--css` flag.
+- `wisdom-pdf.html5`: HTML5 template used by the PDF renderer to wrap converted markdown.
 
 ---

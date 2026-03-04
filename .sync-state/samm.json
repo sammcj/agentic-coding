@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-03-04T18:28:38.599734",
+  "last_sync": "2026-03-05T08:47:57.485940",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
       "last_synced": "2026-02-09T08:43:39.194546"
     },
     "claude/settings.json": {
-      "checksum": "sha256:891e40e275bb8e1e864e9c2d23dfecbc1c24e5c982c55932305f5a98ac662f40",
-      "last_synced": "2026-03-04T18:28:38.599586"
+      "checksum": "sha256:749cd9e37b2a08053172fe70d2932c412071ff4b80582f045ee676538ac5ce1f",
+      "last_synced": "2026-03-05T08:47:57.485798"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
       "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
@@ -239,13 +239,9 @@
       "checksum": "sha256:ae3fed656797d7e14a9612eb078acf65b2b59876e594f561d4bb337007dfe942",
       "last_synced": "2026-02-23T16:34:59.502700"
     },
-    "claude-skills/extract-wisdom/scripts/send_notification.sh": {
-      "checksum": "sha256:381799d3f5e002793ce033b7792504c036926e105dbbd97952c863ea2dd48ce9",
-      "last_synced": "2026-03-03T16:57:44.301255"
-    },
     "claude-skills/extract-wisdom/SKILL.md": {
-      "checksum": "sha256:39587e098f5fa7b3a84fbfe678160fe12ee0f69c7b8b0cd306b589fe46d73bc3",
-      "last_synced": "2026-03-03T17:02:57.966719"
+      "checksum": "sha256:82da8e987bf9843e96698e4d73a78c25352c756adae9576ead13a9145415b747",
+      "last_synced": "2026-03-05T08:47:56.199779"
     },
     "claude-skills/excalidraw-diagrams/_note.md": {
       "checksum": "sha256:ce83fe5fa8f89f06a4844833aa38d9fbc7e47bb51836d9447a02aafb51c211d9",
@@ -307,13 +303,9 @@
       "checksum": "sha256:5ff44c535aa00133db3a972240a0fd7cf2aca8880819f1e79fd7e1d135db058d",
       "last_synced": "2026-02-24T17:58:31.711300"
     },
-    "claude-skills/extract-wisdom/scripts/render_pdf.sh": {
-      "checksum": "sha256:0b3d08e51725c36381a90bf472ad29db21be99274e21b62423b9e68d7d01db35",
-      "last_synced": "2026-03-03T15:07:57.396278"
-    },
     "claude-skills/extract-wisdom/styles/wisdom-pdf.css": {
-      "checksum": "sha256:4436a792dc19f9a08c207015e9ad8b33c261b7350cbeb3eab6250e26df0fae3d",
-      "last_synced": "2026-03-02T14:51:12.232818"
+      "checksum": "sha256:409f1938806c7950ed93f1c121516b955370b7a8879d3ae6d1311cf627ee21d5",
+      "last_synced": "2026-03-05T08:47:56.201559"
     },
     "claude-skills/.gitignore": {
       "checksum": "sha256:3e2b3eb80e1765a359052c45f9558b4cf9f3605e9f930fbd2adc5e7051bc8ee5",
@@ -379,14 +371,6 @@
       "checksum": "sha256:1ebbbb292c2a85a803519aa4d9e10d5ab3cf7bc8cbac8cb8c4f3528e04d0f4d4",
       "last_synced": "2026-03-02T14:51:12.232416"
     },
-    "claude-skills/extract-wisdom/scripts/format.sh": {
-      "checksum": "sha256:f2605759a1dd4425ccee10570d6f53613fa583c6d07fe701b84ea7b79236be81",
-      "last_synced": "2026-03-03T15:07:57.398502"
-    },
-    "claude-skills/extract-wisdom/scripts/download_transcript.sh": {
-      "checksum": "sha256:54a30e7e2b4cd127d3e3eab5af46314c0783bb7a9f70c1be5fe7ed58a8e4ac15",
-      "last_synced": "2026-03-03T16:48:22.954972"
-    },
     "claude-skills/storytelling-with-data/references/review-checklist.md": {
       "checksum": "sha256:8a4ecb7f510e57add18c31a3373db23c8a9e29d72ac8c58cd5505436044b2c36",
       "last_synced": "2026-03-03T22:24:44.003074"
@@ -406,6 +390,10 @@
     "claude-skills/storytelling-with-data/references/chart-selection.md": {
       "checksum": "sha256:d46a127f51e3e08453df8ed2bf09ee5447f29fa0be7a27226565fd6d3fa3b79f",
       "last_synced": "2026-03-03T22:23:44.282647"
+    },
+    "claude-skills/extract-wisdom/scripts/wisdom.py": {
+      "checksum": "sha256:5734c3f9671f27578958797838a1d34d2684e02053f14d2f804fffae40ca3e64",
+      "last_synced": "2026-03-05T08:47:56.200863"
     }
   },
   "deletions": {
@@ -466,6 +454,26 @@
     },
     "claude-skills/extract-wisdom/scripts/download_video.sh": {
       "deleted_at": "2026-03-03T16:48:22.946096",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/extract-wisdom/scripts/format.sh": {
+      "deleted_at": "2026-03-05T08:47:54.537649",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/extract-wisdom/scripts/render_pdf.sh": {
+      "deleted_at": "2026-03-05T08:47:55.149431",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/extract-wisdom/scripts/send_notification.sh": {
+      "deleted_at": "2026-03-05T08:47:55.674971",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/extract-wisdom/scripts/download_transcript.sh": {
+      "deleted_at": "2026-03-05T08:47:56.189143",
       "checksum": "unknown",
       "decision": "confirmed"
     }

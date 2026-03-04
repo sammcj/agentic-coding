@@ -85,6 +85,7 @@
       "Bash(tree *)",
       "Bash(tsc *)",
       "Bash(type *)",
+      "Bash(npx tsc --noEmit 2>&1)",
       "Bash(uniq *)",
       "Bash(uv *)",
       "Bash(wc *)",
@@ -379,7 +380,8 @@
     "context-mode@claude-context-mode": true,
     "vscode-langservers@claude-code-lsps": true,
     "yaml-lsp@zircote-lsp": true,
-    "bash-lsp@zircote-lsp": true
+    "bash-lsp@zircote-lsp": true,
+    "pyright@claude-code-lsps": true
   },
   "language": "Australian English",
   "sandbox": {

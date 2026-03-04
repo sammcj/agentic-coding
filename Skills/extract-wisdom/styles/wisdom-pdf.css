@@ -1,6 +1,6 @@
 /*
  * Extract Wisdom -- PDF Stylesheet (Amber)
- * Used by render_pdf.sh via pandoc + weasyprint
+ * Used by wisdom.py pdf subcommand via weasyprint
  *
  * Design intent: warm, earthy colour palette inspired by
  * Anthropic's brand. Same layout as the default blue theme.
@@ -10,20 +10,12 @@
 
 @page {
   size: A4;
-  /* top, right, bottom, left */
+  /* top right bottom left */
   margin: 10mm 18mm 10mm 18mm;
-
-  @bottom-center {
-    content: counter(page);
-    font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
-    font-size: 8.5pt;
-    color: #b0aea5;
-  }
 }
 
 @page :first {
   margin-top: 12mm;
-  @bottom-center { content: none; }
 }
 
 /* ── Base typography ────────────────────────────────────── */
