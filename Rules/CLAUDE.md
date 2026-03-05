@@ -88,7 +88,7 @@
 - Only activate required features on external crates
 
 ### Github
-- Use the `gh` CLI tool for interacting with GitHub (issues, PRs, releases)
+- Use the `gh` CLI tool for interacting with GitHub (issues, PRs, releases) and perform `gh` commands outside of the sandbox
 - When writing Github Actions Workflows, always check for, and use the latest Actions versions (e.g. `gh api repos/tauri-apps/tauri-action/tags --jq '.[].name' | head -2`)
 
 ### Bash

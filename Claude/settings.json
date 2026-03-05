@@ -1,5 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "thinking": {
+    "type": "adaptive",
+    "level": "high"
+  },
   "permissions": {
     "allow": [
       "Bash(~/go/bin/run_silent *)",
@@ -343,7 +347,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/0.9.20/hooks/pretooluse.mjs"
+            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/0.9.21/hooks/pretooluse.mjs"
           }
         ]
       }
@@ -382,7 +386,8 @@
     "yaml-lsp@zircote-lsp": true,
     "bash-lsp@zircote-lsp": true,
     "pyright@claude-code-lsps": true,
-    "skill-creator@claude-plugins-official": true
+    "skill-creator@claude-plugins-official": true,
+    "gopls@claude-code-lsps": true
   },
   "language": "Australian English",
   "sandbox": {
@@ -417,10 +422,13 @@
         "*.wikipedia.org",
         "*.youtube.com",
         "*.youtu.be",
+        "*.hf.co",
         "ghcr.io",
         "google.com.au",
         "google.com",
         "hf.co",
+        "crates.io",
+        "github.com",
         "huggingface.co",
         "icanhazip.com",
         "install.python-build-standalone.org",
@@ -445,9 +453,6 @@
       "gh",
       "uv run"
     ]
-  },
-  "thinking": {
-    "type": "adaptive"
   },
   "includeCoAuthoredBy": false
 }
