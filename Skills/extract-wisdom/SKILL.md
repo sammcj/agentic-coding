@@ -7,8 +7,8 @@ allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(uv run ~/.
 
 # Wisdom Extraction
 
-Script paths below use `<skill-dir>` to refer to this skill's directory.
-Default location: `~/.claude/skills/extract-wisdom/`
+Script paths below use `${CLAUDE_SKILL_DIR}` to refer to this skill's directory.
+Default location for Claude Code: `~/.claude/skills/extract-wisdom/`
 
 ## Workflow
 
@@ -25,7 +25,7 @@ Once you know the level of detail, determine the source type and acquire content
 Execute the download script to fetch only the transcript (no video file):
 
 ```bash
-uv run <skill-dir>/scripts/wisdom.py transcript <youtube-url>
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py transcript <youtube-url>
 ```
 
 The script will:
@@ -39,7 +39,7 @@ The script will:
 After downloading, rename the directory using the rename subcommand:
 
 ```bash
-uv run <skill-dir>/scripts/wisdom.py rename "<OUTPUT_DIR>" "<Short Description>"
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py rename "<OUTPUT_DIR>" "<Short Description>"
 ```
 
 The script automatically prepends today's date and sanitises the description into a clean directory name. Keep the description short (1-6 words).
@@ -128,7 +128,7 @@ Determine the output directory:
 **Web and text sources:** Run the following to determine the base output directory, then use it as described below:
 
 ```bash
-uv run <skill-dir>/scripts/wisdom.py output-dir
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py output-dir
 ```
 
 If the command fails or is unavailable, fall back to `~/Downloads/text-wisdom/`.
@@ -231,7 +231,7 @@ Re-read the analysis file, verify each item, fix any issues found, then mark tas
 After completing your review and edits, format the markdown:
 
 ```bash
-uv run <skill-dir>/scripts/wisdom.py format "path/to/file.md"
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py format "path/to/file.md"
 ```
 
 ### Step 6: PDF Export
@@ -239,7 +239,7 @@ uv run <skill-dir>/scripts/wisdom.py format "path/to/file.md"
 After all content is created and reviewed, render the markdown analysis to a styled PDF for easier sharing with the following command:
 
 ```bash
-uv run <skill-dir>/scripts/wisdom.py pdf "<path-to-analysis.md>"
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py pdf "<path-to-analysis.md>"
 ```
 
 The PDF is saved alongside the markdown file with a `.pdf` extension. Use `--open` to open it after rendering, or `--css <file>` to provide an alternative stylesheet.
