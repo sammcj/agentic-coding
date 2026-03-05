@@ -87,6 +87,10 @@
 - Avoid exposing generics via public or inter-crate APIs (unless there is a really good reason)
 - Only activate required features on external crates
 
+### Github
+- Use the `gh` CLI tool for interacting with GitHub (issues, PRs, releases)
+- When writing Github Actions Workflows, always check for, and use the latest Actions versions (e.g. `gh api repos/tauri-apps/tauri-action/tags --jq '.[].name' | head -2`)
+
 ### Bash
 - `#!/usr/bin/env bash` with `set -euo pipefail`
 - Quote all variable expansions. Use `[[ ]]` for conditionals. Trap for error handling
