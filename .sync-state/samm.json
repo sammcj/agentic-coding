@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-03-05T14:03:53.247238",
+  "last_sync": "2026-03-05T15:59:24.871365",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
       "last_synced": "2026-02-09T08:43:39.194546"
     },
     "claude/settings.json": {
-      "checksum": "sha256:f1a63f2304244d3395d38587378d8155510de2abf12cb414c8523c73d72cef98",
-      "last_synced": "2026-03-05T14:03:53.247095"
+      "checksum": "sha256:7fa4ce6a00597cb80192c6b5226854a789fc80c0f0925a201d2feff567c23e18",
+      "last_synced": "2026-03-05T15:59:24.844406"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
       "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
@@ -296,24 +296,12 @@
       "last_synced": "2026-02-26T14:49:48.090498"
     },
     "opencode-config/opencode.jsonc": {
-      "checksum": "sha256:eced4a28b0730c25f469005e7dbb0688d56fd03faf9ae002eae635b16de80b25",
-      "last_synced": "2026-03-03T08:35:01.673037"
-    },
-    "claude-skills/skill-creator/SKILL.md": {
-      "checksum": "sha256:5228540c65bce535b120277989eba126a685884cd6a5e0dcd0a9f3cb3299aff2",
-      "last_synced": "2026-03-03T15:07:57.398014"
+      "checksum": "sha256:0a7cb2c0b02b47496f779422a9cfa457d8f8e3ea315411fb3bbc7d6716963637",
+      "last_synced": "2026-03-05T15:59:24.871067"
     },
     "claude-skills/json-schema-lookup/SKILL.md": {
       "checksum": "sha256:565d2cae171d7b69923cbe8c3b1ec61e3e63fe2ba483aab3a1d600af6851ee11",
       "last_synced": "2026-03-01T12:39:29.323772"
-    },
-    "claude-skills/skill-creator/scripts/init_skill.py": {
-      "checksum": "sha256:6fb744bed096cd579391e85a7e650fa37faff40e9d1069bbdba2b78db1294d32",
-      "last_synced": "2026-03-01T12:27:24.414434"
-    },
-    "claude-skills/skill-creator/scripts/validate_skill.py": {
-      "checksum": "sha256:f683ed5a05f4fb787165418d10a2f4374d60c7e7306fc9b94004cb7150b09f28",
-      "last_synced": "2026-03-01T12:14:24.439251"
     },
     "claude-skills/ghostty-config/CLAUDE.md": {
       "checksum": "sha256:9a3748bd41a0b5dc8711dccd07924f11af56551b71f104009671d8ca17421550",
@@ -354,6 +342,14 @@
     "claude-skills/extract-wisdom/CLAUDE.md": {
       "checksum": "sha256:d3e454d4d5842696a730ba1bf9ac759d162e014d79a08b27f156b45fa164a091",
       "last_synced": "2026-03-05T12:36:42.987918"
+    },
+    "claude-skills/skill-creator-primer/SKILL.md": {
+      "checksum": "sha256:0dbd0d98cd660bd24739b104bc5dbec00710abc4d5315596115f6b96bb6e1082",
+      "last_synced": "2026-03-05T15:59:20.312844"
+    },
+    "claude-skills/skill-creator-primer/scripts/validate_skill.py": {
+      "checksum": "sha256:f683ed5a05f4fb787165418d10a2f4374d60c7e7306fc9b94004cb7150b09f28",
+      "last_synced": "2026-03-05T15:59:20.313689"
     }
   },
   "deletions": {
@@ -494,6 +490,51 @@
     },
     "claude-skills/testing-anti-patterns/SKILL.md": {
       "deleted_at": "2026-03-05T12:38:52.059657",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/skill-creator/SKILL.md": {
+      "deleted_at": "2026-03-05T15:59:18.771791",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/skill-creator/scripts/init_skill.py": {
+      "deleted_at": "2026-03-05T15:59:19.722506",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/skill-creator/scripts/validate_skill.py": {
+      "deleted_at": "2026-03-05T15:59:20.303654",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/skill-creator/references/output-patterns.md": {
+      "deleted_at": "2026-03-05T15:59:20.303944",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude-skills/skill-creator/references/workflows.md": {
+      "deleted_at": "2026-03-05T15:59:20.304009",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude/commands/go-unit-testing-best-practices.md": {
+      "deleted_at": "2026-03-05T15:59:24.835752",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude/commands/design-review-slash-command.md": {
+      "deleted_at": "2026-03-05T15:59:24.835781",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude/commands/review-development-plan.md": {
+      "deleted_at": "2026-03-05T15:59:24.835792",
+      "checksum": "unknown",
+      "decision": "confirmed"
+    },
+    "claude/commands/create-development-plan.md": {
+      "deleted_at": "2026-03-05T15:59:24.835803",
       "checksum": "unknown",
       "decision": "confirmed"
     }

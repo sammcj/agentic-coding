@@ -381,7 +381,8 @@
     "vscode-langservers@claude-code-lsps": true,
     "yaml-lsp@zircote-lsp": true,
     "bash-lsp@zircote-lsp": true,
-    "pyright@claude-code-lsps": true
+    "pyright@claude-code-lsps": true,
+    "skill-creator@claude-plugins-official": true
   },
   "language": "Australian English",
   "sandbox": {
