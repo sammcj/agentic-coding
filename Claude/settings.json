@@ -442,7 +442,7 @@
       "go mod vendor",
       "ssh",
       "container",
-      "gh repo view",
+      "gh",
       "uv run"
     ]
   },
