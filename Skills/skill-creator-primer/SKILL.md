@@ -45,11 +45,11 @@ Think of Claude exploring a path: a narrow bridge with cliffs needs guardrails (
 
 These are Claude Code-specific fields not covered by the Agent Skills spec. Only include when specifically needed:
 
-- `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-sonnet-4-6"`. Only include if the user requests it.
-- `context`: Set to `"fork"` to run in a forked sub-agent context. Useful for skills with extensive exploration or large outputs. Only include if the user requests it.
-- `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide from the menu. Only include if the user requests it.
-- `agent`: Specify agent type (e.g., `"task"`). When omitted, runs in current agent context. Only include if the user requests it.
-- `allowed-tools`: Space-delimited pre-approved tools. Scope where possible, e.g. `"Read Write Bash(uv run scripts/*.py *) Grep"`. Leave commented out with suggested values so the user can uncomment if desired.
+- `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-sonnet-4-6"`. Only include if the user requests it
+- `context`: Set to `"fork"` to run in a forked sub-agent context. Useful for skills with extensive exploration or large outputs. Only include if the user requests it
+- `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide from the menu. Only include if the user requests it
+- `agent`: Specify agent type (e.g., `"task"`). When omitted, runs in current agent context. Only include if the user requests it
+- `allowed-tools`: Space-delimited pre-approved tools. Scope where possible, e.g. `"Read Write Bash(uv run scripts/*.py *) Grep"`
 
 ## Token Budget Guidance
 
