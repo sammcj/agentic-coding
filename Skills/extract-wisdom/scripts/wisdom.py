@@ -44,7 +44,7 @@ PARAGRAPH_GAP_MS = 2500
 SUBTITLE_LANGS = ["en"]
 
 # Browser search order for cookie-based YouTube downloads.
-COOKIE_BROWSERS = ("firefox", "chrome", "chromium", "safari", "edge", "brave")
+COOKIE_BROWSERS = ("firefox", "brave", "chrome", "chromium", "safari")
 
 # Markdown extensions used when converting to HTML for PDF rendering.
 # See https://python-markdown.github.io/extensions/
@@ -76,10 +76,10 @@ def detect_base_dir() -> Path:
     # Check script path for claw-based environments: ~/.{name}/workspace/...
     try:
         relative = SCRIPT_DIR.relative_to(home)
-        parts = relative.parts
+        parts: tuple[str, ...] = relative.parts
         if len(parts) >= 2 and parts[0].startswith(".") and parts[1] == "workspace":
             detected_env = parts[0].lstrip(".")
-        elif parts[0] == ".claude":
+        elif parts and parts[0] == ".claude":
             detected_env = "claude-code"
     except ValueError:
         pass
@@ -208,7 +208,7 @@ def _download_transcript(url: str, video_dir: Path, use_cookies: bool = False) -
     os.dup2(devnull, 2)
     os.close(devnull)
     try:
-        with YoutubeDL(opts) as ydl:
+        with YoutubeDL(opts) as ydl:  # type: ignore[arg-type]
             ydl.download([url])
         return True
     except Exception as exc:
@@ -227,7 +227,7 @@ def _extract_video_id(url: str) -> str:
     """Extract video ID via yt-dlp."""
     from yt_dlp import YoutubeDL
 
-    with YoutubeDL({"quiet": True, "no_warnings": True, "logger": _SilentLogger()}) as ydl:
+    with YoutubeDL({"quiet": True, "no_warnings": True, "logger": _SilentLogger()}) as ydl:  # type: ignore[arg-type]
         info = ydl.extract_info(url, download=False)
         vid = info.get("id", "") if info else ""
     if not vid:
@@ -441,7 +441,7 @@ def _open_file(path: Path) -> None:
 def cmd_pdf(args: argparse.Namespace) -> None:
     try:
         import markdown as md_lib
-        from weasyprint import HTML
+        from weasyprint import HTML  # type: ignore[import-untyped]
     except OSError as exc:
         if _is_mac():
             hint = "brew install pango"
@@ -457,12 +457,13 @@ def cmd_pdf(args: argparse.Namespace) -> None:
         )
         sys.exit(2)
 
-    input_file: Path | None = Path(args.input_file) if args.input_file else None
-    output_file: Path | None = Path(args.output_file) if args.output_file else None
     css_path = Path(args.css) if args.css else CSS_FILE
 
-    # Auto-detect single .md file in cwd
-    if input_file is None:
+    # Resolve input file: explicit arg or auto-detect single .md in cwd
+    input_file: Path
+    if args.input_file:
+        input_file = Path(args.input_file)
+    else:
         md_files = list(Path(".").glob("*.md"))
         if len(md_files) == 1:
             input_file = md_files[0]
@@ -479,8 +480,7 @@ def cmd_pdf(args: argparse.Namespace) -> None:
         print(f"Error: File not found: {input_file}", file=sys.stderr)
         sys.exit(1)
 
-    if output_file is None:
-        output_file = input_file.with_suffix(".pdf")
+    output_file = Path(args.output_file) if args.output_file else input_file.with_suffix(".pdf")
 
     if not css_path.is_file():
         print(f"Error: CSS stylesheet not found: {css_path}", file=sys.stderr)
