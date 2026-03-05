@@ -431,11 +431,14 @@ def _normalise_list_markdown(md_text: str) -> str:
 
 
 def _open_file(path: Path) -> None:
-    """Open a file with the OS default viewer."""
-    if _is_mac():
-        subprocess.run(["open", str(path)])
-    elif shutil.which("xdg-open"):
-        subprocess.run(["xdg-open", str(path)])
+    """Open a file with the OS default viewer. Fails silently if unavailable."""
+    try:
+        if _is_mac():
+            subprocess.run(["open", str(path)], stderr=subprocess.DEVNULL)
+        elif shutil.which("xdg-open"):
+            subprocess.run(["xdg-open", str(path)], stderr=subprocess.DEVNULL)
+    except OSError:
+        pass
 
 
 def cmd_pdf(args: argparse.Namespace) -> None:
