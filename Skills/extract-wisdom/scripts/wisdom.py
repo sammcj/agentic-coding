@@ -15,6 +15,7 @@ markdown formatting, and PDF rendering. Run via: uv run wisdom.py <subcommand>
 Subcommands:
     transcript <url>                Download YouTube transcript
     output-dir                      Print the resolved output directory
+    rename <dir> <description>      Rename directory with date prefix
     format [--check] <files...>     Format markdown with prettier
     pdf [--css F] [--open] [file]   Render markdown to styled PDF
 """
@@ -163,6 +164,22 @@ def _json3_to_text(json3_path: Path) -> str:
     return raw.strip()
 
 
+class _SilentLogger:
+    """Logger that discards all yt-dlp output."""
+
+    def debug(self, _: str) -> None:
+        pass
+
+    def info(self, _: str) -> None:
+        pass
+
+    def warning(self, _: str) -> None:
+        pass
+
+    def error(self, _: str) -> None:
+        pass
+
+
 def _download_transcript(url: str, video_dir: Path, use_cookies: bool = False) -> bool:
     """Download subtitles using yt-dlp Python API."""
     from yt_dlp import YoutubeDL
@@ -177,25 +194,40 @@ def _download_transcript(url: str, video_dir: Path, use_cookies: bool = False) -
         "outtmpl": str(video_dir / "%(title)s.%(ext)s"),
         "quiet": True,
         "no_warnings": True,
+        "noprogress": True,
+        "logger": _SilentLogger(),
+        "remote_components": {"ejs:github"},
     }
     if use_cookies:
         browser = detect_browser()
         if browser:
             opts["cookiesfrombrowser"] = (browser,)
+    # Redirect stderr at the OS level to suppress yt-dlp's direct fd writes
+    old_fd = os.dup(2)
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull, 2)
+    os.close(devnull)
     try:
         with YoutubeDL(opts) as ydl:
             ydl.download([url])
         return True
     except Exception as exc:
+        os.dup2(old_fd, 2)  # restore before printing error
         print(f"Download error: {exc}", file=sys.stderr)
         return False
+    finally:
+        try:
+            os.dup2(old_fd, 2)
+        except OSError:
+            pass
+        os.close(old_fd)
 
 
 def _extract_video_id(url: str) -> str:
     """Extract video ID via yt-dlp."""
     from yt_dlp import YoutubeDL
 
-    with YoutubeDL({"quiet": True}) as ydl:
+    with YoutubeDL({"quiet": True, "no_warnings": True, "logger": _SilentLogger()}) as ydl:
         info = ydl.extract_info(url, download=False)
         vid = info.get("id", "") if info else ""
     if not vid:
@@ -265,10 +297,9 @@ def cmd_transcript(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     transcript_file = transcript_files[0]
-    today = date.today().isoformat()
     print(f"TRANSCRIPT_PATH: {transcript_file}")
     print(f"OUTPUT_DIR: {video_dir}")
-    print(f"NEXT_STEP: mv \"{video_dir}\" \"{base_dir}/{today}-<description>\"")
+    print(f"NEXT_STEP: uv run <skill-dir>/scripts/wisdom.py rename \"{video_dir}\" \"<Short-Description>\"")
 
 
 # ---------------------------------------------------------------------------
@@ -277,6 +308,50 @@ def cmd_transcript(args: argparse.Namespace) -> None:
 
 def cmd_output_dir(_args: argparse.Namespace) -> None:  # noqa: ARG001
     print(detect_base_dir())
+
+
+# ---------------------------------------------------------------------------
+# Rename directory
+# ---------------------------------------------------------------------------
+
+def _sanitise_dirname(name: str) -> str:
+    """Convert a description into a clean directory name component.
+
+    Replaces spaces and special chars with hyphens, collapses runs,
+    strips leading/trailing hyphens, and title-cases each word.
+    """
+    # Replace common separators with hyphens
+    name = re.sub(r"[\s_]+", "-", name)
+    # Remove anything that isn't alphanumeric or hyphen
+    name = re.sub(r"[^a-zA-Z0-9-]", "", name)
+    # Collapse multiple hyphens
+    name = re.sub(r"-{2,}", "-", name)
+    name = name.strip("-")
+    # Title-case each segment
+    return "-".join(word.capitalize() for word in name.split("-") if word)
+
+
+def cmd_rename(args: argparse.Namespace) -> None:
+    source = Path(args.directory)
+    if not source.is_dir():
+        print(f"Error: Directory not found: {source}", file=sys.stderr)
+        sys.exit(1)
+
+    today = date.today().isoformat()
+    clean_desc = _sanitise_dirname(args.description)
+    if not clean_desc:
+        print("Error: Description is empty after sanitisation", file=sys.stderr)
+        sys.exit(1)
+
+    new_name = f"{today}-{clean_desc}"
+    dest = source.parent / new_name
+
+    if dest.exists():
+        print(f"Error: Destination already exists: {dest}", file=sys.stderr)
+        sys.exit(1)
+
+    source.rename(dest)
+    print(f"OUTPUT_DIR: {dest}")
 
 
 # ---------------------------------------------------------------------------
@@ -459,6 +534,11 @@ def main() -> None:
     # output-dir
     sub.add_parser("output-dir", help="Print resolved output directory")
 
+    # rename
+    p_rename = sub.add_parser("rename", help="Rename download directory with date prefix")
+    p_rename.add_argument("directory", help="Directory to rename (e.g. the video ID directory)")
+    p_rename.add_argument("description", help="Short description (1-6 words, e.g. 'Demis Hassabis Interview')")
+
     # format
     p_format = sub.add_parser("format", help="Format markdown with prettier")
     p_format.add_argument("--check", action="store_true", help="Check formatting without writing")
@@ -467,7 +547,7 @@ def main() -> None:
     # pdf
     p_pdf = sub.add_parser("pdf", help="Render markdown to styled PDF")
     p_pdf.add_argument("--css", default=None, help="Custom CSS stylesheet")
-    p_pdf.add_argument("--open", action="store_true", dest="open_after", help="Open PDF after rendering (macOS)")
+    p_pdf.add_argument("--open", action="store_true", dest="open_after", help="Open PDF after rendering")
     p_pdf.add_argument("input_file", nargs="?", default=None, help="Markdown file to render")
     p_pdf.add_argument("output_file", nargs="?", default=None, help="Output PDF path")
 
@@ -476,6 +556,7 @@ def main() -> None:
     dispatch = {
         "transcript": cmd_transcript,
         "output-dir": cmd_output_dir,
+        "rename": cmd_rename,
         "format": cmd_format,
         "pdf": cmd_pdf,
     }

@@ -430,6 +430,7 @@
         "registry.yarnpkg.com",
         "smcleod.net",
         "swift.org",
+        "*.googlevideo.com",
         "wiki.archlinux.org"
       ],
       "allowLocalBinding": true

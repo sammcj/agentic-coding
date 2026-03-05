@@ -36,15 +36,15 @@ The script will:
 
 **Cookie handling:** The script first attempts to download using browser cookies (for access-restricted videos). If no browser is found or cookies fail, it automatically falls back to trying cookie-less download.
 
-After downloading, execute the rename command the script provides:
+After downloading, rename the directory using the rename subcommand:
 
 ```bash
-mv <OUTPUT_DIR> <OUTPUT_DIR>/../YYYY-MM-DD-<concise-description>
+uv run <skill-dir>/scripts/wisdom.py rename "<OUTPUT_DIR>" "<Short Description>"
 ```
 
-- Keep the description short (1-6 words), use hyphens instead of spaces
-- Take the video content and title into consideration
-- Example: Video "My Interview With Demis Hassabis" becomes `2026-02-05-Demis-Hassabis-Interview`
+The script automatically prepends today's date and sanitises the description into a clean directory name. Keep the description short (1-6 words).
+
+- Example: `rename "<path>/O7SSQfiPDXA" "Demis Hassabis Interview"` produces `2026-02-05-Demis-Hassabis-Interview`
 
 Then read the transcript file from `TRANSCRIPT_PATH`. Transcripts are cleaned and formatted as continuous text with minimal whitespace.
 
@@ -234,7 +234,7 @@ After completing your review and edits, format the markdown:
 uv run <skill-dir>/scripts/wisdom.py format "path/to/file.md"
 ```
 
-### Step 7: PDF Export
+### Step 6: PDF Export
 
 After all content is created and reviewed, render the markdown analysis to a styled PDF for easier sharing with the following command:
 
@@ -244,7 +244,7 @@ uv run <skill-dir>/scripts/wisdom.py pdf "<path-to-analysis.md>"
 
 The PDF is saved alongside the markdown file with a `.pdf` extension. Use `--open` to open it after rendering, or `--css <file>` to provide an alternative stylesheet.
 
-### Step 6: Provide A Short Summary For Sharing
+### Step 7: Provide A Short Summary For Sharing
 
 After writing the analysis, generate a concise 1-3 sentence summary suitable for sharing the source on Slack.
 Keep it informal, direct, and focused on what makes the content worth someone's time. Include the core concept and why it matters.
