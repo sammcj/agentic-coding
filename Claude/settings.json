@@ -347,7 +347,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/0.9.21/hooks/pretooluse.mjs"
+            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.14/hooks/pretooluse.mjs"
           }
         ]
       }
@@ -358,7 +358,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/0.9.20/hooks/sessionstart.mjs"
+            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.14/hooks/sessionstart.mjs"
           }
         ]
       }
