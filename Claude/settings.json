@@ -10,12 +10,8 @@
       "Bash(actionlint *)",
       "Bash(awk *)",
       "Bash(basename *)",
-      "Bash(bash /Users/samm/.claude/skills/extract-wisdom/scripts/download_video.sh *)",
-      "Bash(bash /Users/samm/.claude/skills/extract-wisdom/scripts/render_pdf.sh *)",
-      "Bash(bash /Users/samm/.claude/skills/extract-wisdom/scripts/send_notification.sh *)",
-      "Bash(bash ~/.claude/skills/extract-wisdom/scripts/download_video.sh *)",
-      "Bash(bash ~/.claude/skills/extract-wisdom/scripts/render_pdf.sh *)",
-      "Bash(bash ~/.claude/skills/extract-wisdom/scripts/send_notification.sh *)",
+      "Bash(bash /Users/samm/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
+      "Bash(bash ~/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
       "Bash(bun *)",
       "Bash(cargo *)",
       "Bash(cargo-fmt *)",
@@ -343,7 +339,7 @@
         ]
       },
       {
-        "matcher": "Bash|Read|Grep|WebFetch|Task|mcp__plugin_context-mode_context-mode__execute|mcp__plugin_context-mode_context-mode__execute_file|mcp__plugin_context-mode_context-mode__batch_execute",
+        "matcher": "Bash|Read|Grep|WebFetch|Agent|Task|mcp__plugin_context-mode_context-mode__execute|mcp__plugin_context-mode_context-mode__execute_file|mcp__plugin_context-mode_context-mode__batch_execute",
         "hooks": [
           {
             "type": "command",
