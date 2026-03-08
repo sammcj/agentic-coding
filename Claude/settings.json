@@ -10,8 +10,10 @@
       "Bash(actionlint *)",
       "Bash(awk *)",
       "Bash(basename *)",
-      "Bash(bash /Users/samm/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
-      "Bash(bash ~/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
+      "Bash(python /Users/samm/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
+      "Bash(python3 /Users/samm/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
+      "Bash(python ~/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
+      "Bash(python3 ~/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
       "Bash(bun *)",
       "Bash(cargo *)",
       "Bash(cargo-fmt *)",
@@ -339,11 +341,11 @@
         ]
       },
       {
-        "matcher": "Bash|Read|Grep|WebFetch|Agent|Task|mcp__plugin_context-mode_context-mode__execute|mcp__plugin_context-mode_context-mode__execute_file|mcp__plugin_context-mode_context-mode__batch_execute",
+        "matcher": "Bash|Read|Grep|WebFetch|Task|mcp__plugin_context-mode_context-mode__execute|mcp__plugin_context-mode_context-mode__execute_file|mcp__plugin_context-mode_context-mode__batch_execute",
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.14/hooks/pretooluse.mjs"
+            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/0.9.21/hooks/pretooluse.mjs"
           }
         ]
       }
@@ -354,7 +356,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.14/hooks/sessionstart.mjs"
+            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/0.9.20/hooks/sessionstart.mjs"
           }
         ]
       }

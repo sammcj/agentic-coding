@@ -2,7 +2,7 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#   "yt-dlp[default]",
+#   "yt-dlp",
 #   "weasyprint",
 #   "markdown",
 # ]
@@ -30,7 +30,7 @@ import re
 import shutil
 import subprocess
 import sys
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -337,7 +337,7 @@ def cmd_rename(args: argparse.Namespace) -> None:
         print(f"Error: Directory not found: {source}", file=sys.stderr)
         sys.exit(1)
 
-    today = date.today().isoformat()
+    today = datetime.now().astimezone().date().isoformat()
     clean_desc = _sanitise_dirname(args.description)
     if not clean_desc:
         print("Error: Description is empty after sanitisation", file=sys.stderr)
@@ -441,26 +441,7 @@ def _open_file(path: Path) -> None:
         pass
 
 
-def _ensure_homebrew_lib_path() -> None:
-    """Ensure Homebrew shared libraries are discoverable on macOS.
-
-    uv run creates isolated environments that may not inherit
-    DYLD_FALLBACK_LIBRARY_PATH, causing ctypes to fail when
-    weasyprint tries to load libgobject/libpango/libcairo.
-    """
-    if not _is_mac():
-        return
-    brew_lib = Path("/opt/homebrew/lib")
-    if not brew_lib.is_dir():
-        return
-    key = "DYLD_FALLBACK_LIBRARY_PATH"
-    current = os.environ.get(key, "")
-    if str(brew_lib) not in current:
-        os.environ[key] = f"{brew_lib}:{current}" if current else str(brew_lib)
-
-
 def cmd_pdf(args: argparse.Namespace) -> None:
-    _ensure_homebrew_lib_path()
     try:
         import markdown as md_lib
         from weasyprint import HTML  # type: ignore[import-untyped]
