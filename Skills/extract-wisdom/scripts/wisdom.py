@@ -5,6 +5,8 @@
 #   "yt-dlp",
 #   "weasyprint",
 #   "markdown",
+#   "graphviz",
+#   "tzdata",
 # ]
 # ///
 """Extract-wisdom helper tools.
@@ -23,6 +25,8 @@ Subcommands:
 from __future__ import annotations
 
 import argparse
+import base64
+import html as html_mod
 import json
 import os
 import platform
@@ -30,8 +34,10 @@ import re
 import shutil
 import subprocess
 import sys
+import urllib.request
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 # ---------------------------------------------------------------------------
 # Configuration - adjust these defaults as needed
@@ -331,13 +337,36 @@ def _sanitise_dirname(name: str) -> str:
     return "-".join(word.capitalize() for word in name.split("-") if word)
 
 
+_FALLBACK_TZ = "Australia/Melbourne"
+
+
+def _local_tz() -> ZoneInfo:
+    """Resolve the local timezone. Works on macOS and Linux even in sandboxed environments."""
+    # 1. Try /etc/localtime symlink (macOS and most Linux)
+    try:
+        link = os.readlink("/etc/localtime")
+        tz_name = link.split("zoneinfo/")[-1]
+        return ZoneInfo(tz_name)
+    except (OSError, KeyError):
+        pass
+    # 2. Try /etc/timezone (Debian/Ubuntu)
+    try:
+        tz_name = Path("/etc/timezone").read_text().strip()
+        return ZoneInfo(tz_name)
+    except (OSError, KeyError):
+        pass
+    return ZoneInfo(_FALLBACK_TZ)
+
+
 def cmd_rename(args: argparse.Namespace) -> None:
     source = Path(args.directory)
     if not source.is_dir():
         print(f"Error: Directory not found: {source}", file=sys.stderr)
         sys.exit(1)
 
-    today = datetime.now().astimezone().date().isoformat()
+    # Resolve local timezone - sandbox environments may force UTC
+    tz = _local_tz()
+    today = datetime.now(tz=tz).date().isoformat()
     clean_desc = _sanitise_dirname(args.description)
     if not clean_desc:
         print("Error: Description is empty after sanitisation", file=sys.stderr)
@@ -441,6 +470,252 @@ def _open_file(path: Path) -> None:
         pass
 
 
+# Diagram language identifiers that trigger rendering.
+_DIAGRAM_LANGS = {"mermaid", "graphviz", "dot"}
+
+# Regex matching <pre><code class="language-{lang}">...code...</code></pre>
+_DIAGRAM_BLOCK_RE = re.compile(
+    r'<pre><code class="language-(' + "|".join(_DIAGRAM_LANGS) + r')">'
+    r"(.*?)</code></pre>",
+    re.DOTALL,
+)
+
+_MERMAID_INK_URL = "https://mermaid.ink/img/"
+_MERMAID_TIMEOUT = 10
+
+# Anthropic-aligned theme init block for Mermaid diagrams.
+_MERMAID_THEME_INIT = """\
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e8e6dc',
+    'primaryTextColor': '#141413',
+    'primaryBorderColor': '#87867f',
+    'secondaryColor': '#f0eee6',
+    'secondaryTextColor': '#3d3d3a',
+    'secondaryBorderColor': '#b0aea5',
+    'tertiaryColor': '#faf9f5',
+    'tertiaryTextColor': '#5e5d59',
+    'tertiaryBorderColor': '#d1cfc5',
+    'lineColor': '#87867f',
+    'textColor': '#141413',
+    'mainBkg': '#e8e6dc',
+    'nodeBorder': '#87867f',
+    'clusterBkg': '#f0eee6',
+    'clusterBorder': '#d1cfc5',
+    'titleColor': '#141413',
+    'edgeLabelBackground': '#faf9f5',
+    'nodeTextColor': '#141413',
+    'actorBkg': '#e8e6dc',
+    'actorBorder': '#87867f',
+    'actorTextColor': '#141413',
+    'actorLineColor': '#b0aea5',
+    'signalColor': '#141413',
+    'signalTextColor': '#141413',
+    'labelBoxBkgColor': '#f0eee6',
+    'labelBoxBorderColor': '#b0aea5',
+    'labelTextColor': '#141413',
+    'loopTextColor': '#3d3d3a',
+    'noteBkgColor': '#ebdbbc',
+    'noteTextColor': '#3d3d3a',
+    'noteBorderColor': '#d4a27f',
+    'activationBkgColor': '#d97757',
+    'activationBorderColor': '#c6613f',
+    'sequenceNumberColor': '#faf9f5',
+    'sectionBkgColor': '#e8e6dc',
+    'altSectionBkgColor': '#f0eee6',
+    'sectionBkgColor2': '#faf9f5',
+    'taskBkgColor': '#bcd1ca',
+    'taskBorderColor': '#788c5d',
+    'taskTextColor': '#141413',
+    'taskTextDarkColor': '#141413',
+    'taskTextClickableColor': '#d97757',
+    'activeTaskBkgColor': '#d97757',
+    'activeTaskBorderColor': '#c6613f',
+    'doneTaskBkgColor': '#cbcadb',
+    'doneTaskBorderColor': '#87867f',
+    'critBkgColor': '#ebcece',
+    'critBorderColor': '#c46686',
+    'todayLineColor': '#d97757',
+    'fontFamily': 'system-ui, -apple-system, sans-serif',
+    'fontSize': '14px'
+  }
+}}%%
+"""
+
+# Anthropic-aligned default attributes for Graphviz diagrams.
+_GRAPHVIZ_THEME_ATTRS = """\
+    graph [
+        bgcolor="#faf9f5"
+        fontname="Helvetica Neue"
+        fontsize=12
+        fontcolor="#141413"
+        pad=0.5
+    ]
+    node [
+        shape=box
+        style="filled,rounded"
+        fillcolor="#e8e6dc"
+        color="#87867f"
+        fontname="Helvetica Neue"
+        fontsize=11
+        fontcolor="#141413"
+        penwidth=1.2
+        margin="0.15,0.1"
+    ]
+    edge [
+        color="#87867f"
+        fontname="Helvetica Neue"
+        fontsize=10
+        fontcolor="#3d3d3a"
+        arrowsize=0.8
+        penwidth=1.0
+    ]
+"""
+
+
+def _apply_mermaid_theme(code: str) -> str:
+    """Prepend the Anthropic theme init block if the diagram lacks one."""
+    if "%%{init:" in code or "%%{ init:" in code:
+        return code
+    return _MERMAID_THEME_INIT + code
+
+
+def _apply_graphviz_theme(code: str) -> str:
+    """Inject default graph/node/edge attributes if the diagram lacks them."""
+    # Skip if the user already defined graph-level attributes
+    if re.search(r"(?:graph|node|edge)\s*\[", code):
+        return code
+    # Insert defaults after the opening brace of the first graph/digraph
+    m = re.search(r"((?:di)?graph\s+\w*\s*\{)", code)
+    if m:
+        insert_pos = m.end()
+        return code[:insert_pos] + "\n" + _GRAPHVIZ_THEME_ATTRS + code[insert_pos:]
+    return code
+
+
+# A4 usable width in pt with 18mm margins: (210 - 36) * 72/25.4 ~ 493pt
+_PAGE_WIDTH_PT = 493.0
+
+
+def _render_graphviz(code: str) -> bytes | None:
+    """Render a Graphviz DOT string to SVG bytes. Returns None if unavailable."""
+    try:
+        import graphviz  # type: ignore[import-untyped]
+    except ImportError:
+        return None
+    try:
+        return graphviz.Source(code).pipe(format="svg")
+    except Exception:
+        return None
+
+
+def _svg_dimensions(svg: bytes) -> tuple[float, float] | None:
+    """Extract width and height (in pt) from an SVG's attributes."""
+    header = svg[:1024].decode(errors="replace")
+    m = re.search(r'<svg[^>]*\bwidth="([\d.]+)pt"[^>]*\bheight="([\d.]+)pt"', header)
+    if m:
+        return float(m.group(1)), float(m.group(2))
+    return None
+
+
+def _render_mermaid(code: str) -> tuple[bytes, str] | None:
+    """Render a Mermaid diagram via the mermaid.ink public API.
+
+    Returns (image_bytes, mime_type) or None on failure.  Uses the /img/
+    endpoint which returns a rasterised JPEG - the /svg/ endpoint uses
+    foreignObject for text labels which WeasyPrint cannot render.
+    """
+    try:
+        payload = base64.urlsafe_b64encode(code.encode()).decode()
+        url = _MERMAID_INK_URL + payload
+        req = urllib.request.Request(url, headers={"User-Agent": "wisdom-pdf/1.0"})
+        with urllib.request.urlopen(req, timeout=_MERMAID_TIMEOUT) as resp:
+            data: bytes = resp.read()
+            content_type = resp.headers.get("Content-Type", "image/jpeg")
+            mime = content_type.split(";")[0].strip()
+            return data, mime
+    except Exception:
+        return None
+
+
+def _jpeg_dimensions(data: bytes) -> tuple[int, int] | None:
+    """Parse width and height from JPEG SOF marker."""
+    import struct
+
+    i = 2
+    while i < len(data) - 9:
+        if data[i] != 0xFF:
+            break
+        marker = data[i + 1]
+        if marker in (0xC0, 0xC2):
+            h = struct.unpack(">H", data[i + 5 : i + 7])[0]
+            w = struct.unpack(">H", data[i + 7 : i + 9])[0]
+            return w, h
+        seg_len = struct.unpack(">H", data[i + 2 : i + 4])[0]
+        i += 2 + seg_len
+    return None
+
+
+def _size_pct(natural_width_pt: float) -> int:
+    """Map a diagram's natural width to a max-width percentage of the page.
+
+    Small diagrams stay small, large ones can fill the page. Uses a
+    linear ramp between 25% and 95% based on what fraction of the page
+    the diagram naturally occupies.
+    """
+    ratio = natural_width_pt / _PAGE_WIDTH_PT
+    pct = int(25 + ratio * 70)
+    return max(25, min(pct, 95))
+
+
+def _image_to_img_tag(data: bytes, mime: str, max_width_pct: int = 95) -> str:
+    """Convert image bytes to an <img> tag with a base64 data URI."""
+    b64 = base64.b64encode(data).decode()
+    return (
+        f'<img class="diagram" style="max-width:{max_width_pct}%"'
+        f' src="data:{mime};base64,{b64}" alt="diagram" />'
+    )
+
+
+def _render_diagrams(html_body: str) -> tuple[str, dict[str, int]]:
+    """Find diagram code blocks in HTML and replace them with rendered images.
+
+    Returns (modified_html, fallback_counts) where fallback_counts maps
+    diagram language names to the number of blocks that failed to render.
+    """
+    fallbacks: dict[str, int] = {}
+
+    def _replace(match: re.Match[str]) -> str:
+        lang = match.group(1)
+        code = html_mod.unescape(match.group(2))
+
+        if lang in ("graphviz", "dot"):
+            svg = _render_graphviz(_apply_graphviz_theme(code))
+            if svg:
+                dims = _svg_dimensions(svg)
+                pct = _size_pct(dims[0]) if dims else 70
+                return _image_to_img_tag(svg, "image/svg+xml", pct)
+        elif lang == "mermaid":
+            result = _render_mermaid(_apply_mermaid_theme(code))
+            if result:
+                img_data, mime = result
+                dims = _jpeg_dimensions(img_data) if "jpeg" in mime else None
+                # Mermaid native px at ~96 DPI; convert to pt (* 0.75)
+                pct = _size_pct(dims[0] * 0.75) if dims else 70
+                return _image_to_img_tag(img_data, mime, pct)
+
+        # Fallback: styled code block with a diagram-type label
+        fallbacks[lang] = fallbacks.get(lang, 0) + 1
+        return (
+            f'<pre class="diagram-fallback" data-diagram-type="{lang}">'
+            f'<code>{match.group(2)}</code></pre>'
+        )
+
+    result = _DIAGRAM_BLOCK_RE.sub(_replace, html_body)
+    return result, fallbacks
+
+
 def cmd_pdf(args: argparse.Namespace) -> None:
     try:
         import markdown as md_lib
@@ -493,6 +768,7 @@ def cmd_pdf(args: argparse.Namespace) -> None:
     md_text = input_file.read_text(encoding="utf-8")
     md_text = _normalise_list_markdown(md_text)
     html_body = md_lib.markdown(md_text, extensions=MD_EXTENSIONS)
+    html_body, diagram_fallbacks = _render_diagrams(html_body)
 
     # Load and populate the HTML5 template
     if TEMPLATE_FILE.is_file():
@@ -517,6 +793,24 @@ def cmd_pdf(args: argparse.Namespace) -> None:
         _open_file(output_file)
 
     print(f"PDF_PATH: {output_file}")
+
+    # Report diagram rendering fallbacks so the calling agent can act on them
+    for lang, count in diagram_fallbacks.items():
+        s = "s" if count > 1 else ""
+        print(f"DIAGRAM_FALLBACK: {count} {lang} diagram{s} could not be rendered and "
+              f"ha{'ve' if count > 1 else 's'} been included as code block{s} instead.",
+              file=sys.stderr)
+        if lang == "mermaid":
+            print("HINT: Mermaid rendering requires network access to mermaid.ink. "
+                  "If offline, consider rewriting the diagram as a graphviz/dot code "
+                  "block which renders locally. Alternatively, simplify the mermaid "
+                  "diagram as complex diagrams may exceed the API's limits.",
+                  file=sys.stderr)
+        elif lang in ("graphviz", "dot"):
+            print("HINT: Graphviz rendering requires the 'graphviz' system package. "
+                  "Install with: brew install graphviz (macOS) or "
+                  "sudo apt install graphviz (Linux).",
+                  file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------

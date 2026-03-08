@@ -280,13 +280,47 @@ body > p:last-of-type em {
   border-top: 1px solid var(--colour-border);
 }
 
-/* ── Images (if any diagrams are embedded) ──────────────── */
+/* ── Images and rendered diagrams ───────────────────────── */
 
 img {
   max-width: 100%;
   height: auto;
   margin: 1em auto;
   display: block;
+}
+
+img.diagram {
+  margin: 1.5em auto;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* ── Diagram fallback (renderer unavailable) ───────────── */
+
+pre.diagram-fallback {
+  background: #f0f4f8;
+  border: 1px solid var(--colour-border);
+  border-left: 4px solid var(--colour-accent);
+  border-radius: 5px;
+  padding: 0.9em 1.1em;
+  padding-top: 2.2em;
+  margin: 1em 0;
+  position: relative;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+pre.diagram-fallback::before {
+  content: "Diagram (" attr(data-diagram-type) ")";
+  position: absolute;
+  top: 0.4em;
+  left: 1.1em;
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-size: 0.75em;
+  font-weight: 600;
+  color: var(--colour-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* ── Print-specific tweaks ──────────────────────────────── */

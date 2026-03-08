@@ -98,8 +98,7 @@
 ## Tool Usage
 
 ### CLI Commands
-**Use `run_silent` to wrap bash/CLI commands** unless you need stdout. It reduces token usage by returning only exit status and stderr.
-- Examples: `run_silent pnpm install`, `run_silent cargo check`, `run_silent make lint`
+**Use `run_silent` to wrap bash/CLI commands** unless you need stdout. It reduces token usage by returning only exit status and stderr, e.g: `run_silent pnpm install`, `run_silent cargo check`, `run_silent make lint`
 - Always quote all paths in bash commands
 
 ### Tool Priorities

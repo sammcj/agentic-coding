@@ -1,8 +1,7 @@
 ---
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
-compatibility: Requires uv and Prettier (bunx/npx)
-allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *)
+allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *) WebFetch(domain:mermaid.ink) WebFetch(domain:manifest.googlevideo.com) WebFetch(domain:manifest.googlevideo.com) WebFetch(domain:youtube.com) WebFetch(domain:github.com)
 ---
 
 # Wisdom Extraction
@@ -264,7 +263,7 @@ Then stop unless further instructions are given.
 - Ensure clarity and conciseness in summaries and takeaways
 - Always ask yourself if the sentence adds value - if not, remove it
 - If the source mentions a specific tool, resource or website, task a sub-agent to look it up and provide a brief summary, then include it in the Additional Resources section
-- You can consider creating mermaid diagrams to explain complex concepts, relationships, or workflows found in the content
+- You can consider creating inline diagrams to explain complex concepts, relationships, or workflows found in the content. Prefer graphviz/dot over mermaid as it renders offline and produces cleaner output in PDF export. Mermaid is supported but requires network access to mermaid.ink and may fail for complex diagrams
 - When reading the content - it **must be read in FULL**, avoid using external plugins such as context-mode, serena etc that may alter the content or that require the use of indexing + search which could lead to loss of content or context.
 
 ### Multiple Source Analysis

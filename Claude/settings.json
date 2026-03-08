@@ -33,6 +33,7 @@
       "Bash(ffprobe *)",
       "Bash(file *)",
       "Bash(find *)",
+      "Bash(uvx ty check *)",
       "Bash(gh pr diff *)",
       "Bash(gh pr list *)",
       "Bash(gh pr view *)",
@@ -143,10 +144,7 @@
       "Read(~/.claude/skills/**)",
       "WebFetch",
       "WebSearch",
-      "mcp__plugin_context-mode_context-mode__index",
-      "mcp__plugin_context-mode_context-mode__search",
-      "mcp__plugin_context-mode_context-mode__fetch_and_index",
-      "mcp__plugin_context-mode_context-mode__stats",
+      "mcp__plugin_context-mode_context-mode",
       "Skill"
     ],
     "deny": [
@@ -250,7 +248,6 @@
       "Bash(ssh *)",
       "Bash(tcpdump *)",
       "Bash(unset HISTFILE *)",
-      "Bash(uvx *)",
       "Bash(wireshark *)",
       "Bash(yes | rm *)",
       "Bash(yes |rm *)",
@@ -341,11 +338,11 @@
         ]
       },
       {
-        "matcher": "Bash|Read|Grep|WebFetch|Task|mcp__plugin_context-mode_context-mode__execute|mcp__plugin_context-mode_context-mode__execute_file|mcp__plugin_context-mode_context-mode__batch_execute",
+        "matcher": "Bash|WebFetch|Read|Grep|Agent|Task|mcp__plugin_context-mode_context-mode__ctx_execute|mcp__plugin_context-mode_context-mode__ctx_execute_file|mcp__plugin_context-mode_context-mode__ctx_batch_execute",
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/0.9.21/hooks/pretooluse.mjs"
+            "command": "node \"/Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.15/hooks/pretooluse.mjs\""
           }
         ]
       }
@@ -356,7 +353,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/0.9.20/hooks/sessionstart.mjs"
+            "command": "node \"/Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.15/hooks/sessionstart.mjs\""
           }
         ]
       }
@@ -391,6 +388,7 @@
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
+    "enableWeakerNetworkIsolation": true,
     "network": {
       "allowedDomains": [
         "*.anthropic.com",
@@ -449,6 +447,7 @@
       "ssh",
       "container",
       "gh",
+      "uvx ty",
       "uv run"
     ]
   },
