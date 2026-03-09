@@ -22,8 +22,11 @@ The repository is organised with tool-agnostic content at the root level:
 - [Hooks](./Claude/hooks/) - Hooks that can be used when specific lifecycle events occur (e.g. after writing to a file)
 - [Custom Agents](./Claude/agents/) - Custom defined agents.
 - [Claude Code Statusline](./Claude/statusline-command.sh) - Custom statusline for Claude Code that shows usage and context information.
+- [Claude Local Marketplace](./Claude/plugins/local-marketplace/) - My local marketplace (plugins) for Claude Code, including LSP definitions.
 
 Note: Most rules and skills are portable between agentic coding tools. The exception being Claude _Skills_, which I'm yet to see other tools support - but have no doubt they will as they're one of the most powerful and useful agentic coding concepts.
+
+![Setup -> Plan -> Act -> Review & Iterate Diagram](setup-plan-act-iterate.svg)
 
 ### Agentic Coding Tools - Not All Created Equal
 
@@ -45,8 +48,6 @@ I have a table where I'm trying to keep track of coding agent tools here: https:
 I've shared (somewhat out of date) overview of workflow (Setup -> Plan -> Act -> Review & Iterate) in a blog post [here (smcleod.net)](https://smcleod.net/2025/04/my-plan-document-act-review-flow-for-agentic-software-development/).
 
 The TLDR is that this is a lightweight approach of having coding agents help me design a documented plan with the goal, context, requirements / constraints and a phased checklist of tasks to complete and have them update the plan as they work through the tasks in each phase.
-
-![Setup -> Plan -> Act -> Review & Iterate Diagram](setup-plan-act-iterate.png)
 
 Note: I've tried full blown '_Spec Driven Development_' but find it can be overkill for small-medium size projects where it can lead to over-engineering and significant documentation debt.
 

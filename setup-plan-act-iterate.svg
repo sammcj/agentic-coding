@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 2019 1023"
+   version="1.1"
+   id="svg21"
+   sodipodi:docname="setup-plan-act-iterate(2).svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview21"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.83407627"
+     inkscape:cx="856.03682"
+     inkscape:cy="372.86758"
+     inkscape:window-width="2259"
+     inkscape:window-height="1189"
+     inkscape:window-x="2801"
+     inkscape:window-y="553"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg21" />
+  <rect
+     width="2019"
+     height="1023"
+     fill="#ffffff"
+     id="rect1" />
+  <defs
+     id="defs1">
+    <marker
+       id="arrowhead"
+       viewBox="0 0 10 7"
+       refX="10"
+       refY="3.5"
+       markerWidth="12"
+       markerHeight="9"
+       orient="auto">
+      <polygon
+         points="0 0, 10 3.5, 0 7"
+         fill="#7baac8"
+         fill-opacity="0.5"
+         id="polygon1" />
+    </marker>
+    <marker
+       id="arrowhead-3"
+       viewBox="0 0 10 7"
+       refX="10"
+       refY="3.5"
+       markerWidth="12"
+       markerHeight="9"
+       orient="auto">
+      <polygon
+         points="10,3.5 0,7 0,0 "
+         fill="#7baac8"
+         fill-opacity="0.5"
+         id="polygon1-9" />
+    </marker>
+  </defs>
+  <!-- Connector arrows between phases -->
+  <path
+     id="Path"
+     fill="#edf4f8"
+     stroke="#9ec5db"
+     stroke-width="5.178906"
+     stroke-dasharray="20.715623 10.357812"
+     stroke-dashoffset="0"
+     d="M 79.558594 100.867371 L 731.859131 100.867371 C 737.577454 100.867371 742.213074 105.506409 742.213074 111.229004 L 742.213074 728.588074 C 742.213074 734.310669 737.577454 738.949707 731.859131 738.949707 L 79.558594 738.949707 C 73.840256 738.949707 69.20462 734.310669 69.20462 728.588074 L 69.20462 111.229004 C 69.20462 105.506409 73.840256 100.867371 79.558594 100.867371 Z" />
+  <g
+     id="Group">
+    <path
+       id="path1"
+       fill="#a7c7dc"
+       stroke="#7baac8"
+       stroke-width="3.884179"
+       d="M 128.73999 152.675598 L 372.058441 152.675598 C 376.347198 152.675598 379.823914 156.154846 379.823914 160.446838 L 379.823914 326.233154 C 379.823914 330.525146 376.347198 334.004395 372.058441 334.004395 L 128.73999 334.004395 C 124.451233 334.004395 120.974503 330.525146 120.974503 326.233154 L 120.974503 160.446838 C 120.974503 156.154846 124.451233 152.675598 128.73999 152.675598 Z" />
+    <text
+       id="The-Right-Models"
+       xml:space="preserve"><tspan
+         x="170.307"
+         y="239"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#1e4d6b"
+         xml:space="preserve"
+         id="tspan3">The Right</tspan><tspan
+         x="189.517"
+         y="282"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#1e4d6b"
+         xml:space="preserve"
+         id="tspan4">Models</tspan></text>
+    <path
+       id="path2"
+       fill="#a7c7dc"
+       stroke="#7baac8"
+       stroke-width="3.884179"
+       d="M 439.359283 152.675598 L 682.677734 152.675598 C 686.966492 152.675598 690.443237 156.154846 690.443237 160.446838 L 690.443237 326.233154 C 690.443237 330.525146 686.966492 334.004395 682.677734 334.004395 L 439.359283 334.004395 C 435.070496 334.004395 431.593811 330.525146 431.593811 326.233154 L 431.593811 160.446838 C 431.593811 156.154846 435.070496 152.675598 439.359283 152.675598 Z" />
+    <text
+       id="The-Right-Agentic-Coding"
+       xml:space="preserve"><tspan
+         x="480.307"
+         y="213"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#1e4d6b"
+         xml:space="preserve"
+         id="tspan5">The Right</tspan><tspan
+         x="495.097"
+         y="256"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#1e4d6b"
+         xml:space="preserve"
+         id="tspan6">Agentic</tspan><tspan
+         x="463.426"
+         y="299"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#1e4d6b"
+         xml:space="preserve"
+         id="tspan7">Coding Tool</tspan></text>
+    <path
+       id="path3"
+       fill="#a7c7dc"
+       stroke="#7baac8"
+       stroke-width="3.884179"
+       d="M 128.73999 385.812653 L 372.058441 385.812653 C 376.347198 385.812653 379.823914 389.291931 379.823914 393.583893 L 379.823914 559.370239 C 379.823914 563.662231 376.347198 567.141479 372.058441 567.141479 L 128.73999 567.141479 C 124.451233 567.141479 120.974503 563.662231 120.974503 559.370239 L 120.974503 393.583893 C 120.974503 389.291931 124.451233 385.812653 128.73999 385.812653 Z" />
+    <text
+       id="MCP-Tools-To-Enable"
+       xml:space="preserve"><tspan
+         x="165.846"
+         y="451"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#1e4d6b"
+         xml:space="preserve"
+         id="tspan8">Agent Tools</tspan><tspan
+         x="156.122"
+         y="494"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#1e4d6b"
+         xml:space="preserve"
+         id="tspan9">To Enable &amp;</tspan><tspan
+         x="190.445"
+         y="537"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#1e4d6b"
+         xml:space="preserve"
+         id="tspan10">Extend</tspan></text>
+    <path
+       id="path4"
+       fill="#a7c7dc"
+       stroke="#7baac8"
+       stroke-width="3.884179"
+       d="M 439.359283 385.812653 L 682.677734 385.812653 C 686.966492 385.812653 690.443237 389.291931 690.443237 393.583893 L 690.443237 559.370239 C 690.443237 563.662231 686.966492 567.141479 682.677734 567.141479 L 439.359283 567.141479 C 435.070496 567.141479 431.593811 563.662231 431.593811 559.370239 L 431.593811 393.583893 C 431.593811 389.291931 435.070496 385.812653 439.359283 385.812653 Z" />
+    <text
+       id="Agent-Rules--Skills"
+       xml:space="preserve"><tspan
+         x="460.808"
+         y="468"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#1e4d6b"
+         xml:space="preserve"
+         id="tspan11">Agent Rules</tspan><tspan
+         x="502.271"
+         y="511"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#1e4d6b"
+         xml:space="preserve"
+         id="tspan12">&amp; Skills</tspan></text>
+  </g>
+  <text
+     id="text1"
+     xml:space="preserve"
+     x="385.3536"
+     y="381"
+     font-family="Helvetica"
+     font-size="62.14687"
+     fill="#5a9bc5">+</text>
+  <path
+     id="path-sandbox"
+     fill="#a7c7dc"
+     stroke="#7baac8"
+     stroke-width="3.884179"
+     d="M 128.73999 600 L 682.677734 600 C 686.966492 600 690.443237 603.48 690.443237 607.77 L 690.443237 697.23 C 690.443237 701.52 686.966492 705 682.677734 705 L 128.73999 705 C 124.451233 705 120.974503 701.52 120.974503 697.23 L 120.974503 607.77 C 120.974503 603.48 124.451233 600 128.73999 600 Z" />
+  <text
+     id="Configure-Sandbox-Permissions"
+     xml:space="preserve"><tspan
+       x="245"
+       y="642"
+       font-family="Space Grotesk"
+       font-size="34"
+       font-weight="700"
+       fill="#1e4d6b"
+       xml:space="preserve"
+       id="tspan-sandbox1">Agent Permissions</tspan><tspan
+       x="310"
+       y="685"
+       font-family="Space Grotesk"
+       font-size="34"
+       font-weight="700"
+       fill="#1e4d6b"
+       xml:space="preserve"
+       id="tspan-sandbox2">&amp; Sandbox</tspan></text>
+
+  <g
+     id="g1">
+    <path
+       id="path5"
+       fill="#7baac8"
+       stroke="#5a8fad"
+       stroke-width="3.884179"
+       d="M 827.633423 152.675598 L 1148.606689 152.675598 C 1152.895508 152.675598 1156.372192 156.154846 1156.372192 160.446838 L 1156.372192 559.370239 C 1156.372192 563.662231 1152.895508 567.141479 1148.606689 567.141479 L 827.633423 567.141479 C 823.344604 567.141479 819.86792 563.662231 819.86792 559.370239 L 819.86792 160.446838 C 819.86792 156.154846 823.344604 152.675598 827.633423 152.675598 Z" />
+    <text
+       id="Create-A-Development-Plan"
+       xml:space="preserve"><tspan
+         x="917.16"
+         y="331"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#0f3348"
+         xml:space="preserve"
+         id="tspan13">Create A</tspan><tspan
+         x="877.635"
+         y="374"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#0f3348"
+         xml:space="preserve"
+         id="tspan14">Development</tspan><tspan
+         x="950.412"
+         y="417"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#0f3348"
+         xml:space="preserve"
+         id="tspan15">Plan</tspan></text>
+  </g>
+  <g
+     id="g2">
+    <path
+       id="path6"
+       fill="#1e4d6b"
+       stroke="#153a52"
+       stroke-width="3.884179"
+       d="M 1241.79248 152.675598 L 1562.765747 152.675598 C 1567.054565 152.675598 1570.53125 156.154846 1570.53125 160.446838 L 1570.53125 559.370239 C 1570.53125 563.662231 1567.054565 567.141479 1562.765747 567.141479 L 1241.79248 567.141479 C 1237.503662 567.141479 1234.026978 563.662231 1234.026978 559.370239 L 1234.026978 160.446838 C 1234.026978 156.154846 1237.503662 152.675598 1241.79248 152.675598 Z" />
+    <text
+       id="Build--Monitor"
+       xml:space="preserve"><tspan
+         x="1344.985"
+         y="352"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#ffffff"
+         xml:space="preserve"
+         id="tspan16">Build &amp;</tspan><tspan
+         x="1336.026"
+         y="395"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#ffffff"
+         xml:space="preserve"
+         id="tspan17">Monitor</tspan></text>
+  </g>
+  <g
+     id="g3">
+    <path
+       id="path7"
+       fill="#d4707a"
+       stroke="#be5a64"
+       stroke-width="3.884179"
+       d="M 1655.951538 152.675598 L 1951.039917 152.675598 C 1955.328613 152.675598 1958.805298 156.154846 1958.805298 160.446838 L 1958.805298 326.233154 C 1958.805298 330.525146 1955.328613 334.004395 1951.039917 334.004395 L 1655.951538 334.004395 C 1651.66272 334.004395 1648.186035 330.525146 1648.186035 326.233154 L 1648.186035 160.446838 C 1648.186035 156.154846 1651.66272 152.675598 1655.951538 152.675598 Z" />
+    <text
+       id="Improve-Planning"
+       xml:space="preserve"><tspan
+         x="1736.669"
+         y="235"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#ffffff"
+         xml:space="preserve"
+         id="tspan18">Improve</tspan><tspan
+         x="1730.6"
+         y="278"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#ffffff"
+         xml:space="preserve"
+         id="tspan19">Planning</tspan></text>
+    <path
+       id="path8"
+       fill="#d4707a"
+       stroke="#be5a64"
+       stroke-width="3.884179"
+       d="M 1655.951538 385.812653 L 1951.039917 385.812653 C 1955.328613 385.812653 1958.805298 389.291931 1958.805298 393.583893 L 1958.805298 559.370239 C 1958.805298 563.662231 1955.328613 567.141479 1951.039917 567.141479 L 1655.951538 567.141479 C 1651.66272 567.141479 1648.186035 563.662231 1648.186035 559.370239 L 1648.186035 393.583893 C 1648.186035 389.291931 1651.66272 385.812653 1655.951538 385.812653 Z" />
+    <text
+       id="Improve-Rules--Skills"
+       xml:space="preserve"><tspan
+         x="1690"
+         y="468"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#ffffff"
+         xml:space="preserve"
+         id="tspan20">Improve Rules,</tspan><tspan
+         x="1696.498"
+         y="511"
+         font-family="Space Grotesk"
+         font-size="34"
+         font-weight="700"
+         fill="#ffffff"
+         xml:space="preserve"
+         id="tspan21">Skills &amp; Tools</tspan></text>
+  </g>
+  <!-- Phase outputs -->
+  <g id="outputs" opacity="0.7">
+    <!-- Plan outputs -->
+    <text xml:space="preserve" text-anchor="middle">
+      <tspan x="988" y="608" font-family="Space Grotesk" font-size="19" font-weight="400" fill="#3d7a9e">PLAN.md / tasks / specs</tspan>
+      <tspan x="988" y="634" font-family="Space Grotesk" font-size="19" font-weight="400" fill="#3d7a9e">Task breakdown</tspan>
+      <tspan x="988" y="660" font-family="Space Grotesk" font-size="19" font-weight="400" fill="#3d7a9e">Acceptance criteria</tspan>
+    </text>
+    <!-- Act outputs -->
+    <text xml:space="preserve" text-anchor="middle">
+      <tspan x="1402" y="600" font-family="Space Grotesk" font-size="19" font-weight="400" fill="#1a4560">Agent self-review</tspan>
+      <tspan x="1402" y="626" font-family="Space Grotesk" font-size="19" font-weight="400" fill="#1a4560">Validate scope &amp; approach</tspan>
+      <tspan x="1402" y="652" font-family="Space Grotesk" font-size="19" font-weight="400" fill="#1a4560">Working code &amp; tests</tspan>
+      <tspan x="1402" y="678" font-family="Space Grotesk" font-size="19" font-weight="400" fill="#1a4560">Human review</tspan>
+    </text>
+    <!-- Iterate outputs -->
+    <text xml:space="preserve" text-anchor="middle">
+      <tspan x="1803" y="608" font-family="Space Grotesk" font-size="19" font-weight="400" fill="#a34f58">Refined rules &amp; skills</tspan>
+      <tspan x="1803" y="634" font-family="Space Grotesk" font-size="19" font-weight="400" fill="#a34f58">Better prompts</tspan>
+      <tspan x="1803" y="660" font-family="Space Grotesk" font-size="19" font-weight="400" fill="#a34f58">Improved plans</tspan>
+    </text>
+  </g>
+  <g
+     id="g4">
+    <path
+       id="path9"
+       fill="#d6eaf2"
+       stroke="#a9cce0"
+       stroke-width="2.589453"
+       d="M 76.9701 764.757935 L 734.447632 764.757935 C 738.736389 764.757935 742.213074 768.237244 742.213074 772.529175 L 742.213074 860.603149 C 742.213074 864.895142 738.736389 868.37439 734.447632 868.37439 L 76.9701 868.37439 C 72.681343 868.37439 69.20462 864.895142 69.20462 860.603149 L 69.20462 772.529175 C 69.20462 768.237244 72.681343 764.757935 76.9701 764.757935 Z" />
+    <text
+       id="Setup"
+       xml:space="preserve"
+       x="355.091"
+       y="828"
+       font-family="Space Grotesk"
+       font-size="34"
+       font-weight="700"
+       fill="#2c5f7c">Setup</text>
+    <path
+       id="path10"
+       fill="#d6eaf2"
+       stroke="#a9cce0"
+       stroke-width="2.589453"
+       d="M 827.633423 764.757935 L 1148.606689 764.757935 C 1152.895508 764.757935 1156.372192 768.237244 1156.372192 772.529175 L 1156.372192 860.603149 C 1156.372192 864.895142 1152.895508 868.37439 1148.606689 868.37439 L 827.633423 868.37439 C 823.344604 868.37439 819.86792 864.895142 819.86792 860.603149 L 819.86792 772.529175 C 819.86792 768.237244 823.344604 764.757935 827.633423 764.757935 Z" />
+    <text
+       id="Plan"
+       xml:space="preserve"
+       x="950.412"
+       y="828"
+       font-family="Space Grotesk"
+       font-size="34"
+       font-weight="700"
+       fill="#2c5f7c">Plan</text>
+    <path
+       id="path11"
+       fill="#d6eaf2"
+       stroke="#a9cce0"
+       stroke-width="2.589453"
+       d="M 1241.79248 764.757935 L 1562.765747 764.757935 C 1567.054565 764.757935 1570.53125 768.237244 1570.53125 772.529175 L 1570.53125 860.603149 C 1570.53125 864.895142 1567.054565 868.37439 1562.765747 868.37439 L 1241.79248 868.37439 C 1237.503662 868.37439 1234.026978 864.895142 1234.026978 860.603149 L 1234.026978 772.529175 C 1234.026978 768.237244 1237.503662 764.757935 1241.79248 764.757935 Z" />
+    <text
+       id="Act"
+       xml:space="preserve"
+       x="1372.28"
+       y="828"
+       font-family="Space Grotesk"
+       font-size="34"
+       font-weight="700"
+       fill="#2c5f7c">Act</text>
+    <path
+       id="path12"
+       fill="#d6eaf2"
+       stroke="#a9cce0"
+       stroke-width="2.589453"
+       d="M 1655.951538 764.757935 L 1951.039917 764.757935 C 1955.328613 764.757935 1958.805298 768.237244 1958.805298 772.529175 L 1958.805298 860.603149 C 1958.805298 864.895142 1955.328613 868.37439 1951.039917 868.37439 L 1655.951538 868.37439 C 1651.66272 868.37439 1648.186035 864.895142 1648.186035 860.603149 L 1648.186035 772.529175 C 1648.186035 768.237244 1651.66272 764.757935 1655.951538 764.757935 Z" />
+    <text
+       id="Iterate"
+       xml:space="preserve"
+       x="1747.26"
+       y="828"
+       font-family="Space Grotesk"
+       font-size="34"
+       font-weight="700"
+       fill="#2c5f7c">Iterate</text>
+  </g>
+  <g
+     id="g5">
+    <path
+       id="path14-copy"
+       fill="none"
+       stroke="#d8ecf7"
+       stroke-width="8"
+       stroke-opacity="0.648201"
+       stroke-dasharray="32 16"
+       stroke-dashoffset="0"
+       d="M 48 974 L 1971 974 A 25 25 0 0 0 1996 949 L 1996 75 A 25 25 0 0 0 1971 50 L 48 50 A 25 25 0 0 0 23 75 L 23 949 A 25 25 0 0 0 48 974" />
+  </g>
+  <path
+     id="Rectangle"
+     fill="#ffffff"
+     fill-rule="evenodd"
+     stroke="#ffffff"
+     stroke-width="12"
+     d="M 1014 984 L 1057 984 L 1057 964 L 1014 964 Z" />
+  <path
+     id="Rectangle-copy"
+     fill="#ffffff"
+     fill-rule="evenodd"
+     stroke="#ffffff"
+     stroke-width="12"
+     d="M 983 72 L 1057 72 L 1057 28 L 983 28 Z" />
+  <path
+     id="arrow-copy"
+     fill="#e0eef6"
+     stroke="none"
+     d="M 1055.934814 974 L 989.238403 952 L 989.238403 996 Z" />
+  <path
+     id="arrow-copy-2"
+     fill="#e0eef6"
+     stroke="none"
+     d="M 983.065186 50.15979 L 1049.760254 72.412476 L 1049.762939 27.915283 Z" />
+  <path
+     id="arrow-copy-9"
+     fill="#e0eef6"
+     stroke="none"
+     d="m 800.88042,362.14913 -48.48933,-16.25395 v 32.50789 z"
+     style="fill:#cce4f0;fill-opacity:1;stroke-width:0.728786" />
+  <path
+     id="arrow-copy-97"
+     fill="#e0eef6"
+     stroke="none"
+     d="m 1214.2477,362.14913 -48.4893,-16.25395 v 32.50789 z"
+     style="fill:#cce4f0;fill-opacity:1;stroke-width:0.728786" />
+  <path
+     id="arrow-copy-6"
+     fill="#e0eef6"
+     stroke="none"
+     d="m 1629.1646,362.14913 -48.4894,-16.25395 v 32.50789 z"
+     style="fill:#cce4f0;fill-opacity:1;stroke-width:0.728786" />
+  <!-- Learning & Development bar -->
+  <rect
+     id="learn-dev-bar"
+     x="69.20462"
+     y="894"
+     width="1889.600678"
+     height="50"
+     rx="3.8"
+     ry="3.8"
+     fill="#e8dfd4"
+     stroke="#d4c9bb"
+     stroke-width="2" />
+  <text
+     id="learn-development"
+     xml:space="preserve"
+     text-anchor="middle"
+     x="1014"
+     y="927"
+     font-family="Space Grotesk"
+     font-size="28"
+     font-style="italic"
+     font-weight="400"
+     fill="#7a6e5f">Learning &amp; Development</text>
+</svg>
