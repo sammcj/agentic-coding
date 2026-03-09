@@ -89,7 +89,7 @@
 
 ### Github
 - Use the `gh` CLI tool for interacting with GitHub (issues, PRs, releases) and perform `gh` commands outside of the sandbox
-- When writing Github Actions Workflows, always check for, and use the latest Actions versions (e.g. `gh api repos/tauri-apps/tauri-action/tags --jq '.[].name' | head -2`)
+- When writing Github Actions Workflows, always check for, and use the latest Actions versions (e.g. `for action in actions/checkout actions/setup-node; do gh api "repos/${action}/tags" --jq "\"${action}: \(.[0].name) \(.[0].commit.sha)\"" 2>/dev/null; done`)
 
 ### Bash
 - `#!/usr/bin/env bash` with `set -euo pipefail`
@@ -106,6 +106,7 @@
 - Use tools to search documentation before making assumptions - don't guess
 - Use `code_skim` for exploring large files/codebases without reading full implementations
 - Delegate to sub-agents in parallel where possible, instruct them to return only key information
+- If you have skills to help you build tools or skills, use them when doing so
 
 ### Code Intelligence
 - Prefer LSP over Grep/Glob/Read for code navigation, e.g:

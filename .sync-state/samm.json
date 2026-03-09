@@ -1,15 +1,15 @@
 {
   "machine_id": "samm-mbp.local-f9e6c894",
   "hostname": "samm",
-  "last_sync": "2026-03-09T10:32:32.751224",
+  "last_sync": "2026-03-10T09:41:57.565697",
   "files": {
     "claude/agents/software-research-assistant.md": {
       "checksum": "sha256:2a948ca6b0c4f0c244665ef5b9361bed90b78139376a151030bd5659523507e5",
       "last_synced": "2026-02-09T08:43:39.194546"
     },
     "claude/settings.json": {
-      "checksum": "sha256:ceaabcfe165a560e8467c4ecf01ecdcc93d376e243d461cdfcef8f313bc4168b",
-      "last_synced": "2026-03-09T10:32:32.751082"
+      "checksum": "sha256:e151c148d2cc3791a8134e507f849822df60428fadc541ae2a617da4128e6dd0",
+      "last_synced": "2026-03-10T09:41:57.565519"
     },
     "claude/skills/critical-thinking-logical-reasoning/SKILL.md": {
       "checksum": "sha256:c8fa41560a87b6b1e6aa0e4a5abf5f369c1529ff15c896ee602b3abec62ddc67",
@@ -124,8 +124,8 @@
       "last_synced": "2026-02-06T14:08:11.684148"
     },
     "claude-rules/CLAUDE.md": {
-      "checksum": "sha256:b7317293e298cdadc1ce762355ecf7592ea20b218834e5bcb61bb557d6685b09",
-      "last_synced": "2026-03-09T10:32:32.215398"
+      "checksum": "sha256:a7fc18fcfa977aa7f65e1eb4782b4e5a5dcec55ed9c7fda84d0ac76ebecdaa84",
+      "last_synced": "2026-03-10T09:41:57.024638"
     },
     "claude-skills/deferred-task-execution/scripts/wait-until.sh": {
       "checksum": "sha256:4d9ca37330834653a9bf595c83ce9447a18986e808cd5ccebed5674ca6e22ca8",
@@ -350,6 +350,14 @@
     "claude-skills/skill-creator-primer/scripts/validate_skill.py": {
       "checksum": "sha256:f683ed5a05f4fb787165418d10a2f4374d60c7e7306fc9b94004cb7150b09f28",
       "last_synced": "2026-03-05T15:59:20.313689"
+    },
+    "claude-skills/diagrams-as-code/SKILL.md": {
+      "checksum": "sha256:44717e376812e2d610d4552e911aa86fee274aca34edc8137a49e8bff0479353",
+      "last_synced": "2026-03-10T09:41:56.198587"
+    },
+    "claude-skills/diagrams-as-code/references/providers.md": {
+      "checksum": "sha256:bf6d0904fd8a85b226aec2b71026a07e89f2a40ce33aeaabe3bd5ad6dca1960b",
+      "last_synced": "2026-03-10T09:41:56.199445"
     }
   },
   "deletions": {
