@@ -1,0 +1,24 @@
+{
+  "machine_id": "samm-mbp.int.cattledip.com-21bc0ffc",
+  "hostname": "samm",
+  "last_sync": "2026-03-10T10:34:51.592211",
+  "files": {
+    "claude-plugins/tofu-lsp/.lsp.json": {
+      "checksum": "sha256:1eeca3eb30bbaf1f4dc71d137672eb49b43b060676b1126f8a742e05c7dce973",
+      "last_synced": "2026-03-10T10:32:37.767540"
+    },
+    "claude-plugins/.claude-plugin/marketplace.json": {
+      "checksum": "sha256:c47dcfdb7787aac90a98b736e86a31c020078116c40bd85d9e6ba42dc93e1970",
+      "last_synced": "2026-03-10T10:32:37.768334"
+    },
+    "claude-plugins/tofu-lsp/plugin.json": {
+      "checksum": "sha256:6d83e5a58226c70cccbe5dea58f5b290eda0f041543b29ca1b513b7ed6cef579",
+      "last_synced": "2026-03-10T10:32:37.768824"
+    },
+    "claude-plugins/CLAUDE.md": {
+      "checksum": "sha256:7ee9bc0c8a6ae0755bfeff91d9d1b671fb77bf4b6c9ce9291eaddc263d040539",
+      "last_synced": "2026-03-10T10:34:51.592065"
+    }
+  },
+  "deletions": {}
+}

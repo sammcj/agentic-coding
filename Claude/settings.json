@@ -138,6 +138,7 @@
       "Read(~/.claude/commands/**)",
       "Read(~/.claude/hooks/**)",
       "Read(~/.claude/skills/**)",
+      "Write(~/.claude/plugins/local-marketplace/**)",
       "WebFetch",
       "WebSearch",
       "mcp__plugin_context-mode_context-mode",
@@ -373,12 +374,10 @@
     "swift-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
     "context-mode@claude-context-mode": true,
-    "vscode-langservers@claude-code-lsps": true,
     "yaml-lsp@zircote-lsp": true,
     "bash-lsp@zircote-lsp": true,
-    "pyright@claude-code-lsps": true,
     "skill-creator@claude-plugins-official": true,
-    "gopls@claude-code-lsps": true
+    "tofu-lsp@local-marketplace": true
   },
   "language": "Australian English",
   "sandbox": {

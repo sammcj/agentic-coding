@@ -1,0 +1,10 @@
+{
+  "tofu": {
+    "command": "tofu-ls",
+    "args": ["serve"],
+    "extensionToLanguage": {
+      ".tf": "terraform",
+      ".tfvars": "terraform-vars"
+    }
+  }
+}

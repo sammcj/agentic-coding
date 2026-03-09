@@ -1,0 +1,14 @@
+{
+  "name": "local-marketplace",
+  "owner": {
+    "name": "sammcj"
+  },
+  "plugins": [
+    {
+      "name": "tofu-lsp",
+      "description": "OpenTofu language server (tofu-ls) for .tf and .tfvars files",
+      "source": "./tofu-lsp",
+      "version": "1.0.0"
+    }
+  ]
+}

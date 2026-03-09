@@ -89,7 +89,7 @@
 
 ### Github
 - Use the `gh` CLI tool for interacting with GitHub (issues, PRs, releases) and perform `gh` commands outside of the sandbox
-- When writing Github Actions Workflows, always check for, and use the latest Actions versions (e.g. `for action in actions/checkout actions/setup-node; do gh api "repos/${action}/tags" --jq "\"${action}: \(.[0].name) \(.[0].commit.sha)\"" 2>/dev/null; done`)
+- When writing Github Actions Workflows, always check for, and use the latest Actions versions (e.g. get a list of all action/names used in the project, then run `for action in actions/checkout actions/setup-node; do gh api "repos/${action}/tags" --jq "\"${action}: \(.[0].name) \(.[0].commit.sha)\"" 2>/dev/null; done`)
 
 ### Bash
 - `#!/usr/bin/env bash` with `set -euo pipefail`
