@@ -2,7 +2,7 @@
 
 ## Writing & Communication Style
 - Never use overused AI phrases: comprehensive, robust, best-in-class, feature-rich, production-ready, enterprise-grade, seamlessly, smoking gun
-- No smart quotes, em dashes, or emojis unless requested
+- No smart quotes, em dashes, double dashes or emojis unless requested
 - No sycophancy, marketing speak, or unnecessary summary paragraphs
 - Write as an engineer explaining to a colleague, not someone selling a product
 - Be direct, concise and specific. If a sentence adds no value, delete it
@@ -11,16 +11,6 @@
 
 ## Spelling
 **Always use Australian English spelling in all responses, documentation, comments, and code identifiers.**
-
-Example patterns:
-1. -our not -or (colour, favour, behaviour)
-2. -ise/-yse not -ize/-yze (organise, analyse, optimise)
-3. -re not -er (centre, metre, theatre)
-4. -ogue not -og (catalogue, dialogue, analogue)
-5. -ae/-oe not -e (anaemia, oesophagus)
-6. -ll- not -l- (travelled, cancelled, modelling)
-7. -t not -ed where appropriate (learnt, dreamt, spelt)
-8. -ence not -ense for nouns (defence, licence, offence)
 
 ## Documentation
 
@@ -58,6 +48,7 @@ Example patterns:
 ### Python
 - Favour Python 3.14+ features. Use `uv` for .venv management. Use `uvx ty check` for type checking
 - Type hints for all functions. Dataclasses for data structures. Pathlib over os.path. f-strings
+- For standalone scripts that have just a few dependencies leverage PEP 723 to declare dependencies in a TOML block inside `# ///` markers (e.g. `# /// script\n# dependencies = [\n#   "beautifulsoup4",\n# ]\n# ///`)
 
 ### TypeScript
 - Prefer TypeScript over JavaScript. Strict mode always
@@ -75,6 +66,31 @@ Example patterns:
 - `#!/usr/bin/env bash` with `set -euo pipefail`
 - Quote all variable expansions. Use `[[ ]]` for conditionals. Trap for error handling
 
+## Tool Usage
+
+### Tool Priorities
+- Use purpose-built tools over manual approaches
+- Use tools to search documentation before making assumptions - don't guess
+- Delegate to sub-agents in parallel where possible, instruct them to return only key information
+- If you have skills to help you build tools or skills, use them when doing so
+
+### CLAUDE.md Features
+- Use relevant skills to extend capabilities
+- Use tasks/TODOs to track work in progress. When working from a dev plan, keep tasks and plan in sync
+- When creating/updating CLAUDE.md files: use the `authoring-claude-md` skill first
+- Do not include line numbers when referencing files in CLAUDE.md or documentation
+
+#### Sub-agent Coordination
+- Sub-agents have their own context window - good for parallel research, inspection, or separate features
+- Define clear boundaries per agent. Specify which files each agent owns
+- Include "you are one of several agents" in instructions
+- Set explicit success criteria. Combine small updates to prevent over-splitting
+- Sub-agents can compete and erase each other's changes - ensure no overlap
+
+## Self-Review Protocol
+
+After implementing a list of changes, perform a critical self-review pass before reporting completion, fixing any issues you find.
+
 ## Rules
 
 **Before declaring any task complete, verify**: linting passes, code builds, all tests pass (new + existing), no debug statements remain, error handling in place.
@@ -87,3 +103,4 @@ Example patterns:
 - Edit only what's necessary - make precise, minimal changes unless instructed otherwise
 - Implement requirements in full or discuss with the user why you can't - don't defer work
 - If stuck on a persistent problem after multiple attempts, use the `systematic-debugging` skill or perform a Fagan inspection
+- **You must not state something is fixed unless you have confirmed it by testing, measuring output, or building the application**
