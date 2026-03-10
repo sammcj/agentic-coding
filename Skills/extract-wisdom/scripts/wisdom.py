@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import fcntl
 import html as html_mod
 import json
 import os
@@ -34,6 +35,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -64,6 +66,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
 CSS_FILE = SKILL_DIR / "styles" / "wisdom-pdf.css"
 TEMPLATE_FILE = SKILL_DIR / "styles" / "wisdom-pdf.html5"
+
+# Index generation settings.
+_INDEX_SCHEMA_VERSION = 2
+_INDEX_ENV_VAR = "EXTRACT_WISDOM_CREATE_INDEX"
+_INDEX_TEMPLATE = SKILL_DIR / "styles" / "wisdom-index.html"
+_INDEX_LOCK_TIMEOUT = 300  # seconds (5 minutes)
 
 
 # ---------------------------------------------------------------------------
@@ -424,8 +432,58 @@ def cmd_format(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
-# PDF rendering
+# Frontmatter helpers
 # ---------------------------------------------------------------------------
+
+def _strip_frontmatter(md_text: str) -> str:
+    """Remove YAML frontmatter (between --- markers) from markdown text."""
+    if not md_text.startswith("---"):
+        return md_text
+    end = md_text.find("\n---", 3)
+    if end == -1:
+        return md_text
+    return md_text[end + 4:].lstrip("\n")
+
+
+def _parse_frontmatter(md_path: Path) -> dict[str, str] | None:
+    """Parse YAML frontmatter from a markdown file.
+
+    Handles simple key: value pairs, quoted strings, and YAML folded
+    block scalars (>). Returns None if no frontmatter is found.
+    """
+    text = md_path.read_text(encoding="utf-8")
+    if not text.startswith("---"):
+        return None
+    end = text.find("\n---", 3)
+    if end == -1:
+        return None
+    fm_block = text[4:end]
+
+    result: dict[str, str] = {}
+    current_key: str | None = None
+    value_lines: list[str] = []
+
+    for line in fm_block.split("\n"):
+        key_match = re.match(r"^([a-z_]+)\s*:\s*(.*)", line)
+        if key_match and not line[0].isspace():
+            if current_key is not None:
+                result[current_key] = " ".join(value_lines).strip()
+            current_key = key_match.group(1)
+            value = key_match.group(2).strip()
+            if value in (">", "|", ">-", "|-"):
+                value_lines = []
+            else:
+                if len(value) >= 2 and value[0] in ('"', "'") and value[-1] == value[0]:
+                    value = value[1:-1].replace('\\"', '"').replace("\\'", "'")
+                value_lines = [value] if value else []
+        elif current_key is not None and (line.startswith("  ") or line.startswith("\t")):
+            value_lines.append(line.strip())
+
+    if current_key is not None:
+        result[current_key] = " ".join(value_lines).strip()
+
+    return result if result else None
+
 
 _LIST_ITEM_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s")
 
@@ -766,6 +824,7 @@ def cmd_pdf(args: argparse.Namespace) -> None:
 
     # Convert markdown to HTML
     md_text = input_file.read_text(encoding="utf-8")
+    md_text = _strip_frontmatter(md_text)
     md_text = _normalise_list_markdown(md_text)
     html_body = md_lib.markdown(md_text, extensions=MD_EXTENSIONS)
     html_body, diagram_fallbacks = _render_diagrams(html_body)
@@ -812,6 +871,116 @@ def cmd_pdf(args: argparse.Namespace) -> None:
                   "sudo apt install graphviz (Linux).",
                   file=sys.stderr)
 
+    # Regenerate the wisdom library index (non-fatal on failure).
+    try:
+        _regenerate_index(detect_base_dir())
+    except Exception as exc:
+        print(f"Warning: Index generation failed: {exc}", file=sys.stderr)
+
+
+# ---------------------------------------------------------------------------
+# Index generation
+# ---------------------------------------------------------------------------
+
+def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
+    """Regenerate the index.html in the wisdom base directory.
+
+    Walks all subdirectories, parses frontmatter from analysis markdown
+    files, computes reading time, and writes a self-contained HTML index.
+    Controlled by the EXTRACT_WISDOM_CREATE_INDEX environment variable
+    (defaults to "true"). Pass force=True to bypass the env var check.
+    """
+    if not force:
+        env_val = os.environ.get(_INDEX_ENV_VAR, "true").lower()
+        if env_val in ("false", "0", "no"):
+            return
+
+    if not base_dir.is_dir():
+        return
+
+    if not _INDEX_TEMPLATE.is_file():
+        return
+
+    entries: list[dict[str, str | int]] = []
+    for md_file in sorted(base_dir.glob("*/*analysis.md"), reverse=True):
+        fm = _parse_frontmatter(md_file)
+        if not fm:
+            continue
+
+        dir_name = md_file.parent.name
+        pdf_file = md_file.with_suffix(".pdf")
+
+        # Compute word count and reading time from the analysis body.
+        body = _strip_frontmatter(md_file.read_text(encoding="utf-8"))
+        word_count = len(body.split())
+        reading_time = max(1, round(word_count / 200))
+
+        entries.append({
+            "title": fm.get("title", dir_name),
+            "source": fm.get("source", ""),
+            "source_type": fm.get("source_type", ""),
+            "author": fm.get("author", ""),
+            "date": fm.get("date", ""),
+            "description": fm.get("description", ""),
+            "word_count": word_count,
+            "reading_time": reading_time,
+            "dir_path": dir_name,
+            "pdf_path": f"{dir_name}/{pdf_file.name}" if pdf_file.is_file() else "",
+            "md_path": f"{dir_name}/{md_file.name}",
+        })
+
+    if not entries:
+        return
+
+    template = _INDEX_TEMPLATE.read_text(encoding="utf-8")
+    entries_json = json.dumps(entries, indent=2, ensure_ascii=False)
+    # Escape </ sequences to prevent breaking out of the <script> tag.
+    entries_json = entries_json.replace("</", r"<\/")
+    gen_date = datetime.now(tz=_local_tz()).date().isoformat()
+
+    html = template.replace("$ENTRIES_JSON$", entries_json)
+    html = html.replace("$SCHEMA_VERSION$", str(_INDEX_SCHEMA_VERSION))
+    html = html.replace("$GENERATED_DATE$", gen_date)
+
+    index_path = base_dir / "index.html"
+    lock_path = base_dir / ".index.lock"
+
+    # Acquire an exclusive file lock before writing to prevent concurrent
+    # writes from parallel agents corrupting the index.
+    try:
+        lock_file = open(lock_path, "w")  # noqa: SIM115
+        deadline = time.monotonic() + _INDEX_LOCK_TIMEOUT
+        while True:
+            try:
+                fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError:
+                if time.monotonic() >= deadline:
+                    lock_file.close()
+                    print(
+                        f"LOCK_TIMEOUT: Could not acquire index lock after "
+                        f"{_INDEX_LOCK_TIMEOUT}s.\n"
+                        f"LOCK_FILE: {lock_path}\n"
+                        f"ACTION: Another process may be holding the lock. "
+                        f"Check for other running wisdom.py processes. "
+                        f"If none exist, delete {lock_path} and retry.",
+                        file=sys.stderr,
+                    )
+                    return
+                time.sleep(0.5)
+
+        index_path.write_text(html, encoding="utf-8")
+        fcntl.flock(lock_file, fcntl.LOCK_UN)
+        lock_file.close()
+    except OSError as exc:
+        print(f"Warning: Could not write index: {exc}", file=sys.stderr)
+
+
+def cmd_index(args: argparse.Namespace) -> None:
+    """Regenerate the wisdom library index.html."""
+    base_dir = Path(args.base_dir) if args.base_dir else detect_base_dir()
+    _regenerate_index(base_dir, force=True)
+
 
 # ---------------------------------------------------------------------------
 # Main
@@ -848,6 +1017,9 @@ def main() -> None:
     p_pdf.add_argument("input_file", nargs="?", default=None, help="Markdown file to render")
     p_pdf.add_argument("output_file", nargs="?", default=None, help="Output PDF path")
 
+    p_index = sub.add_parser("index", help="Regenerate the wisdom library index.html")
+    p_index.add_argument("base_dir", nargs="?", default=None, help="Wisdom base directory (default: auto-detect)")
+
     args = parser.parse_args()
 
     dispatch = {
@@ -856,6 +1028,7 @@ def main() -> None:
         "rename": cmd_rename,
         "format": cmd_format,
         "pdf": cmd_pdf,
+        "index": cmd_index,
     }
     dispatch[args.command](args)
 

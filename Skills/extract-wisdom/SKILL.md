@@ -142,6 +142,15 @@ Save to `<base-output-dir>/YYYY-MM-DD-<concise-description>/`:
 Format the analysis using this structure:
 
 ```markdown
+---
+title: "[Title]"
+source: "[YouTube URL, web URL, or file path]"
+source_type: [youtube|web|text]
+author: "[Author, speaker, or channel name]"
+date: [YYYY-MM-DD]
+description: "[1-3 sentence summary suitable for sharing on Slack. Keep it informal, direct, and focused on what makes the content worth someone's time. Include the core concept and why it matters.]"
+---
+
 # Analysis: [Title]
 
 **Source**: [YouTube URL, web URL, or file path]
@@ -245,8 +254,8 @@ The PDF is saved alongside the markdown file with a `.pdf` extension. Use `--ope
 
 ### Step 7: Provide A Short Summary For Sharing
 
-After writing the analysis, generate a concise 1-3 sentence summary suitable for sharing the source on Slack.
-Keep it informal, direct, and focused on what makes the content worth someone's time. Include the core concept and why it matters.
+Output the frontmatter `description` field as a plain text message suitable for sharing the source on Slack.
+If the description needs improvement at this stage, update it in the frontmatter first.
 Format: plain text, no markdown formatting, no bullet points.
 
 Then stop unless further instructions are given.
@@ -258,7 +267,7 @@ Then stop unless further instructions are given.
 - Don't add new lines between items in a list
 - Avoid marketing speak, fluff or other unnecessary verbiage such as "comprehensive", "cutting-edge", "state-of-the-art", "enterprise-grade" etc.
 - Always use Australian English spelling
-- Do not use em-dashes or smart quotes
+- Do not use en-dashes, em-dashes, double dashes (--), smart quotes or other "smart" formatting
 - Do not use **bold** as a substitute for headings or to start list items. Use markdown headings (`###`, `####`) for section structure. Bold is only for emphasising a specific word or phrase inline, e.g. "The key difference is that RLHF optimises for **perceived** helpfulness, not **actual** helpfulness"
 - Ensure clarity and conciseness in summaries and takeaways
 - Always ask yourself if the sentence adds value - if not, remove it
@@ -302,5 +311,4 @@ If timestamps are needed:
 
 - `wisdom-pdf.css`: CSS stylesheet for PDF rendering. Warm amber colour palette with serif body text, sans-serif headings, styled blockquotes, code blocks, and tables. Customisable or replaceable via `--css` flag.
 - `wisdom-pdf.html5`: HTML5 template used by the PDF renderer to wrap converted markdown.
-
----
+- `wisdom-index.html`: HTML template for the wisdom library index page. Self-contained with embedded CSS and JS. Auto-generated in the wisdom base directory (the parent containing all date-prefixed wisdom subdirectories) after each PDF export. Uses fuse.js (CDN) for fuzzy search with simple substring fallback when offline.
