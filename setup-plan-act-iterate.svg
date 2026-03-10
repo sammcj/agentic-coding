@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   viewBox="0 0 2019 1023"
+   viewBox="15 24 1988 978"
    version="1.1"
    id="svg21"
    sodipodi:docname="setup-plan-act-iterate(2).svg"
@@ -28,8 +28,10 @@
      inkscape:window-maximized="0"
      inkscape:current-layer="svg21" />
   <rect
-     width="2019"
-     height="1023"
+     x="15"
+     y="24"
+     width="1988"
+     height="978"
      fill="#ffffff"
      id="rect1" />
   <defs
@@ -140,25 +142,26 @@
        d="M 128.73999 385.812653 L 372.058441 385.812653 C 376.347198 385.812653 379.823914 389.291931 379.823914 393.583893 L 379.823914 559.370239 C 379.823914 563.662231 376.347198 567.141479 372.058441 567.141479 L 128.73999 567.141479 C 124.451233 567.141479 120.974503 563.662231 120.974503 559.370239 L 120.974503 393.583893 C 120.974503 389.291931 124.451233 385.812653 128.73999 385.812653 Z" />
     <text
        id="MCP-Tools-To-Enable"
-       xml:space="preserve"><tspan
-         x="165.846"
-         y="451"
+       xml:space="preserve"
+       text-anchor="middle"><tspan
+         x="250.4"
+         y="444"
          font-family="Space Grotesk"
          font-size="34"
          font-weight="700"
          fill="#1e4d6b"
          xml:space="preserve"
          id="tspan8">Agent Tools</tspan><tspan
-         x="156.122"
-         y="494"
+         x="250.4"
+         y="487"
          font-family="Space Grotesk"
          font-size="34"
          font-weight="700"
          fill="#1e4d6b"
          xml:space="preserve"
          id="tspan9">To Enable &amp;</tspan><tspan
-         x="190.445"
-         y="537"
+         x="250.4"
+         y="530"
          font-family="Space Grotesk"
          font-size="34"
          font-weight="700"
