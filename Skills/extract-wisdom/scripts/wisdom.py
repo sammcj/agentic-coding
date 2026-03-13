@@ -1029,6 +1029,7 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
             "dir_path": dir_name,
             "pdf_path": f"{dir_name}/{pdf_file.name}" if pdf_file.is_file() else "",
             "md_path": f"{dir_name}/{md_file.name}",
+            "body": body,
         })
 
     if not entries:

@@ -1,6 +1,6 @@
 ---
 name: diagrams-as-code
-description: Use when creating architecture diagrams with Python's `diagrams` library (mingrammer/diagrams). Use this skill whenever the user asks to create, generate, or update cloud architecture diagrams, infrastructure diagrams, system topology diagrams, network diagrams, or any "diagram as code" task. Also triggers when the user says "draw a diagram", "visualise the architecture", "create a system diagram", or when code imports from `diagrams`, `diagrams.aws`, `diagrams.gcp`, `diagrams.azure`, `diagrams.k8s`, `diagrams.onprem`, or `diagrams.custom`. Do not use for Mermaid, Excalidraw, or PlantUML diagrams.
+description: Use only when creating architecture diagrams with Python's `diagrams` library (mingrammer/diagrams).
 allowed-tools: Bash(python3 *) Bash(uv *) Bash(pip install *) Bash(command -v *) Bash(brew install *) Read Write Edit Glob Grep
 ---
 
