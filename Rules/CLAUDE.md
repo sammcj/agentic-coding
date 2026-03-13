@@ -22,6 +22,11 @@
 - Do NOT create new markdown files unless explicitly requested - update existing README.md or keep notes in conversation
 - Code comments: explain "why" not "what", only for complex logic. No process comments ("improved", "fixed", "enhanced")
 
+### Explaining Complex Concepts
+- When the task is to explain a complex concept or create explanatory documents, consider whether a visual or data-driven approach would communicate the idea more effectively than prose alone
+- If visualisation or storytelling-with-data skills are available, use them to structure the explanation around clear visuals rather than walls of text
+- This applies to deliberate explanation tasks (documents, diagrams, presentations), not to inline code comments, chat responses, or routine development work
+
 ## Architecture and Design
 
 ### Design Principles

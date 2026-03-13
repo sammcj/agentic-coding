@@ -75,7 +75,7 @@ Use this checklist when reviewing or critiquing any data communication: charts, 
 ## 5. Design Quality
 
 - [ ] **Consistent alignment**: Are elements aligned to an invisible grid? Check left edges, spacing, chart sizes
-- [ ] **Text is left-aligned**: Body text and labels should be left-aligned (not centered) for readability
+- [ ] **Text is left-aligned**: Body text and labels should be left-aligned (not centred) for readability
 - [ ] **Font consistency**: Maximum 2 font families; hierarchy through size and weight only
 - [ ] **Annotations present**: Are there text annotations on charts explaining key data points or changes?
 - [ ] **Accessible in greyscale**: Would the key message still come through without colour?
@@ -83,7 +83,7 @@ Use this checklist when reviewing or critiquing any data communication: charts, 
 
 **Common problems:**
 
-- Centered text blocks that are hard to scan
+- Centred text blocks that are hard to scan
 - Inconsistent spacing between sections or chart elements
 - Charts that are meaningless without someone talking over them
 
