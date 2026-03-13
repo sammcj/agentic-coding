@@ -1,0 +1,12 @@
+**/.venv
+**/venv
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/*.log
+**/*.cache
+**/*.tmp
+**/*.onnx
+**/*.bin
+**/*.txt

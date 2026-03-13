@@ -237,6 +237,99 @@ def _download_transcript(url: str, video_dir: Path, use_cookies: bool = False) -
         os.close(old_fd)
 
 
+def _download_audio(url: str, video_dir: Path, use_cookies: bool = False) -> bool:
+    """Download audio from YouTube and convert to WAV using yt-dlp + ffmpeg."""
+    from yt_dlp import YoutubeDL
+
+    opts: dict = {
+        "format": "bestaudio/best",
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "wav",
+        }],
+        "outtmpl": str(video_dir / "audio.%(ext)s"),
+        "restrictfilenames": True,
+        "quiet": True,
+        "no_warnings": True,
+        "noprogress": True,
+        "logger": _SilentLogger(),
+    }
+    if use_cookies:
+        browser = detect_browser()
+        if browser:
+            opts["cookiesfrombrowser"] = (browser,)
+    old_fd = os.dup(2)
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull, 2)
+    os.close(devnull)
+    try:
+        with YoutubeDL(opts) as ydl:  # type: ignore[arg-type]
+            ydl.download([url])
+        return True
+    except Exception as exc:
+        os.dup2(old_fd, 2)
+        print(f"Audio download error: {exc}", file=sys.stderr)
+        return False
+    finally:
+        try:
+            os.dup2(old_fd, 2)
+        except OSError:
+            pass
+        os.close(old_fd)
+
+
+def _audio_transcription_fallback(url: str, video_dir: Path) -> Path | None:
+    """Download audio and transcribe with Parakeet TDT v2 when subtitles are unavailable."""
+    if not shutil.which("ffmpeg"):
+        print("MISSING_DEPS: ffmpeg (required for audio transcription fallback)", file=sys.stderr)
+        if _is_mac():
+            print("INSTALL: brew install ffmpeg", file=sys.stderr)
+        else:
+            print("INSTALL: sudo apt install ffmpeg", file=sys.stderr)
+        return None
+
+    print("No subtitles available. Attempting audio transcription...", file=sys.stderr)
+
+    download_ok = _download_audio(url, video_dir, use_cookies=True)
+    if not download_ok:
+        download_ok = _download_audio(url, video_dir, use_cookies=False)
+
+    wav_file = video_dir / "audio.wav"
+    if not download_ok or not wav_file.is_file():
+        print("Error: Failed to download audio from video", file=sys.stderr)
+        return None
+
+    # Convert to 16kHz mono WAV (onnx-asr requires mono input).
+    mono_file = video_dir / "audio_mono.wav"
+    conv = subprocess.run(
+        ["ffmpeg", "-y", "-i", str(wav_file), "-ac", "1", "-ar", "16000", str(mono_file)],
+        capture_output=True,
+    )
+    if conv.returncode == 0 and mono_file.is_file():
+        wav_file.unlink()
+        mono_file.rename(wav_file)
+    else:
+        print("Warning: ffmpeg mono conversion failed, trying original", file=sys.stderr)
+
+    transcript_file = video_dir / "audio-transcript.txt"
+    transcribe_script = SCRIPT_DIR / "transcribe.py"
+
+    result = subprocess.run(
+        ["uv", "run", str(transcribe_script), str(wav_file), str(transcript_file)],
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+
+    wav_file.unlink(missing_ok=True)
+
+    if result.returncode != 0:
+        return None
+
+    if transcript_file.is_file():
+        return transcript_file
+    return None
+
+
 def _extract_video_id(url: str) -> str:
     """Extract video ID via yt-dlp."""
     from yt_dlp import YoutubeDL
@@ -266,15 +359,24 @@ def cmd_transcript(args: argparse.Namespace) -> None:
 
     json3_files = list(video_dir.glob("*.json3"))
     if not download_ok or not json3_files:
-        print("Error: No subtitle files were downloaded", file=sys.stderr)
-        print(f"Check: {video_dir}", file=sys.stderr)
-        print("", file=sys.stderr)
-        print("This may be due to:", file=sys.stderr)
-        print("  - Age-restricted video requiring login", file=sys.stderr)
-        print("  - Video has no available subtitles", file=sys.stderr)
-        print("  - Video is private or unlisted", file=sys.stderr)
-        print("  - Rate limiting from YouTube", file=sys.stderr)
-        sys.exit(1)
+        # Fallback: download audio and transcribe locally with Parakeet TDT v2
+        transcript_file = _audio_transcription_fallback(url, video_dir)
+        if transcript_file is None:
+            print("Error: No subtitles available and audio transcription failed", file=sys.stderr)
+            print(f"Check: {video_dir}", file=sys.stderr)
+            print("", file=sys.stderr)
+            print("This may be due to:", file=sys.stderr)
+            print("  - Age-restricted video requiring login", file=sys.stderr)
+            print("  - Video has no available subtitles", file=sys.stderr)
+            print("  - Video is private or unlisted", file=sys.stderr)
+            print("  - Rate limiting from YouTube", file=sys.stderr)
+            print("  - Audio transcription deps not installed (pip install 'onnx-asr[cpu,hub]')", file=sys.stderr)
+            sys.exit(1)
+
+        print(f"TRANSCRIPT_PATH: {transcript_file}")
+        print(f"OUTPUT_DIR: {video_dir}")
+        print(f"NEXT_STEP: uv run <skill-dir>/scripts/wisdom.py rename \"{video_dir}\" \"<Short-Description>\"")
+        return
 
     # Convert JSON3 to clean text
     converted = 0
