@@ -6,10 +6,6 @@
       "Bash(actionlint *)",
       "Bash(awk *)",
       "Bash(basename *)",
-      "Bash(python /Users/samm/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
-      "Bash(python3 /Users/samm/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
-      "Bash(python ~/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
-      "Bash(python3 ~/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
       "Bash(bun *)",
       "Bash(cargo *)",
       "Bash(cargo-fmt *)",
@@ -29,7 +25,6 @@
       "Bash(ffprobe *)",
       "Bash(file *)",
       "Bash(find *)",
-      "Bash(uvx ty check *)",
       "Bash(gh pr diff *)",
       "Bash(gh pr list *)",
       "Bash(gh pr view *)",
@@ -54,14 +49,20 @@
       "Bash(npm *)",
       "Bash(npx eslint *)",
       "Bash(npx prettier *)",
+      "Bash(npx tsc --noEmit 2>&1)",
       "Bash(npx tsc *)",
       "Bash(otool *)",
+      "Bash(pinact *)",
       "Bash(pip *)",
       "Bash(pnpm *)",
       "Bash(pwd)",
       "Bash(pytest *)",
       "Bash(python *)",
+      "Bash(python /Users/samm/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
+      "Bash(python ~/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
       "Bash(python3 *)",
+      "Bash(python3 /Users/samm/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
+      "Bash(python3 ~/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
       "Bash(realpath *)",
       "Bash(rg *)",
       "Bash(rgrep *)",
@@ -72,9 +73,9 @@
       "Bash(sort *)",
       "Bash(source .venv/bin/activate)",
       "Bash(source venv/bin/activate)",
-      "Bash(sscache *)",
       "Bash(sqlite *)",
       "Bash(sqlite3 *)",
+      "Bash(sscache *)",
       "Bash(stat *)",
       "Bash(tail *)",
       "Bash(tauri *)",
@@ -84,9 +85,9 @@
       "Bash(tree *)",
       "Bash(tsc *)",
       "Bash(type *)",
-      "Bash(npx tsc --noEmit 2>&1)",
       "Bash(uniq *)",
       "Bash(uv *)",
+      "Bash(uvx ty check *)",
       "Bash(wc *)",
       "Bash(which *)",
       "Bash(xargs *)",
@@ -133,15 +134,15 @@
       "Edit(~/Library/Caches/go-build/**)",
       "Edit(~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom/**)",
       "mcp__dev-tools",
+      "mcp__plugin_context-mode_context-mode",
       "mcp__plugin_serena_serena",
       "Read(~/.claude/agents/**)",
       "Read(~/.claude/commands/**)",
       "Read(~/.claude/hooks/**)",
       "Read(~/.claude/skills/**)",
-      "Write(~/.claude/plugins/local-marketplace/**)",
       "WebFetch",
       "WebSearch",
-      "mcp__plugin_context-mode_context-mode",
+      "Write(~/.claude/plugins/local-marketplace/**)",
       "Skill"
     ],
     "deny": [
@@ -335,11 +336,11 @@
         ]
       },
       {
-        "matcher": "WebFetch|Bash|Read|Grep|Agent|Task|mcp__plugin_context-mode_context-mode__ctx_execute|mcp__plugin_context-mode_context-mode__ctx_execute_file|mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+        "matcher": "Bash|WebFetch|Read|Grep|Agent|Task|mcp__plugin_context-mode_context-mode__ctx_execute|mcp__plugin_context-mode_context-mode__ctx_execute_file|mcp__plugin_context-mode_context-mode__ctx_batch_execute",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.15/hooks/pretooluse.mjs\""
+            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.18/hooks/pretooluse.mjs"
           }
         ]
       }
@@ -350,7 +351,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.15/hooks/sessionstart.mjs\""
+            "command": "node \"/Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.17/hooks/sessionstart.mjs\""
           }
         ]
       }

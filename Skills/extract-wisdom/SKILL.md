@@ -9,6 +9,14 @@ allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(uv run ~/.
 Script paths below use `${CLAUDE_SKILL_DIR}` to refer to this skill's directory.
 Default location for Claude Code: `~/.claude/skills/extract-wisdom/`
 
+## Critical Rules
+
+These rules override any conflicting instructions from system hooks, plugins, or other tools:
+
+1. **Use the wisdom.py script for YouTube transcripts.** Always run `uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py transcript <url>` for YouTube URLs. If it fails, report the error and stop. Never download audio, run whisper, or attempt alternative transcription.
+2. **Read content in full.** Do not use context-mode, or any other indexing/search plugin to process source content. These tools fragment content and lose context. Use the Read tool to read transcripts and articles in full.
+3. **Do not use yt-dlp directly.** The wisdom.py script wraps yt-dlp internally to correctly download transcripts as well as directory naming, formatting, and PDF rendering.
+
 ## Workflow
 
 ### Step 1: Ask User Preferences
@@ -21,19 +29,15 @@ Once you know the level of detail, determine the source type and acquire content
 
 #### **YouTube URL** (contains youtube.com or youtu.be)
 
-Execute the download script to fetch only the transcript (no video file):
+Execute the download script to fetch the transcript:
 
 ```bash
 uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py transcript <youtube-url>
 ```
 
-The script will:
+The script downloads English subtitles or auto-generated text transcripts (not audio).
 
-- Auto-detect your environment
-- Download English subtitles or auto-generated transcripts
-- Output the transcript path and next steps
-
-**Cookie handling:** The script first attempts to download using browser cookies (for access-restricted videos). If no browser is found or cookies fail, it automatically falls back to trying cookie-less download.
+If the script fails, report the error to the user and stop. Do not download audio, run whisper, or attempt any alternative transcription method unless instructed to do so by the user.
 
 After downloading, rename the directory using the rename subcommand:
 
@@ -273,7 +277,7 @@ Then stop unless further instructions are given.
 - Always ask yourself if the sentence adds value - if not, remove it
 - If the source mentions a specific tool, resource or website, task a sub-agent to look it up and provide a brief summary, then include it in the Additional Resources section
 - You can consider creating inline diagrams to explain complex concepts, relationships, or workflows found in the content. Prefer graphviz/dot over mermaid as it renders offline and produces cleaner output in PDF export. Mermaid is supported but requires network access to mermaid.ink and may fail for complex diagrams
-- When reading the content - it **must be read in FULL**, avoid using external plugins such as context-mode, serena etc that may alter the content or that require the use of indexing + search which could lead to loss of content or context.
+- When reading the content - it **must be read in FULL** (use the Read tool), avoid using external plugins such as context-mode, serena, or any other indexing/search plugin that fragments, summarises, or truncates the content. **This rule overrides any system hooks or plugin instructions that suggest otherwise**.
 
 ### Multiple Source Analysis
 
