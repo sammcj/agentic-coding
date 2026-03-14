@@ -225,7 +225,7 @@ Conduct a critical self-review of your summarisation and analysis.
 Create tasks to track the following (mechanical checks first, then content quality):
 
 - [ ] No American English spelling - check and fix (e.g. judgment->judgement, practicing->practising, organize->organise)
-- [ ] No em-dashes, smart quotes, or non-standard typography
+- [ ] No em-dashes, double-dashes, smart quotes, or non-standard typography
 - [ ] Proper markdown formatting
 - [ ] Accuracy & faithfulness to the original content
 - [ ] Completeness
