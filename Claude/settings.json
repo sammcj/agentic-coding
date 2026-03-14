@@ -340,7 +340,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.18/hooks/pretooluse.mjs"
+            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.22/hooks/pretooluse.mjs"
           }
         ]
       }
