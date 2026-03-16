@@ -40,6 +40,7 @@
       "Bash(grep *)",
       "Bash(head *)",
       "Bash(jest *)",
+      "Bash(sccache *)",
       "Bash(jq *)",
       "Bash(less *)",
       "Bash(ls *)",
@@ -351,7 +352,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.17/hooks/sessionstart.mjs\""
+            "command": "node \"/Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.22/hooks/sessionstart.mjs\""
           }
         ]
       }
@@ -374,11 +375,11 @@
     "safety-net@cc-marketplace": true,
     "swift-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "context-mode@claude-context-mode": true,
     "yaml-lsp@zircote-lsp": true,
     "bash-lsp@zircote-lsp": true,
     "skill-creator@claude-plugins-official": true,
-    "tofu-lsp@local-marketplace": true
+    "tofu-lsp@local-marketplace": true,
+    "context-mode@context-mode": true
   },
   "language": "Australian English",
   "sandbox": {
