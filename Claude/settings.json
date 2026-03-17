@@ -457,6 +457,5 @@
   "thinking": {
     "type": "adaptive",
     "level": "high"
-  },
-  "includeCoAuthoredBy": false
+  }
 }
