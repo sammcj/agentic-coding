@@ -246,6 +246,12 @@
       "Bash(scp *)",
       "Bash(ssh *)",
       "Bash(tcpdump *)",
+      "Bash(terraform destroy *)",
+      "Bash(terraform deploy *)",
+      "Bash(cdk deploy *)",
+      "Bash(cdk destroy *)",
+      "Bash(tofu destroy *)",
+      "Bash(tofu deploy *)",
       "Bash(unset HISTFILE *)",
       "Bash(wireshark *)",
       "Bash(yes | rm *)",
@@ -341,7 +347,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.22/hooks/pretooluse.mjs"
+            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.25/hooks/pretooluse.mjs"
           }
         ]
       }
@@ -352,7 +358,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/cache/claude-context-mode/context-mode/1.0.22/hooks/sessionstart.mjs\""
+            "command": "node \"/Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.22/hooks/sessionstart.mjs\""
           }
         ]
       }

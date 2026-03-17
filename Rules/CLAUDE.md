@@ -106,6 +106,7 @@
 ### CLI Commands
 **Use `run_silent` to wrap bash/CLI commands** unless you need stdout. It reduces token usage by returning only exit status and stderr, e.g: `run_silent pnpm install`, `run_silent cargo check`, `run_silent make lint`
 - Always quote all paths in bash commands
+- When fetching google docs via HTTP, append `export?format=md` to the URL
 
 ### Tool Priorities
 - Use purpose-built tools over manual approaches (e.g. get_library_docs for documentation, calculator for maths)
