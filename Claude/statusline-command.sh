@@ -29,8 +29,9 @@ elif [ ! -f "$FIRST_RUN_MARKER" ]; then
 fi
 
 # Parse input JSON (single jq call)
-used_pct=0 cwd="" model_name="unknown" session_id="default"
-eval "$(jq -r '@sh "used_pct=\(.context_window.used_percentage // 0) cwd=\(.workspace.current_dir // "") model_name=\(.model.display_name // .model.id // "unknown") session_id=\(.session_id // "default")"' <<< "$input")"
+used_pct=0 ctx_size=0 cwd="" model_name="unknown" session_id="default"
+eval "$(jq -r '@sh "used_pct=\(.context_window.used_percentage // 0) ctx_size=\(.context_window.context_window_size // 0) cwd=\(.workspace.current_dir // "") model_name=\(.model.display_name // .model.id // "unknown") session_id=\(.session_id // "default")"' <<< "$input")"
+used_tokens=$((used_pct * ctx_size / 100))
 
 # Fetch 5-hour usage from Anthropic OAuth API (cached for 60s)
 CACHE_FILE="/tmp/claude_usage_cache.json"
@@ -87,6 +88,30 @@ if [ "$read_cache" = true ] && [ -f "$CACHE_FILE" ]; then
                 resets_at="${mins}m"
             fi
         fi
+    fi
+fi
+
+# Format token count for display (e.g. 125000 -> "125k", 1200000 -> "1.2M")
+_fmt_tokens=""
+if [ "$used_tokens" -gt 0 ]; then
+    if [ "$used_tokens" -ge 1000000 ]; then
+        _whole=$((used_tokens / 1000000))
+        _frac=$(( (used_tokens % 1000000) / 100000 ))
+        if [ "$_frac" -gt 0 ]; then
+            _fmt_tokens="${_whole}.${_frac}M"
+        else
+            _fmt_tokens="${_whole}M"
+        fi
+    elif [ "$used_tokens" -ge 1000 ]; then
+        _whole=$((used_tokens / 1000))
+        _frac=$(( (used_tokens % 1000) / 100 ))
+        if [ "$_frac" -gt 0 ]; then
+            _fmt_tokens="${_whole}.${_frac}k"
+        else
+            _fmt_tokens="${_whole}k"
+        fi
+    else
+        _fmt_tokens="$used_tokens"
     fi
 fi
 
@@ -214,8 +239,13 @@ if [ -n "$resets_at" ]; then
 fi
 
 # Write output to cache and display
-printf "[\033[37m%s\033[0m] 🧠 %s%s\033[0m%s%% | 📶 %s%s\033[0m%s%%%s | 🧑‍💻 %s %s" \
-    "$dir_name" "$context_colour" "$context_bar" "$used_pct" \
+token_str=""
+if [ -n "$_fmt_tokens" ]; then
+    token_str=$' \033[97m'"${_fmt_tokens}"$'\033[0m'
+fi
+
+printf "[\033[37m%s\033[0m] 🧠 %s%s\033[0m%s%%%s | 📶 %s%s\033[0m%s%%%s | 🧑‍💻 %s %s" \
+    "$dir_name" "$context_colour" "$context_bar" "$used_pct" "$token_str" \
     "$session_colour" "$session_bar" "$session_pct" "$reset_str" \
     "$model_bar" "$model_legend" \
     | tee "$OUTPUT_CACHE"
