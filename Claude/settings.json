@@ -137,10 +137,12 @@
       "mcp__dev-tools",
       "mcp__plugin_context-mode_context-mode",
       "mcp__plugin_serena_serena",
-      "Read(~/.claude/agents/**)",
+      "Write(~/.claude/agents/**)",
       "Read(~/.claude/commands/**)",
       "Read(~/.claude/hooks/**)",
-      "Read(~/.claude/skills/**)",
+      "Write(~/.claude/skills/**)",
+      "Edit(~/.claude/skills/**)",
+      "Edit(~/.claude/agents/**)",
       "WebFetch",
       "WebSearch",
       "Write(~/.claude/plugins/local-marketplace/**)",
@@ -333,6 +335,16 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/allow-skills-edit.sh",
+            "timeout": 2000
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -348,6 +360,18 @@
           {
             "type": "command",
             "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.25/hooks/pretooluse.mjs"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/allow-skills-edit.sh",
+            "timeout": 2000
           }
         ]
       }

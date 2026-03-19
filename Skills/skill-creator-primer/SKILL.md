@@ -94,10 +94,20 @@ After creating or updating a skill, always perform a critical self-review:
 1. Check for duplicated information across SKILL.md and reference files
 2. Remove low-value prose, filler, and fluff
 3. Thin the language - make important information prominent while reducing word count
-4. Verify the description is comprehensive enough for triggering
+4. Verify the description is concise (short) yet comprehensive enough for triggering
 5. Ensure no extraneous files were created
 
 **Verbosity is not rewarded - knowledge quality is.**
+
+## Writing Tips
+
+**Don't state the obvious.** Claude already knows a lot about coding and has default opinions. Focus skill content on information that pushes Claude *out of* its normal way of thinking. If Claude would do the right thing without your skill, that content is wasting tokens.
+
+**Build a Gotchas section.** The highest-signal content in any skill is a Gotchas section listing common failure points Claude hits when using the skill. Build this up from real failures over time. A good Gotchas section often delivers more value than pages of general instructions.
+
+**Avoid railroading Claude.** Because skills are reusable across many different prompts and contexts, being too specific in instructions backfires. Give Claude the information it needs, but leave flexibility to adapt to the situation. Overly rigid instructions (heavy MUSTs, exact step sequences) break when the context shifts even slightly.
+
+**Think through the setup.** Some skills need user-specific configuration (e.g. which Slack channel, which database, API keys). Pattern: on first run, check for a config file; if missing, ask the user and store their answers. This avoids hardcoding values that differ per user or environment.
 
 ## Validating a Skill
 

@@ -43,7 +43,9 @@ The script automatically prepends today's date and sanitises the description int
 
 Then read the transcript file from `TRANSCRIPT_PATH`. Transcripts are cleaned and formatted as continuous text with minimal whitespace.
 
-**Do not re-fetch the YouTube video page** after downloading the transcript. The transcript content and the video title (visible in the transcript filename) provide everything needed for analysis. Infer the speaker/author from the transcript content itself. If you cannot determine the author, use the channel name from the video title or leave the author field as "Unknown".
+The transcript command also outputs `YOUTUBE_CHANNEL`, `YOUTUBE_TITLE`, and `THUMBNAIL` lines when metadata is available. Use these to populate the corresponding frontmatter fields (`youtube_channel`, `youtube_title`, `thumbnail`). The video description is saved in `metadata.json` in the output directory; read it to populate `youtube_description`.
+
+**Do not re-fetch the YouTube video page** after downloading the transcript. The transcript content, metadata output, and the video title provide everything needed for analysis. Infer the speaker/author from the transcript content itself. If you cannot determine the author, use the channel name or leave the author field as "Unknown".
 
 **Note:** The script uses `--restrict-filenames` to sanitise special characters in filenames for safer handling.
 
@@ -147,6 +149,10 @@ source_type: [youtube|web|text]
 author: "[Author, speaker, or channel name]"
 date: [YYYY-MM-DD]
 description: "[1-3 sentence summary suitable for sharing on Slack. Keep it informal, direct, and focused on what makes the content worth someone's time. Include the core concept and why it matters.]"
+youtube_channel: "[Channel Name]"              # YouTube only, from YOUTUBE_CHANNEL output
+youtube_title: "[Original Upload Title]"       # YouTube only, from YOUTUBE_TITLE output
+youtube_description: "[Video description]"     # YouTube only, first ~300 chars
+thumbnail: "thumbnail.jpg"                     # YouTube only, if thumbnail was downloaded
 ---
 
 # Analysis: [Title]
@@ -311,7 +317,22 @@ If timestamps are needed:
 
 ### scripts/
 
-- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, and PDF rendering. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `format`, `pdf`.
+- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, and metadata backfill. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `rename`, `format`, `pdf`, `index`, `backfill`.
+
+### Backfill Metadata (Manual Only)
+
+**Do not run backfill unless the user explicitly asks to update/refresh metadata or thumbnails across existing entries.** New entries are automatically enriched during `pdf` rendering. Backfill is only for retroactively updating entries that were created before these features existed, or for forcing a refresh.
+
+```bash
+# Single entry
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py backfill "<entry-directory>"
+
+# All YouTube and web entries
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py backfill --all
+
+# Re-fetch and overwrite existing metadata
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py backfill --all --force
+```
 
 ### styles/
 

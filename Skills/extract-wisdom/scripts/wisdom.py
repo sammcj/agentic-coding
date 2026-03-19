@@ -7,6 +7,7 @@
 #   "markdown",
 #   "graphviz",
 #   "tzdata",
+#   "Pillow",
 # ]
 # ///
 """Extract-wisdom helper tools.
@@ -68,7 +69,7 @@ CSS_FILE = SKILL_DIR / "styles" / "wisdom-pdf.css"
 TEMPLATE_FILE = SKILL_DIR / "styles" / "wisdom-pdf.html5"
 
 # Index generation settings.
-_INDEX_SCHEMA_VERSION = 2
+_INDEX_SCHEMA_VERSION = 3
 _INDEX_ENV_VAR = "EXTRACT_WISDOM_CREATE_INDEX"
 _INDEX_TEMPLATE = SKILL_DIR / "styles" / "wisdom-index.html"
 _INDEX_LOCK_TIMEOUT = 300  # seconds (5 minutes)
@@ -330,27 +331,225 @@ def _audio_transcription_fallback(url: str, video_dir: Path) -> Path | None:
     return None
 
 
-def _extract_video_id(url: str) -> str:
-    """Extract video ID via yt-dlp."""
+def _extract_youtube_metadata(url: str) -> dict[str, str] | None:
+    """Extract video metadata (id, title, channel, description, thumbnail URL) via yt-dlp.
+
+    Returns None on failure so callers can decide how to handle errors.
+    """
     from yt_dlp import YoutubeDL
 
-    with YoutubeDL({"quiet": True, "no_warnings": True, "logger": _SilentLogger()}) as ydl:  # type: ignore[arg-type]
-        info = ydl.extract_info(url, download=False)
-        vid = info.get("id", "") if info else ""
-    if not vid:
+    try:
+        with YoutubeDL({"quiet": True, "no_warnings": True, "logger": _SilentLogger()}) as ydl:  # type: ignore[arg-type]
+            info = ydl.extract_info(url, download=False)
+    except Exception as exc:
+        print(f"Error: Could not extract video metadata: {exc}", file=sys.stderr)
+        return None
+
+    if not info or not info.get("id"):
         print("Error: Could not extract video ID from URL", file=sys.stderr)
-        sys.exit(1)
-    return vid
+        return None
+
+    vid = info["id"]
+
+    # Truncate description to ~300 chars at a sentence boundary.
+    # Use ". " or ".\n" to find real sentence endings (avoids "1." list markers).
+    raw_desc = info.get("description") or ""
+    if len(raw_desc) > 300:
+        candidate = raw_desc[:300]
+        # Search for the last sentence-ending period: letter followed by ". "
+        # (avoids matching list markers like "1." or abbreviations).
+        best = -1
+        for m in re.finditer(r"(?<=[a-zA-Z])\.\s", candidate):
+            best = m.start()
+        if best > 100:
+            raw_desc = raw_desc[: best + 1]
+        else:
+            raw_desc = candidate.rsplit("\n", 1)[0] if "\n" in candidate[100:] else candidate
+
+    return {
+        "id": vid,
+        "title": info.get("title") or "",
+        "channel": info.get("channel") or info.get("uploader") or "",
+        "description": raw_desc,
+        "thumbnail_url": f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg",
+    }
+
+
+def _fetch_web_metadata(url: str) -> dict[str, str] | None:
+    """Fetch OpenGraph and Twitter Card metadata from a web page.
+
+    Parses <meta> tags from the page's <head>. Returns a dict with keys
+    site_name, title, description, image_url (all optional, empty string
+    if not found). Returns None if the page cannot be fetched.
+    """
+    from html.parser import HTMLParser
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "wisdom/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            # Read only the first 50KB - meta tags are in <head>.
+            raw = resp.read(50 * 1024).decode(errors="replace")
+    except Exception:
+        return None
+
+    og: dict[str, str] = {}
+    tc: dict[str, str] = {}
+
+    class _MetaParser(HTMLParser):
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            if tag != "meta":
+                return
+            attr: dict[str, str] = {k: v for k, v in attrs if v is not None}
+            content = attr.get("content", "")
+            if not content:
+                return
+            prop = attr.get("property", "")
+            name = attr.get("name", "")
+            if prop.startswith("og:"):
+                og[prop[3:]] = content
+            elif name.startswith("twitter:"):
+                tc[name[8:]] = content
+
+    try:
+        _MetaParser().feed(raw)
+    except Exception:
+        return None
+
+    # Prefer OG, fall back to Twitter Card.
+    image_url = og.get("image", tc.get("image", ""))
+    # Handle relative image URLs.
+    if image_url and not image_url.startswith(("http://", "https://")):
+        from urllib.parse import urljoin
+        image_url = urljoin(url, image_url)
+
+    return {
+        "site_name": og.get("site_name", tc.get("site", "")),
+        "title": og.get("title", tc.get("title", "")),
+        "description": og.get("description", tc.get("description", "")),
+        "image_url": image_url,
+    }
+
+
+def _enrich_entry(md_path: Path, *, overwrite: bool = False) -> bool:
+    """Enrich a wisdom entry with metadata and thumbnail from its source.
+
+    For YouTube entries, fetches via yt-dlp. For web entries, fetches
+    OpenGraph/Twitter Card metadata. Returns True if anything was updated.
+    """
+    fm = _parse_frontmatter(md_path)
+    if not fm or not fm.get("source"):
+        return False
+
+    source_type = fm.get("source_type", "")
+    entry_dir = md_path.parent
+    has_thumbnail = (entry_dir / "thumbnail.jpg").is_file()
+    updates: dict[str, str] = {}
+
+    if source_type == "youtube":
+        if not overwrite and has_thumbnail and fm.get("youtube_channel"):
+            return False
+        metadata = _extract_youtube_metadata(fm["source"])
+        if metadata is None:
+            return False
+        if metadata.get("channel"):
+            updates["youtube_channel"] = metadata["channel"]
+        if metadata.get("title"):
+            updates["youtube_title"] = metadata["title"]
+        if metadata.get("description"):
+            updates["youtube_description"] = metadata["description"]
+        image_url = metadata.get("thumbnail_url", "")
+
+    elif source_type == "web":
+        if not overwrite and has_thumbnail and fm.get("og_site_name"):
+            return False
+        metadata = _fetch_web_metadata(fm["source"])
+        if metadata is None:
+            return False
+        if metadata.get("site_name"):
+            updates["og_site_name"] = metadata["site_name"]
+        image_url = metadata.get("image_url", "")
+
+    else:
+        return False
+
+    # Download thumbnail if we have an image URL and no existing thumbnail.
+    if image_url and (overwrite or not has_thumbnail):
+        _download_thumbnail(image_url, entry_dir / "thumbnail.jpg")
+
+    if (entry_dir / "thumbnail.jpg").is_file():
+        updates["thumbnail"] = "thumbnail.jpg"
+
+    if updates:
+        _update_frontmatter(md_path, updates, overwrite=overwrite)
+        return True
+    return False
+
+
+def _download_thumbnail(thumbnail_url: str, dest_path: Path) -> bool:
+    """Download an image, resize, and save as compressed JPEG."""
+    try:
+        req = urllib.request.Request(thumbnail_url, headers={"User-Agent": "wisdom/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            raw = resp.read()
+    except Exception as exc:
+        print(f"Warning: Could not download thumbnail: {exc}", file=sys.stderr)
+        return False
+
+    try:
+        import io
+
+        from PIL import Image
+
+        img = Image.open(io.BytesIO(raw))
+        if img.width > 480:
+            ratio = 480 / img.width
+            img = img.resize((480, int(img.height * ratio)), Image.Resampling.LANCZOS)
+        img = img.convert("RGB")
+        img.save(dest_path, "JPEG", quality=80, optimize=True)
+    except ImportError:
+        dest_path.write_bytes(raw)
+    except Exception as exc:
+        print(f"Warning: Thumbnail processing failed, saving raw: {exc}", file=sys.stderr)
+        dest_path.write_bytes(raw)
+
+    return True
+
+
+
+def _print_transcript_output(
+    transcript_file: Path, video_dir: Path, metadata: dict[str, str] | None = None,
+) -> None:
+    """Print standard transcript output lines."""
+    print(f"TRANSCRIPT_PATH: {transcript_file}")
+    print(f"OUTPUT_DIR: {video_dir}")
+    if metadata:
+        if metadata.get("channel"):
+            print(f"YOUTUBE_CHANNEL: {metadata['channel']}")
+        if metadata.get("title"):
+            print(f"YOUTUBE_TITLE: {metadata['title']}")
+        if (video_dir / "thumbnail.jpg").is_file():
+            print("THUMBNAIL: thumbnail.jpg")
+    print(f"NEXT_STEP: uv run <skill-dir>/scripts/wisdom.py rename \"{video_dir}\" \"<Short-Description>\"")
 
 
 def cmd_transcript(args: argparse.Namespace) -> None:
     url: str = args.url
     base_dir = detect_base_dir()
 
-    video_id = _extract_video_id(url)
+    metadata = _extract_youtube_metadata(url)
+    if not metadata:
+        print("Error: Could not extract video metadata from URL", file=sys.stderr)
+        sys.exit(1)
+        return  # unreachable, but helps the type checker narrow to dict
 
+    video_id = metadata["id"]
     video_dir = base_dir / video_id
     video_dir.mkdir(parents=True, exist_ok=True)
+
+    # Download thumbnail (non-fatal on failure).
+    thumb_url = metadata.get("thumbnail_url")
+    if thumb_url:
+        _download_thumbnail(thumb_url, video_dir / "thumbnail.jpg")
 
     # Try with cookies first, then without
     download_ok = _download_transcript(url, video_dir, use_cookies=True)
@@ -372,10 +571,9 @@ def cmd_transcript(args: argparse.Namespace) -> None:
             print("  - Rate limiting from YouTube", file=sys.stderr)
             print("  - Audio transcription deps not installed (pip install 'onnx-asr[cpu,hub]')", file=sys.stderr)
             sys.exit(1)
+            return  # unreachable, helps type checker
 
-        print(f"TRANSCRIPT_PATH: {transcript_file}")
-        print(f"OUTPUT_DIR: {video_dir}")
-        print(f"NEXT_STEP: uv run <skill-dir>/scripts/wisdom.py rename \"{video_dir}\" \"<Short-Description>\"")
+        _print_transcript_output(transcript_file, video_dir, metadata)
         return
 
     # Convert JSON3 to clean text
@@ -412,10 +610,7 @@ def cmd_transcript(args: argparse.Namespace) -> None:
         print("Error: Transcript file not found after conversion", file=sys.stderr)
         sys.exit(1)
 
-    transcript_file = transcript_files[0]
-    print(f"TRANSCRIPT_PATH: {transcript_file}")
-    print(f"OUTPUT_DIR: {video_dir}")
-    print(f"NEXT_STEP: uv run <skill-dir>/scripts/wisdom.py rename \"{video_dir}\" \"<Short-Description>\"")
+    _print_transcript_output(transcript_files[0], video_dir, metadata)
 
 
 # ---------------------------------------------------------------------------
@@ -924,12 +1119,36 @@ def cmd_pdf(args: argparse.Namespace) -> None:
         print(f"Error: CSS stylesheet not found: {css_path}", file=sys.stderr)
         sys.exit(1)
 
+    # Enrich entry with metadata and thumbnail if not already present.
+    _enrich_entry(input_file)
+
     # Convert markdown to HTML
     md_text = input_file.read_text(encoding="utf-8")
     md_text = _strip_frontmatter(md_text)
     md_text = _normalise_list_markdown(md_text)
     html_body = md_lib.markdown(md_text, extensions=MD_EXTENSIONS)
     html_body, diagram_fallbacks = _render_diagrams(html_body)
+
+    # Append thumbnail at end of PDF if available.
+    input_dir = input_file.resolve().parent
+    thumb_path = input_dir / "thumbnail.jpg"
+    if thumb_path.is_file():
+        try:
+            thumb_data = thumb_path.read_bytes()
+            thumb_b64 = base64.b64encode(thumb_data).decode()
+            html_body += (
+                '<div style="margin-top:2em; padding-top:1em; '
+                'border-top:1px solid #e8e6dc; text-align:center;">'
+                f'<img src="data:image/jpeg;base64,{thumb_b64}" '
+                'alt="Source thumbnail" '
+                'style="max-width:60%; border-radius:6px; margin:0.5em auto;" />'
+                '<p style="font-family:Helvetica Neue,sans-serif; '
+                'font-size:0.8em; color:#b0aea5; margin-top:0.3em;">'
+                'Source thumbnail</p>'
+                '</div>'
+            )
+        except Exception:
+            pass
 
     # Load and populate the HTML5 template
     if TEMPLATE_FILE.is_file():
@@ -1024,11 +1243,14 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
             "author": fm.get("author", ""),
             "date": fm.get("date", ""),
             "description": fm.get("description", ""),
+            "youtube_channel": fm.get("youtube_channel", ""),
+            "og_site_name": fm.get("og_site_name", ""),
             "word_count": word_count,
             "reading_time": reading_time,
             "dir_path": dir_name,
             "pdf_path": f"{dir_name}/{pdf_file.name}" if pdf_file.is_file() else "",
             "md_path": f"{dir_name}/{md_file.name}",
+            "thumbnail": f"{dir_name}/thumbnail.jpg" if (md_file.parent / "thumbnail.jpg").is_file() else "",
             "body": body,
         })
 
@@ -1086,6 +1308,130 @@ def cmd_index(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Backfill YouTube metadata and thumbnails
+# ---------------------------------------------------------------------------
+
+def _update_frontmatter(md_path: Path, updates: dict[str, str], *, overwrite: bool = False) -> bool:
+    """Add or update key-value pairs in YAML frontmatter.
+
+    By default, only adds keys that don't already exist. Pass overwrite=True
+    to replace existing keys as well. Returns True on success, False if the
+    file has no frontmatter.
+    """
+    text = md_path.read_text(encoding="utf-8")
+    if not text.startswith("---"):
+        return False
+    end = text.find("\n---", 3)
+    if end == -1:
+        return False
+
+    fm_block = text[4:end]
+    fm_lines = fm_block.split("\n")
+
+    # Collect existing top-level keys and their line ranges.
+    existing_keys: set[str] = set()
+    for line in fm_lines:
+        m = re.match(r"^([a-z_]+)\s*:", line)
+        if m:
+            existing_keys.add(m.group(1))
+
+    def _format_value(value: str) -> str:
+        """Collapse newlines and quote for YAML."""
+        value = re.sub(r"\s*\n\s*", " ", value).strip()
+        if any(c in value for c in (":", '"', "'", "#", "{", "}", "[", "]")):
+            return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+        return f'"{value}"'
+
+    if overwrite:
+        # Remove existing lines for keys we're overwriting (including continuation lines).
+        keys_to_replace = set(updates.keys()) & existing_keys
+        if keys_to_replace:
+            filtered: list[str] = []
+            skipping = False
+            for line in fm_lines:
+                m = re.match(r"^([a-z_]+)\s*:", line)
+                if m:
+                    # New key found - skip if it's one we're replacing, else stop skipping.
+                    skipping = m.group(1) in keys_to_replace
+                elif not skipping:
+                    # Non-key line while not skipping - keep it.
+                    pass
+                # If skipping and line is not a new key, it's a continuation - skip it.
+                if not skipping:
+                    filtered.append(line)
+            fm_lines = filtered
+            existing_keys -= keys_to_replace
+
+    new_lines: list[str] = []
+    for key, value in updates.items():
+        if key in existing_keys:
+            continue
+        new_lines.append(f"{key}: {_format_value(value)}")
+
+    if not new_lines:
+        return True
+
+    new_fm = "\n".join(fm_lines).rstrip("\n") + "\n" + "\n".join(new_lines) + "\n"
+    text = "---\n" + new_fm + "---" + text[end + 4:]
+    md_path.write_text(text, encoding="utf-8")
+    return True
+
+
+def cmd_backfill(args: argparse.Namespace) -> None:
+    """Backfill metadata and thumbnails for existing wisdom entries."""
+    base_dir = detect_base_dir()
+
+    md_files: list[Path] = []
+
+    if args.all:
+        for md_file in sorted(base_dir.glob("*/*analysis.md")):
+            fm = _parse_frontmatter(md_file)
+            if fm and fm.get("source_type") in ("youtube", "web") and fm.get("source"):
+                md_files.append(md_file)
+    elif args.directory:
+        target_dir = Path(args.directory)
+        if not target_dir.is_dir():
+            target_dir = base_dir / args.directory
+        if not target_dir.is_dir():
+            print(f"Error: Directory not found: {args.directory}", file=sys.stderr)
+            sys.exit(1)
+        found = list(target_dir.glob("*analysis.md"))
+        if not found:
+            print(f"Error: No analysis.md found in {target_dir}", file=sys.stderr)
+            sys.exit(1)
+        md_files.append(found[0])
+    else:
+        print("Error: Specify a directory or --all", file=sys.stderr)
+        sys.exit(1)
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    force = args.force
+    updated = 0
+    skipped = 0
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = {pool.submit(_enrich_entry, md, overwrite=force): md for md in md_files}
+        for future in as_completed(futures):
+            try:
+                if future.result():
+                    updated += 1
+                else:
+                    skipped += 1
+            except Exception as exc:
+                print(f"Warning: {futures[future].parent.name}: {exc}", file=sys.stderr)
+                skipped += 1
+
+    print(f"Backfill complete: {updated} updated, {skipped} skipped")
+
+    # Regenerate index.
+    try:
+        _regenerate_index(base_dir, force=True)
+    except Exception as exc:
+        print(f"Warning: Index regeneration failed: {exc}", file=sys.stderr)
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -1123,6 +1469,12 @@ def main() -> None:
     p_index = sub.add_parser("index", help="Regenerate the wisdom library index.html")
     p_index.add_argument("base_dir", nargs="?", default=None, help="Wisdom base directory (default: auto-detect)")
 
+    # backfill
+    p_backfill = sub.add_parser("backfill", help="Backfill YouTube metadata and thumbnails")
+    p_backfill.add_argument("directory", nargs="?", default=None, help="Specific entry directory to backfill")
+    p_backfill.add_argument("--all", action="store_true", help="Backfill all YouTube entries")
+    p_backfill.add_argument("--force", action="store_true", help="Re-fetch metadata and overwrite existing fields")
+
     args = parser.parse_args()
 
     dispatch = {
@@ -1132,6 +1484,7 @@ def main() -> None:
         "format": cmd_format,
         "pdf": cmd_pdf,
         "index": cmd_index,
+        "backfill": cmd_backfill,
     }
     dispatch[args.command](args)
 

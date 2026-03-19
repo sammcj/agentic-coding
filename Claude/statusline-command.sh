@@ -38,6 +38,8 @@ CACHE_FILE="/tmp/claude_usage_cache.json"
 CACHE_MAX_AGE=60
 session_pct=0
 
+FETCH_LOCK="/tmp/claude_usage_fetch.lock"
+
 fetch_usage() {
     local creds token response
     creds=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null) || return 1
@@ -47,24 +49,44 @@ fetch_usage() {
     response=$(curl -s --max-time 3 \
         -H "Authorization: Bearer $token" \
         -H "anthropic-beta: oauth-2025-04-20" \
-        -H "User-Agent: claude-code-statusline/1.0" \
+        -H "User-Agent: claude-code/2.0" \
         "https://api.anthropic.com/api/oauth/usage" 2>/dev/null) || return 1
 
+    # Only cache successful responses (not errors/rate limits)
+    if echo "$response" | jq -e '.error // empty' &>/dev/null; then
+        return 1
+    fi
     echo "$response" > "$CACHE_FILE"
 }
 
-# Always fetch in background - never block the statusline
+# Check if a fetch is needed, using lock to prevent request storms.
+# Lock is touched BEFORE backgrounding to close the race window.
+_should_fetch=false
 read_cache=false
 if [ -f "$CACHE_FILE" ]; then
     cache_mtime=$(stat -f %m "$CACHE_FILE" 2>/dev/null) || cache_mtime=0
     if (( now - cache_mtime > CACHE_MAX_AGE )); then
-        fetch_usage &>/dev/null &
-        disown 2>/dev/null
+        _should_fetch=true
     fi
     read_cache=true
 else
-    fetch_usage &>/dev/null &
-    disown 2>/dev/null
+    _should_fetch=true
+fi
+
+if [ "$_should_fetch" = true ]; then
+    # Only fetch if lock is absent or older than cache max age
+    _do_fetch=true
+    if [ -f "$FETCH_LOCK" ]; then
+        lock_mtime=$(stat -f %m "$FETCH_LOCK" 2>/dev/null) || lock_mtime=0
+        if (( now - lock_mtime < CACHE_MAX_AGE )); then
+            _do_fetch=false
+        fi
+    fi
+    if [ "$_do_fetch" = true ]; then
+        touch "$FETCH_LOCK"
+        fetch_usage &>/dev/null &
+        disown 2>/dev/null
+    fi
 fi
 
 # Read usage cache
@@ -91,33 +113,32 @@ if [ "$read_cache" = true ] && [ -f "$CACHE_FILE" ]; then
     fi
 fi
 
-# Format token count for display (e.g. 125000 -> "125k", 1200000 -> "1.2M")
+# Format a token count for display (e.g. 125000 -> "125k", 1200000 -> "1.2M")
+_fmt_count() {
+    local n=$1
+    if [ "$n" -ge 1000000 ]; then
+        local w=$((n / 1000000)) f=$(( (n % 1000000) / 100000 ))
+        if [ "$f" -gt 0 ]; then echo "${w}.${f}M"; else echo "${w}M"; fi
+    elif [ "$n" -ge 1000 ]; then
+        local w=$((n / 1000)) f=$(( (n % 1000) / 100 ))
+        if [ "$f" -gt 0 ]; then echo "${w}.${f}k"; else echo "${w}k"; fi
+    else
+        echo "$n"
+    fi
+}
+
 _fmt_tokens=""
 if [ "$used_tokens" -gt 0 ]; then
-    if [ "$used_tokens" -ge 1000000 ]; then
-        _whole=$((used_tokens / 1000000))
-        _frac=$(( (used_tokens % 1000000) / 100000 ))
-        if [ "$_frac" -gt 0 ]; then
-            _fmt_tokens="${_whole}.${_frac}M"
-        else
-            _fmt_tokens="${_whole}M"
-        fi
-    elif [ "$used_tokens" -ge 1000 ]; then
-        _whole=$((used_tokens / 1000))
-        _frac=$(( (used_tokens % 1000) / 100 ))
-        if [ "$_frac" -gt 0 ]; then
-            _fmt_tokens="${_whole}.${_frac}k"
-        else
-            _fmt_tokens="${_whole}k"
-        fi
-    else
-        _fmt_tokens="$used_tokens"
-    fi
+    _used=$(_fmt_count "$used_tokens")
+    _total=$(_fmt_count "$ctx_size")
+    _fmt_tokens="${_used}/${_total}"
+elif [ "$ctx_size" -gt 0 ]; then
+    _fmt_tokens="0/$(_fmt_count "$ctx_size")"
 fi
 
 # Build progress bars inline (no subshells - functions set variables directly)
 _build_bar() {
-    local pct=$1 filled=$(($1 * 10 / 100)) i
+    local filled=$(($1 * 10 / 100)) i
     _bar=""
     for ((i=0; i<filled; i++)); do _bar+="█"; done
     for ((i=filled; i<10; i++)); do _bar+="░"; done
