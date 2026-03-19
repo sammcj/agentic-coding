@@ -140,6 +140,7 @@
       "Write(~/.claude/agents/**)",
       "Read(~/.claude/commands/**)",
       "Read(~/.claude/hooks/**)",
+      "Write(~/go/pkg/**)",
       "Write(~/.claude/skills/**)",
       "Edit(~/.claude/skills/**)",
       "Edit(~/.claude/agents/**)",
@@ -359,7 +360,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.25/hooks/pretooluse.mjs"
+            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.33/hooks/pretooluse.mjs"
           }
         ]
       }
@@ -382,7 +383,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.22/hooks/sessionstart.mjs\""
+            "command": "node \"/Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.32/hooks/sessionstart.mjs\""
           }
         ]
       }
@@ -390,7 +391,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/statusline-command.sh"
+    "command": "/Users/samm/git/claude-statusline/claude-statusline prompt"
   },
   "enabledPlugins": {
     "clangd-lsp@claude-plugins-official": true,

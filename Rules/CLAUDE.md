@@ -129,6 +129,7 @@
 
 ### CLAUDE.md Features
 - Use relevant skills to extend capabilities
+- When upgrading context-mode you must do so outside the sandbox
 - Use tasks/TODOs to track work in progress. When working from a dev plan, keep tasks and plan in sync
 - When creating/updating CLAUDE.md files: use the `authoring-claude-md` skill first
 - Do not include line numbers when referencing files in CLAUDE.md or documentation
