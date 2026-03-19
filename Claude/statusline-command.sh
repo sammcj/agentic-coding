@@ -10,7 +10,7 @@ now=$(date +%s)
 
 if [ -f "$OUTPUT_CACHE" ]; then
     output_mtime=$(stat -f %m "$OUTPUT_CACHE" 2>/dev/null) || output_mtime=0
-    if (( now - output_mtime < 2 )); then
+    if (( now - output_mtime < 5 )); then
         cat "$OUTPUT_CACHE"
         exit 0
     fi
@@ -33,34 +33,42 @@ used_pct=0 ctx_size=0 cwd="" model_name="unknown" session_id="default"
 eval "$(jq -r '@sh "used_pct=\(.context_window.used_percentage // 0) ctx_size=\(.context_window.context_window_size // 0) cwd=\(.workspace.current_dir // "") model_name=\(.model.display_name // .model.id // "unknown") session_id=\(.session_id // "default")"' <<< "$input")"
 used_tokens=$((used_pct * ctx_size / 100))
 
-# Fetch 5-hour usage from Anthropic OAuth API (cached for 60s)
+# Fetch 5-hour usage from Anthropic OAuth API (cached for 120s)
 CACHE_FILE="/tmp/claude_usage_cache.json"
-CACHE_MAX_AGE=60
+CACHE_MAX_AGE=120
 session_pct=0
 
-FETCH_LOCK="/tmp/claude_usage_fetch.lock"
+FETCH_LOCK="/tmp/claude_usage_fetch.lck"
+ERROR_BACKOFF_FILE="/tmp/claude_usage_error"
+ERROR_BACKOFF_SECS=300
 
 fetch_usage() {
     local creds token response
-    creds=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null) || return 1
-    token=$(jq -r '.claudeAiOauth.accessToken // empty' <<< "$creds" 2>/dev/null) || return 1
-    [ -z "$token" ] && return 1
+    creds=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null) || { touch "$ERROR_BACKOFF_FILE"; return 1; }
+    token=$(jq -r '.claudeAiOauth.accessToken // empty' <<< "$creds" 2>/dev/null) || { touch "$ERROR_BACKOFF_FILE"; return 1; }
+    [ -z "$token" ] && { touch "$ERROR_BACKOFF_FILE"; return 1; }
 
     response=$(curl -s --max-time 3 \
         -H "Authorization: Bearer $token" \
         -H "anthropic-beta: oauth-2025-04-20" \
         -H "User-Agent: claude-code/2.0" \
-        "https://api.anthropic.com/api/oauth/usage" 2>/dev/null) || return 1
+        "https://api.anthropic.com/api/oauth/usage" 2>/dev/null) || { touch "$ERROR_BACKOFF_FILE"; return 1; }
 
-    # Only cache successful responses (not errors/rate limits)
+    # Only cache successful, valid responses
     if echo "$response" | jq -e '.error // empty' &>/dev/null; then
+        touch "$ERROR_BACKOFF_FILE"
         return 1
     fi
-    echo "$response" > "$CACHE_FILE"
+    if echo "$response" | jq -e '.five_hour' &>/dev/null; then
+        echo "$response" > "$CACHE_FILE"
+        rm -f "$ERROR_BACKOFF_FILE"
+    else
+        touch "$ERROR_BACKOFF_FILE"
+        return 1
+    fi
 }
 
-# Check if a fetch is needed, using lock to prevent request storms.
-# Lock is touched BEFORE backgrounding to close the race window.
+# Check if a fetch is needed
 _should_fetch=false
 read_cache=false
 if [ -f "$CACHE_FILE" ]; then
@@ -73,17 +81,25 @@ else
     _should_fetch=true
 fi
 
+# Error backoff: after a failed fetch, wait longer before retrying
+if [ "$_should_fetch" = true ] && [ -f "$ERROR_BACKOFF_FILE" ]; then
+    err_mtime=$(stat -f %m "$ERROR_BACKOFF_FILE" 2>/dev/null) || err_mtime=0
+    if (( now - err_mtime < ERROR_BACKOFF_SECS )); then
+        _should_fetch=false
+    fi
+fi
+
 if [ "$_should_fetch" = true ]; then
-    # Only fetch if lock is absent or older than cache max age
-    _do_fetch=true
-    if [ -f "$FETCH_LOCK" ]; then
+    # Atomic lock: mkdir is atomic across processes, preventing request storms
+    # from multiple Claude Code sessions hitting the API simultaneously
+    if [ -d "$FETCH_LOCK" ]; then
         lock_mtime=$(stat -f %m "$FETCH_LOCK" 2>/dev/null) || lock_mtime=0
-        if (( now - lock_mtime < CACHE_MAX_AGE )); then
-            _do_fetch=false
+        if (( now - lock_mtime >= CACHE_MAX_AGE )); then
+            rmdir "$FETCH_LOCK" 2>/dev/null
         fi
     fi
-    if [ "$_do_fetch" = true ]; then
-        touch "$FETCH_LOCK"
+    # Only one process wins the mkdir race
+    if mkdir "$FETCH_LOCK" 2>/dev/null; then
         fetch_usage &>/dev/null &
         disown 2>/dev/null
     fi
