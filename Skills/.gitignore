@@ -20,7 +20,7 @@
 *.sqlite3.*
 *.lock
 *.lock.*
-*.html
+
 
 # Project agent logs are stored in jsonl
 *.jsonl

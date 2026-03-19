@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="wisdom-index-version" content="$SCHEMA_VERSION$" />
+  <meta name="generated-date" content="$GENERATED_DATE$" />
+  <title>Wisdom Library</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='12' width='10' height='40' rx='2' fill='%23d97757'/%3E%3Crect x='21' y='8' width='10' height='44' rx='2' fill='%23b54c30'/%3E%3Crect x='34' y='14' width='10' height='38' rx='2' fill='%23d97757'/%3E%3Crect x='47' y='10' width='10' height='42' rx='2' fill='%23c4853c'/%3E%3Crect x='5' y='50' width='55' height='4' rx='1' fill='%23141413'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --colour-bg: #faf9f5;
+      --colour-surface: #ffffff;
+      --colour-text: #141413;
+      --colour-muted: #6b6560;
+      --colour-accent: #d97757;
+      --colour-accent-hover: #c6613f;
+      --colour-border: #e8e6dc;
+      --colour-header-bg: #141413;
+      --colour-header-text: #faf9f5;
+      --colour-accent-light: #fdf0e8;
+      --colour-bg-code: #f5f3ed;
+      --colour-bg-quote: #faf9f5;
+      --colour-quote-bar: #d97757;
+      --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      /* --font-serif: Georgia, "Times New Roman", Palatino, serif; */
+      --font-serif: "Iowan Old Style", Georgia, "Times New Roman", Palatino, serif;
+      --max-width: 2400px;
+      --card-gap: 1.875rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--colour-bg);
+      color: var(--colour-text);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    header {
+      background: var(--colour-header-bg);
+      color: var(--colour-header-text);
+      padding: 0.75rem 2.25rem;
+    }
+
+    .header-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-left {
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0;
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      color: #b0aea5;
+      font-size: 0.8rem;
+    }
+
+    .search-container {
+      position: relative;
+      width: 320px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #87867f;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    #search {
+      width: 100%;
+      padding: 0.6rem 1rem 0.6rem 2.5rem;
+      font-size: 0.95rem;
+      font-family: var(--font-sans);
+      border: 1px solid #3d3d3a;
+      border-radius: 6px;
+      background: #2a2a28;
+      color: var(--colour-header-text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #search:focus { border-color: var(--colour-accent); }
+    #search::placeholder { color: #87867f; }
+
+    .controls {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 1rem 2.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-pill {
+      padding: 0.3rem 0.75rem;
+      font-size: 0.8rem;
+      font-family: var(--font-sans);
+      border: 1px solid var(--colour-border);
+      border-radius: 100px;
+      background: var(--colour-surface);
+      color: var(--colour-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .filter-pill:hover {
+      border-color: var(--colour-accent);
+      color: var(--colour-accent);
+    }
+
+    .filter-pill.active {
+      background: var(--colour-accent);
+      border-color: var(--colour-accent);
+      color: white;
+    }
+
+    .filter-pill[data-filter="youtube"] {
+      border-color: #fecaca;
+      color: #dc2626;
+      background: #fee2e2;
+    }
+    .filter-pill[data-filter="youtube"]:hover {
+      border-color: #dc2626;
+    }
+    .filter-pill[data-filter="youtube"].active {
+      background: #dc2626;
+      border-color: #dc2626;
+      color: white;
+    }
+
+    .filter-pill[data-filter="web"] {
+      border-color: #bfdbfe;
+      color: #2563eb;
+      background: #dbeafe;
+    }
+    .filter-pill[data-filter="web"]:hover {
+      border-color: #2563eb;
+    }
+    .filter-pill[data-filter="web"].active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: white;
+    }
+
+    .filter-pill[data-filter="text"] {
+      border-color: #d1cfc5;
+      color: var(--colour-muted);
+      background: #e8e6dc;
+    }
+    .filter-pill[data-filter="text"]:hover {
+      border-color: var(--colour-muted);
+    }
+    .filter-pill[data-filter="text"].active {
+      background: var(--colour-muted);
+      border-color: var(--colour-muted);
+      color: white;
+    }
+
+    mark {
+      background: #fef3c7;
+      color: inherit;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+
+    .entry-count {
+      margin-left: auto;
+      font-size: 0.85rem;
+      color: var(--colour-muted);
+    }
+
+    main {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 2.25rem 3rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(506px, 1fr));
+      gap: var(--card-gap);
+    }
+
+    .card {
+      background: var(--colour-surface);
+      border: 1px solid var(--colour-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .card:hover {
+      border-color: var(--colour-accent);
+      box-shadow: 0 2px 12px rgba(217, 119, 87, 0.1);
+    }
+
+    .card-body {
+      cursor: pointer;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      margin-bottom: 0.3rem;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: #2a2a28;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .source-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .source-badge.youtube { background: #fee2e2; color: #dc2626; }
+    .source-badge.web { background: #dbeafe; color: #2563eb; }
+    .source-badge.text { background: #e8e6dc; color: var(--colour-muted); }
+
+    .card-meta {
+      font-size: 0.875rem;
+      color: var(--colour-muted);
+      margin-bottom: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-thumbnail {
+      width: 102px;
+      height: 76px;
+      object-fit: cover;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .card-header-row {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-header-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-description {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: #302f2b;
+      line-height: 1.5;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 7;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--colour-border);
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+      font-family: var(--font-sans);
+      color: var(--colour-muted);
+      background: none;
+      border: 1px solid var(--colour-border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+
+    .btn-action:hover {
+      color: var(--colour-accent);
+      border-color: var(--colour-accent);
+    }
+
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--colour-muted);
+      font-size: 1.1rem;
+    }
+
+    footer {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 1rem 2.25rem 2rem;
+      font-size: 0.8rem;
+      color: #b0aea5;
+      text-align: center;
+      border-top: 1px solid var(--colour-border);
+    }
+
+    /* ---- Viewer overlay ---- */
+
+    .viewer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(20, 20, 19, 0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .viewer-overlay.open {
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .viewer-chrome {
+      width: 100%;
+      max-width: 1030px;
+      background: var(--colour-surface);
+      border-radius: 10px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      max-height: 100%;
+    }
+
+    .viewer-toolbar {
+      display: flex;
+      align-items: center;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--colour-border);
+      background: var(--colour-bg);
+      flex-shrink: 0;
+      gap: 0.75rem;
+    }
+
+    .viewer-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .viewer-toolbar-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    .btn-toolbar {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.75rem;
+      font-family: var(--font-sans);
+      color: var(--colour-muted);
+      background: none;
+      border: 1px solid var(--colour-border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+
+    .btn-toolbar:hover {
+      color: var(--colour-accent);
+      border-color: var(--colour-accent);
+    }
+
+    .btn-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      font-size: 1.2rem;
+      font-family: var(--font-sans);
+      color: var(--colour-muted);
+      background: none;
+      border: 1px solid var(--colour-border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      line-height: 1;
+    }
+
+    .btn-close:hover {
+      color: var(--colour-accent);
+      border-color: var(--colour-accent);
+    }
+
+    .viewer-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem 2.5rem;
+    }
+
+    /* ---- Viewer content (adapted from wisdom-pdf.css) ---- */
+
+    .viewer-content {
+      font-family: var(--font-serif);
+      color: var(--colour-text);
+      line-height: 1.65;
+      font-size: 1rem;
+    }
+
+    .viewer-content h1, .viewer-content h2,
+    .viewer-content h3, .viewer-content h4,
+    .viewer-content h5, .viewer-content h6 {
+      font-family: var(--font-sans);
+      color: var(--colour-text);
+      margin-top: 1.6em;
+      margin-bottom: 0.5em;
+      line-height: 1.25;
+    }
+
+    .viewer-content h1 {
+      font-size: 1.65em;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-top: 0;
+      margin-bottom: 0.6em;
+      padding-bottom: 0.4em;
+      border-bottom: 2.5px solid var(--colour-accent);
+    }
+
+    .viewer-content h1 + p,
+    .viewer-content h1 + p + p,
+    .viewer-content h1 + p + p + p {
+      font-family: var(--font-sans);
+      font-size: 0.85em;
+      color: var(--colour-muted);
+      margin: 0.15em 0;
+      line-height: 1.4;
+    }
+
+    .viewer-content h2 {
+      font-size: 1.4em;
+      font-weight: 600;
+      color: var(--colour-accent);
+      padding-bottom: 0.2em;
+      border-bottom: 1px solid var(--colour-border);
+    }
+
+    .viewer-content h3 {
+      font-size: 1.15em;
+      font-weight: 600;
+    }
+
+    .viewer-content h4 {
+      font-size: 1em;
+      font-weight: 600;
+      color: var(--colour-muted);
+    }
+
+    .viewer-content p {
+      margin: 0.6em 0;
+    }
+
+    .viewer-content strong { font-weight: 700; }
+    .viewer-content em { font-style: italic; }
+
+    .viewer-content a {
+      color: var(--colour-accent);
+      text-decoration: none;
+    }
+
+    .viewer-content a:hover {
+      text-decoration: underline;
+    }
+
+    .viewer-content ul, .viewer-content ol {
+      margin: 0.5em 0;
+      padding-left: 1.6em;
+    }
+
+    .viewer-content ul { list-style-type: disc; }
+    .viewer-content ol { list-style-type: decimal; }
+
+    .viewer-content li {
+      margin-bottom: 0.3em;
+    }
+
+    .viewer-content li > ul,
+    .viewer-content li > ol {
+      margin-top: 0.2em;
+      margin-bottom: 0.1em;
+    }
+
+    .viewer-content li > ul { list-style-type: circle; }
+
+    .viewer-content li > ul > li {
+      font-size: 0.95em;
+      color: var(--colour-muted);
+    }
+
+    .viewer-content blockquote {
+      margin: 1.2em 0;
+      padding: 0.8em 1.2em;
+      border-left: 4px solid var(--colour-quote-bar);
+      background: var(--colour-bg-quote);
+      font-style: italic;
+      font-size: 1.05em;
+      color: #3d3530;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .viewer-content blockquote p { margin: 0.3em 0; }
+
+    .viewer-content blockquote + p {
+      font-size: 0.9em;
+      color: var(--colour-muted);
+      margin-top: 0.3em;
+    }
+
+    .viewer-content code {
+      font-family: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.88em;
+      background: var(--colour-bg-code);
+      padding: 0.15em 0.35em;
+      border-radius: 3px;
+    }
+
+    .viewer-content pre {
+      background: var(--colour-bg-code);
+      border: 1px solid var(--colour-border);
+      border-radius: 5px;
+      padding: 0.9em 1.1em;
+      margin: 1em 0;
+      font-size: 0.85em;
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+
+    .viewer-content pre code {
+      background: none;
+      padding: 0;
+      border-radius: 0;
+      font-size: inherit;
+    }
+
+    .viewer-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+      font-size: 0.92em;
+    }
+
+    .viewer-content thead {
+      background: var(--colour-accent);
+      color: #fff;
+    }
+
+    .viewer-content th {
+      font-family: var(--font-sans);
+      font-weight: 600;
+      padding: 0.6em 0.8em;
+      text-align: left;
+    }
+
+    .viewer-content td {
+      padding: 0.5em 0.8em;
+      border-bottom: 1px solid var(--colour-border);
+    }
+
+    .viewer-content tbody tr:nth-child(even) {
+      background: var(--colour-bg-quote);
+    }
+
+    .viewer-content hr {
+      border: none;
+      border-top: 1px solid var(--colour-border);
+      margin: 2em 0;
+    }
+
+    .viewer-content img {
+      max-width: 100%;
+      height: auto;
+      margin: 1em auto;
+      display: block;
+      border-radius: 4px;
+    }
+
+    .viewer-content > p:last-child em,
+    .viewer-content > p:last-of-type em {
+      font-family: var(--font-sans);
+      font-size: 0.85em;
+      color: #b0aea5;
+      font-style: normal;
+      display: block;
+      text-align: center;
+      margin-top: 2em;
+      padding-top: 1em;
+      border-top: 1px solid var(--colour-border);
+    }
+
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+      .header-inner { flex-direction: column; align-items: stretch; }
+      .search-container { width: 100%; margin-left: 0; }
+      header { padding: 0.75rem 1rem; }
+      .controls { padding: 0.75rem 1rem; }
+      main { padding: 0 1rem 2rem; }
+      .viewer-overlay.open { padding: 0; }
+      .viewer-chrome { border-radius: 0; max-width: 100%; }
+      .viewer-scroll { padding: 1.25rem; }
+      .viewer-title { font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="index.html" style="color:inherit;text-decoration:none"><h1>Wisdom Library</h1></a>
+        <p class="subtitle">Extracted insights and analysis</p>
+      </div>
+      <div class="search-container">
+        <span class="search-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </span>
+        <input type="text" id="search"
+               placeholder="Search by title, author, or topic..."
+               autocomplete="off" />
+      </div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <button class="filter-pill active" data-filter="all">All</button>
+    <button class="filter-pill" data-filter="youtube">YouTube</button>
+    <button class="filter-pill" data-filter="web">Web</button>
+    <button class="filter-pill" data-filter="text">Text</button>
+    <span style="border-left:1px solid var(--colour-border);height:1.2em;margin:0 0.25rem"></span>
+    <span style="font-size:0.8rem;color:var(--colour-muted);">Sort:</span>
+    <button class="filter-pill active" data-sort="date">Date</button>
+    <button class="filter-pill" data-sort="author">Author</button>
+    <button class="filter-pill" data-sort="source">Source</button>
+    <span class="entry-count" id="entry-count"></span>
+  </div>
+
+  <main>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <footer>
+    Last updated $GENERATED_DATE$
+  </footer>
+
+  <div class="viewer-overlay" id="viewer-overlay">
+    <div class="viewer-chrome">
+      <div class="viewer-toolbar">
+        <span class="viewer-title" id="viewer-title"></span>
+        <div class="viewer-toolbar-actions" id="viewer-actions"></div>
+      </div>
+      <div class="viewer-scroll">
+        <div class="viewer-content" id="viewer-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ---- Data (injected by wisdom.py) ---- */
+    var WISDOM_ENTRIES = $ENTRIES_JSON$;
+
+    /* ---- State ---- */
+    var activeFilter = "all";
+    var activeSort = "date";
+    var searchQuery = "";
+    var fuse = null;
+    /* ---- Elements ---- */
+    var grid = document.getElementById("grid");
+    var searchInput = document.getElementById("search");
+    var entryCount = document.getElementById("entry-count");
+    var filterPills = document.querySelectorAll(".filter-pill[data-filter]");
+    var sortPills = document.querySelectorAll(".filter-pill[data-sort]");
+    var viewerOverlay = document.getElementById("viewer-overlay");
+    var viewerTitleEl = document.getElementById("viewer-title");
+    var viewerActions = document.getElementById("viewer-actions");
+    var viewerContent = document.getElementById("viewer-content");
+
+    /* ---- SVG icons ---- */
+    var folderSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"'
+      + ' stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+      + ' stroke-linejoin="round">'
+      + '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>'
+      + '</svg>';
+    var mdSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"'
+      + ' stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+      + ' stroke-linejoin="round">'
+      + '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
+      + '<polyline points="14 2 14 8 20 8"/>'
+      + '<line x1="16" y1="13" x2="8" y2="13"/>'
+      + '<line x1="16" y1="17" x2="8" y2="17"/>'
+      + '<polyline points="10 9 9 9 8 9"/>'
+      + '</svg>';
+    var pdfSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"'
+      + ' stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+      + ' stroke-linejoin="round">'
+      + '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
+      + '<polyline points="14 2 14 8 20 8"/>'
+      + '<path d="M9 15v-2h1.5a1.5 1.5 0 0 0 0-3H9v5"/>'
+      + '</svg>';
+
+    /* ---- Search ---- */
+    function initFuse() {
+      if (typeof Fuse !== "undefined") {
+        fuse = new Fuse(WISDOM_ENTRIES, {
+          keys: [
+            { name: "title", weight: 0.35 },
+            { name: "author", weight: 0.2 },
+            { name: "youtube_channel", weight: 0.1 },
+            { name: "og_site_name", weight: 0.05 },
+            { name: "description", weight: 0.2 },
+            { name: "source_type", weight: 0.1 }
+          ],
+          threshold: 0.35,
+          ignoreLocation: true
+        });
+      }
+    }
+
+    function search(query, entries) {
+      if (!query.trim()) return entries;
+      if (fuse) return fuse.search(query).map(function(r) { return r.item; });
+      var q = query.toLowerCase();
+      return entries.filter(function(e) {
+        return (e.title || "").toLowerCase().indexOf(q) !== -1
+            || (e.author || "").toLowerCase().indexOf(q) !== -1
+            || (e.description || "").toLowerCase().indexOf(q) !== -1
+            || (e.source_type || "").toLowerCase().indexOf(q) !== -1;
+      });
+    }
+
+    /* ---- Utilities ---- */
+    function escapeHtml(str) {
+      var d = document.createElement("div");
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function highlightText(str, query) {
+      var escaped = escapeHtml(str);
+      if (!query || !query.trim()) return escaped;
+      var words = query.trim().split(/\s+/).filter(function(w) { return w.length > 1; });
+      if (!words.length) return escaped;
+      var pattern = words.map(function(w) {
+        return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }).join('|');
+      return escaped.replace(new RegExp('(' + pattern + ')', 'gi'), '<mark>$1</mark>');
+    }
+
+    function safeCssClass(str) {
+      return (str || "").replace(/[^a-z0-9-]/g, "");
+    }
+
+    function safeHref(path) {
+      return path.split("/").map(encodeURIComponent).join("/");
+    }
+
+    /* ---- Rendering ---- */
+    function render() {
+      var entries = WISDOM_ENTRIES;
+
+      if (activeFilter !== "all") {
+        entries = entries.filter(function(e) {
+          return e.source_type === activeFilter;
+        });
+      }
+
+      entries = search(searchQuery, entries);
+
+      entries = entries.slice().sort(function(a, b) {
+        if (activeSort === "date") {
+          return (b.date || "").localeCompare(a.date || "");
+        }
+        if (activeSort === "author") {
+          var aa = (a.author && a.author !== "Unknown") ? a.author.toLowerCase() : "zzz";
+          var ba = (b.author && b.author !== "Unknown") ? b.author.toLowerCase() : "zzz";
+          return aa.localeCompare(ba);
+        }
+        if (activeSort === "source") {
+          var as = (a.youtube_channel || a.og_site_name || "zzz").toLowerCase();
+          var bs = (b.youtube_channel || b.og_site_name || "zzz").toLowerCase();
+          return as.localeCompare(bs);
+        }
+        return 0;
+      });
+
+      var total = WISDOM_ENTRIES.length;
+      var shown = entries.length;
+      entryCount.textContent = shown === total
+        ? total + " " + (total === 1 ? "entry" : "entries")
+        : shown + " of " + total;
+
+      /* Hide filter pills for source types that have no entries */
+      var types = {};
+      WISDOM_ENTRIES.forEach(function(e) { types[e.source_type] = true; });
+      filterPills.forEach(function(pill) {
+        var f = pill.getAttribute("data-filter");
+        if (f !== "all" && !types[f]) pill.style.display = "none";
+      });
+
+      if (entries.length === 0) {
+        grid.innerHTML = '<div class="no-results">No matching entries found.</div>';
+        return;
+      }
+
+      grid.innerHTML = entries.map(function(e) {
+        var badgeClass = safeCssClass(e.source_type || "text");
+        var badgeLabel = e.source_type || "unknown";
+        var metaParts = [];
+        if (e.author && e.author !== "Unknown") metaParts.push(highlightText(e.author, searchQuery));
+        var siteName = e.youtube_channel || e.og_site_name || "";
+        if (siteName && siteName !== e.author) metaParts.push(highlightText(siteName, searchQuery));
+        if (e.date) metaParts.push(escapeHtml(e.date));
+        if (e.reading_time) metaParts.push(e.reading_time + " min read");
+
+        var thumbImg = e.thumbnail
+          ? '<img class="card-thumbnail" src="' + safeHref(e.thumbnail)
+            + '" alt="" loading="lazy" />'
+          : '';
+
+        var headerContent = '<div class="card-header-text">'
+          + '<span class="card-title">' + highlightText(e.title, searchQuery) + '</span>'
+          + (metaParts.length
+             ? '<div class="card-meta">' + metaParts.join(" &middot; ") + '</div>'
+             : '')
+          + '</div>';
+
+        return '<div class="card">'
+          + '<div class="card-body" data-dir="' + escapeHtml(e.dir_path) + '">'
+          + '<div class="card-header-row">'
+          + headerContent
+          + thumbImg
+          + '</div>'
+          + (e.description
+             ? '<div class="card-description">' + highlightText(e.description, searchQuery) + '</div>'
+             : '')
+          + '</div>'
+          + '<div class="card-actions">'
+          + '<span class="source-badge ' + badgeClass + '" style="margin-right:auto">'
+          + escapeHtml(badgeLabel) + '</span>'
+          + (e.pdf_path
+             ? '<a class="btn-action" href="' + safeHref(e.pdf_path) + '" target="_blank" title="Open PDF">'
+               + pdfSvg + ' PDF</a>'
+             : '')
+          + '<a class="btn-action" href="' + safeHref(e.md_path) + '" target="_blank" title="Open markdown">'
+          + mdSvg + ' Markdown</a>'
+          + '<a class="btn-action" href="' + safeHref(e.dir_path) + '/" target="_blank" title="Open folder">'
+          + folderSvg + ' Folder</a>'
+          + '</div>'
+          + '</div>';
+      }).join("");
+    }
+
+    /* ---- Viewer ---- */
+    function openViewer(entry) {
+      if (!entry) return;
+
+      viewerTitleEl.textContent = entry.title;
+
+      var btns = '';
+      if (entry.pdf_path) {
+        btns += '<a class="btn-toolbar" href="' + safeHref(entry.pdf_path) + '" target="_blank" title="Open PDF">'
+          + pdfSvg + ' PDF</a>';
+      }
+      btns += '<a class="btn-toolbar" href="' + safeHref(entry.md_path) + '" target="_blank" title="Open raw markdown">'
+        + mdSvg + ' Markdown</a>';
+      btns += '<a class="btn-toolbar" href="' + safeHref(entry.dir_path) + '/" target="_blank" title="Open folder">'
+        + folderSvg + ' Folder</a>';
+      btns += '<button class="btn-close" id="viewer-close-btn" title="Close (Esc)">&times;</button>';
+      viewerActions.innerHTML = btns;
+
+      document.getElementById("viewer-close-btn").addEventListener("click", closeViewer);
+
+      viewerOverlay.classList.add("open");
+      document.body.style.overflow = "hidden";
+
+      history.pushState(
+        { viewer: entry.dir_path },
+        "",
+        "#view/" + encodeURIComponent(entry.dir_path)
+      );
+
+      if (typeof marked !== "undefined") {
+        viewerContent.innerHTML = marked.parse(entry.body || "");
+      } else {
+        viewerContent.innerHTML = '<pre style="white-space:pre-wrap;font-family:inherit">'
+          + escapeHtml(entry.body || "") + '</pre>';
+      }
+      viewerContent.parentElement.scrollTop = 0;
+    }
+
+    function closeViewer() {
+      viewerOverlay.classList.remove("open");
+      document.body.style.overflow = "";
+      if (location.hash.indexOf("#view/") === 0) {
+        history.pushState({}, "", location.pathname + location.search);
+      }
+    }
+
+    function findEntryByDir(dir) {
+      for (var i = 0; i < WISDOM_ENTRIES.length; i++) {
+        if (WISDOM_ENTRIES[i].dir_path === dir) return WISDOM_ENTRIES[i];
+      }
+      return null;
+    }
+
+    function checkHash() {
+      var hash = location.hash;
+      if (hash.indexOf("#view/") === 0) {
+        var dir = decodeURIComponent(hash.slice(6));
+        var entry = findEntryByDir(dir);
+        if (entry) openViewer(entry);
+      }
+    }
+
+    /* ---- Events ---- */
+    searchInput.addEventListener("input", function() {
+      searchQuery = this.value;
+      render();
+    });
+
+    filterPills.forEach(function(pill) {
+      pill.addEventListener("click", function() {
+        filterPills.forEach(function(p) { p.classList.remove("active"); });
+        this.classList.add("active");
+        activeFilter = this.getAttribute("data-filter");
+        render();
+      });
+    });
+
+    sortPills.forEach(function(pill) {
+      pill.addEventListener("click", function() {
+        sortPills.forEach(function(p) { p.classList.remove("active"); });
+        this.classList.add("active");
+        activeSort = this.getAttribute("data-sort");
+        render();
+      });
+    });
+
+    grid.addEventListener("click", function(ev) {
+      var body = ev.target.closest(".card-body[data-dir]");
+      if (body) {
+        var dir = body.getAttribute("data-dir");
+        var entry = findEntryByDir(dir);
+        if (entry) openViewer(entry);
+      }
+    });
+
+    document.addEventListener("keydown", function(ev) {
+      if (ev.key === "Escape") {
+        if (searchInput.value) {
+          searchInput.value = "";
+          searchQuery = "";
+          searchInput.blur();
+          render();
+          return;
+        }
+        if (viewerOverlay.classList.contains("open")) {
+          closeViewer();
+          return;
+        }
+      }
+      if ((ev.key === "f" || ev.key === "/") && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+        var tag = (document.activeElement || {}).tagName;
+        if (tag !== "INPUT" && tag !== "TEXTAREA" && !(document.activeElement && document.activeElement.isContentEditable)) {
+          ev.preventDefault();
+          searchInput.focus();
+        }
+      }
+    });
+
+    viewerOverlay.addEventListener("click", function(ev) {
+      if (ev.target === viewerOverlay) closeViewer();
+    });
+
+    window.addEventListener("popstate", function() {
+      if (location.hash.indexOf("#view/") === 0) {
+        checkHash();
+      } else if (viewerOverlay.classList.contains("open")) {
+        viewerOverlay.classList.remove("open");
+        document.body.style.overflow = "";
+      }
+    });
+
+    /* ---- Initialise ---- */
+    (function() {
+      var s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/fuse.js@7.1.0/dist/fuse.min.js";
+      s.onload = function() { initFuse(); };
+      document.head.appendChild(s);
+
+      var m = document.createElement("script");
+      m.src = "https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js";
+      m.onload = function() {
+        if (typeof marked !== "undefined" && marked.setOptions) {
+          marked.setOptions({ gfm: true, breaks: false });
+        }
+      };
+      document.head.appendChild(m);
+
+      render();
+      searchInput.focus();
+      checkHash();
+    })();
+  </script>
+</body>
+</html>
