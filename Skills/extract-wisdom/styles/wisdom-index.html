@@ -643,6 +643,17 @@
       border-radius: 4px;
     }
 
+    .viewer-content .mermaid-diagram {
+      margin: 1.2em 0;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    .viewer-content .mermaid-diagram svg {
+      max-width: 100%;
+      height: auto;
+    }
+
     .viewer-content > p:last-child em,
     .viewer-content > p:last-of-type em {
       font-family: var(--font-sans);
@@ -921,6 +932,27 @@
       }).join("");
     }
 
+    /* ---- Mermaid rendering ---- */
+    var mermaidCounter = 0;
+    function renderMermaidBlocks() {
+      if (typeof mermaid === "undefined") return;
+      var codeBlocks = viewerContent.querySelectorAll('code.language-mermaid');
+      codeBlocks.forEach(function(codeEl) {
+        var pre = codeEl.parentElement;
+        if (!pre || pre.tagName !== "PRE") return;
+        var graphDef = codeEl.textContent;
+        var id = "mermaid-" + (++mermaidCounter);
+        mermaid.render(id, graphDef).then(function(result) {
+          var container = document.createElement("div");
+          container.className = "mermaid-diagram";
+          container.innerHTML = result.svg;
+          pre.replaceWith(container);
+        }).catch(function() {
+          /* leave as code block if mermaid fails to parse */
+        });
+      });
+    }
+
     /* ---- Viewer ---- */
     function openViewer(entry) {
       if (!entry) return;
@@ -956,6 +988,7 @@
         viewerContent.innerHTML = '<pre style="white-space:pre-wrap;font-family:inherit">'
           + escapeHtml(entry.body || "") + '</pre>';
       }
+      renderMermaidBlocks();
       viewerContent.parentElement.scrollTop = 0;
     }
 
@@ -1067,6 +1100,28 @@
         }
       };
       document.head.appendChild(m);
+
+      var mm = document.createElement("script");
+      mm.src = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
+      mm.onload = function() {
+        if (typeof mermaid !== "undefined") {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: "base",
+            themeVariables: {
+              primaryColor: "#fdf0e8",
+              primaryBorderColor: "#d97757",
+              primaryTextColor: "#141413",
+              lineColor: "#6b6560",
+              secondaryColor: "#f5f3ed",
+              tertiaryColor: "#faf9f5",
+              fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+              fontSize: "14px"
+            }
+          });
+        }
+      };
+      document.head.appendChild(mm);
 
       render();
       searchInput.focus();
