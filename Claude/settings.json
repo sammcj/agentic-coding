@@ -383,7 +383,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.32/hooks/sessionstart.mjs\""
+            "command": "node \"/Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.33/hooks/sessionstart.mjs\""
           }
         ]
       }
