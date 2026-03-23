@@ -360,7 +360,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.33/hooks/pretooluse.mjs"
+            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.49/hooks/pretooluse.mjs"
           }
         ]
       }
@@ -383,7 +383,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.33/hooks/sessionstart.mjs\""
+            "command": "node \"/Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.46/hooks/sessionstart.mjs\""
           }
         ]
       }
