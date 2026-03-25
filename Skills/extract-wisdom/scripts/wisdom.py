@@ -477,7 +477,7 @@ def _enrich_entry(md_path: Path, *, overwrite: bool = False) -> bool:
     if image_url and (overwrite or not has_thumbnail):
         _download_thumbnail(image_url, entry_dir / "thumbnail.jpg")
 
-    if (entry_dir / "thumbnail.jpg").is_file():
+    if not fm.get("thumbnail", "").startswith("false") and (entry_dir / "thumbnail.jpg").is_file():
         updates["thumbnail"] = "thumbnail.jpg"
 
     if updates:
@@ -1155,10 +1155,11 @@ def cmd_pdf(args: argparse.Namespace) -> None:
     html_body = md_lib.markdown(md_text, extensions=MD_EXTENSIONS)
     html_body, diagram_fallbacks = _render_diagrams(html_body)
 
-    # Append thumbnail at end of PDF if available.
+    # Append thumbnail at end of PDF if available (unless disabled via frontmatter).
+    fm = _parse_frontmatter(input_file)
     input_dir = input_file.resolve().parent
     thumb_path = input_dir / "thumbnail.jpg"
-    if thumb_path.is_file():
+    if thumb_path.is_file() and (not fm or not fm.get("thumbnail", "").startswith("false")):
         try:
             thumb_data = thumb_path.read_bytes()
             thumb_b64 = base64.b64encode(thumb_data).decode()
@@ -1276,7 +1277,7 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
             "dir_path": dir_name,
             "pdf_path": f"{dir_name}/{pdf_file.name}" if pdf_file.is_file() else "",
             "md_path": f"{dir_name}/{md_file.name}",
-            "thumbnail": f"{dir_name}/thumbnail.jpg" if (md_file.parent / "thumbnail.jpg").is_file() else "",
+            "thumbnail": f"{dir_name}/thumbnail.jpg" if (not fm.get("thumbnail", "").startswith("false") and (md_file.parent / "thumbnail.jpg").is_file()) else "",
             "body": body,
         })
 

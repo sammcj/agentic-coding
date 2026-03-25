@@ -97,7 +97,7 @@ description: "[1-3 sentence summary suitable for sharing on Slack. Keep it infor
 youtube_channel: "[Channel Name]"              # YouTube only, from YOUTUBE_CHANNEL output
 youtube_title: "[Original Upload Title]"       # YouTube only, from YOUTUBE_TITLE output
 youtube_description: "[Video description]"     # YouTube only, first ~300 chars
-thumbnail: "thumbnail.jpg"                     # YouTube only, if thumbnail was downloaded
+thumbnail: "thumbnail.jpg"                     # Auto-set if thumbnail was downloaded; set to "false" to hide
 ---
 
 # Analysis: [Title]
