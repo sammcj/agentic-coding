@@ -1232,6 +1232,12 @@
           return;
         }
       }
+      if (ev.key === "k" && (ev.ctrlKey || ev.metaKey)) {
+        ev.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+        return;
+      }
       if ((ev.key === "f" || ev.key === "/") && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
         var tag = (document.activeElement || {}).tagName;
         if (tag !== "INPUT" && tag !== "TEXTAREA" && !(document.activeElement && document.activeElement.isContentEditable)) {
@@ -1262,7 +1268,7 @@
       document.head.appendChild(s);
 
       var m = document.createElement("script");
-      m.src = "https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js";
+      m.src = "https://cdn.jsdelivr.net/npm/marked@17.0.5/lib/marked.umd.js";
       m.onload = function() {
         if (typeof marked !== "undefined" && marked.setOptions) {
           marked.setOptions({ gfm: true, breaks: false });
