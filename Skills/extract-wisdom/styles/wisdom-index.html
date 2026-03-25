@@ -991,8 +991,11 @@
         if (e.date) metaParts.push(escapeHtml(e.date));
         if (e.reading_time) metaParts.push(e.reading_time + " min read");
 
+        var thumbSrc = e.thumbnail.indexOf("data:") === 0
+          ? e.thumbnail
+          : safeHref(e.thumbnail);
         var thumbImg = e.thumbnail
-          ? '<img class="card-thumbnail" src="' + safeHref(e.thumbnail)
+          ? '<img class="card-thumbnail" src="' + thumbSrc
             + '" alt="" loading="lazy" />'
           : '';
 

@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import base64
 import fcntl
+import hashlib
 import html as html_mod
 import json
 import os
@@ -515,6 +516,42 @@ def _download_thumbnail(thumbnail_url: str, dest_path: Path) -> bool:
 
     return True
 
+
+_PLACEHOLDER_PALETTES = [
+    ("#667eea", "#764ba2"),  # indigo to purple
+    ("#f093fb", "#f5576c"),  # pink to coral
+    ("#4facfe", "#00f2fe"),  # sky blue to cyan
+    ("#43e97b", "#38f9d7"),  # green to mint
+    ("#fa709a", "#fee140"),  # rose to gold
+    ("#a18cd1", "#fbc2eb"),  # lavender to blush
+    ("#fccb90", "#d57eeb"),  # peach to violet
+    ("#e0c3fc", "#8ec5fc"),  # lilac to blue
+    ("#f6d365", "#fda085"),  # amber to salmon
+    ("#84fab0", "#8fd3f4"),  # seafoam to light blue
+    ("#cfd9df", "#e2ebf0"),  # silver to mist
+    ("#a1c4fd", "#c2e9fb"),  # soft blue to ice
+]
+
+
+def _placeholder_thumbnail_svg(title: str) -> str:
+    """Generate an SVG data URI placeholder based on a hash of the title."""
+    digest = int(hashlib.md5(title.encode()).hexdigest(), 16)  # noqa: S324
+    palette = _PLACEHOLDER_PALETTES[digest % len(_PLACEHOLDER_PALETTES)]
+    angle = (digest >> 8) % 360
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="102" height="76">'
+        "<defs>"
+        f'<linearGradient id="g" gradientTransform="rotate({angle},.5,.5)"'
+        ' gradientUnits="objectBoundingBox">'
+        f'<stop offset="0%" stop-color="{palette[0]}"/>'
+        f'<stop offset="100%" stop-color="{palette[1]}"/>'
+        "</linearGradient>"
+        "</defs>"
+        '<rect width="102" height="76" fill="url(#g)" rx="4"/>'
+        "</svg>"
+    )
+    encoded = base64.b64encode(svg.encode()).decode()
+    return f"data:image/svg+xml;base64,{encoded}"
 
 
 def _print_transcript_output(
@@ -1277,7 +1314,14 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
             "dir_path": dir_name,
             "pdf_path": f"{dir_name}/{pdf_file.name}" if pdf_file.is_file() else "",
             "md_path": f"{dir_name}/{md_file.name}",
-            "thumbnail": f"{dir_name}/thumbnail.jpg" if (not fm.get("thumbnail", "").startswith("false") and (md_file.parent / "thumbnail.jpg").is_file()) else "",
+            "thumbnail": (
+                _placeholder_thumbnail_svg(fm.get("title", dir_name))
+                if fm.get("thumbnail", "").startswith("placeholder")
+                else f"{dir_name}/thumbnail.jpg"
+                if (not fm.get("thumbnail", "").startswith("false")
+                    and (md_file.parent / "thumbnail.jpg").is_file())
+                else ""
+            ),
             "body": body,
         })
 
