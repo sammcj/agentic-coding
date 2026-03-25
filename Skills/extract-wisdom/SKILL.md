@@ -13,64 +13,20 @@ Default location for Claude Code: `~/.claude/skills/extract-wisdom/`
 
 ### Step 1: Ask User Preferences
 
-Use the `AskUserQuestion` tool to ask the user what level of detail they want (unless they've already stated the level of detail - in which case use that). Use multi-choice with options: "Detailed", "Concise". **Do not call any other tools in the same turn as this question. Wait for the user's response before proceeding to Step 2.** If `AskUserQuestion` is unavailable, default to "Detailed".
+Use the `AskUserQuestion` tool to ask the user what level of detail they want (unless they've already stated the level of detail, in which case use that). Use multi-choice with options: "Detailed", "Concise", "Both (Concise & Detailed)". **Do not call any other tools in the same turn as this question. Wait for the user's response before proceeding to Step 2.** If `AskUserQuestion` is unavailable, default to "Detailed".
+
+Detect the detail level from the user's initial request if they specify it. Phrases like "quick summary", "brief overview", "concise" map to Concise. Phrases like "deep dive", "thorough", "detailed" map to Detailed. Phrases like "both", "concise and detailed", "quick take and deep dive" map to Both.
 
 ### Step 2: Identify Source and Acquire Content
 
-Once you know the level of detail, determine the source type and acquire content accordingly:
+Determine the source type and read the corresponding reference file:
 
-#### **YouTube URL** (contains youtube.com or youtu.be)
+- **YouTube URL** (contains youtube.com or youtu.be): Read `references/source-youtube.md` and follow its instructions.
+- **Web URL or local file**: Read `references/source-web-text.md` and follow its instructions.
 
-Execute the download script to fetch the transcript:
+After acquiring the source content, return here for Step 3.
 
-```bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py transcript <youtube-url>
-```
-
-The script downloads English subtitles or auto-generated text transcripts (not audio).
-
-If the script fails, report the error to the user and stop. Do not download audio, run whisper, or attempt any alternative transcription method unless instructed to do so by the user.
-
-After downloading, rename the directory using the rename subcommand:
-
-```bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py rename "<OUTPUT_DIR>" "<Short Description>"
-```
-
-The script automatically prepends today's date and sanitises the description into a clean directory name. Keep the description short (1-6 words).
-
-- Example: `rename "<path>/O7SSQfiPDXA" "Demis Hassabis Interview"` produces `2026-02-05-Demis-Hassabis-Interview`
-
-Then read the transcript file from `TRANSCRIPT_PATH`. Transcripts are cleaned and formatted as continuous text with minimal whitespace.
-
-The transcript command also outputs `YOUTUBE_CHANNEL`, `YOUTUBE_TITLE`, and `THUMBNAIL` lines when metadata is available. Use these to populate the corresponding frontmatter fields (`youtube_channel`, `youtube_title`, `thumbnail`). The video description is saved in `metadata.json` in the output directory; read it to populate `youtube_description`.
-
-**Do not re-fetch the YouTube video page** after downloading the transcript. The transcript content, metadata output, and the video title provide everything needed for analysis. Infer the speaker/author from the transcript content itself. If you cannot determine the author, use the channel name or leave the author field as "Unknown".
-
-**Note:** The script uses `--restrict-filenames` to sanitise special characters in filenames for safer handling.
-
-#### **Web URL or Document Path** (blog posts, articles, any non-YouTube URL)
-
-Use WebFetch to extract content, for example:
-
-```
-WebFetch with prompt: "Extract the main article content"
-```
-
-WebFetch returns cleaned markdown-formatted content ready for analysis.
-
-Note: Ensure the Webfetch tool does not truncate the content that we likely want to keep! If you have problems with Webfetch you can always use the Fetch tool (or similar).
-
-**Local file path** (.txt, .md, or other text formats):
-
-Use your standard file reading tool (e.g. `Read`) to load the full content directly.
-
-If the content clearly indicates there was an image that is highly likely to contain important information that would not be captured or inferred from the text alone (e.g. a diagram of a complex concept, but NOT things like a photo the author, memes, product logos, screenshots etc...) and if you have the link to the image URL, you may wish to:
-
-- Fetch the image to a temporary location
-- Read the image to understand the content
-- Validate if the content of the image adds value beyond what is already captured in the text or not
-- If it does you could add a concise written description of what the image is trying to convey (but only if the content doesn't already convey this!), - OR if it's a diagram, use Mermaid within the Markdown wisdom document you're creating.
+**If the user selected "Both (Concise & Detailed)"**: Read `references/combined-detail.md` before proceeding. In this mode, sub-agents handle Steps 3-4 in parallel. After combining, skip to Step 5.
 
 ### Step 3: Analyse and Extract Wisdom
 
@@ -124,16 +80,7 @@ Determine the output directory:
 
 **YouTube sources:** The renamed directory from Step 2.
 
-**Web and text sources:** Create a date-prefixed output directory using the `create-dir` subcommand:
-
-```bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py create-dir "<Short Description>"
-```
-
-The script automatically prepends today's date (local timezone) and creates the directory in the wisdom base directory. Keep the description short (1-6 words). It outputs `OUTPUT_DIR: <path>` with the created directory path.
-
-- Example: `create-dir "Sam Altman On AGI"` produces `2026-03-25-Sam-Altman-On-Agi`
-- Do NOT create the directory manually or use `mkdir`. Always use `create-dir` to ensure the date is today's date in the local timezone.
+**Web and text sources:** The directory created in Step 2 via `create-dir`.
 
 **File name:** `<source-title> - analysis.md`
 
@@ -315,7 +262,7 @@ If timestamps are needed:
 
 ### scripts/
 
-- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, and metadata backfill. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `backfill`.
+- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, metadata backfill, and combining dual analyses. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `combine`, `backfill`.
 
 ### Backfill Metadata (Manual Only)
 
