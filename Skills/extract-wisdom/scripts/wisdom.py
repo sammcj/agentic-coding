@@ -18,6 +18,7 @@ markdown formatting, and PDF rendering. Run via: uv run wisdom.py <subcommand>
 Subcommands:
     transcript <url>                Download YouTube transcript
     output-dir                      Print the resolved output directory
+    create-dir <description>        Create a date-prefixed directory for non-YouTube sources
     rename <dir> <description>      Rename directory with date prefix
     format [--check] <files...>     Format markdown with prettier
     pdf [--css F] [--open] [file]   Render markdown to styled PDF
@@ -619,6 +620,31 @@ def cmd_transcript(args: argparse.Namespace) -> None:
 
 def cmd_output_dir(_args: argparse.Namespace) -> None:  # noqa: ARG001
     print(detect_base_dir())
+
+
+# ---------------------------------------------------------------------------
+# Create directory with today's date prefix
+# ---------------------------------------------------------------------------
+
+def cmd_create_dir(args: argparse.Namespace) -> None:
+    """Create a new date-prefixed directory in the wisdom base directory."""
+    base_dir = detect_base_dir()
+    tz = _local_tz()
+    today = datetime.now(tz=tz).date().isoformat()
+    clean_desc = _sanitise_dirname(args.description)
+    if not clean_desc:
+        print("Error: Description is empty after sanitisation", file=sys.stderr)
+        sys.exit(1)
+
+    new_name = f"{today}-{clean_desc}"
+    dest = base_dir / new_name
+
+    if dest.exists():
+        print(f"Error: Directory already exists: {dest}", file=sys.stderr)
+        sys.exit(1)
+
+    dest.mkdir(parents=True, exist_ok=True)
+    print(f"OUTPUT_DIR: {dest}")
 
 
 # ---------------------------------------------------------------------------
@@ -1449,6 +1475,10 @@ def main() -> None:
     # output-dir
     sub.add_parser("output-dir", help="Print resolved output directory")
 
+    # create-dir
+    p_create_dir = sub.add_parser("create-dir", help="Create a new date-prefixed directory for non-YouTube sources")
+    p_create_dir.add_argument("description", help="Short description (1-6 words, e.g. 'Sam Altman Blog Post')")
+
     # rename
     p_rename = sub.add_parser("rename", help="Rename download directory with date prefix")
     p_rename.add_argument("directory", help="Directory to rename (e.g. the video ID directory)")
@@ -1480,6 +1510,7 @@ def main() -> None:
     dispatch = {
         "transcript": cmd_transcript,
         "output-dir": cmd_output_dir,
+        "create-dir": cmd_create_dir,
         "rename": cmd_rename,
         "format": cmd_format,
         "pdf": cmd_pdf,

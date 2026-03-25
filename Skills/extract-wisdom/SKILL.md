@@ -124,18 +124,16 @@ Determine the output directory:
 
 **YouTube sources:** The renamed directory from Step 2.
 
-**Web and text sources:** Run the following to determine the base output directory, then use it as described below:
+**Web and text sources:** Create a date-prefixed output directory using the `create-dir` subcommand:
 
 ```bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py output-dir
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py create-dir "<Short Description>"
 ```
 
-If the command fails or is unavailable, fall back to `~/Downloads/text-wisdom/`.
+The script automatically prepends today's date (local timezone) and creates the directory in the wisdom base directory. Keep the description short (1-6 words). It outputs `OUTPUT_DIR: <path>` with the created directory path.
 
-Save to `<base-output-dir>/YYYY-MM-DD-<concise-description>/`:
-
-- Create the directory if it doesn't exist
-- Use the same date-prefixed naming convention as YouTube sources
+- Example: `create-dir "Sam Altman On AGI"` produces `2026-03-25-Sam-Altman-On-Agi`
+- Do NOT create the directory manually or use `mkdir`. Always use `create-dir` to ensure the date is today's date in the local timezone.
 
 **File name:** `<source-title> - analysis.md`
 
@@ -317,7 +315,7 @@ If timestamps are needed:
 
 ### scripts/
 
-- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, and metadata backfill. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `rename`, `format`, `pdf`, `index`, `backfill`.
+- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, and metadata backfill. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `backfill`.
 
 ### Backfill Metadata (Manual Only)
 
