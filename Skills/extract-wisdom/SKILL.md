@@ -1,7 +1,7 @@
 ---
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
-allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *) WebFetch(domain:mermaid.ink) WebFetch(domain:manifest.googlevideo.com) WebFetch(domain:manifest.googlevideo.com) WebFetch(domain:youtube.com) WebFetch(domain:github.com)
+allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *) WebFetch(domain:mermaid.ink) WebFetch(domain:manifest.googlevideo.com) WebFetch(domain:manifest.googlevideo.com) WebFetch(domain:youtube.com) WebFetch(domain:github.com) WebFetch(domain:x.com) WebFetch(domain:fxtwitter.com) WebFetch(domain:ytimg.com) WebFetch(domain:mermaid.ink) Bash(prettier --write:*)
 ---
 
 # Wisdom Extraction
