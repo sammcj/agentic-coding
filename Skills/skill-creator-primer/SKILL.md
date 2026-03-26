@@ -73,6 +73,7 @@ Skills should only contain files that directly support functionality. Do NOT cre
 - README.md, CHANGELOG.md, INSTALLATION_GUIDE.md, QUICK_START.md, SUMMARY.md
 - User-facing documentation or setup procedures
 - Context about the creation process itself
+- A ToC or Index of content within the same file
 
 The skill is for an AI agent to do the job. Auxiliary documentation adds clutter and wastes context.
 

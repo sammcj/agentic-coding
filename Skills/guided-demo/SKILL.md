@@ -27,7 +27,9 @@ Ask the user these questions (skip any already answered in conversation):
 
 ## Implementation
 
-Read `references/implementation.md` for all code snippets. The four required pieces are:
+Read `references/implementation.md` for all code snippets (vanilla JS / static HTML). If the target application uses React with React Router, also read `references/react-integration.md` for React-specific patterns covering stale closures, route navigation timing, and component architecture. For other SPA frameworks (Vue, Svelte, etc.), the same concepts apply (poll for elements after route change, store timer-relevant state outside the reactivity system) but the implementation details differ.
+
+The four required pieces are:
 
 1. **Narrator panel** - fixed-position bar with text container and progress bar
 2. **Highlight class** - `outline` (not `border`) with animated glow, no layout shift
@@ -88,6 +90,7 @@ These are the failure points that come up repeatedly:
 - **Scroll conflicts**: `scrollIntoView({ block: 'center' })` conflicts with fixed headers/panels. Set `scroll-padding-bottom` on the scroll container to account for the narrator panel height.
 - **Z-index**: Narrator panel at 500+, interstitials at 490, highlighted elements at 2+. Check for conflicts with existing modals or dropdowns.
 - **Cleanup on exit**: Reset every piece of state the demo touched: close opened panels, remove highlights, clear timers. Missing cleanup leaves confusing UI state.
+- **Form inputs**: If the page has text inputs, textareas, or selects, the keyboard handler must skip them. Otherwise pressing Space in a text field triggers play/pause instead of typing. Check `e.target.tagName` and bail out for `INPUT`, `TEXTAREA`, `SELECT`.
 - **ES modules**: If using `<script type="module">`, all demo functions called from `onclick` must be on `window.*`.
 - **Print**: Hide demo panel and interstitial in `@media print`.
 - **Accessibility**: Narrator panel should have `role="status"` and `aria-live="polite"`. Highlight outlines must meet contrast requirements.
