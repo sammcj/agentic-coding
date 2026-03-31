@@ -371,7 +371,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.53/hooks/pretooluse.mjs\""
+            "command": "node \"/Users/samm/.claude/plugins/marketplaces/context-mode/hooks/pretooluse.mjs\""
           }
         ]
       }
@@ -394,7 +394,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.53/hooks/sessionstart.mjs\""
+            "command": "node \"/Users/samm/.claude/plugins/marketplaces/context-mode/hooks/sessionstart.mjs\""
           }
         ]
       }
@@ -421,7 +421,8 @@
     "bash-lsp@zircote-lsp": true,
     "skill-creator@claude-plugins-official": true,
     "tofu-lsp@local-marketplace": true,
-    "context-mode@context-mode": true
+    "context-mode@context-mode": true,
+    "impeccable@impeccable": true
   },
   "language": "Australian English",
   "sandbox": {

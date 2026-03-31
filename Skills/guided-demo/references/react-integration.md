@@ -288,6 +288,7 @@ function handleKeyDown(e: KeyboardEvent) {
   if (e.code === 'Space') { e.preventDefault(); togglePlayback() }
   else if (e.code === 'ArrowRight') { stepForward() }
   else if (e.code === 'ArrowLeft') { stepBack() }
+  else if (e.code === 'KeyM') { toggleTTS() }
   else if (e.code === 'Escape') { stopDemo() }
 }
 ```
@@ -350,6 +351,223 @@ Without this, orphaned timers fire against stale state setters, causing React wa
 `stopDemo()` resets demo engine state (timers, highlights, `demo-active` class) and typically navigates to `/`. Local component state (open panels, selected filters) resets naturally when the component unmounts on navigation.
 
 The exception is global state held in React Context (e.g. an active role, selected theme, or user preference). If any demo action mutated global context state, `stopDemo` must explicitly restore it. If the demo doesn't navigate away on exit, local component state cleanup becomes the caller's responsibility too.
+
+---
+
+## Text-to-speech narration in React
+
+The vanilla TTS pattern from `implementation.md` needs React-specific handling for state synchronisation and cleanup.
+
+### Dual state + ref for isMuted
+
+`isMuted` needs both a React state (for UI re-renders of the toggle icon) and a ref (for access inside timer callbacks without stale closures). Keep them in sync:
+
+```typescript
+const [isMuted, setIsMuted] = useState(true)  // off by default
+const isMutedRef = useRef(true)
+
+useEffect(() => { isMutedRef.current = isMuted }, [isMuted])
+```
+
+The `speakText` function reads from `isMutedRef` (not `isMuted` state) because it runs inside `setTimeout` callbacks:
+
+```typescript
+function speakText(text: string) {
+  if (!('speechSynthesis' in window)) return
+  speechSynthesis.cancel()
+  if (isMutedRef.current) return
+
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.rate = playbackSpeedRef.current
+  if (selectedVoiceRef.current) utterance.voice = selectedVoiceRef.current
+  speechSynthesis.speak(utterance)
+}
+```
+
+### Voice initialisation in useEffect
+
+```typescript
+const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null)
+
+useEffect(() => {
+  if (!('speechSynthesis' in window)) return
+
+  function pickVoice() {
+    const voices = speechSynthesis.getVoices()
+    if (!voices.length) return
+
+    // Adapt cascade to project locale
+    const cascades: Array<(v: SpeechSynthesisVoice) => boolean> = [
+      v => v.name.includes('Daniel') && v.lang === 'en-GB',
+      v => v.name.includes('Google') && v.lang.startsWith('en-GB'),
+      v => v.lang.startsWith('en-GB') && !/Grandma|Grandpa|Novelty/i.test(v.name),
+      v => v.lang.startsWith('en-AU'),
+      v => v.lang.startsWith('en'),
+    ]
+
+    for (const predicate of cascades) {
+      const match = voices.find(predicate)
+      if (match) { selectedVoiceRef.current = match; return }
+    }
+  }
+
+  speechSynthesis.addEventListener('voiceschanged', pickVoice)
+  pickVoice()
+  return () => speechSynthesis.removeEventListener('voiceschanged', pickVoice)
+}, [])
+```
+
+### Toggle with atomic state + ref update
+
+Use the `setState(prev => ...)` pattern and update the ref inside the same callback:
+
+```typescript
+const toggleTTS = useCallback(() => {
+  setIsMuted(prev => {
+    const next = !prev
+    isMutedRef.current = next
+    if (next && 'speechSynthesis' in window) speechSynthesis.cancel()
+    return next
+  })
+}, [])
+```
+
+### Cancellation in cleanup
+
+Add `speechSynthesis.cancel()` to `clearAllTimers` and the provider's unmount effect:
+
+```typescript
+function clearAllTimers() {
+  if (typeTimerRef.current) clearTimeout(typeTimerRef.current)
+  if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current)
+  if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
+  if ('speechSynthesis' in window) speechSynthesis.cancel()
+}
+
+// In the cleanup useEffect:
+useEffect(() => {
+  return () => {
+    clearAllTimers()
+    clearHighlight()
+    document.body.classList.remove('demo-active')
+  }
+}, [clearAllTimers, clearHighlight])
+```
+
+`clearAllTimers()` already cancels speech, so the unmount effect doesn't need a separate `speechSynthesis.cancel()` call.
+
+### Preserving play state on manual step
+
+`stepForward()` and `stepBack()` must NOT set `isPlaying` to false. They should only clear timers then play the target step. The existing `isPlayingRef` value determines whether the new step auto-types or shows instantly. Forcing pause on every manual step is a common bug that makes the play button show the wrong state.
+
+```typescript
+const stepForward = useCallback(() => {
+  clearAllTimers()
+  // Do NOT call setIsPlaying(false) here
+  if (currentStepRef.current < DEMO_SCRIPT.length - 1) {
+    playStepRef.current(currentStepRef.current + 1)
+  }
+}, [clearAllTimers])
+```
+
+### DemoPanel toggle button
+
+```tsx
+<button
+  onClick={toggleTTS}
+  title="Toggle narration (M)"
+  style={{ opacity: isMuted ? 0.4 : 1, background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: '16px' }}
+>
+  {isMuted ? '\u{1F507}' : '\u{1F50A}'}
+</button>
+```
+
+Place between the step navigation buttons and speed controls.
+
+---
+
+## Step countdown indicator in React
+
+The vanilla countdown uses DOM node cloning to reset the CSS animation. In React, the cleaner approach is conditional rendering: mounting a fresh element restarts the animation automatically.
+
+### State in DemoContext
+
+```typescript
+const [countdownActive, setCountdownActive] = useState(false)
+const [countdownDuration, setCountdownDuration] = useState(0)
+```
+
+No refs needed for these - they drive UI rendering only and are never read inside timer callbacks.
+
+### Starting the countdown
+
+In the `onDone` callback (fired when typewriter text finishes), before setting the pause timer:
+
+```typescript
+const onDone = () => {
+  if (isPlayingRef.current && stepIdx < DEMO_SCRIPT.length - 1) {
+    const adjustedPause = (step.delay ?? PAUSE_MS) / playbackSpeedRef.current
+    setCountdownActive(true)
+    setCountdownDuration(adjustedPause)
+    pauseTimerRef.current = setTimeout(() => {
+      playStepRef.current(stepIdx + 1)
+    }, adjustedPause)
+  }
+}
+```
+
+### Clearing the countdown
+
+Add `setCountdownActive(false)` to `clearAllTimers()` (alongside the existing timer clears and `speechSynthesis.cancel()` from the TTS section). This single site handles all reset scenarios (stepping, pausing, stopping, exiting):
+
+```typescript
+// Add this line inside the existing clearAllTimers:
+setCountdownActive(false)
+```
+
+### DemoPanel markup
+
+Place directly below the step progress bar, above the narrator text:
+
+```tsx
+<div className="demo-step-countdown">
+  {countdownActive && (
+    <div
+      className="demo-step-countdown-fill"
+      style={{ animationDuration: `${countdownDuration}ms` }}
+    />
+  )}
+</div>
+```
+
+The container is always rendered (prevents layout shift). The fill element is conditionally mounted. When `countdownActive` goes from `false` to `true`, React mounts a fresh DOM element, which starts the CSS animation from 0%. When it goes back to `false`, the element unmounts. This mount/unmount cycle resets the animation cleanly between steps - no need for key props, `requestAnimationFrame` two-phase tricks, or CSS transition hacks.
+
+### CSS (same as vanilla)
+
+```css
+.demo-step-countdown {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.demo-step-countdown-fill {
+  height: 100%;
+  background: rgba(79, 195, 247, 0.7);  /* use the app's accent colour */
+  animation: demoCountdown linear forwards;
+}
+
+@keyframes demoCountdown {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+```
+
+### Edge cases handled by clearAllTimers
+
+- **Pausing mid-countdown**: timers cleared, bar disappears. Resuming replays the step which restarts the countdown after text finishes.
+- **Stepping while paused**: `clearAllTimers` resets the bar. The paused code path doesn't call `onDone`, so no new countdown starts.
+- **Last step**: `onDone` only sets the countdown when `stepIdx < script.length - 1`, so no bar on the final step.
+- **Speed change mid-countdown**: the current bar keeps its original duration. The new speed applies to the next step's countdown.
 
 ---
 

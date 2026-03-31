@@ -1136,8 +1136,8 @@ def _render_diagrams(html_body: str) -> tuple[str, dict[str, int]]:
 
 def cmd_pdf(args: argparse.Namespace) -> None:
     try:
-        import markdown as md_lib
-        from weasyprint import HTML  # type: ignore[import-untyped]
+        import markdown as md_lib  # ty: ignore[unresolved-import]
+        from weasyprint import HTML  # type: ignore[import-untyped]  # ty: ignore[unresolved-import]
     except OSError as exc:
         if _is_mac():
             hint = "brew install pango"
@@ -1300,12 +1300,18 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
         word_count = len(body.split())
         reading_time = max(1, round(word_count / 200))
 
+        # Normalise short dates (YYYY-MM) to YYYY-MM-DD so string
+        # comparison sorts them correctly in the JS frontend.
+        raw_date = fm.get("date", "")
+        if re.fullmatch(r"\d{4}-\d{2}", raw_date):
+            raw_date += "-01"
+
         entries.append({
             "title": fm.get("title", dir_name),
             "source": fm.get("source", ""),
             "source_type": fm.get("source_type", ""),
             "author": fm.get("author", ""),
-            "date": fm.get("date", ""),
+            "date": raw_date,
             "description": fm.get("description", ""),
             "youtube_channel": fm.get("youtube_channel", ""),
             "og_site_name": fm.get("og_site_name", ""),

@@ -323,6 +323,10 @@ Actions run before highlighting because the target element might be inside a col
 document.addEventListener('keydown', (e) => {
   if (!isActive) return;
 
+  // Don't capture keys when user is interacting with form elements
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
   if (e.code === 'Space') {
     e.preventDefault();
     togglePlayback();
@@ -330,6 +334,8 @@ document.addEventListener('keydown', (e) => {
     stepForward();
   } else if (e.code === 'ArrowLeft') {
     stepBack();
+  } else if (e.code === 'KeyM') {
+    toggleTTS();
   } else if (e.code === 'Escape') {
     stopDemo();
   }
@@ -380,6 +386,107 @@ function updateProgress() {
   document.getElementById('progressFill').style.width = pct + '%';
   document.getElementById('demoCounter').textContent =
     (currentStep + 1) + ' / ' + DEMO_SCRIPT.length;
+}
+```
+
+---
+
+## Step countdown indicator
+
+A thin bar that fills during the pause between steps, showing time until auto-advance. Uses CSS animation driven by a dynamically set `animation-duration`, not JS intervals.
+
+### Markup
+
+Add this directly below the step progress bar, above the narrator text:
+
+```html
+<div class="demo-step-countdown">
+  <div id="countdownFill" class="demo-step-countdown-fill"></div>
+</div>
+```
+
+The container is always rendered (prevents layout shift). The fill element is shown/hidden by adding/removing a class that triggers the animation.
+
+### CSS
+
+```css
+.demo-step-countdown {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.demo-step-countdown-fill {
+  height: 100%;
+  width: 0%;
+  background: rgba(79, 195, 247, 0.7);  /* use the app's accent colour */
+}
+
+.demo-step-countdown-fill.running {
+  animation: demoCountdown linear forwards;
+}
+
+@keyframes demoCountdown {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+```
+
+Use `linear` timing, not `ease`. The viewer reads it as a countdown and easing makes the remaining time harder to judge. The fill colour should be the application's accent colour at 0.6-0.8 opacity.
+
+### Starting the countdown
+
+In the `onDone` callback (fired when typewriter text finishes), before setting the pause timer. The approach: remove and re-add the fill element to reset the CSS animation cleanly.
+
+```javascript
+function startCountdown(durationMs) {
+  const container = document.getElementById('countdownFill');
+  // Clone and replace to reset CSS animation
+  const fresh = container.cloneNode(false);
+  container.parentNode.replaceChild(fresh, container);
+  fresh.id = 'countdownFill';
+  fresh.style.animationDuration = durationMs + 'ms';
+  fresh.classList.add('running');
+}
+
+function clearCountdown() {
+  const fill = document.getElementById('countdownFill');
+  if (fill) {
+    fill.classList.remove('running');
+    fill.style.width = '0%';
+  }
+}
+```
+
+In vanilla JS (no React mount/unmount), replacing the DOM node with a clone is the cleanest way to restart a CSS animation from 0%. The alternative (`animation: none; void el.offsetHeight; animation: ...`) is a reflow hack that is less reliable.
+
+### Integration with executeStep
+
+Update the `onDone` callback to start the countdown alongside the pause timer:
+
+```javascript
+const onDone = () => {
+  if (isPlaying && currentStep < DEMO_SCRIPT.length - 1) {
+    const adjustedPause = (step.delay ?? PAUSE_MS) / playbackSpeed;
+    startCountdown(adjustedPause);
+    pauseTimer = setTimeout(() => {
+      if (isPlaying) playStep(currentStep + 1);
+    }, adjustedPause);
+  }
+};
+```
+
+The countdown only starts when there is a next step to advance to. No countdown on the last step.
+
+### Cleanup
+
+Add `clearCountdown()` inside `clearAllTimers()`. This single site handles all reset scenarios (stepping, pausing, stopping, exiting) because every interrupting action calls `clearAllTimers()` first:
+
+```javascript
+function clearAllTimers() {
+  clearTimeout(typeTimer);
+  clearTimeout(pauseTimer);
+  clearCountdown();
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
 }
 ```
 
@@ -456,6 +563,133 @@ flowchart TD
     WaitInput -- Space --> PlayStep
     WaitInput -- Arrow keys --> PlayStep
     WaitInput -- Escape --> Cleanup([Reset all state])
+```
+
+---
+
+## Text-to-speech narration
+
+TTS uses the browser's `speechSynthesis` Web Speech API. Off by default. The user activates it via a speaker icon in the control bar.
+
+### Control bar toggle
+
+Add a mute/unmute button to the narrator panel controls, between the step buttons and speed controls:
+
+```html
+<button id="ttsBtn" onclick="toggleTTS()" title="Toggle narration (M)" style="opacity:0.4;">
+  &#128264;
+</button>
+```
+
+The button uses a speaker character entity. Dimmed (`opacity: 0.4`) when muted (default), full opacity when active.
+
+### Voice selection
+
+Voices load asynchronously in some browsers. Listen for the `voiceschanged` event and cache the selected voice.
+
+```javascript
+let selectedVoice = null;
+let isMuted = true;
+
+function initVoices() {
+  if (!('speechSynthesis' in window)) return;
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return;
+
+  // Preference cascade - adjust locale and voice names for target audience
+  const cascades = [
+    // 1. Specific high-quality voice by name and locale
+    v => v.name.includes('Daniel') && v.lang === 'en-GB',
+    // 2. Google voices for target locale
+    v => v.name.includes('Google') && v.lang.startsWith('en-GB'),
+    // 3. Any voice matching target locale, excluding novelty voices
+    v => v.lang.startsWith('en-GB') && !/Grandma|Grandpa|Novelty|Bells/i.test(v.name),
+    // 4. Fallback locales
+    v => v.lang.startsWith('en-AU'),
+    v => v.lang.startsWith('en'),
+  ];
+
+  for (const predicate of cascades) {
+    const match = voices.find(predicate);
+    if (match) { selectedVoice = match; return; }
+  }
+}
+
+// Voices may not be available immediately
+if ('speechSynthesis' in window) {
+  speechSynthesis.addEventListener('voiceschanged', initVoices);
+  initVoices();  // try immediately in case they're already loaded
+}
+```
+
+Adapt the preference cascade to the project's target audience locale. The example above prefers British English, falling back through Australian English to any English voice.
+
+### speakText function
+
+Called at the start of every step. Cancels any in-progress utterance before speaking.
+
+```javascript
+function speakText(text) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();  // cut off previous utterance
+  if (isMuted) return;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = playbackSpeed;
+  if (selectedVoice) utterance.voice = selectedVoice;
+  speechSynthesis.speak(utterance);
+}
+```
+
+### Integration with executeStep
+
+Add a single `speakText(step.text)` call in `executeStep()`, after highlighting and before the typewriter/instant-text branch. One call site, not two:
+
+```javascript
+  // ... after clearHighlight and scrollIntoView ...
+
+  // TTS: speak before typewriter starts
+  speakText(step.text);
+
+  // ... then typewriter or instant text as before ...
+```
+
+This placement ensures TTS fires for both auto-play and paused/manual-step code paths.
+
+### Toggle and keyboard shortcut
+
+```javascript
+function toggleTTS() {
+  isMuted = !isMuted;
+  document.getElementById('ttsBtn').style.opacity = isMuted ? '0.4' : '1';
+  if (isMuted && 'speechSynthesis' in window) {
+    speechSynthesis.cancel();
+  }
+}
+```
+
+The `M` shortcut is already included in the keyboard handler (see Keyboard controls section).
+
+### Cancellation sites
+
+`speechSynthesis.cancel()` must appear in every cleanup path. Missing any one of these causes the previous utterance to play over the new step's narration:
+
+```javascript
+function stopDemo() {
+  isActive = false;
+  isPlaying = false;
+  clearTimeout(typeTimer);
+  clearTimeout(pauseTimer);
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  // ... rest of cleanup
+}
+
+// Also add to clearAllTimers if you have a consolidated timer-clearing function:
+function clearAllTimers() {
+  clearTimeout(typeTimer);
+  clearTimeout(pauseTimer);
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+}
 ```
 
 ---
