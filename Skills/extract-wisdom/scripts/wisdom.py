@@ -554,6 +554,19 @@ def _placeholder_thumbnail_svg(title: str) -> str:
     return f"data:image/svg+xml;base64,{encoded}"
 
 
+def _write_metadata_json(video_dir: Path, metadata: dict[str, str]) -> None:
+    """Persist video metadata to metadata.json in the output directory."""
+    meta_path = video_dir / "metadata.json"
+    payload = {
+        "id": metadata.get("id", ""),
+        "title": metadata.get("title", ""),
+        "channel": metadata.get("channel", ""),
+        "description": metadata.get("description", ""),
+        "thumbnail_url": metadata.get("thumbnail_url", ""),
+    }
+    meta_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def _print_transcript_output(
     transcript_file: Path, video_dir: Path, metadata: dict[str, str] | None = None,
 ) -> None:
@@ -561,12 +574,14 @@ def _print_transcript_output(
     print(f"TRANSCRIPT_PATH: {transcript_file}")
     print(f"OUTPUT_DIR: {video_dir}")
     if metadata:
+        _write_metadata_json(video_dir, metadata)
         if metadata.get("channel"):
             print(f"YOUTUBE_CHANNEL: {metadata['channel']}")
         if metadata.get("title"):
             print(f"YOUTUBE_TITLE: {metadata['title']}")
         if (video_dir / "thumbnail.jpg").is_file():
             print("THUMBNAIL: thumbnail.jpg")
+        print("METADATA: metadata.json")
     print(f"NEXT_STEP: uv run <skill-dir>/scripts/wisdom.py rename \"{video_dir}\" \"<Short-Description>\"")
 
 

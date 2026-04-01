@@ -488,6 +488,7 @@
       "container",
       "gh",
       "uvx ty",
+      "swift build",
       "uv run"
     ]
   },

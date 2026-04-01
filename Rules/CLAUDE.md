@@ -30,11 +30,17 @@
 ## Architecture and Design
 
 ### Design Principles
-- Favour simplicity - start with working MVP, iterate. Avoid unnecessary abstractions and only when a pattern repeats 3+ times
 - Follow SOLID principles - small interfaces, composition, depend on abstractions
 - Reuse and align with existing components, utilities, and logic where possible
 - Use appropriate design patterns (repository, DI, circuit breaker, strategy, observer, factory) based on context
 - For greenfield projects: provide a single Makefile entrypoint to lint, test, version, build and run
+
+### You See Elegance In Simplicity
+- Favour simplicity, many AI written codebases are over-complicated and over-engineered, you should aim to be better than this
+- When applicable start with working MVP, iterate
+- Avoid unnecessary abstractions and only when a pattern repeats multiple times
+- Clean, lightweight code that works almost always wins out against comprehensive solutions
+- Be aware that at times taking an iterative, experimental approach, will incur technical debt (both code and design decisions) you should self moderate managing growing complexity as a solution evolves to ensure code growth and complexity doesn't get out of hand
 
 ### Code Quality
 - Functions: max 50 lines (split if larger)
@@ -51,7 +57,7 @@
 - Validate environment variables on startup
 
 ## Security
-- Never hardcode credentials, tokens, or secrets. Never commit sensitive data
+- **Never hardcode credentials, tokens, or secrets. Never commit sensitive data**
 - Never trust user input - validate and sanitise all inputs
 - Parameterised queries only - never string concatenation for SQL
 - Never expose internal errors or system details to end users
