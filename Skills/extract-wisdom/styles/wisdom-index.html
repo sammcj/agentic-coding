@@ -372,7 +372,7 @@
 
     .viewer-chrome {
       width: 100%;
-      max-width: 1250px;
+      max-width: 1050px;
       background: var(--colour-surface);
       border-radius: 10px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -472,7 +472,7 @@
       font-family: var(--font-serif);
       color: var(--colour-text);
       line-height: 1.65;
-      font-size: 1rem;
+      font-size: 1.1rem;
     }
 
     .viewer-content h1, .viewer-content h2,
@@ -497,12 +497,9 @@
 
     .viewer-content h1 + p,
     .viewer-content h1 + p + p,
-    .viewer-content h1 + p + p + p {
-      font-family: var(--font-sans);
-      font-size: 0.85em;
-      color: var(--colour-muted);
-      margin: 0.15em 0;
-      line-height: 1.4;
+    .viewer-content h1 + p + p + p,
+    .viewer-content h1 + p + p + p + p {
+      display: none;
     }
 
     .viewer-content h2 {
@@ -661,6 +658,43 @@
     .viewer-content .mermaid-diagram svg {
       max-width: 100%;
       height: auto;
+    }
+
+    .viewer-meta {
+      margin-bottom: 1.5em;
+      padding-bottom: 1em;
+      border-bottom: 1px solid var(--colour-border);
+    }
+
+    .viewer-meta-description {
+      font-family: var(--font-serif);
+      font-size: 0.9em;
+      color: #3d3530;
+      line-height: 1.5;
+      margin-bottom: 0.6em;
+    }
+
+    .viewer-meta-details {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4em;
+      font-family: var(--font-sans);
+      font-size: 0.82em;
+      color: var(--colour-muted);
+    }
+
+    .viewer-meta-details a {
+      color: var(--colour-accent);
+      text-decoration: none;
+    }
+
+    .viewer-meta-details a:hover {
+      text-decoration: underline;
+    }
+
+    .viewer-meta-sep {
+      color: var(--colour-border);
     }
 
     .viewer-content > p:last-child em,
@@ -988,7 +1022,8 @@
         if (e.author && e.author !== "Unknown") metaParts.push(highlightText(e.author, searchQuery));
         var siteName = e.youtube_channel || e.og_site_name || "";
         if (siteName && siteName !== e.author) metaParts.push(highlightText(siteName, searchQuery));
-        if (e.date) metaParts.push(escapeHtml(e.date));
+        if (e.content_date) metaParts.push("Published " + escapeHtml(e.content_date));
+        if (e.date) metaParts.push((e.content_date ? "Analysed " : "") + escapeHtml(e.date));
         if (e.reading_time) metaParts.push(e.reading_time + " min read");
 
         var thumbSrc = e.thumbnail.indexOf("data:") === 0
@@ -1149,10 +1184,27 @@
         "#view/" + encodeURIComponent(entry.dir_path)
       );
 
+      var metaHtml = '<div class="viewer-meta">';
+      if (entry.description) {
+        metaHtml += '<p class="viewer-meta-description">' + escapeHtml(entry.description) + '</p>';
+      }
+      var metaItems = [];
+      if (entry.source) {
+        var sourceLabel = entry.youtube_channel || entry.og_site_name || entry.source;
+        metaItems.push('<span>Source: <a href="' + escapeHtml(entry.source) + '" target="_blank" rel="noopener">'
+          + escapeHtml(sourceLabel) + '</a></span>');
+      }
+      if (entry.content_date) metaItems.push('<span>Published: ' + escapeHtml(entry.content_date) + '</span>');
+      if (entry.date) metaItems.push('<span>Analysed: ' + escapeHtml(entry.date) + '</span>');
+      if (metaItems.length) {
+        metaHtml += '<div class="viewer-meta-details">' + metaItems.join('<span class="viewer-meta-sep">&middot;</span>') + '</div>';
+      }
+      metaHtml += '</div>';
+
       if (typeof marked !== "undefined") {
-        viewerContent.innerHTML = marked.parse(entry.body || "");
+        viewerContent.innerHTML = metaHtml + marked.parse(entry.body || "");
       } else {
-        viewerContent.innerHTML = '<pre style="white-space:pre-wrap;font-family:inherit">'
+        viewerContent.innerHTML = metaHtml + '<pre style="white-space:pre-wrap;font-family:inherit">'
           + escapeHtml(entry.body || "") + '</pre>';
       }
       renderMermaidBlocks();

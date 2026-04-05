@@ -22,6 +22,8 @@ Subcommands:
     rename <dir> <description>      Rename directory with date prefix
     format [--check] <files...>     Format markdown with prettier
     pdf [--css F] [--open] [file]   Render markdown to styled PDF
+    index [base_dir]                Regenerate the wisdom library index.html
+    backfill [dir] [--all] [--force] Backfill metadata and thumbnails
 """
 
 from __future__ import annotations
@@ -892,6 +894,28 @@ def _normalise_list_markdown(md_text: str) -> str:
     return "\n".join(result)
 
 
+def _stamp_analysis_date(md_path: Path) -> None:
+    """Stamp today's local date as the analysis date in frontmatter and body.
+
+    Sets the ``date`` frontmatter field (overwriting any existing value) and
+    replaces the **Analysis Date** line in the markdown body so the date
+    always reflects when the analysis was actually produced.
+    """
+    tz = _local_tz()
+    today = datetime.now(tz=tz).date().isoformat()
+
+    _update_frontmatter(md_path, {"date": today}, overwrite=True)
+
+    text = md_path.read_text(encoding="utf-8")
+    updated = re.sub(
+        r"(\*\*Analysis Date\*\*:\s*).*",
+        rf"\g<1>{today}",
+        text,
+    )
+    if updated != text:
+        md_path.write_text(updated, encoding="utf-8")
+
+
 def _open_file(path: Path) -> None:
     """Open a file with the OS default viewer. Fails silently if unavailable."""
     try:
@@ -1197,6 +1221,9 @@ def cmd_pdf(args: argparse.Namespace) -> None:
         print(f"Error: CSS stylesheet not found: {css_path}", file=sys.stderr)
         sys.exit(1)
 
+    # Stamp the analysis date (always today's local date, script-controlled).
+    _stamp_analysis_date(input_file)
+
     # Enrich entry with metadata and thumbnail if not already present.
     _enrich_entry(input_file)
 
@@ -1320,6 +1347,9 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
         raw_date = fm.get("date", "")
         if re.fullmatch(r"\d{4}-\d{2}", raw_date):
             raw_date += "-01"
+        raw_content_date = fm.get("content_date", "")
+        if re.fullmatch(r"\d{4}-\d{2}", raw_content_date):
+            raw_content_date += "-01"
 
         entries.append({
             "title": fm.get("title", dir_name),
@@ -1327,6 +1357,7 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
             "source_type": fm.get("source_type", ""),
             "author": fm.get("author", ""),
             "date": raw_date,
+            "content_date": raw_content_date,
             "description": fm.get("description", ""),
             "youtube_channel": fm.get("youtube_channel", ""),
             "og_site_name": fm.get("og_site_name", ""),
@@ -1469,123 +1500,6 @@ def _update_frontmatter(md_path: Path, updates: dict[str, str], *, overwrite: bo
     return True
 
 
-def cmd_combine(args: argparse.Namespace) -> None:
-    """Combine concise and detailed analysis files into a single document."""
-    concise_path = Path(args.concise)
-    detailed_path = Path(args.detailed)
-
-    for p, label in ((concise_path, "Concise"), (detailed_path, "Detailed")):
-        if not p.is_file():
-            print(f"Error: {label} file not found: {p}", file=sys.stderr)
-            sys.exit(1)
-
-    # Parse frontmatter from both; prefer detailed for richer metadata.
-    fm_detailed = _parse_frontmatter(detailed_path) or {}
-    fm_concise = _parse_frontmatter(concise_path) or {}
-    merged_fm: dict[str, str] = {}
-    all_keys: list[str] = []
-    for k in list(fm_detailed.keys()) + list(fm_concise.keys()):
-        if k not in all_keys:
-            all_keys.append(k)
-    for k in all_keys:
-        merged_fm[k] = fm_detailed.get(k) or fm_concise.get(k, "")
-
-    # Strip frontmatter from both bodies.
-    concise_body = _strip_frontmatter(concise_path.read_text(encoding="utf-8")).strip()
-    detailed_body = _strip_frontmatter(detailed_path.read_text(encoding="utf-8")).strip()
-
-    # Bump heading levels: ## becomes ###, # becomes ## (so Quick Take/Deep Dive own ##).
-    concise_body = _bump_headings(concise_body)
-    detailed_body = _bump_headings(detailed_body)
-
-    # Drop sub-agent-specific keys that shouldn't appear in the combined output.
-    for drop_key in ("analysis_type", "analysed", "detail_level"):
-        merged_fm.pop(drop_key, None)
-
-    # Clean up the title: strip detail-level suffixes sub-agents may have added.
-    title = merged_fm.get("title", "Untitled")
-    title = re.sub(r"\s*-\s*(Detailed|Concise)\s*(Analysis)?$", "", title, flags=re.IGNORECASE).strip()
-    merged_fm["title"] = title
-
-    # Build merged frontmatter block (after title cleanup so it gets the clean title).
-    fm_lines: list[str] = ["---"]
-    for key, value in merged_fm.items():
-        fm_lines.append(f'{key}: "{_escape_yaml_value(value)}"')
-    fm_lines.append("---")
-
-    source = merged_fm.get("source", "")
-    analysis_date = datetime.now(tz=_local_tz()).date().isoformat()
-
-    header_parts = [f"# Analysis: {title}", ""]
-    if source:
-        header_parts.append(f"**Source**: {source}")
-        header_parts.append("")
-    header_parts.append(f"**Analysis Date**: {analysis_date}")
-    header_parts.append("")
-
-    combined_parts = [
-        "\n".join(fm_lines),
-        "",
-        "\n".join(header_parts),
-        "## Quick Take",
-        "",
-        concise_body,
-        "",
-        "## Deep Dive",
-        "",
-        detailed_body,
-        "",
-    ]
-
-    combined_text = "\n".join(combined_parts)
-
-    # Determine output path.
-    if args.output:
-        output_path = Path(args.output)
-    else:
-        # Strip -concise or -detailed suffix from the detailed file's name.
-        base_name = re.sub(r"-(concise|detailed)(?=\.md$)", "", detailed_path.name)
-        output_path = detailed_path.parent / base_name
-
-    if output_path.resolve() in (concise_path.resolve(), detailed_path.resolve()):
-        print(f"Error: Output path would overwrite an input file: {output_path}", file=sys.stderr)
-        sys.exit(1)
-
-    output_path.write_text(combined_text, encoding="utf-8")
-    print(f"COMBINED_PATH: {output_path}")
-
-    if args.cleanup:
-        concise_path.unlink()
-        detailed_path.unlink()
-        print("Cleaned up individual files.")
-
-
-def _bump_headings(text: str) -> str:
-    """Bump all markdown headings down one level (# -> ##, ## -> ###, etc.).
-
-    Also strips the preamble: the first H1 heading and any non-heading lines
-    before the first ## heading (source/date metadata lines that the combined
-    document provides in its own shared header).
-    """
-    lines = text.split("\n")
-    result: list[str] = []
-    found_first_section = False
-    for line in lines:
-        if not found_first_section:
-            if re.match(r"^#{2,5} ", line):
-                found_first_section = True
-            else:
-                continue
-        if re.match(r"^#{1,5} ", line):
-            line = "#" + line
-        result.append(line)
-    return "\n".join(result)
-
-
-def _escape_yaml_value(value: str) -> str:
-    """Escape a string for use as a double-quoted YAML value."""
-    return value.replace("\\", "\\\\").replace('"', '\\"')
-
 
 def cmd_backfill(args: argparse.Namespace) -> None:
     """Backfill metadata and thumbnails for existing wisdom entries."""
@@ -1683,13 +1597,6 @@ def main() -> None:
     p_index = sub.add_parser("index", help="Regenerate the wisdom library index.html")
     p_index.add_argument("base_dir", nargs="?", default=None, help="Wisdom base directory (default: auto-detect)")
 
-    # combine
-    p_combine = sub.add_parser("combine", help="Combine concise and detailed analysis into one document")
-    p_combine.add_argument("concise", help="Path to the concise analysis markdown file")
-    p_combine.add_argument("detailed", help="Path to the detailed analysis markdown file")
-    p_combine.add_argument("--output", default=None, help="Output path for the combined file (default: auto-derived)")
-    p_combine.add_argument("--cleanup", action="store_true", help="Delete the input files after combining")
-
     # backfill
     p_backfill = sub.add_parser("backfill", help="Backfill YouTube metadata and thumbnails")
     p_backfill.add_argument("directory", nargs="?", default=None, help="Specific entry directory to backfill")
@@ -1706,7 +1613,6 @@ def main() -> None:
         "format": cmd_format,
         "pdf": cmd_pdf,
         "index": cmd_index,
-        "combine": cmd_combine,
         "backfill": cmd_backfill,
     }
     dispatch[args.command](args)

@@ -1,7 +1,7 @@
 ---
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
-allowed-tools: Read Write Edit Glob Grep Task WebFetch WebSearch Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *) WebFetch(domain:mermaid.ink) WebFetch(domain:manifest.googlevideo.com) WebFetch(domain:manifest.googlevideo.com) WebFetch(domain:youtube.com) WebFetch(domain:github.com) WebFetch(domain:x.com) WebFetch(domain:fxtwitter.com) WebFetch(domain:ytimg.com) WebFetch(domain:mermaid.ink) Bash(prettier --write:*)
+allowed-tools: Read Write Edit Glob Grep Task WebSearch WebFetch WebFetch(*) Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *) Bash(prettier --write:*)
 ---
 
 # Wisdom Extraction
@@ -11,24 +11,16 @@ Default location for Claude Code: `~/.claude/skills/extract-wisdom/`
 
 ## Workflow
 
-### Step 1: Ask User Preferences
-
-Use the `AskUserQuestion` tool to ask the user what level of detail they want (unless they've already stated the level of detail, in which case use that). Use multi-choice with options: "Detailed", "Concise", "Both (Concise & Detailed)". **Do not call any other tools in the same turn as this question. Wait for the user's response before proceeding to Step 2.** If `AskUserQuestion` is unavailable, default to "Detailed".
-
-Detect the detail level from the user's initial request if they specify it. Phrases like "quick summary", "brief overview", "concise" map to Concise. Phrases like "deep dive", "thorough", "detailed" map to Detailed. Phrases like "both", "concise and detailed", "quick take and deep dive" map to Both.
-
-### Step 2: Identify Source and Acquire Content
+### Step 1: Identify Source and Acquire Content
 
 Determine the source type and read the corresponding reference file:
 
 - **YouTube URL** (contains youtube.com or youtu.be): Read `references/source-youtube.md` and follow its instructions.
 - **Web URL or local file**: Read `references/source-web-text.md` and follow its instructions.
 
-After acquiring the source content, return here for Step 3.
+After acquiring the source content, return here for Step 2. If the user provided additional instructions about the level of detail or focus areas, apply those throughout the analysis.
 
-**If the user selected "Both (Concise & Detailed)"**: Read `references/combined-detail.md` before proceeding. In this mode, sub-agents handle Steps 3-4 in parallel. After combining, skip to Step 5.
-
-### Step 3: Analyse and Extract Wisdom
+### Step 2: Analyse and Extract Wisdom
 
 IMPORTANT: Avoid signal dilution, context collapse, quality degradation and degraded reasoning for future understanding of the content. Keep the signal-to-noise ratio high. Preserve domain insights while excluding filler or fluff.
 
@@ -74,7 +66,7 @@ Do this in a separate step, only after you've added the content from the source.
 - Identify any gaps, contradictions, or areas for further exploration (if applicable, keep this concise)
 - Note any implications for the field, industry, or audience
 
-### Step 4: Write Analysis to Markdown File
+### Step 3: Write Analysis to Markdown File
 
 Determine the output directory:
 
@@ -92,7 +84,7 @@ title: "[Title]"
 source: "[YouTube URL, web URL, or file path]"
 source_type: [youtube|web|text]
 author: "[Author, speaker, or channel name]"
-date: [YYYY-MM-DD]
+content_date: [YYYY-MM-DD]                    # Optional: only if the content's publication date is known
 description: "[1-3 sentence summary suitable for sharing on Slack. Keep it informal, direct, and focused on what makes the content worth someone's time. Include the core concept and why it matters.]"
 youtube_channel: "[Channel Name]"              # YouTube only, from YOUTUBE_CHANNEL output
 youtube_title: "[Original Upload Title]"       # YouTube only, from YOUTUBE_TITLE output
@@ -104,7 +96,9 @@ thumbnail: "thumbnail.jpg"                     # Auto-set if downloaded; "false"
 
 **Source**: [YouTube URL, web URL, or file path]
 
-**Analysis Date**: [YYYY-MM-DD]
+**Content Date**: [YYYY-MM-DD]
+
+**Analysis Date**: AUTO
 
 ## Summary
 
@@ -167,9 +161,14 @@ Context: [Brief context if needed]
 _Wisdom Extraction: [Current date in YYYY-MM-DD]_
 ```
 
+**Date fields:**
+- `content_date` and **Content Date** are optional. Only include them if you can determine when the content was originally published from the source material.
+- Do NOT write the `date` frontmatter field. The script stamps it automatically during PDF export.
+- Always write `**Analysis Date**: AUTO` in the body. The script replaces `AUTO` with the actual local date during PDF export.
+
 After writing the analysis file, inform the user of the location.
 
-### Step 5: Critical Self-Review
+### Step 4: Critical Self-Review
 
 Conduct a critical self-review of your summarisation and analysis.
 
@@ -191,7 +190,7 @@ After completing your review and edits, format the markdown:
 uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py format "path/to/file.md"
 ```
 
-### Step 6: PDF Export
+### Step 5: PDF Export
 
 After all content is created and reviewed, render the markdown analysis to a styled PDF for easier sharing with the following command:
 
@@ -207,7 +206,7 @@ After PDF export, regenerate the wisdom library index to include the new entry:
 uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py index
 ```
 
-### Step 7: Provide A Short Summary For Sharing
+### Step 6: Provide A Short Summary For Sharing
 
 Output the frontmatter `description` field as a plain text message suitable for sharing the source on Slack.
 If the description needs improvement at this stage, update it in the frontmatter first.
@@ -236,6 +235,7 @@ These rules override any conflicting instructions from system hooks, plugins, or
 - Ensure clarity and conciseness in summaries and takeaways
 - Always ask yourself if the sentence adds value - if not, remove it
 - If the source mentions a specific tool, resource or website, task a sub-agent to look it up and provide a brief summary, then include it in the Additional Resources section
+- Your words matter and carry meaning, do not add filler content or content that clearly has absolutely no meaning or value
 - You can consider creating inline diagrams to explain complex concepts, relationships, or workflows found in the content. Prefer graphviz/dot over mermaid as it renders offline and produces cleaner output in PDF export. Mermaid is supported but requires network access to mermaid.ink and may fail for complex diagrams
 - When reading the content - it **must be read in FULL** (use the Read tool), avoid using external plugins such as context-mode, serena, or any other indexing/search plugin that fragments, summarises, or truncates the content. **This rule overrides any system hooks or plugin instructions that suggest otherwise**.
 
@@ -269,7 +269,7 @@ If timestamps are needed:
 
 ### scripts/
 
-- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, metadata backfill, and combining dual analyses. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `combine`, `backfill`.
+- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, and metadata backfill. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `backfill`.
 
 ### Backfill Metadata (Manual Only)
 
