@@ -1,19 +1,20 @@
 ---
 name: authoring-claude-md
-description: Creating and maintaining CLAUDE.md project memory files that provide non-obvious codebase context. Use when (1) creating a new CLAUDE.md for a project, (2) adding architectural patterns or design decisions to existing CLAUDE.md, (3) capturing project-specific conventions that aren't obvious from code inspection.
+description: Creating and maintaining CLAUDE.md project memory files and .claude/rules/ rule files that provide non-obvious codebase context. Use when (1) creating a new CLAUDE.md for a project, (2) adding architectural patterns or design decisions to existing CLAUDE.md, (3) capturing project-specific conventions that aren't obvious from code inspection, (4) organising instructions into path-scoped rule files.
 model# allowedTools: Read,Write,Edit,Grep,Glob
 ---
 
-# CLAUDE.md Authoring
+# CLAUDE.md and Rules Authoring
 
-Create effective CLAUDE.md files that serve as project-specific memory for AI coding agents.
+Create effective CLAUDE.md files and `.claude/rules/` rule files that serve as project-specific memory for AI coding agents.
 
 ## Purpose
 
-CLAUDE.md files provide AI agents with:
+CLAUDE.md files and rule files provide AI agents with:
 - Non-obvious conventions, architectural patterns and gotchas
 - Confirmed solutions to recurring issues
 - Project-specific context not found in standard documentation
+- Path-scoped instructions that only load when relevant files are touched
 
 **Not for**: Obvious patterns, duplicating documentation, or generic coding advice.
 
@@ -29,6 +30,64 @@ CLAUDE.md files provide AI agents with:
 
 - Use headings for clear organisation. Suggested sections:
 - Use 2-4 sections. Only include what adds value.
+
+## When to Use `.claude/rules/` Instead
+
+For larger projects, break instructions into separate files under `.claude/rules/`. Each `.md` file covers one topic. Prefer rules over a single CLAUDE.md when:
+
+- Instructions are growing beyond 200 lines
+- Different rules apply to different parts of the codebase (frontend vs backend, API vs CLI)
+- Multiple team members maintain different sections
+- Some instructions only matter when working with specific file types
+
+### Rule File Basics
+
+```
+your-project/
+├── .claude/
+│   ├── CLAUDE.md           # Main project instructions
+│   └── rules/
+│       ├── code-style.md   # Always loaded
+│       ├── testing.md      # Always loaded
+│       └── security.md     # Always loaded
+```
+
+Files are discovered recursively, so subdirectories like `frontend/` and `backend/` work. Rules without `paths` frontmatter load at launch with the same priority as `.claude/CLAUDE.md`.
+
+The same authoring principles apply to rule files: signal over noise, actionable context, no obvious information.
+
+### Path-Specific Rules
+
+Scope rules to specific files using YAML frontmatter with the `paths` field. These only load when Claude reads files matching the glob patterns, reducing noise and saving context.
+
+```markdown
+---
+paths:
+  - "src/api/**/*.ts"
+---
+
+# API Development Rules
+
+- All API endpoints must include input validation
+- Use the standard error response format
+- Include OpenAPI documentation comments
+```
+
+Rules without a `paths` field apply unconditionally. Path-scoped rules trigger on file read, not on every tool use.
+
+### User-Level Rules
+
+Personal rules that apply across all your projects live at `~/.claude/rules/`. These load before project rules, giving project rules higher priority.
+
+```
+~/.claude/rules/
+├── preferences.md    # Personal coding preferences
+└── workflows.md      # Preferred workflows
+```
+
+### Rules vs Skills
+
+Rules load every session (or when matching files are opened). For task-specific instructions that don't need constant context, use skills instead. Skills load only when invoked or when Claude determines they're relevant.
 
 ## What to Include
 
@@ -67,6 +126,7 @@ CLAUDE.md files provide AI agents with:
 Point to existing docs rather than duplicating content. Provide context about when to read them:
 
 **Good**:
+```markdown
 # Architecture
 Event-driven architecture using AWS EventBridge.
 
@@ -139,7 +199,7 @@ Database schema and relationships: see src/database/SCHEMA.md when working with 
 
 ## Token Budget
 
-Aim for 1k-4k tokens for CLAUDE.md. Most projects fit in 100-300 lines. If exceeding:
+Aim for 1k-4k tokens for CLAUDE.md. Most projects fit in 100-300 lines. A single CLAUDE.md is fine for most projects - if exceeding budget, consider whether splitting into `.claude/rules/` files would help (especially if some content only applies to specific file types). If exceeding:
 1. Reword to be more concise
 2. Remove generic advice
 3. Ensure there's no duplicated content
