@@ -371,7 +371,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/marketplaces/context-mode/hooks/pretooluse.mjs\""
+            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.75/hooks/pretooluse.mjs"
           }
         ]
       }
@@ -394,7 +394,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/samm/.claude/plugins/marketplaces/context-mode/hooks/sessionstart.mjs\""
+            "command": "node /Users/samm/.claude/plugins/cache/context-mode/context-mode/1.0.75/hooks/sessionstart.mjs"
           }
         ]
       }

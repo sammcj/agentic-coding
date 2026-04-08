@@ -719,7 +719,8 @@
     }
 
     .viewer-toc {
-      width: 220px;
+      width: max-content;
+      max-width: 220px;
       flex-shrink: 0;
       overflow-y: auto;
       border-right: 1px solid var(--colour-border);
@@ -911,6 +912,19 @@
       + '<polyline points="20 6 9 17 4 12"/>'
       + '</svg>';
 
+    /* ---- Open folder in Finder ---- */
+    function openFolder(btn) {
+      var href = btn.getAttribute("href");
+      var resolved = new URL(href, window.location.href);
+      var fsPath = decodeURIComponent(resolved.pathname);
+      navigator.clipboard.writeText(fsPath).then(function() {
+        var orig = btn.innerHTML;
+        btn.innerHTML = checkSvg + ' Path copied';
+        setTimeout(function() { btn.innerHTML = orig; }, 2000);
+      });
+      window.open(resolved.href, "_blank");
+    }
+
     /* ---- Search ---- */
     function initFuse() {
       if (typeof Fuse !== "undefined") {
@@ -1060,7 +1074,7 @@
              : '')
           + '<a class="btn-action" href="' + safeHref(e.md_path) + '" target="_blank" title="Open markdown">'
           + mdSvg + ' Markdown</a>'
-          + '<a class="btn-action" href="' + safeHref(e.dir_path) + '/" target="_blank" title="Open folder">'
+          + '<a class="btn-action folder-btn" href="' + safeHref(e.dir_path) + '/" title="Copy folder path">'
           + folderSvg + ' Folder</a>'
           + '</div>'
           + '</div>';
@@ -1159,7 +1173,7 @@
       }
       btns += '<a class="btn-toolbar" href="' + safeHref(entry.md_path) + '" target="_blank" title="Open raw markdown">'
         + mdSvg + ' Markdown</a>';
-      btns += '<a class="btn-toolbar" href="' + safeHref(entry.dir_path) + '/" target="_blank" title="Open folder">'
+      btns += '<a class="btn-toolbar folder-btn" href="' + safeHref(entry.dir_path) + '/" title="Copy folder path">'
         + folderSvg + ' Folder</a>';
       btns += '<button class="btn-toolbar" id="viewer-copy-btn" title="Copy markdown to clipboard">'
         + copySvg + ' Copy</button>';
@@ -1174,6 +1188,12 @@
         });
       });
       document.getElementById("viewer-close-btn").addEventListener("click", closeViewer);
+      var vFolderBtn = viewerActions.querySelector(".folder-btn");
+      if (vFolderBtn) {
+        vFolderBtn.addEventListener("click", function(ev) {
+          ev.preventDefault(); openFolder(this);
+        });
+      }
 
       viewerOverlay.classList.add("open");
       document.body.style.overflow = "hidden";
@@ -1262,6 +1282,8 @@
     });
 
     grid.addEventListener("click", function(ev) {
+      var folderBtn = ev.target.closest(".folder-btn");
+      if (folderBtn) { ev.preventDefault(); openFolder(folderBtn); return; }
       var body = ev.target.closest(".card-body[data-dir]");
       if (body) {
         var dir = body.getAttribute("data-dir");
