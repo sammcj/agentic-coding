@@ -45,8 +45,11 @@ Think of Claude exploring a path: a narrow bridge with cliffs needs guardrails (
 
 These are Claude Code-specific fields not covered by the Agent Skills spec. Only include when specifically needed:
 
+- `argument-hint`: Hint shown during autocomplete for expected arguments, e.g. `[issue-number]` or `[filename] [format]`. Only include if the skill accepts arguments
 - `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-sonnet-4-6"`. Only include if the user requests it
+- `effort`: Override effort level when the skill is active. Options: `low`, `medium`, `high`, `max`. Only include if the user requests it
 - `context`: Set to `"fork"` to run in a forked sub-agent context. Useful for skills with extensive exploration or large outputs. Only include if the user requests it
+- `disable-model-invocation`: Set to `true` to prevent Claude from auto-loading the skill. Use for side-effect workflows the user should trigger manually. Only include if the user requests it
 - `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide from the menu. Only include if the user requests it
 - `agent`: Specify agent type (e.g., `"task"`). When omitted, runs in current agent context. Only include if the user requests it
 - `allowed-tools`: Space-delimited pre-approved tools. Scope where possible, e.g. `"Read Write Bash(uv run scripts/*.py *) Grep"`
@@ -109,6 +112,10 @@ After creating or updating a skill, always perform a critical self-review:
 **Avoid railroading Claude.** Because skills are reusable across many different prompts and contexts, being too specific in instructions backfires. Give Claude the information it needs, but leave flexibility to adapt to the situation. Overly rigid instructions (heavy MUSTs, exact step sequences) break when the context shifts even slightly.
 
 **Think through the setup.** Some skills need user-specific configuration (e.g. which Slack channel, which database, API keys). Pattern: on first run, check for a config file; if missing, ask the user and store their answers. This avoids hardcoding values that differ per user or environment.
+
+## Gotchas
+
+**The skill-creator's `quick_validate.py` has an incomplete frontmatter allowlist.** It only recognises Agent Skills spec properties (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`) and will incorrectly reject valid Claude Code extension fields like `argument-hint`, `model`, `effort`, `context`, `disable-model-invocation`, `user-invocable`, and `agent`. If validation fails on one of these fields, the skill is still valid. Refer to the official docs at https://code.claude.com/docs/en/skills#frontmatter-reference for the authoritative list.
 
 ## Validating a Skill
 
