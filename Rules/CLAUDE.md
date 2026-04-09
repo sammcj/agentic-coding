@@ -101,7 +101,8 @@
 
 ### Github
 - Use the `gh` CLI tool for interacting with GitHub (issues, PRs, releases) and perform `gh` commands outside of the sandbox
-- When writing Github Actions Workflows, always check for and use the latest Actions versions, you can use `pinact run -update --min-age 3` to achieve this
+- When writing Github Actions Workflows, always check for and use the latest Actions versions that are at least 7 days old, you can use `pinact run -update --min-age 7` to achieve this
+- You can audit Github Actions security by running `zizmor .`
 
 ### Bash
 - `#!/usr/bin/env bash` with `set -euo pipefail`
