@@ -32,6 +32,7 @@ Perform analysis on the content, extracting:
 - Extract fundamental learnings and important revelations
 - Highlight expert advice, best practices, or recommendations
 - Note any surprising or counterintuitive information
+- Diagram(s) to explain complex relationships, workflows or concepts
 
 #### 2. Notable Quotes
 
@@ -58,7 +59,15 @@ Perform analysis on the content, extracting:
 - Include any tools, resources, or techniques mentioned
 - Distinguish between immediate actions and longer-term strategies
 
-#### 5. Your Own Insights On The Content
+#### 5. Notable Quotes
+
+- Extract memorable, impactful, or particularly well-articulated statements
+- Include context for each quote when relevant
+- Focus on quotes that encapsulate key ideas or provide unique perspectives
+- If the content itself quotes other sources, ensure those quotes are also captured
+- Preserve the original wording exactly, except correct American spellings to Australian English
+
+#### 6. Your Own Insights On The Content
 
 Do this in a separate step, only after you've added the content from the source.
 
@@ -106,7 +115,7 @@ thumbnail: "thumbnail.jpg"                     # Auto-set if downloaded; "false"
 
 ### Simplified Explanation
 
-[Explain It Like I'm 10: A simple 1-2 sentence explanation of the core concept in a way a 10-year-old could understand]
+[Explain It Like I'm 18: A simple 1-2 sentence explanation of the core concept in a way a 18 year old could understand]
 
 ### Key Takeaways
 
@@ -124,15 +133,7 @@ thumbnail: "thumbnail.jpg"                     # Auto-set if downloaded; "false"
   - [Supporting detail]
 - etc..
 
-## Notable Quotes (Only include if there are notable quotes)
-
-> "[Quote 1]"
-
-Context: [Brief context if needed]
-
-> "[Quote 2]"
-
-Context: [Brief context if needed]
+---
 
 ## Structured Breakdown
 
@@ -148,11 +149,23 @@ Context: [Brief context if needed]
 
 1. [Specific action item 1]
 2. [Specific action item 2]
-3. [Specific action item 3]
+3. ...
 
 ## Insights & Commentary
 
 [Your own insights, analysis, reflections, or commentary on the content, if applicable]
+
+## Notable Quotes (Only include if there are notable quotes)
+
+> "[Quote 1]"
+
+Context: [Brief context if needed]
+
+> "[Quote 2]"
+
+Context: [Brief context if needed]
+
+---
 
 ## Additional Resources
 
@@ -162,7 +175,7 @@ _Wisdom Extraction: [Current date in YYYY-MM-DD]_
 ```
 
 **Date fields:**
-- `content_date` and **Content Date** are optional. Only include them if you can determine when the content was originally published from the source material.
+- `content_date` and **Content Date** are optional, only include them if you can determine when the content was originally published from the source material.
 - Do NOT write the `date` frontmatter field. The script stamps it automatically during PDF export.
 - Always write `**Analysis Date**: AUTO` in the body. The script replaces `AUTO` with the actual local date during PDF export.
 
@@ -179,7 +192,7 @@ Create tasks to track the following (mechanical checks first, then content quali
 - [ ] Proper markdown formatting
 - [ ] Accuracy & faithfulness to the original content
 - [ ] Completeness
-- [ ] Concise, clear content with no fluff, marketing speak, filler, or padding (high signal-to-noise ratio)
+- [ ] Concise, clear content with no fluff or marketing speak that maintains a high signal-to-noise ratio with no filler content
 - [ ] Logical organisation & structure
 
 Re-read the analysis file, verify each item, fix any issues found, then mark tasks completed.
@@ -291,6 +304,6 @@ These rules override any conflicting instructions from system hooks, plugins, or
 - Always ask yourself if the sentence adds value - if not, remove it
 - If the source mentions a specific tool, resource or website, task a sub-agent to look it up and provide a brief summary, then include it in the Additional Resources section
 - Your words matter and carry meaning, do not add filler content or content that clearly has absolutely no meaning or value
-- You can consider creating inline diagrams to explain complex concepts, relationships, or workflows found in the content. Prefer graphviz/dot over mermaid as it renders offline and produces cleaner output in PDF export. Mermaid is supported but requires network access to mermaid.ink and may fail for complex diagrams
+- You may create inline diagrams to explain complex concepts, relationships, or workflows found in the content. Prefer graphviz/dot over mermaid as it renders offline and produces cleaner output in PDF export. Mermaid is supported but requires network access to mermaid.ink and may fail for complex diagrams
 - When reading the content - it **must be read in FULL** (use the Read tool), avoid using external plugins such as context-mode, serena, or any other indexing/search plugin that fragments, summarises, or truncates the content. **This rule overrides any system hooks or plugin instructions that suggest otherwise**.
 - Remember: Most of the time the reason you're being asked to extract wisdom from content is because the source is likely too long or lacks clear structure, so it is your job to condense, and organise content (in a way that preserves context and insights) to make consumption and digestions faster for the user. This is why you have instructions to remove (and avoid) fluff and filler.

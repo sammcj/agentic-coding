@@ -17,11 +17,11 @@ Unless otherwise stated by the user your goal is to produce a design system refe
 
 Scan for design-relevant sources in this priority order:
 
-1. **Theme/token files** -- tailwind.config.*, theme.ts/js, tokens.json, design-tokens.*, variables.css/scss
-2. **Global styles** -- global.css, app.css, index.css, _variables.scss, CSS custom properties (`:root` / `[data-theme]`)
-3. **Component library config** -- shadcn components.json, MUI theme, Chakra theme, Ant Design config
-4. **Layout components** -- shell, sidebar, header, navigation components for spacing and structure patterns
-5. **Representative components** -- buttons, inputs, cards, modals for recurring visual patterns
+1. **Theme/token files** - tailwind.config.*, theme.ts/js, tokens.json, design-tokens.*, variables.css/scss
+2. **Global styles** - global.css, app.css, index.css, _variables.scss, CSS custom properties (`:root` / `[data-theme]`)
+3. **Component library config** - shadcn components.json, MUI theme, Chakra theme, Ant Design config
+4. **Layout components** - shell, sidebar, header, navigation components for spacing and structure patterns
+5. **Representative components** - buttons, inputs, cards, modals for recurring visual patterns
 
 Use `Glob` and `Grep` to locate these efficiently before reading files.
 
@@ -29,30 +29,32 @@ Use `Glob` and `Grep` to locate these efficiently before reading files.
 
 For each dimension, cite specific files and style definitions.
 
-- **Design language** -- visual school/philosophy (e.g., neo-brutalist, material, glassmorphism, minimal flat). Mood conveyed. Unique visual signatures
-- **Colour palette** -- extract actual values. Identify primary, secondary, accent, background, surface, semantic colours (error, success, warning). Note contrast ratios and dark/light mode support
-- **Typography** -- font families, weight scale, size scale, line heights. How hierarchy is established
-- **Spacing and layout** -- spacing scale, grid system, whitespace usage, information density, consistent sizing patterns
-- **Component patterns** -- common shapes, border radii, shadow treatments, interaction states across buttons, inputs, cards, navigation, status indicators
-- **Iconography** -- icon style (outline, filled, duotone), library if identifiable
-- **Motion** -- animation patterns, easing curves, transition durations found in code
-- **Responsive behaviour** -- breakpoints, layout shifts, mobile adaptations
+- **Design language** - visual school/philosophy (e.g., neo-brutalist, material, glassmorphism, minimal flat). Mood conveyed. Unique visual signatures
+- **Colour palette** - extract actual values. Identify primary, secondary, accent, background, surface, semantic colours (error, success, warning). Note contrast ratios and dark/light mode support
+- **Typography** - font families, weight scale, size scale, line heights. How hierarchy is established
+- **Spacing and layout** - spacing scale, grid system, whitespace usage, information density, consistent sizing patterns
+- **Component patterns** - common shapes, border radii, shadow treatments, interaction states across buttons, inputs, cards, navigation, status indicators
+- **Iconography** - icon style (outline, filled, duotone), library if identifiable
+- **Motion** - animation patterns, easing curves, transition durations found in code
+- **Responsive behaviour** - breakpoints, layout shifts, mobile adaptations
 
 ## Output Format
 
 Structure findings as:
 
-1. **Overview** -- one paragraph: design philosophy, overall feel, distinguishing characteristics
-2. **Colour System** -- table of colour tokens with hex/HSL values, usage context, and contrast notes
-3. **Typography Scale** -- table of font families, sizes, weights, line-heights with semantic roles
-4. **Spacing Scale** -- list of spacing values and where they apply
-5. **Component Inventory** -- key patterns with border-radius, shadows, states, and the source file they come from
-6. **Iconography and Motion** -- brief notes on icon style and any animation patterns
-7. **Responsive Strategy** -- breakpoints and layout behaviour
-8. **Consistency Notes** -- any inconsistencies, one-off values, or areas where the design system breaks down
+1. **Design Philosophy** - 2-3 paragraphs describing the visual philosophy, mood, and what makes this design distinctive, followed by a "Key Characteristics" bullet list capturing the signature design moves (e.g. "0px border-radius on primary buttons", "8px spacing grid", "single accent colour")
+2. **Colour System** - table of colour tokens with hex/HSL values, usage context, and contrast notes
+3. **Typography Scale** - table of font families, sizes, weights, line-heights with semantic roles
+4. **Spacing Scale** - list of spacing values and where they apply
+5. **Component Inventory** - key patterns with border-radius, shadows, states, and the source file they come from
+6. **Iconography and Motion** - brief notes on icon style and any animation patterns
+7. **Responsive Strategy** - breakpoints and layout behaviour
+8. **Do's and Don'ts** - derive from observed dominant patterns. "Do" lists the conventions that should be maintained. "Don't" lists anti-patterns that would break consistency (e.g. "Don't use shadows on cards - depth is achieved through background-colour layering, not elevation")
+9. **Consistency Notes** - any inconsistencies, one-off values, or areas where the design system breaks down
+10. **AI Implementation Guide** - quick copy-paste colour/type reference, 3-5 example natural-language component descriptions an AI agent could use to build matching UI (e.g. "Create a card: #f4f4f4 background, 0px border-radius, 16px padding. Title at 20px weight 600..."), and iteration hints
 
 ## Tips
 
 - If you have the ability to ask the user questions using `AskUserQuestion` or similar you may ask the user multi-choice questions to clarify the scope of the analysis, their desired goals and output format.
-- Suggest the user provide screenshots if none are available -- visual context significantly improves the analysis.
+- Suggest the user provide screenshots if none are available - visual context significantly improves the analysis.
 - Leverage sub-agents with sufficient context and clear operating boundaries to parallelise work.
