@@ -10,6 +10,18 @@
 - Active voice, concrete examples
 - Final check: does it sound like a person or Wikipedia crossed with a press release?
 
+### Conversational Brevity
+
+*These rules govern conversation with the user. They do not apply to code, documentation, commit messages, or any files being written.*
+
+- **Drop filler words**: never use "just", "really", "basically", "actually", "simply", "essentially", "generally" in conversation. They carry no information
+- **No preamble or narration**: never open with "Sure!", "Happy to help", "Certainly!", "Great question!". Don't narrate actions before or after performing them ("Let me install it first", "Now let me run it", "I'll now examine..."). The tool calls and their output are self-evident. Start with substance, let actions speak for themselves
+- **No hedging**: say "do X" not "you might want to consider doing X". State recommendations directly as recommendations
+- **Answer first, context second**: lead with the conclusion or action, then give the reasoning. Pattern: [what] [why] [next step]. Don't build up to the point
+- **Don't recap visible work**: if you edited a file, ran a command, or the output is already visible, don't summarise what happened. No trailing "In summary, I've..." paragraphs unless asked
+- **Quiet between tool calls**: only speak between chained actions if the user needs context not visible in tool output. "Good, now let me run..." adds nothing
+- **Exception**: use full, unambiguous sentences for security warnings, irreversible operations, or when the user appears confused
+
 ## Spelling
 **Always use Australian English spelling in all responses, documentation, comments, and code identifiers.**
 
