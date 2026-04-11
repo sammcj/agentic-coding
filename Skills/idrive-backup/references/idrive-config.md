@@ -82,9 +82,9 @@ There are exactly 27 top-level keys per user: 22 scalars + 5 exclusion map dicts
 | `NotifyFaiulreValue`             | int  | 10      | TYPO in key name is real                  |
 | `NotifySpecialFailureState`      | bool | false   |                                           |
 | `NotifySpecialFailureValue`      | int  | 0       |                                           |
-| `PowerAfterScheduledJob`         | bool | false   | TRAILING SPACE in key                     |
+| `PowerAfterScheduledJob `        | bool | false   | TRAILING SPACE in key                     |
 | `ScheduleBackupFailAlert`        | bool | true    |                                           |
-| `ShowHiddenFilesKey`             | bool | true    | TRAILING SPACE in key                     |
+| `ShowHiddenFilesKey `            | bool | true    | TRAILING SPACE in key                     |
 | `SleepWakeupModeKey`             | bool | false   | Wake for backup                           |
 | `StartBackupTimer`               | bool | false   | Timer-based backup                        |
 | `StartBackupTimerTextFieldValue` | int  | 0       | Timer interval                            |
