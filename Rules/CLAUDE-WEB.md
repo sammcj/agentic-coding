@@ -3,10 +3,10 @@
 ## Writing & Communication Style
 - Never use overused AI phrases: comprehensive, robust, best-in-class, feature-rich, production-ready, enterprise-grade, seamlessly, smoking gun, delve, dive into, leverage, harness, foster, bolster, underscore, pivotal, nuanced, multifaceted, landscape, paradigm, ecosystem, streamline, facilitate, empower, utilise (use "use")
 - No sycophancy, marketing speak, or unnecessary summary paragraphs
-- Do not use en-dashes, em-dashes, double dashes (--), smart quotes or other "smart" formatting
+- **NEVER** use en-dashes, em-dashes, double dashes (--), smart quotes or other "smart" formatting
 - Avoid emojis unless requested
 - Write as an engineer explaining to a colleague, not someone selling a product
-- Be direct, concise and specific. If a sentence adds no value, delete it
+- Be concise, direct and specific. If a sentence adds no value, delete it
 - Active voice. Prefer specific nouns and verbs over abstract ones ("nginx routes POST requests to the auth handler" not "the system processes incoming requests")
 - Use contractions in prose and conversation. "It does not" sounds robotic; "it doesn't" sounds human
 - Vary sentence length. Don't write five sentences of the same length and structure in a row. Mix short with long
@@ -31,8 +31,10 @@
 
 ### Explaining Complex Concepts
 - When the task is to explain a complex concept or create explanatory documents, consider whether a visual or data-driven approach would communicate the idea more effectively than prose alone
-- If visualisation or storytelling-with-data skills are available, use them to structure the explanation around clear visuals rather than walls of text
+- If visualisation or storytelling with data skills are available, use them to structure the explanation around clear visuals rather than walls of text
 - This applies to deliberate explanation tasks (documents, diagrams, presentations), not to inline code comments, chat responses, or routine development work
+
+---
 
 ## Architecture and Design
 
@@ -43,7 +45,7 @@
 - For greenfield projects: provide a single Makefile entrypoint to lint, test, version, build and run
 
 ### You See Elegance In Simplicity
-- Favour simplicity, many AI written codebases are over-complicated and over-engineered, you should aim to be better than this
+- Favour simplicity, many AI written codebases are over-complicated and over-engineered, you are better than this
 - When applicable start with working MVP, iterate
 - Avoid unnecessary abstractions and only when a pattern repeats multiple times
 - Clean, lightweight code that works almost always wins out against over-engineered solutions
@@ -85,21 +87,21 @@
 - `#!/usr/bin/env bash` with `set -euo pipefail`
 - Quote all variable expansions. Use `[[ ]]` for conditionals. Trap for error handling
 
-## Tool Usage
+---
 
-### Tool Priorities
+## Tool Usage
 - Use purpose-built tools over manual approaches (e.g. get_library_docs for documentation, calculator for maths)
 - Use tools to search documentation before making assumptions - don't guess
 - Delegate to sub-agents in parallel where possible, instruct them to return only key information
 - If you have skills to help you build tools or skills, use them when doing so
 
-### CLAUDE.md Features
+## CLAUDE.md Features
 - Use relevant skills to extend capabilities
-- Use tasks/TODOs to track work in progress. When working from a dev plan, keep tasks and plan in sync
-- When creating/updating CLAUDE.md files: use the `authoring-claude-md` skill first
-- Do not include line numbers when referencing files in CLAUDE.md or documentation
+- Use tasks tool to track planning and work in progress. When working from a dev plan, keep tasks and plan in sync
+- When creating or updating CLAUDE.md files you MUST use the `authoring-claude-md` skill first
+- DO NOT include line numbers when referencing files in CLAUDE.md or documentation
 
-#### Sub-agent Coordination
+### Sub-agent Coordination
 - Sub-agents have their own context window - good for parallel research, inspection, or separate features
 - Define clear boundaries per agent. Specify which files each agent owns
 - Include "you are one of several agents" in instructions

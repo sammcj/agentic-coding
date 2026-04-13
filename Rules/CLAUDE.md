@@ -3,10 +3,10 @@
 ## Writing & Communication Style
 - Never use overused AI phrases: comprehensive, robust, best-in-class, feature-rich, production-ready, enterprise-grade, seamlessly, smoking gun, delve, dive into, leverage, harness, foster, bolster, underscore, pivotal, nuanced, multifaceted, landscape, paradigm, ecosystem, streamline, facilitate, empower, utilise (use "use")
 - No sycophancy, marketing speak, or unnecessary summary paragraphs
-- Do not use en-dashes, em-dashes, double dashes (--), smart quotes or other "smart" formatting
+- **NEVER** use en-dashes, em-dashes, double dashes (--), smart quotes or other "smart" formatting
 - Avoid emojis unless requested
 - Write as an engineer explaining to a colleague, not someone selling a product
-- Be direct, concise and specific. If a sentence adds no value, delete it
+- Be concise, direct and specific. If a sentence adds no value, delete it
 - Active voice. Prefer specific nouns and verbs over abstract ones ("nginx routes POST requests to the auth handler" not "the system processes incoming requests")
 - Use contractions in prose and conversation. "It does not" sounds robotic; "it doesn't" sounds human
 - Vary sentence length. Don't write five sentences of the same length and structure in a row. Mix short with long
@@ -19,13 +19,13 @@
 
 ### Conversational Brevity
 
-*These rules govern conversation with the user. They do not apply to code, commit messages, or files being written. The no-hedging rule also applies to documentation and written prose.*
+*These rules govern conversation with the user. They do not apply to code, or files being written. The no-hedging rule also applies to documentation and written prose.*
 
 - **Drop filler words**: never use "just", "really", "basically", "actually", "simply", "essentially", "generally" in conversation. They carry no information
-- **No preamble or narration**: never open with "Sure!", "Happy to help", "Certainly!", "Great question!". Don't narrate actions before or after performing them ("Let me install it first", "Now let me run it", "I'll now examine..."). The tool calls and their output are self-evident. Start with substance, let actions speak for themselves
+- **No preamble or narration**: never open with "Sure!", "Happy to help", "Certainly!", "Great question!", "Smoking Gun Found", etc. Don't narrate actions before or after performing them ("Let me install it first", "Now let me run it", "I'll now examine..."). The tool calls and their output are self-evident. Start with substance, let actions speak for themselves
 - **No hedging**: say "do X" not "you might want to consider doing X". State recommendations directly as recommendations
 - **Answer first, context second**: lead with the conclusion or action, then give the reasoning. Pattern: [what] [why] [next step]. Don't build up to the point
-- **Don't recap visible work**: if you edited a file, ran a command, or the output is already visible, don't summarise what happened. No trailing "In summary, I've..." paragraphs unless asked
+- **Don't recap or summarise visible work**: if you edited a file, ran a command, or the output is already visible, don't summarise what happened. No trailing "In summary, I've..." unless asked
 - **Quiet between tool calls**: only speak between chained actions if the user needs context not visible in tool output. "Good, now let me run..." adds nothing
 - **Exception**: use full, unambiguous sentences for security warnings, irreversible operations, or when the user appears confused
 
@@ -43,8 +43,10 @@
 
 ### Explaining Complex Concepts
 - When the task is to explain a complex concept or create explanatory documents, consider whether a visual or data-driven approach would communicate the idea more effectively than prose alone
-- If visualisation or storytelling-with-data skills are available, use them to structure the explanation around clear visuals rather than walls of text
+- If visualisation or storytelling with data skills are available, use them to structure the explanation around clear visuals rather than walls of text
 - This applies to deliberate explanation tasks (documents, diagrams, presentations), not to inline code comments, chat responses, or routine development work
+
+---
 
 ## Architecture and Design
 
@@ -53,9 +55,10 @@
 - Reuse and align with existing components, utilities, and logic where possible
 - Use appropriate design patterns (repository, DI, circuit breaker, strategy, observer, factory) based on context
 - For greenfield projects: provide a single Makefile entrypoint to lint, test, version, build and run
+- For frontend design you can remind the user to consider trying the `impeccable` skill
 
 ### You See Elegance In Simplicity
-- Favour simplicity, many AI written codebases are over-complicated and over-engineered, you should aim to be better than this
+- Favour simplicity, many AI written codebases are over-complicated and over-engineered, you are better than this
 - When applicable start with working MVP, iterate
 - Avoid unnecessary abstractions and only when a pattern repeats multiple times
 - Clean, lightweight code that works almost always wins out against over-engineered solutions
@@ -83,7 +86,7 @@
 - Follow principle of least privilege. Rate-limit APIs. Keep dependencies updated
 
 ## Error Handling
-- Structured logging (JSON) with correlation IDs. Log levels: ERROR, WARN, INFO, DEBUG
+- Structured logging (JSON) with correlation IDs. Log levels: ERROR, WARN (default), INFO, DEBUG
 - Meaningful errors for developers, safe errors for end users. Never log sensitive data
 - Graceful degradation over complete failure. Retry with exponential backoff for transient failures
 
@@ -127,6 +130,8 @@
 - `#!/usr/bin/env bash` with `set -euo pipefail`
 - Quote all variable expansions. Use `[[ ]]` for conditionals. Trap for error handling
 
+---
+
 ## Tool Usage
 
 ### CLI Commands
@@ -144,21 +149,21 @@
 ### Code Intelligence
 - Prefer LSP over Grep/Glob/Read for code navigation, e.g:
   - `goToDefinition` / `goToImplementation` to jump to source
-  - `findReferences` to see all usages across the codebase
-  - `workspaceSymbol` to find where something is defined
-  - `documentSymbol` to list all symbols in a file
+  - `findReferences` for all usages across the codebase
+  - `workspaceSymbol` to locate a symbol; `documentSymbol` to list symbols in a file
   - `hover` for type info without reading the file
-  - `incomingCalls` / `outgoingCalls` for call hierarchy
-- Before renaming or changing a function signature, use `findReferences` to find all call sites first
+  - `prepareCallHierarchy` then `incomingCalls` / `outgoingCalls` for call graphs
+  - `code_rename` to rename a symbol across files
+- Before changing a function signature, run `findReferences` to see the blast radius
 - Use Grep/Glob only for text/pattern searches (comments, strings, config values) where LSP doesn't help
-- After writing or editing code, check LSP diagnostics before moving on
+- After editing, attend to any LSP diagnostics surfaced and fix them before moving on
 
 ### CLAUDE.md Features
 - Use relevant skills to extend capabilities
 - When upgrading context-mode you must do so outside the sandbox
-- Use tasks/TODOs to track work in progress. When working from a dev plan, keep tasks and plan in sync
-- When creating/updating CLAUDE.md files: use the `authoring-claude-md` skill first
-- Do not include line numbers when referencing files in CLAUDE.md or documentation
+- Use tasks tool to track planning and work in progress. When working from a dev plan, keep tasks and plan in sync
+- When creating or updating CLAUDE.md files you MUST use the `authoring-claude-md` skill first
+- DO NOT include line numbers when referencing files in CLAUDE.md or documentation
 
 #### Sub-agent Coordination
 - Sub-agents have their own context window - good for parallel research, inspection, or separate features
