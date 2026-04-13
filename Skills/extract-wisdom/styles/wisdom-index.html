@@ -649,13 +649,15 @@
       border-radius: 4px;
     }
 
-    .viewer-content .mermaid-diagram {
+    .viewer-content .mermaid-diagram,
+    .viewer-content .graphviz-diagram {
       margin: 1.2em 0;
       text-align: center;
       overflow-x: auto;
     }
 
-    .viewer-content .mermaid-diagram svg {
+    .viewer-content .mermaid-diagram svg,
+    .viewer-content .graphviz-diagram svg {
       max-width: 100%;
       height: auto;
     }
@@ -1102,6 +1104,35 @@
       });
     }
 
+    /* ---- Graphviz rendering ---- */
+    function renderGraphvizBlocks() {
+      if (typeof Viz === "undefined" || !Viz.instance) return;
+      var codeBlocks = viewerContent.querySelectorAll(
+        'code.language-graphviz, code.language-dot'
+      );
+      if (!codeBlocks.length) return;
+      Viz.instance().then(function(viz) {
+        codeBlocks.forEach(function(codeEl) {
+          var pre = codeEl.parentElement;
+          if (!pre || pre.tagName !== "PRE") return;
+          var dotSrc = codeEl.textContent;
+          try {
+            var svgEl = viz.renderSVGElement(dotSrc);
+            svgEl.removeAttribute("width");
+            svgEl.removeAttribute("height");
+            var container = document.createElement("div");
+            container.className = "graphviz-diagram";
+            container.appendChild(svgEl);
+            pre.replaceWith(container);
+          } catch (err) {
+            /* leave as code block if graphviz fails to parse */
+          }
+        });
+      }).catch(function() {
+        /* viz.js failed to initialise */
+      });
+    }
+
     /* ---- TOC generation and scroll spy ---- */
     function buildToc() {
       var headings = viewerContent.querySelectorAll("h2, h3");
@@ -1228,6 +1259,7 @@
           + escapeHtml(entry.body || "") + '</pre>';
       }
       renderMermaidBlocks();
+      renderGraphvizBlocks();
       buildToc();
       viewerScrollEl = viewerContent.closest(".viewer-scroll");
       viewerScrollEl.scrollTop = 0;
@@ -1371,6 +1403,10 @@
         }
       };
       document.head.appendChild(mm);
+
+      var gv = document.createElement("script");
+      gv.src = "https://cdn.jsdelivr.net/npm/@viz-js/viz@3.11.0/lib/viz-standalone.js";
+      document.head.appendChild(gv);
 
       render();
       searchInput.focus();
