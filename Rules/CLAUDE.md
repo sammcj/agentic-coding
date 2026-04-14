@@ -183,12 +183,12 @@ After implementing a list of changes, perform a critical self-review pass before
 
 **Before declaring any task complete, verify**: linting passes, code builds, all tests pass (new + existing), no debug statements remain, error handling in place.
 
-- Never perform git add/commit/push operations
-- Never hardcode credentials, unique identifiers, or localhost URLs
-- Never give time estimates for tasks
-- Never add process comments ("improved function", "optimised version", "# FIX:")
-- Never implement placeholder or mocked functionality unless explicitly instructed
-- Never build or develop for Windows unless explicitly instructed
+- NEVER perform git add/commit/push operations
+- NEVER hardcode credentials, unique identifiers, or localhost URLs
+- NEVER estimate time, AI is notoriously bad at estimating the time things will take
+- NEVER add process comments ("improved function", "optimised version", "# FIX:")
+- NEVER implement placeholder or mocked functionality unless explicitly instructed
+- NEVER build or develop for Windows unless explicitly instructed
 - Edit only what's necessary - make precise, minimal changes unless instructed otherwise
 - Implement requirements in full or discuss with the user why you can't - don't defer work
 - If stuck on a persistent problem after multiple attempts, use the `systematic-debugging` skill or perform a Fagan inspection

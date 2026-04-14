@@ -71,12 +71,17 @@ Aim for <4k tokens in the main SKILL.md. Move detailed content to reference file
 
 ## What to Not Include in a Skill
 
-Skills should only contain files that directly support functionality. Do NOT create:
+Skills should only contain files that directly support functionality.
+
+**DO NOT** create:
 
 - README.md, CHANGELOG.md, INSTALLATION_GUIDE.md, QUICK_START.md, SUMMARY.md
 - User-facing documentation or setup procedures
 - Context about the creation process itself
-- A ToC or Index of content within the same file
+- Fluff, filler, otherwise inconsequential content that doesn't support execution of the skill's function
+- A table of contents or index of the skill content within the same file
+- Content that an agent could easily infer or would know to access without the skill
+- Rich file formats (e.g. zip, pptx, png, pdf etc.) unless they're a template (AI is most efficient with text and tools, bundled file formats add overhead and complexity)
 
 The skill is for an AI agent to do the job. Auxiliary documentation adds clutter and wastes context.
 
@@ -112,6 +117,8 @@ After creating or updating a skill, always perform a critical self-review:
 **Avoid railroading Claude.** Because skills are reusable across many different prompts and contexts, being too specific in instructions backfires. Give Claude the information it needs, but leave flexibility to adapt to the situation. Overly rigid instructions (heavy MUSTs, exact step sequences) break when the context shifts even slightly.
 
 **Think through the setup.** Some skills need user-specific configuration (e.g. which Slack channel, which database, API keys). Pattern: on first run, check for a config file; if missing, ask the user and store their answers. This avoids hardcoding values that differ per user or environment.
+
+Do not add inline scripts within markdown, single commands / simple one liners are fine, but scripts should be their own files.
 
 ## Gotchas
 
