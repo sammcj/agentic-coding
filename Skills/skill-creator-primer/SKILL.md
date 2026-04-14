@@ -1,6 +1,6 @@
 ---
 name: skill-creator-primer
-description: Foundational skill-authoring knowledge to use alongside the skill-creator skill. Always load this skill before loading the skill-creator skill when creating or updating skills.
+description: Foundational skill-authoring knowledge to use alongside the skill-creator skill. You MUST always load this skill before loading the skill-creator skill, when creating or updating skills.
 ---
 
 # Skill Creator Primer
