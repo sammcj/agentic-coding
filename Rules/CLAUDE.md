@@ -127,6 +127,14 @@
 - Avoid exposing generics via public or inter-crate APIs (unless there is a really good reason)
 - Only activate required features on external crates
 
+### Bash
+- `#!/usr/bin/env bash` with `set -euo pipefail`
+- Quote all variable expansions. Use `[[ ]]` for conditionals. Trap for error handling
+
+### Building AI Systems
+
+- Don't use prompts for control flow, prioritise solving problems with code rather than prompting
+
 ### Github
 - Use the `gh` CLI tool for interacting with GitHub (issues, PRs, releases) and perform `gh` commands outside of the sandbox
 - When writing Github Actions Workflows, always check for and use the latest Actions versions that are at least 7 days old, you can use `pinact run -update --min-age 7` to achieve this
@@ -135,10 +143,6 @@
 - When explicitly asked by the user to "close" or "resolve" a review comment, resolve the thread via the GraphQL mutation (do not reply to a comment unless instructed): `gh api graphql -f query='mutation($id: ID!) { resolveReviewThread(input: { threadId: $id }) { thread { isResolved } } }' -f id="PRRT_..."`
 - Thread IDs start with `PRRT_`. Use `unresolveReviewThread` to reopen
 - You can audit Github Actions security by running `zizmor .`
-
-### Bash
-- `#!/usr/bin/env bash` with `set -euo pipefail`
-- Quote all variable expansions. Use `[[ ]]` for conditionals. Trap for error handling
 
 ---
 

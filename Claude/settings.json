@@ -365,15 +365,6 @@
             "timeout": 2000
           }
         ]
-      },
-      {
-        "matcher": "Bash|WebFetch|Read|Grep|Agent|Task|mcp__plugin_context-mode_context-mode__ctx_execute|mcp__plugin_context-mode_context-mode__ctx_execute_file|mcp__plugin_context-mode_context-mode__ctx_batch_execute",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /Users/samm/.claude/plugins/marketplaces/context-mode/hooks/pretooluse.mjs"
-          }
-        ]
       }
     ],
     "PermissionRequest": [
@@ -388,17 +379,7 @@
         ]
       }
     ],
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /Users/samm/.claude/plugins/marketplaces/context-mode/hooks/sessionstart.mjs"
-          }
-        ]
-      }
-    ]
+    "SessionStart": []
   },
   "statusLine": {
     "type": "command",
