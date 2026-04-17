@@ -16,13 +16,13 @@ Summarise what's changed in Claude Code since the user last ran this skill. No i
 All state lives in `resources/cc-summary.md` inside the skill's directory (resolve relative to this `SKILL.md`, not the user's current working directory). It has two jobs:
 
 1. Hold the last-seen Claude Code version in YAML frontmatter.
-2. Accumulate a rolling log of previously generated summaries so the user has a history they can re-read without rerunning the skill.
+2. Keep only the latest summary and the single previous summary. Anything older gets dropped.
 
 Expected shape:
 
 ```markdown
 ---
-last_seen_version: 2.1.90
+last_seen_version: 2.1.95
 last_updated: 2026-04-15
 ---
 
@@ -37,10 +37,12 @@ last_updated: 2026-04-15
 - ...
 
 ## 2.1.90 (2026-03-28)
-...
+
+### Hooks
+- ...
 ```
 
-Newest summary goes at the top of the body, directly under the `# Claude Code Changelog Summaries` heading. Keep older sections intact.
+The body holds at most two `## <version>` sections: the newest at the top, the prior run directly below it. When prepending a new section, drop the oldest so only two remain.
 
 ## Flow
 
@@ -61,7 +63,7 @@ Newest summary goes at the top of the body, directly under the `# Claude Code Ch
    - Set `last_seen_version` in the frontmatter to the latest version from the changelog.
    - Set `last_updated` to today's date (ISO format).
    - Prepend a new `## <version> (<date>)` section under `# Claude Code Changelog Summaries` containing the same bucketed summary you just presented to the user.
-   - Leave existing history untouched.
+   - Keep only the newest two `## <version>` sections. If adding the new section would leave three or more, remove the oldest so exactly two remain (the current run and the immediately prior one).
 
    Confirm in one line: `Updated cc-summary.md to X.Y.Z.` If the run fails or the user aborts before the summary is delivered, leave the file alone.
 
@@ -107,4 +109,4 @@ Out of scope unless explicitly asked:
 - If the stored version is newer than anything in the changelog (e.g. the user bumped it manually, or the changelog page hasn't updated yet), say so plainly and don't invent a delta.
 - Don't conflate changelog entries with What's New summaries. The weekly summaries editorialise and occasionally omit smaller items, so treat the changelog as the source of truth for the list and use the summaries only for colour.
 - Resolve `resources/cc-summary.md` from the skill's own directory, not the user's current working directory. The user may invoke the skill from any project.
-- When updating `resources/cc-summary.md`, use `Edit` to prepend the new section. Only fall back to `Write` when the file doesn't yet exist. Never blow away the accumulated history.
+- When updating `resources/cc-summary.md`, use `Edit` to prepend the new section and remove the oldest so only the two most recent summaries remain. Only fall back to `Write` when the file doesn't yet exist.

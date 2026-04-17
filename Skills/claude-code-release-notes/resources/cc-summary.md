@@ -1,9 +1,65 @@
 ---
-last_seen_version: 2.1.108
-last_updated: 2026-04-15
+last_seen_version: 2.1.112
+last_updated: 2026-04-17
 ---
 
 # Claude Code Changelog Summaries
+
+## 2.1.109 → 2.1.112 (2026-04-17)
+
+### CLI & Terminal
+- **`/tui` command + `tui` setting (2.1.110)**: `/tui fullscreen` switches to flicker-free rendering inside the current conversation. New `autoScrollEnabled` config turns off auto-scroll in fullscreen.
+- **`/focus` command (2.1.110)**: `Ctrl+O` now only toggles normal/verbose transcript; focus view is separate. Focus mode writes more self-contained summaries since you only see the final message.
+- **PR status dot in footer (2.1.111)**: coloured dot shows the current branch's PR state (approved/changes-requested/pending/draft) with a clickable link.
+- **`Ctrl+G` external editor improvements (2.1.110)**: optional commented context of Claude's last response; shortcut now listed in help menu (2.1.111).
+- **Vim normal-mode history nav (2.1.111)**: arrow keys fall through to history navigation when the cursor can't move further.
+- **Shimmer thinking status + extended-thinking progress hint (2.1.109/2.1.111)**.
+
+### Skills & Commands
+- **`/team-onboarding` (2.1.111)**: generates a teammate ramp-up guide from your local usage patterns.
+- **`/commit-push-pr` auto-posts PR URLs to Slack (2.1.111)** when a Slack MCP server is configured.
+- **`/copy` available to all users (2.1.111)**.
+- **`ToolSearch` as notification (2.1.111)**: results appear as a brief toast instead of inline noise.
+
+### Web & Remote Control
+- **Mobile push notifications (2.1.110)**: Claude can push to your phone when Remote Control + "Push when Claude decides" are on.
+- **Remote Control runs more commands (2.1.110)**: `/context`, `/exit`, `/reload-plugins` work from mobile/web.
+- **`--resume`/`--continue` resurrects unexpired scheduled tasks (2.1.110)**.
+- **`/ultraplan` auto-creates a cloud env (2.1.111)**; hidden in plan mode when the org/auth can't reach Claude Code on the web.
+
+### Memory & Config
+- **`CLAUDE.md` from `--add-dir` roots (2.1.111)**: opt-in via `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1`.
+- **OS CA store trusted by default (2.1.111)**: enterprise TLS proxies work out of the box; set `CLAUDE_CODE_CERT_STORE=bundled` to revert.
+- **Timestamped, rotated config backups (2.1.111)**: keeps 5 most recent to prevent data loss.
+
+### Permissions & Sandboxing
+- **Background agents prompt for permissions before launch (2.1.111)**.
+- **`Bash(*)` now accepted as equivalent to `Bash` (2.1.111)**.
+- **OTEL sensitive attributes gated (2.1.111)**: spans honour `OTEL_LOG_USER_PROMPTS`/`OTEL_LOG_TOOL_DETAILS`/`OTEL_LOG_TOOL_CONTENT`.
+- **Command-injection fix in LSP `which` fallback (2.1.111)**: POSIX path.
+
+### Plugins & MCP
+- **`/plugin` Installed tab reshuffled (2.1.110)**: attention items + favourites on top, disabled folded away, `f` favourites the selection.
+- **Plugin install honours `plugin.json` dependencies (2.1.110)** even when the marketplace entry omits them; lists auto-installed deps.
+- **Managed-hooks/plugin warnings (2.1.111)**: `/plugin` and `claude plugin update` surface refresh failures instead of silently reporting stale versions.
+
+### SDK & Headless
+- **SDK `query()` cleanup on early exit (2.1.111)**: subprocess and temp files are released when consumers `break` from `for await` or use `await using`.
+- **Brief mode retry (2.1.111)**: one retry when Claude returns plain text instead of a structured message.
+
+### Tasks
+- **Delete tasks via `TaskUpdate` (2.1.111)**.
+
+### Notable Fixes
+- **opus-4-7 auto-mode availability (2.1.112)**: fixed "claude-opus-4-7 is temporarily unavailable".
+- **Session compaction on resume (2.1.111)**: no longer loads full history instead of the compact summary.
+- **Memory leak in long sessions (2.1.111)**: virtual scroller kept dozens of historical message-list copies.
+- **Agents ignoring user mid-task messages (2.1.111)**.
+- **MCP hanging on SSE/HTTP disconnects + non-streaming retry hangs (2.1.110)**.
+- **Skills with `disable-model-invocation: true` failing via `/<skill>` mid-message (2.1.110)**.
+- **Wide-char (emoji/CJK) rendering artefacts, ghost-text flicker, diff view on resize (2.1.111)**.
+
+Doc references: [cli](https://code.claude.com/docs/en/cli-reference), [interactive mode](https://code.claude.com/docs/en/interactive-mode), [remote control](https://code.claude.com/docs/en/remote-control), [plugins](https://code.claude.com/docs/en/plugins), [memory](https://code.claude.com/docs/en/memory), [permissions](https://code.claude.com/docs/en/permissions), [scheduled tasks](https://code.claude.com/docs/en/scheduled-tasks).
 
 ## 2.1.89 → 2.1.108 (2026-04-15, first run digest)
 
