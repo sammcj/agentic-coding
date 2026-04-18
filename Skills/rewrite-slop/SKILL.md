@@ -1,5 +1,5 @@
 ---
-name: write-slop
+name: rewrite-slop
 description: Rewrites text containing AI slop to make it more human-like. Use when explicitly asked to rewrite AI generated text.
 ---
 
