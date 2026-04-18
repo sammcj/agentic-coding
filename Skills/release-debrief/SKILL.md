@@ -1,5 +1,5 @@
 ---
-name: claude-code-release-notes
+name: release-debrief
 description: >-
   Summarises the delta between a tool's latest release and the last summary the user saw.
   Use when the user asks about what's new, the latest release, release notes, or the changelog
