@@ -1,1 +1,2 @@
-resources/cc-summary.md
+resources/outputs/*
+!resources/outputs/.gitkeep

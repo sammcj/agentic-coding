@@ -1,112 +1,109 @@
 ---
 name: claude-code-release-notes
 description: >-
-  Summarises what's new in the latest Claude Code releases. Use when the user asks about
-  the latest Claude Code release, release notes, changelog, or what's new in Claude Code.
+  Summarises the delta between a tool's latest release and the last summary the user saw.
+  Use when the user asks about what's new, the latest release, release notes, or the changelog
+  of one of the supported tools: Claude Code, OpenCode, llama-swap, or llama.cpp.
+allowed-tools: >-
+  Read Write Edit Grep Glob
+  WebFetch(domain:claude.com)
+  WebFetch(domain:opencode.ai)
+  WebFetch(domain:github.com)
+  WebFetch(domain:raw.githubusercontent.com)
+  Bash(gh release list *)
+  Bash(gh release view *)
+  Bash(gh api *)
+  Bash(open *)
 metadata:
   author: 'Sam McLeod (adapted from Arjen Schwarz)'
 ---
 
-# Claude Code Changelog Catch-Up
+# Release Notes Catch-Up
 
-Summarise what's changed in Claude Code since the user last ran this skill. No interactive walkthrough, no exercises. Just a focused digest of the delta.
+Summarise what's changed in a supported tool since the user last ran this skill against it. No walkthroughs, no exercises. Focused digest of the delta.
 
-## Storage File
+## Supported Tools
 
-All state lives in `resources/cc-summary.md` inside the skill's directory (resolve relative to this `SKILL.md`, not the user's current working directory). It has two jobs:
+Each tool has a **profile** in `resources/tools/<tool>.md` (source URLs, buckets, gotchas) and an **output file** in `resources/outputs/<tool>.md` (last-seen version and summary history). Resolve both paths relative to this `SKILL.md`, not the user's current working directory.
 
-1. Hold the last-seen Claude Code version in YAML frontmatter.
-2. Keep only the latest summary and the single previous summary. Anything older gets dropped.
+| Tool | Aliases the user may type | Profile | Output |
+|------|---------------------------|---------|--------|
+| Claude Code | claude-code, claudecode, cc | `resources/tools/claude-code.md` | `resources/outputs/claude-code.md` |
+| OpenCode | opencode, open-code | `resources/tools/opencode.md` | `resources/outputs/opencode.md` |
+| llama-swap | llama-swap, llamaswap | `resources/tools/llama-swap.md` | `resources/outputs/llama-swap.md` |
+| llama.cpp | llama-cpp, llama.cpp, llamacpp | `resources/tools/llama-cpp.md` | `resources/outputs/llama-cpp.md` |
 
-Expected shape:
-
-```markdown
----
-last_seen_version: 2.1.95
-last_updated: 2026-04-15
----
-
-# Claude Code Changelog Summaries
-
-## 2.1.95 (2026-04-15)
-
-### Hooks
-- ...
-
-### MCP & Plugins
-- ...
-
-## 2.1.90 (2026-03-28)
-
-### Hooks
-- ...
-```
-
-The body holds at most two `## <version>` sections: the newest at the top, the prior run directly below it. When prepending a new section, drop the oldest so only two remain.
+Tool selection: match the tool from the user's prompt against the aliases above. If the user names something not in this table, reply with the supported list and stop.
 
 ## Flow
 
-1. **Read state.** Load `resources/cc-summary.md`. Parse `last_seen_version` from the frontmatter. If the file is missing, empty, or has no frontmatter version, treat this as a first run: ask the user which version to start from, or offer a digest of roughly the last 10 releases as a default.
+1. **Load the tool profile.** Read `resources/tools/<tool>.md`. It tells you where to fetch the changelog, how the version scheme works, which buckets to group under, what to drop, and what to watch out for. Treat the profile as authoritative for that tool.
 
-2. **Fetch the current changelog.** Get `https://code.claude.com/docs/en/changelog` using `WebFetch` or `ctx_fetch_and_index`. Also check `https://code.claude.com/docs/en/whats-new/`. The weekly summaries there often have more context than the raw changelog lines.
+2. **Read state.** Load the tool's output file. Parse `last_seen_version` from the frontmatter. If the file is missing, empty, or has no frontmatter version, treat as a first run: summarise the **last 3 releases** per the profile's version scheme, without prompting.
 
-3. **Identify the delta.** Keep entries newer than the stored version, up to the latest release. Compare versions numerically by component (e.g. `2.1.90` < `2.1.100`), not lexicographically.
+3. **Fetch the current changelog.** Use `WebFetch` or `ctx_fetch_and_index` against the profile's **Primary** source. Pull **Supporting** sources only when you need context for an entry (config schema comparison, API doc linking, editorial summary for colour).
 
-4. **Summarise.** Group changes into sensible buckets (Hooks, MCP & Plugins, CLI & Terminal, Skills & Commands, Subagents, Permissions & Sandboxing, Memory & Config, Web & Desktop, Context & Performance, Scheduled Tasks). For each item:
-   - One line on what it is
-   - One line on why it matters or when you'd reach for it
-   - A link to the relevant doc page when the feature is non-trivial (see table below)
+4. **Identify the delta.** Keep entries newer than the stored version, up to the latest release. Compare versions using the scheme in the profile:
+   - `semver` - parse major.minor.patch and compare numerically per component.
+   - `build-number` - strip any prefix (`b`, `v`) and compare as integer.
+   - `github-release-tag` - use GitHub's release order (chronological).
 
-   Keep the tone dense and direct. Flag anything experimental or niche. Don't pad with generic commentary.
+   Never compare version tags as lexicographic strings.
 
-5. **Persist state.** Use `Edit` (or `Write` if the file is missing) to update `resources/cc-summary.md`:
-   - Set `last_seen_version` in the frontmatter to the latest version from the changelog.
+5. **Summarise.** Group entries under the profile's **Buckets**. For each item:
+   - One line on what it is.
+   - One line on why it matters or when you'd reach for it.
+   - A doc link (from the profile's Feature Link Table, or the release page itself) when the feature is non-trivial.
+
+   Apply the profile's **Out of Scope** list to drop low-signal entries. Apply the profile's **Gotchas** when deciding how to parse, group, or flag things. Keep tone dense and direct. Flag anything experimental, breaking, or schema-affecting prominently.
+
+6. **Persist state.** Use `Edit` (or `Write` if the output file doesn't yet exist) to update the tool's output file:
+   - Set `last_seen_version` in the frontmatter to the latest version from the fetched changelog (the single newest one, even if the summary covers a range).
    - Set `last_updated` to today's date (ISO format).
-   - Prepend a new `## <version> (<date>)` section under `# Claude Code Changelog Summaries` containing the same bucketed summary you just presented to the user.
-   - Keep only the newest two `## <version>` sections. If adding the new section would leave three or more, remove the oldest so exactly two remain (the current run and the immediately prior one).
+   - Prepend a new `## <version> (<date>)` section under `# <Tool> Changelog Summaries` containing the bucketed summary you just presented. When a single run covers multiple versions, use a range heading: `## <oldest> → <newest> (<date>)`.
+   - Keep only the newest **two** `##` sections. If adding the new section would leave three or more, remove the oldest so exactly two remain.
 
-   Confirm in one line: `Updated cc-summary.md to X.Y.Z.` If the run fails or the user aborts before the summary is delivered, leave the file alone.
+   Confirm in one line: `Updated resources/outputs/<tool>.md to <version>.` If the run fails or the user aborts before the summary is delivered, leave the file alone.
+
+7. **Open the output file.** After a successful write, run `open </absolute/path/to/resources/outputs/<tool>.md>` so the user can read the summary in their default markdown viewer.
+
+## Storage File Format
+
+Each output file follows this shape:
+
+```markdown
+---
+last_seen_version: 2.1.112
+last_updated: 2026-04-17
+---
+
+# <Tool> Changelog Summaries
+
+## <version> (<date>)
+
+### <Bucket>
+- ...
+
+## <prior version> (<prior date>)
+
+### <Bucket>
+- ...
+```
+
+`<version>` in the heading can be a single version (`2.1.112`) or a range when one run covered several (`2.1.109 → 2.1.112`). `last_seen_version` in the frontmatter is always the single newest version. At most two `##` sections: newest at top, prior run directly below. When prepending, drop the oldest.
 
 ## Scope Overrides
 
-- If the user specifies a version explicitly ("what's new since 2.1.90"), use their version instead of the stored one. Still persist state at the end unless they say not to.
-- If the user asks for everything in the last N days or weeks, use changelog dates rather than the stored version.
-- If the user asks about a specific area only (e.g. "just hooks"), filter the delta to that area but still persist state at the end. Note the filter in the new summary section's heading (e.g. `## 2.1.95 (2026-04-15, hooks only)`).
+- **Explicit version** ("what's new since 2.1.90"): use the user's version instead of `last_seen_version`. Still persist state unless they say not to.
+- **Date range** ("everything in the last 2 weeks"): use changelog dates rather than version. Still persist state.
+- **Area filter** ("just hooks"): filter the delta to that area, but still persist state. Note the filter in the new section's heading: `## <version> (<date>, hooks only)`.
+- **No persist** ("don't update state"): skip step 6, tell the user state was not persisted.
 
-## Source Material
+## Common Gotchas
 
-Primary:
-- Changelog: `https://code.claude.com/docs/en/changelog`
-- What's New summaries: `https://code.claude.com/docs/en/whats-new/`
-- Doc index: `https://code.claude.com/docs/en/llms.txt`
-
-Feature pages to link when relevant:
-
-| Area | Doc Pages |
-|------|-----------|
-| Hooks | `/hooks`, `/hooks-guide` |
-| Skills & Commands | `/skills`, `/commands` |
-| MCP & Plugins | `/mcp`, `/plugins`, `/plugins-reference` |
-| Subagents | `/sub-agents`, `/agent-teams` |
-| CLI & Terminal | `/cli-reference`, `/interactive-mode`, `/keybindings`, `/statusline`, `/fast-mode`, `/fullscreen` |
-| Memory & Config | `/memory`, `/settings`, `/claude-directory`, `/env-vars` |
-| Permissions | `/permission-modes`, `/permissions`, `/sandboxing`, `/security` |
-| Context & Performance | `/context-window`, `/checkpointing`, `/monitoring-usage`, `/costs` |
-| Web & Desktop | `/desktop`, `/claude-code-on-the-web`, `/remote-control`, `/ultraplan` |
-| Scheduled Tasks | `/scheduled-tasks` |
-| Channels & Events | `/channels`, `/channels-reference` |
-| Advanced | `/headless`, `/computer-use` |
-
-Out of scope unless explicitly asked:
-- Agent SDK (`/agent-sdk/*`): separate product
-- Cloud providers (Bedrock, Vertex, Foundry), authentication, LLM gateway, model config
-- IDE extensions (VS Code, JetBrains), CI/CD integrations (GitHub Actions, GitLab), Slack, Chrome
-
-## Gotchas
-
-- The changelog page is large. Fetch it via `WebFetch` or `ctx_fetch_and_index`, not Bash piping, to keep the main context lean.
-- Version strings are semver-ish. `2.1.9` is older than `2.1.10`, so don't compare them as strings.
-- If the stored version is newer than anything in the changelog (e.g. the user bumped it manually, or the changelog page hasn't updated yet), say so plainly and don't invent a delta.
-- Don't conflate changelog entries with What's New summaries. The weekly summaries editorialise and occasionally omit smaller items, so treat the changelog as the source of truth for the list and use the summaries only for colour.
-- Resolve `resources/cc-summary.md` from the skill's own directory, not the user's current working directory. The user may invoke the skill from any project.
-- When updating `resources/cc-summary.md`, use `Edit` to prepend the new section and remove the oldest so only the two most recent summaries remain. Only fall back to `Write` when the file doesn't yet exist.
+- Resolve `resources/tools/<tool>.md` and `resources/outputs/<tool>.md` relative to this `SKILL.md`. Users invoke the skill from arbitrary working directories.
+- Version parsing differs per tool - always read the profile's **Version Scheme** section before comparing. Don't assume semver.
+- If the stored version is newer than anything in the fetched changelog (user bumped it manually, or the source hasn't updated yet), say so plainly and don't invent a delta.
+- Use `Edit` to prepend the new section and remove the oldest so only two remain. Fall back to `Write` only when the file doesn't yet exist.
+- Don't mix tools in one output file. Each tool owns its own output file.
+- First-run heuristic (last 3 releases) applies per tool, not per invocation. If the user ran the skill on Claude Code yesterday and asks about OpenCode today, OpenCode is still a first run.
