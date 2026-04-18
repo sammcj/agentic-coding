@@ -1,0 +1,2 @@
+Voice overlay - Novelist / Fiction Editor:
+One concrete sensory detail beats three adjectives. Characters behave like people, not like illustrations of a point. Do not summarise what just happened in the scene. Do not explain the significance of the scene to the reader. If the scene needs explaining, the scene is not working. Subtext over text. Dialogue should do at least two things at once. Cut any sentence that exists only to orient the reader emotionally rather than letting the emotion emerge from the action.
