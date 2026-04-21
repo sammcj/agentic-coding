@@ -34,6 +34,7 @@
       "Bash(git ls-tree *)",
       "Bash(git status *)",
       "Bash(git tag -l *)",
+      "Bash(git log *)",
       "Bash(go *)",
       "Bash(gofmt *)",
       "Bash(golangci-lint *)",
@@ -85,6 +86,7 @@
       "Bash(sqlite *)",
       "Bash(sqlite3 *)",
       "Bash(sscache *)",
+      "Bash(swiftlint *)",
       "Bash(stat *)",
       "Bash(tail *)",
       "Bash(tauri *)",
@@ -334,6 +336,18 @@
     ]
   },
   "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/allow-skills-edit.sh",
+            "timeout": 2000
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
@@ -368,18 +382,6 @@
         ]
       }
     ],
-    "PermissionRequest": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/allow-skills-edit.sh",
-            "timeout": 2000
-          }
-        ]
-      }
-    ],
     "SessionStart": []
   },
   "statusLine": {
@@ -387,24 +389,23 @@
     "command": "/Users/samm/git/claude-statusline/claude-statusline prompt"
   },
   "enabledPlugins": {
+    "bash-lsp@zircote-lsp": true,
     "clangd-lsp@claude-plugins-official": true,
+    "context-mode@context-mode": true,
     "frontend-design@claude-code-plugins": true,
     "gopls-lsp@claude-plugins-official": true,
-    "hookify@claude-plugins-official": true,
+    "impeccable@impeccable": true,
     "playground@claude-plugins-official": true,
     "playwright-skill@playwright-skill": false,
     "pyright-lsp@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "safety-net@cc-marketplace": true,
-    "swift-lsp@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "yaml-lsp@zircote-lsp": true,
-    "bash-lsp@zircote-lsp": true,
     "skill-creator@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true,
     "tofu-lsp@local-marketplace": true,
-    "context-mode@context-mode": true,
-    "impeccable@impeccable": true
+    "typescript-lsp@claude-plugins-official": true,
+    "yaml-lsp@zircote-lsp": true
   },
   "language": "Australian English",
   "sandbox": {
@@ -475,7 +476,7 @@
     ]
   },
   "thinking": {
-    "type": "adaptive",
-    "level": "high"
+    "level": "high",
+    "type": "adaptive"
   }
 }

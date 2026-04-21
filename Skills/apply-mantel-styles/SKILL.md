@@ -22,6 +22,16 @@ When creating visual diagrams or frontend components, you can apply the followin
 | Sky Blue   | `#81CCEA` | rgb(129, 204, 234)   |
 | Cloud      | `#EEF9FD` | rgb(238, 249, 253)   |
 
+### Extended Palette (derived — use sparingly)
+
+| Name           | Hex       | Usage                                                  |
+|----------------|-----------|--------------------------------------------------------|
+| Card Dark      | `#0A3A55` | Slightly lighter than Deep Ocean — cards on dark bg     |
+| Ocean Light    | `#2A7AA3` | Mid-tone for gradients or hover states                  |
+| Flamingo Light | `#E8A0B3` | Softer pink for backgrounds or disabled states          |
+| Text on Dark   | `#FFFFFF` | White text on Deep Ocean / Ocean backgrounds            |
+| Text on Light  | `#002A41` | Deep Ocean text on Cloud / white backgrounds            |
+
 ---
 
 ## General Design Principles
@@ -34,6 +44,11 @@ When creating visual diagrams or frontend components, you can apply the followin
 4. Foundation/Authority: Deep Ocean (#002A41)
 5. Background/Neutral: Cloud (#EEF9FD)
 
+- **Light backgrounds** use Cloud (`#EEF9FD`) or white (`#FFFFFF`).
+- **Dark backgrounds** use Deep Ocean (`#002A41`). Never use pure black (`#000000`).
+- **Primary text** on light backgrounds is Deep Ocean. On dark backgrounds, use white.
+- **Accent elements** (borders, icons, highlights) use Ocean, Flamingo, or Sky Blue.
+
 ### Semantic Usage
 
 - Use Ocean for primary actions, main navigation, success states
@@ -41,6 +56,7 @@ When creating visual diagrams or frontend components, you can apply the followin
 - Use Flamingo sparingly for CTAs, warnings, important highlights
 - Use Deep Ocean for text, borders, authoritative elements
 - Use Cloud for backgrounds, subtle dividers, inactive states
+- Default to light / day mode colour schemes
 
 ### Consistency Rules
 
@@ -51,305 +67,7 @@ When creating visual diagrams or frontend components, you can apply the followin
 
 ---
 
-## Mermaid Styles
-
-Example Mermaid class definitions to apply Mantel brand styles to diagrams
-
-### Mermaid Theme Class Definitions
-
-#### Primary elements (Ocean with Cloud fill for readability)
-
-```
-classDef process fill:#EEF9FD,stroke:#1E5E82,stroke-width:2px,color:#002A41
-classDef components fill:#EEF9FD,stroke:#1E5E82,stroke-width:2px,color:#002A41
-classDef subprocess fill:#EEF9FD,stroke:#1E5E82,stroke-width:1px,color:#002A41,stroke-dasharray:5 5
-```
-
-#### Interactive/Input elements (Sky Blue)
-
-```
-classDef inputOutput fill:#81CCEA,stroke:#1E5E82,stroke-width:2px,color:#002A41
-classDef api fill:#81CCEA,stroke:#002A41,stroke-width:2px,color:#002A41
-classDef user fill:#81CCEA,stroke:#002A41,stroke-width:2px,color:#002A41
-classDef external fill:#81CCEA,stroke:#002A41,stroke-width:2px,color:#002A41,stroke-dasharray:3 3
-```
-
-#### Decision points and important elements (Flamingo)
-
-```
-classDef decision fill:#D86E89,stroke:#002A41,stroke-width:2px,color:#FFFFFF
-classDef critical fill:#D86E89,stroke:#002A41,stroke-width:2px,color:#FFFFFF
-classDef error fill:#D86E89,stroke:#002A41,stroke-width:3px,color:#FFFFFF
-classDef warning fill:#D86E8955,stroke:#D86E89,stroke-width:2px,color:#002A41
-classDef security fill:#D86E89,stroke:#002A41,stroke-width:3px,color:#FFFFFF,stroke-dasharray:2 1
-```
-
-#### Data and storage (Deep Ocean)
-
-```
-classDef data fill:#002A41,stroke:#1E5E82,stroke-width:2px,color:#EEF9FD
-classDef storage fill:#002A41,stroke:#1E5E82,stroke-width:2px,color:#EEF9FD
-classDef database fill:#002A41,stroke:#1E5E82,stroke-width:2px,color:#EEF9FD
-classDef cache fill:#002A4166,stroke:#1E5E82,stroke-width:2px,color:#002A41
-```
-
-#### State classes
-
-```
-classDef start fill:#1E5E82,stroke:#002A41,stroke-width:3px,color:#EEF9FD
-classDef end fill:#002A41,stroke:#1E5E82,stroke-width:3px,color:#EEF9FD
-classDef success fill:#1E5E8233,stroke:#1E5E82,stroke-width:2px,color:#002A41
-classDef pending fill:#81CCEA55,stroke:#81CCEA,stroke-width:2px,color:#002A41,stroke-dasharray:5 5
-classDef active fill:#1E5E82,stroke:#002A41,stroke-width:2px,color:#EEF9FD
-classDef complete fill:#1E5E8255,stroke:#1E5E82,stroke-width:2px,color:#002A41
-classDef disabled fill:#EEF9FD,stroke:#81CCEA66,stroke-width:1px,color:#81CCEA
-classDef inactive fill:#EEF9FD,stroke:#81CCEA66,stroke-width:1px,color:#81CCEA
-```
-
-#### Process types
-
-```
-classDef manual fill:#EEF9FD,stroke:#D86E89,stroke-width:2px,color:#002A41
-classDef automated fill:#EEF9FD,stroke:#1E5E82,stroke-width:2px,color:#002A41
-classDef async fill:#81CCEA33,stroke:#81CCEA,stroke-width:2px,color:#002A41,stroke-dasharray:8 3
-classDef sync fill:#EEF9FD,stroke:#1E5E82,stroke-width:2px,color:#002A41
-```
-
-#### System elements
-
-```
-classDef system fill:#002A4133,stroke:#002A41,stroke-width:2px,color:#002A41
-classDef network fill:#81CCEA33,stroke:#1E5E82,stroke-width:2px,color:#002A41
-classDef queue fill:#81CCEA55,stroke:#1E5E82,stroke-width:2px,color:#002A41
-classDef monitoring fill:#EEF9FD,stroke:#81CCEA,stroke-width:2px,color:#002A41,stroke-dasharray:1 1
-```
-
-#### Emphasis and highlights
-
-```
-classDef highlight fill:#D86E8922,stroke:#D86E89,stroke-width:3px,color:#002A41
-classDef focus fill:#1E5E8244,stroke:#1E5E82,stroke-width:3px,color:#002A41
-classDef selected fill:#81CCEA44,stroke:#002A41,stroke-width:3px,color:#002A41
-```
-
-#### Secondary elements
-
-```
-classDef secondary fill:#EEF9FD,stroke:#81CCEA,stroke-width:2px,color:#002A41
-classDef note fill:#EEF9FD,stroke:#81CCEA,stroke-width:1px,color:#1E5E82
-classDef comment fill:#EEF9FD,stroke:#81CCEA,stroke-width:1px,color:#1E5E82,stroke-dasharray:3 3
-classDef optional fill:#EEF9FD,stroke:#81CCEA,stroke-width:1px,color:#002A41,stroke-dasharray:5 5
-```
-
-#### Default styling
-
-```
-classDef default fill:#EEF9FD,stroke:#1E5E82,stroke-width:2px,color:#002A41
-```
-
-### Mermaid Usage Guide
-
-**Core Process Elements:**
-- Use 'process' for standard workflow steps
-- Use 'subprocess' for nested or child processes
-- Use 'components' for system components or modules
-
-**Interactive Elements:**
-- Use 'inputOutput' for user interactions or system I/O
-- Use 'user' for user/actor specific elements
-- Use 'api' for external service connections
-- Use 'external' for third-party systems or external dependencies
-
-**Decision and Alert Elements:**
-- Use 'decision' for branching logic or critical choices
-- Use 'critical' for important warnings or highlights
-- Use 'error' for error states or failure conditions
-- Use 'warning' for caution states (less severe than errors)
-- Use 'security' for security-related checkpoints or processes
-
-**Data Elements:**
-- Use 'data' for data objects or data flow
-- Use 'storage' or 'database' for persistent storage
-- Use 'cache' for temporary storage or caching layers
-
-**State Elements:**
-- Use 'start' for process start points
-- Use 'end' for process end points
-- Use 'success' for successful completion states
-- Use 'pending' for waiting or queued states
-- Use 'active' for currently running processes
-- Use 'complete' for finished processes
-- Use 'disabled' or 'inactive' for unavailable elements
-
-**Process Types:**
-- Use 'manual' for human/manual processes
-- Use 'automated' for automatic processes
-- Use 'async' for asynchronous operations
-- Use 'sync' for synchronous operations
-
-**System Elements:**
-- Use 'system' for internal system components
-- Use 'network' for network-related elements
-- Use 'queue' for message queues or buffers
-- Use 'monitoring' for logging or monitoring components
-
-**Emphasis Elements:**
-- Use 'highlight' for temporarily emphasised elements
-- Use 'focus' for elements requiring attention
-- Use 'selected' for user-selected items
-
-**Supporting Elements:**
-- Use 'secondary' for supporting or auxiliary elements
-- Use 'note' for annotations or explanatory text
-- Use 'comment' for inline comments or documentation
-- Use 'optional' for optional steps or components
-
-### Transparency Note
-
-Some classes use transparency via hex alpha values (e.g., #81CCEA55):
-- Last 2 digits represent opacity: FF=100%, CC=80%, 99=60%, 66=40%, 55=33%, 33=20%, 22=13%
-- Used for: warning, cache, pending, disabled, system, network, queue, highlight states
-- This creates visual hierarchy without introducing non-brand colours
-
-### Mermaid Rules
-
-- Use `<br>` instead of `\n` for line breaks
-- Apply standard colour theme unless specified otherwise
-- Do NOT use round brackets `( )` within item labels or descriptions
-- Mermaid does not support unordered lists within item labels
-
----
-
-## PlantUML Styles
-
-### PlantUML Colour Definitions
-
-Apply these at the start of PlantUML diagrams:
-
-```plantuml
-!define OCEAN #1E5E82
-!define FLAMINGO #D86E89
-!define DEEP_OCEAN #002A41
-!define SKY_BLUE #81CCEA
-!define CLOUD #EEF9FD
-
-skinparam backgroundColor CLOUD
-skinparam defaultFontColor DEEP_OCEAN
-
-' Activity Diagrams
-skinparam activity {
-   BackgroundColor CLOUD
-   BorderColor OCEAN
-   FontColor DEEP_OCEAN
-   StartColor OCEAN
-   EndColor DEEP_OCEAN
-   BarColor FLAMINGO
-   DiamondBackgroundColor SKY_BLUE
-   DiamondBorderColor OCEAN
-}
-
-' Class Diagrams
-skinparam class {
-   BackgroundColor CLOUD
-   BorderColor OCEAN
-   FontColor DEEP_OCEAN
-   AttributeFontColor OCEAN
-   StereotypeFontColor SKY_BLUE
-   ArrowColor OCEAN
-   HeaderBackgroundColor SKY_BLUE
-}
-
-' Sequence Diagrams
-skinparam sequence {
-   ParticipantBackgroundColor SKY_BLUE
-   ParticipantBorderColor OCEAN
-   ActorBackgroundColor CLOUD
-   ActorBorderColor DEEP_OCEAN
-   LifeLineBorderColor OCEAN
-   ArrowColor OCEAN
-   GroupBackgroundColor CLOUD
-   GroupBorderColor SKY_BLUE
-   NoteBackgroundColor CLOUD
-   NoteBorderColor FLAMINGO
-}
-
-' Component Diagrams
-skinparam component {
-   BackgroundColor CLOUD
-   BorderColor OCEAN
-   FontColor DEEP_OCEAN
-   InterfaceBackgroundColor SKY_BLUE
-   InterfaceBorderColor DEEP_OCEAN
-}
-
-' State Diagrams
-skinparam state {
-   BackgroundColor CLOUD
-   BorderColor OCEAN
-   FontColor DEEP_OCEAN
-   StartColor OCEAN
-   EndColor DEEP_OCEAN
-   AttributeFontColor OCEAN
-}
-
-' Use Case Diagrams
-skinparam usecase {
-   BackgroundColor CLOUD
-   BorderColor OCEAN
-   FontColor DEEP_OCEAN
-   ActorBackgroundColor SKY_BLUE
-   ActorBorderColor DEEP_OCEAN
-}
-
-' Error/Warning States
-skinparam note {
-   BackgroundColor<<warning>> FLAMINGO
-   BorderColor<<warning>> DEEP_OCEAN
-   FontColor<<warning>> CLOUD
-}
-```
-
----
-
 ## Frontend Component Styles
-
-### CSS Variables
-
-```css
-:root {
-   /* Primary Colours */
-   --brand-ocean: #1E5E82;
-   --brand-flamingo: #D86E89;
-   --brand-deep-ocean: #002A41;
-   --brand-sky-blue: #81CCEA;
-   --brand-cloud: #EEF9FD;
-
-   /* Semantic Mappings */
-   --colour-primary: var(--brand-ocean);
-   --colour-primary-dark: var(--brand-deep-ocean);
-   --colour-secondary: var(--brand-sky-blue);
-   --colour-accent: var(--brand-flamingo);
-   --colour-background: var(--brand-cloud);
-   --colour-surface: #FFFFFF;
-
-   /* Text Colours */
-   --text-primary: var(--brand-deep-ocean);
-   --text-secondary: var(--brand-ocean);
-   --text-on-primary: var(--brand-cloud);
-   --text-on-accent: #FFFFFF;
-
-   /* State Colours */
-   --colour-error: var(--brand-flamingo);
-   --colour-warning: var(--brand-flamingo);
-   --colour-success: var(--brand-ocean);
-   --colour-info: var(--brand-sky-blue);
-
-   /* Shadows and Overlays */
-   --shadow-colour: rgba(0, 42, 65, 0.1);
-   --overlay-light: rgba(238, 249, 253, 0.9);
-   --overlay-dark: rgba(0, 42, 65, 0.8);
-}
-```
 
 ### Component Guidelines
 
@@ -455,6 +173,45 @@ skinparam note {
 - Grid Lines: Sky Blue (#81CCEA) at 20% opacity
 - Text: Deep Ocean (#002A41)
 
+
+### CSS Variables
+
+```css
+:root {
+   /* Primary Colours */
+   --brand-ocean: #1E5E82;
+   --brand-flamingo: #D86E89;
+   --brand-deep-ocean: #002A41;
+   --brand-sky-blue: #81CCEA;
+   --brand-cloud: #EEF9FD;
+
+   /* Semantic Mappings */
+   --colour-primary: var(--brand-ocean);
+   --colour-primary-dark: var(--brand-deep-ocean);
+   --colour-secondary: var(--brand-sky-blue);
+   --colour-accent: var(--brand-flamingo);
+   --colour-background: var(--brand-cloud);
+   --colour-surface: #FFFFFF;
+
+   /* Text Colours */
+   --text-primary: var(--brand-deep-ocean);
+   --text-secondary: var(--brand-ocean);
+   --text-on-primary: var(--brand-cloud);
+   --text-on-accent: #FFFFFF;
+
+   /* State Colours */
+   --colour-error: var(--brand-flamingo);
+   --colour-warning: var(--brand-flamingo);
+   --colour-success: var(--brand-ocean);
+   --colour-info: var(--brand-sky-blue);
+
+   /* Shadows and Overlays */
+   --shadow-colour: rgba(0, 42, 65, 0.1);
+   --overlay-light: rgba(238, 249, 253, 0.9);
+   --overlay-dark: rgba(0, 42, 65, 0.8);
+}
+```
+
 ### Tailwind Configuration
 
 ```js
@@ -482,6 +239,12 @@ module.exports = {
 - Where applicable, the 'Inter' typeface is used for headlines, subheadings, and body copy.
 - Favour bundling the font for offline use over relying on CDNs.
 
+| Role        | Font  | Weight   | CSS                 |
+|-------------|-------|----------|---------------------|
+| Headlines   | Inter | SemiBold | `font-weight: 600`  |
+| Subheadings | Inter | Medium   | `font-weight: 500`  |
+| Body copy   | Inter | Regular  | `font-weight: 400`  |
+
 ### Inter CDN Fallback
 
 If bundling is not possible, use this CDN:
@@ -501,6 +264,42 @@ If bundling is not possible, use this CDN:
   :root { font-family: InterVariable, sans-serif; }
 }
 ```
+
+---
+
+## Logo System
+
+### Logo Variants
+
+The skill bundles all logo files in `assets/`. Selection guide:
+
+| File                        | Use when…                                          |
+|-----------------------------|----------------------------------------------------|
+| `Mantel_Logo__Positive.svg` | Full-colour logo on **light** backgrounds           |
+| `Mantel_Logo__Negative.svg` | Full-colour logo on **dark** backgrounds            |
+| `Mantel_Logo__Navy.svg`     | Mono (Deep Ocean) logo on **light** backgrounds     |
+| `Mantel_Logo__White.svg`    | Mono (white) logo on **dark** backgrounds           |
+| `Mantel_Icon__Positive.svg` | Full-colour icon only, on **light** backgrounds     |
+| `Mantel_Icon__Negative.svg` | Full-colour icon only, on **dark** backgrounds      |
+| `Mantel_Icon__Navy.svg`     | Mono (Deep Ocean) icon, on **light** backgrounds    |
+| `Mantel_Icon__White.svg`    | Mono (white) icon, on **dark** backgrounds          |
+
+### Logo Rules (critical — violations are immediately visible)
+
+1. **Never stretch or distort.** Logo aspect ratio is approximately 4.67:1. Icon is approximately 1.5:1. Always preserve proportions.
+2. **Never change logo colours.** Use only the provided variants — never recolour the icon or wordmark.
+3. **Never crop the logo.** All elements must be fully visible.
+4. **Minimum clear space** around the logo equals the height and width of the icon portion.
+5. **Minimum sizes:** Logo 80px / 21mm wide. Icon 44px / 12mm wide.
+6. **Light logo on light background = wrong.** Dark logo on dark background = wrong. Always use the variant that contrasts with the background.
+7. **Preferred for client-facing materials:** Use the full-colour Negative logo on Deep Ocean backgrounds. This is the most common and branded combination.
+8. **Never add a coloured border around the logo** — the brand guide explicitly prohibits this.
+
+---
+
+## Resources
+
+If you are creating diagrams you MUST also read in ./resources/diagrams.md
 
 ---
 

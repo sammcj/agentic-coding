@@ -114,6 +114,8 @@ You MUST adhere to the following principles in all writing, communication, and d
 - NEVER add process comments ("improved function", "optimised version", "# FIX:")
 - NEVER implement placeholder or mocked functionality unless explicitly instructed
 - NEVER build or develop for Windows unless explicitly instructed
+- Optimise for reduced failure modes
+- Ensure config / state is not duplicated across files
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
 
 ### Golang
