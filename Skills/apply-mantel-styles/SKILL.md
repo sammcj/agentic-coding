@@ -22,15 +22,73 @@ When creating visual diagrams or frontend components, you can apply the followin
 | Sky Blue   | `#81CCEA` | rgb(129, 204, 234)   |
 | Cloud      | `#EEF9FD` | rgb(238, 249, 253)   |
 
-### Extended Palette (derived — use sparingly)
+### Extended Palette — Brand Ramps (50 lightest → 900 darkest)
 
-| Name           | Hex       | Usage                                                  |
-|----------------|-----------|--------------------------------------------------------|
-| Card Dark      | `#0A3A55` | Slightly lighter than Deep Ocean — cards on dark bg     |
-| Ocean Light    | `#2A7AA3` | Mid-tone for gradients or hover states                  |
-| Flamingo Light | `#E8A0B3` | Softer pink for backgrounds or disabled states          |
-| Text on Dark   | `#FFFFFF` | White text on Deep Ocean / Ocean backgrounds            |
-| Text on Light  | `#002A41` | Deep Ocean text on Cloud / white backgrounds            |
+Use these tokens for tints, shades, hover states, borders, and surfaces without introducing non-brand colours. Prefer the core step (bold) for each brand colour; reach for neighbouring steps when you need contrast adjustment.
+
+**Ocean** — core `500`
+
+```text
+ 50  #E8F2F8      500  #1E5E82   ← core
+100  #C5DCEA      600  #174E6E
+200  #9DC3D8      700  #103D57
+300  #6AA5C3      800  #0A2D40
+400  #3D89AF      900  #042031
+```
+
+**Flamingo** — core `500`
+
+```text
+ 50  #FAEEF2      500  #D86E89   ← core
+100  #F4D1DA      600  #C25079
+200  #EDB0BE      700  #9E3456
+300  #E690A2      800  #7A1E3D
+400  #DE7F92      900  #550E28
+```
+
+**Sky** — core `400` (Sky's brand anchor sits at 400, not 500)
+
+```text
+ 50  #F0FAFD      400  #81CCEA   ← core
+100  #D9F1F9      500  #59BAE2
+200  #B8E5F5      600  #329DD3
+300  #95D6EF      700  #1B7EAD
+                  800  #0E5F85
+                  900  #064260
+```
+
+**Neutral** — greys for text, borders, dividers on light surfaces
+
+```text
+ 50  #F5F7F9      500  #8A99AB
+100  #DDE3EA      600  #5C6A7A
+200  #C5CED9      700  #3E4F5E
+300  #A8B5C4      800  #293C49
+400  #B2BECC      900  #161C21
+```
+
+### Anchor Tokens (fixed, not on a ramp)
+
+| Token | Hex | Use |
+|---|---|---|
+| Deep Ocean | `#002A41` | Primary dark background |
+| Cloud | `#EEF9FD` | Primary light / neutral background |
+| Skywalker 950 | `#001421` | Near-black dark surface |
+| Skywalker 900 | `#001E2F` | Deepest dark section |
+| Skywalker 800 | `#042D44` | Dark surface 2 |
+| Skywalker 700 | `#073B58` | Dark surface 3 |
+| Skywalker 600 | `#0C4F74` | Dark surface 4 (lightest dark) |
+
+### Semantic Status Colours
+
+Use these for success / warning / error / attention states. Do not substitute brand colours — overloading Flamingo for errors breaks the semantic contract users rely on.
+
+| Token | Hex | Use |
+|---|---|---|
+| Yoda 600 | `#07883D` | Success / positive |
+| BB8 600 | `#E87400` | Warning |
+| Kylo 600 | `#D91544` | Error / danger |
+| Pyre 300 | `#FFD60A` | Highlight / attention |
 
 ---
 
@@ -51,11 +109,12 @@ When creating visual diagrams or frontend components, you can apply the followin
 
 ### Semantic Usage
 
-- Use Ocean for primary actions, main navigation, success states
-- Use Sky Blue for interactive elements, information, secondary actions
-- Use Flamingo sparingly for CTAs, warnings, important highlights
+- Use Ocean for primary actions, main navigation, and brand-level emphasis
+- Use Sky Blue for interactive elements, information, and secondary actions
+- Use Flamingo sparingly for CTAs and brand highlights (not for errors — use Kylo)
 - Use Deep Ocean for text, borders, authoritative elements
 - Use Cloud for backgrounds, subtle dividers, inactive states
+- Use the semantic status colours (Yoda / BB8 / Kylo / Pyre) for success / warning / error / attention — never substitute brand colours for these
 - Default to light / day mode colour schemes
 
 ### Consistency Rules
@@ -63,7 +122,7 @@ When creating visual diagrams or frontend components, you can apply the followin
 - Avoid mixing colour schemes from other brands
 - Maintain consistent colour meanings across all diagrams in a project
 - When transparency is needed, use rgba values of the brand colours
-- For hover states, darken by 10-15% or lighten by 10-15% staying within brand
+- For hover/pressed states, step one rung on the brand ramp (e.g. `ocean-500` → `ocean-600` on hover, `flamingo-500` → `flamingo-600` on press). Only fall back to percentage darken/lighten if no ramp token fits
 
 ---
 
@@ -86,9 +145,9 @@ When creating visual diagrams or frontend components, you can apply the followin
 - Border: Ocean (#1E5E82)
 
 **Accent/CTA:**
-- Background: Flamingo (#D86E89)
+- Background: Flamingo 500 (#D86E89)
 - Text: White (#FFFFFF)
-- Hover: Darker Flamingo (darken by 10%)
+- Hover: Flamingo 600 (#C25079)
 - Border: none
 
 **Ghost/Outline:**
@@ -119,7 +178,7 @@ When creating visual diagrams or frontend components, you can apply the followin
 - Focus Border: Ocean (#1E5E82)
 - Text: Deep Ocean (#002A41)
 - Placeholder: Sky Blue (#81CCEA)
-- Error Border: Flamingo (#D86E89)
+- Error Border: Kylo 600 (#D91544)
 
 **Labels:**
 - Colour: Ocean (#1E5E82)
@@ -139,23 +198,25 @@ When creating visual diagrams or frontend components, you can apply the followin
 
 #### Alerts and Messages
 
+Use the semantic status colours — do not overload Flamingo for errors/warnings or Ocean for success.
+
 **Error:**
-- Background: Flamingo (#D86E89) at 10% opacity
-- Border: Flamingo (#D86E89)
+- Background: Kylo 600 (#D91544) at 10% opacity
+- Border: Kylo 600 (#D91544)
 - Text: Deep Ocean (#002A41)
-- Icon: Flamingo (#D86E89)
+- Icon: Kylo 600 (#D91544)
 
 **Warning:**
-- Background: Flamingo (#D86E89) at 5% opacity
-- Border: Flamingo (#D86E89) at 50%
+- Background: BB8 600 (#E87400) at 10% opacity
+- Border: BB8 600 (#E87400)
 - Text: Deep Ocean (#002A41)
-- Icon: Flamingo (#D86E89)
+- Icon: BB8 600 (#E87400)
 
 **Success:**
-- Background: Ocean (#1E5E82) at 10% opacity
-- Border: Ocean (#1E5E82)
+- Background: Yoda 600 (#07883D) at 10% opacity
+- Border: Yoda 600 (#07883D)
 - Text: Deep Ocean (#002A41)
-- Icon: Ocean (#1E5E82)
+- Icon: Yoda 600 (#07883D)
 
 **Info:**
 - Background: Sky Blue (#81CCEA) at 10% opacity
@@ -173,19 +234,52 @@ When creating visual diagrams or frontend components, you can apply the followin
 - Grid Lines: Sky Blue (#81CCEA) at 20% opacity
 - Text: Deep Ocean (#002A41)
 
-
 ### CSS Variables
 
 ```css
 :root {
-   /* Primary Colours */
-   --brand-ocean: #1E5E82;
-   --brand-flamingo: #D86E89;
+   /* Core brand (anchor steps) */
+   --brand-ocean: #1E5E82;        /* ocean-500 */
+   --brand-flamingo: #D86E89;     /* flamingo-500 */
+   --brand-sky-blue: #81CCEA;     /* sky-400 */
    --brand-deep-ocean: #002A41;
-   --brand-sky-blue: #81CCEA;
    --brand-cloud: #EEF9FD;
 
-   /* Semantic Mappings */
+   /* Ocean ramp */
+   --ocean-50:  #E8F2F8; --ocean-100: #C5DCEA; --ocean-200: #9DC3D8;
+   --ocean-300: #6AA5C3; --ocean-400: #3D89AF; --ocean-500: #1E5E82;
+   --ocean-600: #174E6E; --ocean-700: #103D57; --ocean-800: #0A2D40;
+   --ocean-900: #042031;
+
+   /* Flamingo ramp */
+   --flamingo-50:  #FAEEF2; --flamingo-100: #F4D1DA; --flamingo-200: #EDB0BE;
+   --flamingo-300: #E690A2; --flamingo-400: #DE7F92; --flamingo-500: #D86E89;
+   --flamingo-600: #C25079; --flamingo-700: #9E3456; --flamingo-800: #7A1E3D;
+   --flamingo-900: #550E28;
+
+   /* Sky ramp */
+   --sky-50:  #F0FAFD; --sky-100: #D9F1F9; --sky-200: #B8E5F5;
+   --sky-300: #95D6EF; --sky-400: #81CCEA; --sky-500: #59BAE2;
+   --sky-600: #329DD3; --sky-700: #1B7EAD; --sky-800: #0E5F85;
+   --sky-900: #064260;
+
+   /* Neutral greys */
+   --neutral-50:  #F5F7F9; --neutral-100: #DDE3EA; --neutral-200: #C5CED9;
+   --neutral-300: #A8B5C4; --neutral-400: #B2BECC; --neutral-500: #8A99AB;
+   --neutral-600: #5C6A7A; --neutral-700: #3E4F5E; --neutral-800: #293C49;
+   --neutral-900: #161C21;
+
+   /* Dark surfaces */
+   --skywalker-950: #001421; --skywalker-900: #001E2F; --skywalker-800: #042D44;
+   --skywalker-700: #073B58; --skywalker-600: #0C4F74;
+
+   /* Semantic status */
+   --yoda-600: #07883D;  /* success */
+   --bb8-600:  #E87400;  /* warning */
+   --kylo-600: #D91544;  /* error */
+   --pyre-300: #FFD60A;  /* highlight */
+
+   /* Semantic mappings */
    --colour-primary: var(--brand-ocean);
    --colour-primary-dark: var(--brand-deep-ocean);
    --colour-secondary: var(--brand-sky-blue);
@@ -193,19 +287,20 @@ When creating visual diagrams or frontend components, you can apply the followin
    --colour-background: var(--brand-cloud);
    --colour-surface: #FFFFFF;
 
-   /* Text Colours */
+   /* Text */
    --text-primary: var(--brand-deep-ocean);
    --text-secondary: var(--brand-ocean);
    --text-on-primary: var(--brand-cloud);
    --text-on-accent: #FFFFFF;
 
-   /* State Colours */
-   --colour-error: var(--brand-flamingo);
-   --colour-warning: var(--brand-flamingo);
-   --colour-success: var(--brand-ocean);
+   /* State (semantic status — do not substitute brand colours) */
+   --colour-error: var(--kylo-600);
+   --colour-warning: var(--bb8-600);
+   --colour-success: var(--yoda-600);
    --colour-info: var(--brand-sky-blue);
+   --colour-highlight: var(--pyre-300);
 
-   /* Shadows and Overlays */
+   /* Shadows and overlays */
    --shadow-colour: rgba(0, 42, 65, 0.1);
    --overlay-light: rgba(238, 249, 253, 0.9);
    --overlay-dark: rgba(0, 42, 65, 0.8);
@@ -214,18 +309,53 @@ When creating visual diagrams or frontend components, you can apply the followin
 
 ### Tailwind Configuration
 
+Tailwind's config key is `colors` (American spelling) — this is required by the framework regardless of project-wide spelling conventions.
+
 ```js
 module.exports = {
    theme: {
       extend: {
-         colours: {
-            'brand': {
-               'ocean': '#1E5E82',
-               'flamingo': '#D86E89',
-               'deep-ocean': '#002A41',
+         colors: {
+            brand: {
+               ocean: '#1E5E82',
+               flamingo: '#D86E89',
                'sky-blue': '#81CCEA',
-               'cloud': '#EEF9FD',
-            }
+               'deep-ocean': '#002A41',
+               cloud: '#EEF9FD',
+            },
+            ocean: {
+               50: '#E8F2F8', 100: '#C5DCEA', 200: '#9DC3D8',
+               300: '#6AA5C3', 400: '#3D89AF', 500: '#1E5E82',
+               600: '#174E6E', 700: '#103D57', 800: '#0A2D40',
+               900: '#042031',
+            },
+            flamingo: {
+               50: '#FAEEF2', 100: '#F4D1DA', 200: '#EDB0BE',
+               300: '#E690A2', 400: '#DE7F92', 500: '#D86E89',
+               600: '#C25079', 700: '#9E3456', 800: '#7A1E3D',
+               900: '#550E28',
+            },
+            sky: {
+               50: '#F0FAFD', 100: '#D9F1F9', 200: '#B8E5F5',
+               300: '#95D6EF', 400: '#81CCEA', 500: '#59BAE2',
+               600: '#329DD3', 700: '#1B7EAD', 800: '#0E5F85',
+               900: '#064260',
+            },
+            neutral: {
+               50: '#F5F7F9', 100: '#DDE3EA', 200: '#C5CED9',
+               300: '#A8B5C4', 400: '#B2BECC', 500: '#8A99AB',
+               600: '#5C6A7A', 700: '#3E4F5E', 800: '#293C49',
+               900: '#161C21',
+            },
+            skywalker: {
+               600: '#0C4F74', 700: '#073B58', 800: '#042D44',
+               900: '#001E2F', 950: '#001421',
+            },
+            // Semantic status (single-step anchors)
+            yoda: '#07883D',   // success
+            bb8:  '#E87400',   // warning
+            kylo: '#D91544',   // error
+            pyre: '#FFD60A',   // highlight
          }
       }
    }
