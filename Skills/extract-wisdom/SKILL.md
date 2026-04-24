@@ -1,7 +1,7 @@
 ---
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
-allowed-tools: Read Write Edit Glob Grep Task WebSearch WebFetch WebFetch(*) Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *) Bash(prettier --write:*)
+allowed-tools: Read Write Edit Glob Grep Task WebSearch WebFetch WebFetch(*) Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *) Bash(prettier --write:*) Bash(gh api gists *)
 ---
 
 # Wisdom Extraction
