@@ -1,6 +1,6 @@
 ---
 name: storytelling-with-data
-description: "Apply storytelling principles to create, review, and improve data visualisations and data-driven communications. Combines Cole Nussbaumer Knaflic's SWD framework (chart selection, decluttering, emphasis) with narrative frameworks from Brent Dykes (Data Storytelling Arc), Nancy Duarte (Sparkline), Donald Miller (StoryBrand SB7), Matthew Dicks (Five-Second Moment), and Heath Brothers (SUCCESs). Use when creating charts, dashboards, infographics, presentations, pitch decks, or reports that communicate data, or when structuring narrative arcs, hooks, aha moments, or persuasive stories. Trigger on: 'SWD', 'storytelling with data', 'data story', 'narrative arc', 'hook', 'aha moment', 'StoryBrand', 'Sparkline', 'declutter', 'chart makeover', 'pitch deck narrative'."
+description: "Apply storytelling principles to create, review, and improve data visualisations and data-driven communications. Use when creating charts, dashboards, infographics, presentations, pitch decks, or reports that communicate data, or when structuring narrative arcs, hooks, aha moments, or persuasive stories."
 ---
 
 # Storytelling with Data (SWD) Skill

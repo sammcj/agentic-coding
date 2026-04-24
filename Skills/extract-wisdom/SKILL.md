@@ -169,7 +169,7 @@ Context: [Brief context if needed]
 
 ## Additional Resources
 
-[Any tools, links, or references mentioned in the content]
+[Any tools, links, git repos or references mentioned in the content]
 
 _Wisdom Extraction: [Current date in YYYY-MM-DD]_
 ```
