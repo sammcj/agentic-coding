@@ -213,7 +213,10 @@ Before finalising:
 - [ ] Sections only add non-obvious value
 - [ ] No code style guidelines (use linters instead)
 - [ ] Links to existing docs rather than duplicating them
+- [ ] Simple formatting, not smart quotes or dashes
 - [ ] No vague or overly verbose guidance
 - [ ] No temporary notes or TODOs (unless requested by the user)
 - [ ] No line numbers in file references
+- [ ] Information is unlikely to become stale quickly
+- [ ] Prefer positive rules with a substitute ("use semicolons or periods to separate clauses") over bare prohibitions ("never use em-dashes")
 - [ ] Focused on stable, long-term patterns

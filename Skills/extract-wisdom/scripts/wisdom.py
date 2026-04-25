@@ -30,20 +30,25 @@ from __future__ import annotations
 
 import argparse
 import base64
+import difflib
 import fcntl
 import hashlib
 import html as html_mod
 import json
+import math
 import os
 import platform
 import re
 import shutil
+import sqlite3
 import subprocess
 import sys
 import time
 import urllib.request
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 from zoneinfo import ZoneInfo
 
 # ---------------------------------------------------------------------------
@@ -73,7 +78,7 @@ CSS_FILE = SKILL_DIR / "styles" / "wisdom-pdf.css"
 TEMPLATE_FILE = SKILL_DIR / "styles" / "wisdom-pdf.html5"
 
 # Index generation settings.
-_INDEX_SCHEMA_VERSION = 3
+_INDEX_SCHEMA_VERSION = 7
 _INDEX_ENV_VAR = "EXTRACT_WISDOM_CREATE_INDEX"
 _INDEX_TEMPLATE = SKILL_DIR / "styles" / "wisdom-index.html"
 _INDEX_LOCK_TIMEOUT = 300  # seconds (5 minutes)
@@ -595,7 +600,6 @@ def cmd_transcript(args: argparse.Namespace) -> None:
     if not metadata:
         print("Error: Could not extract video metadata from URL", file=sys.stderr)
         sys.exit(1)
-        return  # unreachable, but helps the type checker narrow to dict
 
     video_id = metadata["id"]
     video_dir = base_dir / video_id
@@ -626,7 +630,6 @@ def cmd_transcript(args: argparse.Namespace) -> None:
             print("  - Rate limiting from YouTube", file=sys.stderr)
             print("  - Audio transcription deps not installed (pip install 'onnx-asr[cpu,hub]')", file=sys.stderr)
             sys.exit(1)
-            return  # unreachable, helps type checker
 
         _print_transcript_output(transcript_file, video_dir, metadata)
         return
@@ -672,7 +675,7 @@ def cmd_transcript(args: argparse.Namespace) -> None:
 # Output directory
 # ---------------------------------------------------------------------------
 
-def cmd_output_dir(_args: argparse.Namespace) -> None:  # noqa: ARG001
+def cmd_output_dir(_: argparse.Namespace) -> None:
     print(detect_base_dir())
 
 
@@ -822,11 +825,44 @@ def _strip_frontmatter(md_text: str) -> str:
     return md_text[end + 4:].lstrip("\n")
 
 
-def _parse_frontmatter(md_path: Path) -> dict[str, str] | None:
+def _unquote_yaml_scalar(value: str) -> str:
+    """Strip matching surrounding quotes from a YAML scalar."""
+    if len(value) >= 2 and value[0] in ('"', "'") and value[-1] == value[0]:
+        return value[1:-1].replace('\\"', '"').replace("\\'", "'")
+    return value
+
+
+def _split_yaml_flow_list(inner: str) -> list[str]:
+    """Split a flow-style YAML list body, respecting quoted commas."""
+    items: list[str] = []
+    buf: list[str] = []
+    quote: str | None = None
+    for ch in inner:
+        if quote is not None:
+            buf.append(ch)
+            if ch == quote:
+                quote = None
+        elif ch in ('"', "'"):
+            buf.append(ch)
+            quote = ch
+        elif ch == ",":
+            items.append("".join(buf))
+            buf = []
+        else:
+            buf.append(ch)
+    if buf:
+        items.append("".join(buf))
+    return items
+
+
+def _parse_frontmatter(md_path: Path) -> dict[str, Any] | None:
     """Parse YAML frontmatter from a markdown file.
 
-    Handles simple key: value pairs, quoted strings, and YAML folded
-    block scalars (>). Returns None if no frontmatter is found.
+    Handles simple key: value pairs, quoted strings, YAML folded block
+    scalars (>), flow-style lists ([a, b, c]) and block-style lists
+    (one ``- item`` per line). Scalar values come back as strings; list
+    values come back as ``list[str]``. Returns None if no frontmatter
+    is found.
     """
     text = md_path.read_text(encoding="utf-8")
     if not text.startswith("---"):
@@ -836,30 +872,82 @@ def _parse_frontmatter(md_path: Path) -> dict[str, str] | None:
         return None
     fm_block = text[4:end]
 
-    result: dict[str, str] = {}
+    result: dict[str, Any] = {}
     current_key: str | None = None
     value_lines: list[str] = []
+    list_items: list[str] | None = None
+
+    def _flush() -> None:
+        if current_key is None:
+            return
+        if list_items is not None:
+            result[current_key] = list_items
+            return
+        joined = " ".join(value_lines).strip()
+        # Late-detect a flow-style list that spanned multiple lines
+        # (e.g. ``tags:`` followed by ``[\n  a,\n  b,\n]``).
+        if joined.startswith("[") and joined.endswith("]"):
+            inner = joined[1:-1].strip()
+            result[current_key] = (
+                [_unquote_yaml_scalar(item.strip())
+                 for item in _split_yaml_flow_list(inner) if item.strip()]
+                if inner else []
+            )
+            return
+        result[current_key] = joined
 
     for line in fm_block.split("\n"):
         key_match = re.match(r"^([a-z_]+)\s*:\s*(.*)", line)
         if key_match and not line[0].isspace():
-            if current_key is not None:
-                result[current_key] = " ".join(value_lines).strip()
+            _flush()
             current_key = key_match.group(1)
             value = key_match.group(2).strip()
-            if value in (">", "|", ">-", "|-"):
+            list_items = None
+            value_lines = []
+            if value.startswith("[") and value.endswith("]"):
+                inner = value[1:-1].strip()
+                list_items = (
+                    [_unquote_yaml_scalar(item.strip())
+                     for item in _split_yaml_flow_list(inner) if item.strip()]
+                    if inner else []
+                )
+            elif value in (">", "|", ">-", "|-") or value == "":
                 value_lines = []
             else:
-                if len(value) >= 2 and value[0] in ('"', "'") and value[-1] == value[0]:
-                    value = value[1:-1].replace('\\"', '"').replace("\\'", "'")
-                value_lines = [value] if value else []
+                value_lines = [_unquote_yaml_scalar(value)]
         elif current_key is not None and (line.startswith("  ") or line.startswith("\t")):
-            value_lines.append(line.strip())
+            stripped = line.strip()
+            if stripped.startswith("- "):
+                if list_items is None:
+                    list_items = []
+                list_items.append(_unquote_yaml_scalar(stripped[2:].strip()))
+            elif list_items is None:
+                value_lines.append(stripped)
 
-    if current_key is not None:
-        result[current_key] = " ".join(value_lines).strip()
-
+    _flush()
     return result if result else None
+
+
+def _fm_str(fm: dict[str, Any] | None, key: str, default: str = "") -> str:
+    """Read a scalar string from frontmatter; coerce list values to comma-joined."""
+    if not fm:
+        return default
+    val = fm.get(key, default)
+    if isinstance(val, list):
+        return ", ".join(str(v) for v in val)
+    return str(val) if val is not None else default
+
+
+def _fm_list(fm: dict[str, Any] | None, key: str) -> list[str]:
+    """Read a list value from frontmatter; tolerate scalar by splitting on commas."""
+    if not fm:
+        return []
+    val = fm.get(key)
+    if isinstance(val, list):
+        return [str(v).strip() for v in val if str(v).strip()]
+    if isinstance(val, str) and val.strip():
+        return [item.strip() for item in val.split(",") if item.strip()]
+    return []
 
 
 _LIST_ITEM_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s")
@@ -1175,7 +1263,7 @@ def _render_diagrams(html_body: str) -> tuple[str, dict[str, int]]:
 
 def cmd_pdf(args: argparse.Namespace) -> None:
     try:
-        import markdown as md_lib  # ty: ignore[unresolved-import]
+        import markdown as md_lib  # type: ignore[import-untyped]  # ty: ignore[unresolved-import]
         from weasyprint import HTML  # type: ignore[import-untyped]  # ty: ignore[unresolved-import]
     except OSError as exc:
         if _is_mac():
@@ -1309,6 +1397,286 @@ def cmd_pdf(args: argparse.Namespace) -> None:
 # Index generation
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Search index, related entries, and tag-sprawl detection
+# ---------------------------------------------------------------------------
+
+# Filename used for the FTS5 search database written alongside index.html.
+_SEARCH_DB_NAME = "wisdom-search.db"
+
+# Filename caching precomputed related entries per dir_path.
+_RELATED_CACHE_NAME = "wisdom-related.json"
+
+# How many related entries to surface per item.
+_RELATED_TOP_K = 8
+
+# Reciprocal Rank Fusion constant. 60 is the conventional value.
+_RRF_K = 60
+
+# Maximum tags to consider for sprawl detection per pair.
+_TAG_SPRAWL_RATIO = 0.82  # difflib SequenceMatcher.ratio threshold
+
+# Minimal stopword list - small, English-only, focused on filler that hurts
+# TF-IDF signal without filtering meaningful terms.
+_STOPWORDS = frozenset({
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has",
+    "have", "he", "in", "is", "it", "its", "of", "on", "or", "she", "that",
+    "the", "their", "them", "they", "this", "to", "was", "we", "were", "what",
+    "when", "which", "who", "will", "with", "you", "your", "but", "not", "so",
+    "if", "about", "into", "than", "then", "there", "these", "those", "would",
+    "could", "should", "can", "do", "does", "did", "i", "my", "me", "our",
+    "us", "his", "her", "him",
+})
+
+_TOKEN_RE = re.compile(r"[a-z][a-z0-9'-]{2,}")
+
+
+def _tokenise(text: str) -> list[str]:
+    """Lowercase + strip; keep tokens of >=3 chars not in the stopword list."""
+    return [
+        t for t in _TOKEN_RE.findall(text.lower())
+        if t not in _STOPWORDS
+    ]
+
+
+def _compute_related(
+    entries: list[dict[str, Any]], top_k: int = _RELATED_TOP_K,
+) -> dict[str, list[dict[str, Any]]]:
+    """Compute related entries per item using TF-IDF cosine + tag Jaccard,
+    fused via Reciprocal Rank Fusion.
+
+    Returns a mapping from ``dir_path`` to a ranked list of related entries,
+    each annotated with ``score``, ``why`` (``content``/``tags``/``both``)
+    and a small subset of source fields.
+    """
+    n = len(entries)
+    if n < 2:
+        return {e["dir_path"]: [] for e in entries}
+
+    # 1. Build term frequencies and document frequencies.
+    tf_per_doc: list[Counter[str]] = []
+    df: Counter[str] = Counter()
+    for e in entries:
+        tokens = _tokenise(str(e.get("body", "")))
+        tf = Counter(tokens)
+        tf_per_doc.append(tf)
+        df.update(tf.keys())
+
+    # 2. TF-IDF vector per doc (sparse dict). IDF uses smoothed log form.
+    idf: dict[str, float] = {
+        term: math.log((n + 1) / (count + 1)) + 1.0
+        for term, count in df.items()
+    }
+    tfidf_per_doc: list[dict[str, float]] = []
+    norms: list[float] = []
+    for tf in tf_per_doc:
+        if not tf:
+            tfidf_per_doc.append({})
+            norms.append(0.0)
+            continue
+        max_tf = max(tf.values())
+        vec = {
+            term: (0.5 + 0.5 * cnt / max_tf) * idf.get(term, 0.0)
+            for term, cnt in tf.items()
+        }
+        norm = math.sqrt(sum(v * v for v in vec.values()))
+        tfidf_per_doc.append(vec)
+        norms.append(norm)
+
+    # 3. Tag sets per doc.
+    tag_sets: list[set[str]] = [
+        {t.lower() for t in e.get("tags", []) if isinstance(t, str)}
+        for e in entries
+    ]
+
+    def _cosine(i: int, j: int) -> float:
+        if norms[i] == 0.0 or norms[j] == 0.0:
+            return 0.0
+        a, b = tfidf_per_doc[i], tfidf_per_doc[j]
+        # Iterate over the smaller vector for fewer lookups.
+        if len(a) > len(b):
+            a, b = b, a
+        return sum(v * b.get(k, 0.0) for k, v in a.items()) / (norms[i] * norms[j])
+
+    def _jaccard(i: int, j: int) -> float:
+        a, b = tag_sets[i], tag_sets[j]
+        if not a or not b:
+            return 0.0
+        inter = len(a & b)
+        if inter == 0:
+            return 0.0
+        return inter / len(a | b)
+
+    related: dict[str, list[dict[str, Any]]] = {}
+
+    for i in range(n):
+        content_scores: list[tuple[float, int]] = []
+        tag_scores: list[tuple[float, int]] = []
+        for j in range(n):
+            if i == j:
+                continue
+            cs = _cosine(i, j)
+            if cs > 0:
+                content_scores.append((cs, j))
+            ts = _jaccard(i, j)
+            if ts > 0:
+                tag_scores.append((ts, j))
+
+        content_scores.sort(reverse=True)
+        tag_scores.sort(reverse=True)
+
+        # Reciprocal Rank Fusion across the two signals.
+        rrf: dict[int, float] = {}
+        seen_in_content: set[int] = set()
+        seen_in_tags: set[int] = set()
+        for rank, (_, j) in enumerate(content_scores):
+            rrf[j] = rrf.get(j, 0.0) + 1.0 / (_RRF_K + rank + 1)
+            seen_in_content.add(j)
+        for rank, (_, j) in enumerate(tag_scores):
+            rrf[j] = rrf.get(j, 0.0) + 1.0 / (_RRF_K + rank + 1)
+            seen_in_tags.add(j)
+
+        if not rrf:
+            related[entries[i]["dir_path"]] = []
+            continue
+
+        ranked = sorted(rrf.items(), key=lambda kv: kv[1], reverse=True)[:top_k]
+        out: list[dict[str, Any]] = []
+        for j, score in ranked:
+            in_content = j in seen_in_content
+            in_tags = j in seen_in_tags
+            why = "both" if in_content and in_tags else "tags" if in_tags else "content"
+            shared = sorted(tag_sets[i] & tag_sets[j]) if in_tags else []
+            other = entries[j]
+            out.append({
+                "dir_path": other["dir_path"],
+                "title": other["title"],
+                "source_type": other.get("source_type", ""),
+                "score": round(score, 5),
+                "why": why,
+                "shared_tags": shared,
+            })
+        related[entries[i]["dir_path"]] = out
+
+    return related
+
+
+def _detect_tag_sprawl(tag_freq: dict[str, int]) -> list[tuple[str, int, str, int]]:
+    """Find pairs of tags that are likely duplicates.
+
+    Compares every pair using difflib's SequenceMatcher.ratio for tags
+    >=4 chars; for shorter tags, applies a containment check (one tag
+    fully contained within the other). Returns tuples of
+    (tag, count, near_tag, near_count) sorted so the higher-frequency
+    tag in each pair appears first.
+    """
+    tags = list(tag_freq.keys())
+    seen: set[tuple[str, str]] = set()
+    pairs: list[tuple[str, int, str, int]] = []
+    for i, a in enumerate(tags):
+        for b in tags[i + 1:]:
+            if a == b:
+                continue
+            similar = False
+            if min(len(a), len(b)) >= 4:
+                ratio = difflib.SequenceMatcher(a=a, b=b, autojunk=False).ratio()
+                if ratio >= _TAG_SPRAWL_RATIO:
+                    similar = True
+            else:
+                # Short tags: only flag when the shorter tag matches a
+                # hyphen-separated component of the longer tag, or is a
+                # prefix of its first component (catches `rl`/`rlhf`,
+                # `ai`/`ai-safety` while avoiding coincidental letter
+                # overlaps like `ai`/`guardrails`).
+                short, long = (a, b) if len(a) <= len(b) else (b, a)
+                if short != long:
+                    parts = long.split("-")
+                    if short in parts or parts[0].startswith(short):
+                        similar = True
+            if not similar:
+                continue
+            sa, sb = sorted((a, b))
+            key: tuple[str, str] = (sa, sb)
+            if key in seen:
+                continue
+            seen.add(key)
+            ca, cb = tag_freq[a], tag_freq[b]
+            if ca >= cb:
+                pairs.append((a, ca, b, cb))
+            else:
+                pairs.append((b, cb, a, ca))
+    pairs.sort(key=lambda p: (-p[1], -p[3]))
+    return pairs
+
+
+def _build_fts_index(
+    base_dir: Path, entries: list[dict[str, Any]],
+) -> Path | None:
+    """Build a FTS5 SQLite index alongside index.html.
+
+    Drops and rebuilds on every call - corpus is small enough that
+    incremental updates are not worth the bookkeeping. Returns the path
+    to the database, or None on failure.
+    """
+    db_path = base_dir / _SEARCH_DB_NAME
+    try:
+        # Touch a fresh file - simpler than DROP TABLE for FTS5 because
+        # the contentless config and tokenizer settings can drift.
+        if db_path.exists():
+            db_path.unlink()
+        conn = sqlite3.connect(db_path)
+        try:
+            conn.execute("PRAGMA journal_mode = WAL")
+            conn.execute("""
+                CREATE VIRTUAL TABLE wisdom USING fts5(
+                    dir_path UNINDEXED,
+                    title,
+                    author,
+                    description,
+                    tags,
+                    body,
+                    source_type UNINDEXED,
+                    date UNINDEXED,
+                    pdf_path UNINDEXED,
+                    md_path UNINDEXED,
+                    tokenize='porter unicode61'
+                )
+            """)
+            rows = [
+                (
+                    str(e.get("dir_path", "")),
+                    str(e.get("title", "")),
+                    str(e.get("author", "")),
+                    str(e.get("description", "")),
+                    " ".join(str(t) for t in e.get("tags", [])),
+                    str(e.get("body", "")),
+                    str(e.get("source_type", "")),
+                    str(e.get("date", "")),
+                    str(e.get("pdf_path", "")),
+                    str(e.get("md_path", "")),
+                )
+                for e in entries
+            ]
+            conn.executemany(
+                "INSERT INTO wisdom("
+                "dir_path, title, author, description, tags, body, "
+                "source_type, date, pdf_path, md_path) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                rows,
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        return db_path
+    except sqlite3.Error as exc:
+        print(f"Warning: Could not build search index: {exc}", file=sys.stderr)
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Index generation
+# ---------------------------------------------------------------------------
+
 def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
     """Regenerate the index.html in the wisdom base directory.
 
@@ -1328,7 +1696,7 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
     if not _INDEX_TEMPLATE.is_file():
         return
 
-    entries: list[dict[str, str | int]] = []
+    entries: list[dict[str, Any]] = []
     for md_file in sorted(base_dir.glob("*/*analysis.md"), reverse=True):
         fm = _parse_frontmatter(md_file)
         if not fm:
@@ -1344,33 +1712,44 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
 
         # Normalise short dates (YYYY-MM) to YYYY-MM-DD so string
         # comparison sorts them correctly in the JS frontend.
-        raw_date = fm.get("date", "")
+        raw_date = _fm_str(fm, "date")
         if re.fullmatch(r"\d{4}-\d{2}", raw_date):
             raw_date += "-01"
-        raw_content_date = fm.get("content_date", "")
+        raw_content_date = _fm_str(fm, "content_date")
         if re.fullmatch(r"\d{4}-\d{2}", raw_content_date):
             raw_content_date += "-01"
 
+        title = _fm_str(fm, "title", dir_name)
+        thumbnail_pref = _fm_str(fm, "thumbnail")
+
+        # Normalise tags: lowercase, hyphenated, strip empties, dedupe.
+        tags = [
+            re.sub(r"\s+", "-", t.strip().lower()).strip("-")
+            for t in _fm_list(fm, "tags")
+        ]
+        tags = [t for t in dict.fromkeys(tags) if t]
+
         entries.append({
-            "title": fm.get("title", dir_name),
-            "source": fm.get("source", ""),
-            "source_type": fm.get("source_type", ""),
-            "author": fm.get("author", ""),
+            "title": title,
+            "source": _fm_str(fm, "source"),
+            "source_type": _fm_str(fm, "source_type"),
+            "author": _fm_str(fm, "author"),
             "date": raw_date,
             "content_date": raw_content_date,
-            "description": fm.get("description", ""),
-            "youtube_channel": fm.get("youtube_channel", ""),
-            "og_site_name": fm.get("og_site_name", ""),
+            "description": _fm_str(fm, "description"),
+            "youtube_channel": _fm_str(fm, "youtube_channel"),
+            "og_site_name": _fm_str(fm, "og_site_name"),
             "word_count": word_count,
             "reading_time": reading_time,
             "dir_path": dir_name,
             "pdf_path": f"{dir_name}/{pdf_file.name}" if pdf_file.is_file() else "",
             "md_path": f"{dir_name}/{md_file.name}",
+            "tags": tags,
             "thumbnail": (
-                _placeholder_thumbnail_svg(fm.get("title", dir_name))
-                if fm.get("thumbnail", "").startswith("placeholder")
+                _placeholder_thumbnail_svg(title)
+                if thumbnail_pref.startswith("placeholder")
                 else f"{dir_name}/thumbnail.jpg"
-                if (not fm.get("thumbnail", "").startswith("false")
+                if (not thumbnail_pref.startswith("false")
                     and (md_file.parent / "thumbnail.jpg").is_file())
                 else ""
             ),
@@ -1380,13 +1759,61 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
     if not entries:
         return
 
+    # Aggregate tag frequencies.
+    tag_freq: dict[str, int] = {}
+    for e in entries:
+        for t in e.get("tags", []):
+            tag_freq[t] = tag_freq.get(t, 0) + 1
+
+    # Compute related entries (graceful fallback to empty lists on error).
+    try:
+        related_map = _compute_related(entries)
+    except Exception as exc:
+        print(f"Warning: related-entry computation failed: {exc}", file=sys.stderr)
+        related_map = {e["dir_path"]: [] for e in entries}
+
+    for e in entries:
+        e["related"] = related_map.get(e["dir_path"], [])
+
+    # Build the FTS5 search database alongside index.html.
+    _build_fts_index(base_dir, entries)
+
+    # Write related cache so the `related` subcommand can serve it without
+    # re-walking the corpus or rebuilding the FTS5 db.
+    try:
+        cache_payload = {e["dir_path"]: e["related"] for e in entries}
+        (base_dir / _RELATED_CACHE_NAME).write_text(
+            json.dumps(cache_payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    except OSError as exc:
+        print(f"Warning: Could not write related cache: {exc}", file=sys.stderr)
+
+    # Tag-sprawl warnings (informational; never fatal).
+    if tag_freq:
+        sprawl = _detect_tag_sprawl(tag_freq)
+        if sprawl:
+            print("TAG_SPRAWL_WARNINGS:", file=sys.stderr)
+            for hi, hi_count, lo, lo_count in sprawl:
+                print(
+                    f"  {hi} ({hi_count}) ~ {lo} ({lo_count})  # consider "
+                    f"merging via: wisdom.py tags --merge \"{lo}\" \"{hi}\"",
+                    file=sys.stderr,
+                )
+
     template = _INDEX_TEMPLATE.read_text(encoding="utf-8")
     entries_json = json.dumps(entries, indent=2, ensure_ascii=False)
+    tag_freq_json = json.dumps(
+        sorted(tag_freq.items(), key=lambda kv: (-kv[1], kv[0])),
+        ensure_ascii=False,
+    )
     # Escape </ sequences to prevent breaking out of the <script> tag.
     entries_json = entries_json.replace("</", r"<\/")
+    tag_freq_json = tag_freq_json.replace("</", r"<\/")
     gen_date = datetime.now(tz=_local_tz()).date().isoformat()
 
     html = template.replace("$ENTRIES_JSON$", entries_json)
+    html = html.replace("$TAG_FREQ_JSON$", tag_freq_json)
     html = html.replace("$SCHEMA_VERSION$", str(_INDEX_SCHEMA_VERSION))
     html = html.replace("$GENERATED_DATE$", gen_date)
 
@@ -1434,9 +1861,36 @@ def cmd_index(args: argparse.Namespace) -> None:
 # Backfill YouTube metadata and thumbnails
 # ---------------------------------------------------------------------------
 
-def _update_frontmatter(md_path: Path, updates: dict[str, str], *, overwrite: bool = False) -> bool:
+def _format_yaml_scalar(value: str) -> str:
+    value = re.sub(r"\s*\n\s*", " ", value).strip()
+    if any(c in value for c in (":", '"', "'", "#", "{", "}", "[", "]", ",")):
+        return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    return f'"{value}"'
+
+
+def _format_yaml_list_item(item: str) -> str:
+    item = item.strip()
+    if re.fullmatch(r"[a-z0-9_\-]+", item):
+        return item
+    return _format_yaml_scalar(item)
+
+
+def _format_yaml_value(value: str | list[str]) -> str:
+    """Format a scalar or list for inclusion as a YAML value."""
+    if isinstance(value, list):
+        return "[" + ", ".join(_format_yaml_list_item(v) for v in value) + "]"
+    return _format_yaml_scalar(value)
+
+
+def _update_frontmatter(
+    md_path: Path,
+    updates: dict[str, Any],
+    *,
+    overwrite: bool = False,
+) -> bool:
     """Add or update key-value pairs in YAML frontmatter.
 
+    Values may be strings or list[str]; lists are written flow-style.
     By default, only adds keys that don't already exist. Pass overwrite=True
     to replace existing keys as well. Returns True on success, False if the
     file has no frontmatter.
@@ -1457,13 +1911,6 @@ def _update_frontmatter(md_path: Path, updates: dict[str, str], *, overwrite: bo
         m = re.match(r"^([a-z_]+)\s*:", line)
         if m:
             existing_keys.add(m.group(1))
-
-    def _format_value(value: str) -> str:
-        """Collapse newlines and quote for YAML."""
-        value = re.sub(r"\s*\n\s*", " ", value).strip()
-        if any(c in value for c in (":", '"', "'", "#", "{", "}", "[", "]")):
-            return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
-        return f'"{value}"'
 
     if overwrite:
         # Remove existing lines for keys we're overwriting (including continuation lines).
@@ -1489,7 +1936,7 @@ def _update_frontmatter(md_path: Path, updates: dict[str, str], *, overwrite: bo
     for key, value in updates.items():
         if key in existing_keys:
             continue
-        new_lines.append(f"{key}: {_format_value(value)}")
+        new_lines.append(f"{key}: {_format_yaml_value(value)}")
 
     if not new_lines:
         return True
@@ -1556,6 +2003,322 @@ def cmd_backfill(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Search subcommand
+# ---------------------------------------------------------------------------
+
+def _resolve_search_db(base_dir: Path) -> Path:
+    return base_dir / _SEARCH_DB_NAME
+
+
+def _format_fts_query(query: str) -> str:
+    """Wrap raw user input as an FTS5 MATCH expression.
+
+    Splits on whitespace, drops tokens with FTS5-special characters that
+    can't be quoted safely, and quotes the rest as phrase terms joined
+    with implicit AND. A bare star at the end of a token survives so
+    users can still do prefix matches (e.g. ``rlhf*``).
+    """
+    raw = query.strip()
+    if not raw:
+        return ""
+    parts: list[str] = []
+    for token in raw.split():
+        prefix = token.endswith("*")
+        if prefix:
+            token = token[:-1]
+        if not token:
+            continue
+        # Strip embedded double quotes; everything else is fair game inside "...".
+        cleaned = token.replace('"', "")
+        if not cleaned:
+            continue
+        parts.append(f'"{cleaned}"' + ("*" if prefix else ""))
+    return " ".join(parts)
+
+
+def cmd_search(args: argparse.Namespace) -> None:
+    """Query the FTS5 wisdom search database."""
+    base_dir = detect_base_dir()
+    db_path = _resolve_search_db(base_dir)
+    if not db_path.is_file():
+        print(
+            f"Error: Search index not found at {db_path}.\n"
+            f"Run: wisdom.py index",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    match_expr = _format_fts_query(args.query)
+    if not match_expr:
+        print("Error: empty search query", file=sys.stderr)
+        sys.exit(1)
+
+    where = ["wisdom MATCH ?"]
+    params: list[Any] = [match_expr]
+    if args.type:
+        where.append("source_type = ?")
+        params.append(args.type)
+    params.append(args.top)
+
+    sql = (
+        "SELECT dir_path, title, author, source_type, date, tags, pdf_path, "
+        "md_path, snippet(wisdom, 5, '<<', '>>', '...', 24) AS snip, "
+        "bm25(wisdom) AS score "
+        "FROM wisdom WHERE " + " AND ".join(where) + " "
+        "ORDER BY bm25(wisdom) LIMIT ?"
+    )
+
+    try:
+        conn = sqlite3.connect(db_path)
+        try:
+            rows = conn.execute(sql, params).fetchall()
+        finally:
+            conn.close()
+    except sqlite3.Error as exc:
+        print(f"Error: search failed: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.json:
+        print(json.dumps([
+            {
+                "rank": i + 1,
+                # bm25 returns negative scores; invert so larger = better.
+                "score": round(-r[9], 4),
+                "dir_path": r[0],
+                "title": r[1],
+                "author": r[2],
+                "source_type": r[3],
+                "date": r[4],
+                "tags": r[5].split() if r[5] else [],
+                "pdf_path": r[6],
+                "md_path": r[7],
+                "snippet": r[8],
+            }
+            for i, r in enumerate(rows)
+        ], ensure_ascii=False, indent=2))
+        return
+
+    if not rows:
+        print("No matches.")
+        return
+
+    for i, r in enumerate(rows):
+        score = -r[9]
+        tags = r[5] or ""
+        print(f"\n[{i+1}] {r[1]}")
+        meta_bits = [r[3], r[2], r[4]]
+        meta = "  ".join(b for b in meta_bits if b)
+        if meta:
+            print(f"     {meta}")
+        if tags:
+            print(f"     tags: {tags}")
+        print(f"     {r[0]}/")
+        print(f"     score: {score:.3f}")
+        if r[8]:
+            print(f"     {r[8]}")
+
+
+# ---------------------------------------------------------------------------
+# Related subcommand
+# ---------------------------------------------------------------------------
+
+def _resolve_entry_dirpath(base_dir: Path, entry: str) -> str | None:
+    """Map a CLI ``entry`` argument to its dir_path inside the wisdom base.
+
+    Accepts a bare directory name, an absolute path, or a path to an
+    analysis.md file. Returns None when no matching directory exists.
+    """
+    candidate = Path(entry)
+    if candidate.is_file() and candidate.suffix == ".md":
+        candidate = candidate.parent
+    if candidate.is_absolute():
+        try:
+            rel = candidate.resolve().relative_to(base_dir.resolve())
+        except ValueError:
+            return None
+        return rel.parts[0] if rel.parts else None
+    if (base_dir / candidate).is_dir():
+        return candidate.name
+    # Fall through to a name-only match.
+    if any(p.name == entry and p.is_dir() for p in base_dir.glob("*")):
+        return entry
+    return None
+
+
+def cmd_related(args: argparse.Namespace) -> None:
+    """Print precomputed related entries for a given wisdom entry."""
+    base_dir = detect_base_dir()
+    cache_path = base_dir / _RELATED_CACHE_NAME
+    if not cache_path.is_file():
+        print(
+            f"Error: Related cache not found at {cache_path}.\n"
+            f"Run: wisdom.py index",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    dir_path = _resolve_entry_dirpath(base_dir, args.entry)
+    if not dir_path:
+        print(f"Error: Could not resolve entry '{args.entry}' inside {base_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"Error: could not read related cache: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    items = cache.get(dir_path, [])
+    if args.by != "hybrid":
+        items = [it for it in items if it.get("why") in (args.by, "both")]
+    items = items[: args.top]
+
+    if args.json:
+        print(json.dumps(
+            {"entry": dir_path, "by": args.by, "related": items},
+            ensure_ascii=False, indent=2,
+        ))
+        return
+
+    if not items:
+        print(f"No related entries found for {dir_path}.")
+        return
+
+    print(f"Related to: {dir_path}")
+    for i, it in enumerate(items, 1):
+        why = it.get("why", "")
+        shared = it.get("shared_tags", []) or []
+        print(f"\n[{i}] {it.get('title', '')}")
+        print(f"     {it.get('dir_path', '')}/")
+        bits = [f"why: {why}"]
+        if shared:
+            bits.append("shared: " + ", ".join(shared))
+        if it.get("source_type"):
+            bits.append(it["source_type"])
+        print("     " + "  ".join(bits))
+
+
+# ---------------------------------------------------------------------------
+# Tags subcommand (list, --warnings, --merge)
+# ---------------------------------------------------------------------------
+
+def _collect_tag_freq(base_dir: Path) -> tuple[dict[str, int], list[Path]]:
+    """Walk the corpus and tally tag occurrences.
+
+    Tags are deduplicated within each entry so frequency reflects the
+    number of entries that mention a tag, not the number of mentions.
+    """
+    freq: dict[str, int] = {}
+    files: list[Path] = []
+    for md_file in sorted(base_dir.glob("*/*analysis.md")):
+        fm = _parse_frontmatter(md_file)
+        if not fm:
+            continue
+        files.append(md_file)
+        seen_in_entry: set[str] = set()
+        for t in _fm_list(fm, "tags"):
+            t_norm = t.strip().lower()
+            if not t_norm or t_norm in seen_in_entry:
+                continue
+            seen_in_entry.add(t_norm)
+            freq[t_norm] = freq.get(t_norm, 0) + 1
+    return freq, files
+
+
+def _replace_tags_in_file(
+    md_path: Path, source_tags: set[str], target: str,
+) -> bool:
+    """Rewrite the tags list in ``md_path``, replacing any ``source_tags``
+    members with ``target`` and deduplicating. Returns True if changed.
+    """
+    fm = _parse_frontmatter(md_path)
+    if not fm:
+        return False
+    current = _fm_list(fm, "tags")
+    if not current:
+        return False
+    rewritten: list[str] = []
+    seen: set[str] = set()
+    changed = False
+    for tag in current:
+        norm = tag.strip().lower()
+        if norm in source_tags:
+            mapped = target
+            changed = True
+        else:
+            mapped = norm
+        if mapped and mapped not in seen:
+            seen.add(mapped)
+            rewritten.append(mapped)
+    if not changed and rewritten == [t.strip().lower() for t in current]:
+        return False
+    _update_frontmatter(md_path, {"tags": rewritten}, overwrite=True)
+    return True
+
+
+def cmd_tags(args: argparse.Namespace) -> None:
+    """List, warn about, or merge tags across the corpus."""
+    base_dir = detect_base_dir()
+    if not base_dir.is_dir():
+        print(f"Error: wisdom base directory not found: {base_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.merge:
+        if not args.target:
+            print("Error: --merge requires a target tag positional argument", file=sys.stderr)
+            sys.exit(1)
+        sources = {
+            s.strip().lower() for s in args.merge.split(",") if s.strip()
+        }
+        if not sources:
+            print("Error: --merge value is empty", file=sys.stderr)
+            sys.exit(1)
+        target = args.target.strip().lower()
+        _, files = _collect_tag_freq(base_dir)
+        changed = 0
+        for md in files:
+            try:
+                if _replace_tags_in_file(md, sources, target):
+                    changed += 1
+            except Exception as exc:
+                print(f"Warning: could not rewrite {md.parent.name}: {exc}", file=sys.stderr)
+        print(f"Tag merge complete: {changed} file(s) updated. "
+              f"Run `wisdom.py index` to refresh search and related data.")
+        return
+
+    freq, _ = _collect_tag_freq(base_dir)
+
+    if args.warnings:
+        sprawl = _detect_tag_sprawl(freq)
+        if not sprawl:
+            print("No tag sprawl detected.")
+            return
+        if args.json:
+            print(json.dumps([
+                {"tag": hi, "count": hc, "near": lo, "near_count": lc}
+                for hi, hc, lo, lc in sprawl
+            ], ensure_ascii=False, indent=2))
+            return
+        for hi, hc, lo, lc in sprawl:
+            print(f"{hi} ({hc}) ~ {lo} ({lc})")
+        return
+
+    if args.json:
+        print(json.dumps(
+            sorted(freq.items(), key=lambda kv: (-kv[1], kv[0])),
+            ensure_ascii=False, indent=2,
+        ))
+        return
+
+    if not freq:
+        print("No tags found across the corpus.")
+        return
+
+    for tag, count in sorted(freq.items(), key=lambda kv: (-kv[1], kv[0])):
+        print(f"{count:>4}\t{tag}")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -1603,6 +2366,32 @@ def main() -> None:
     p_backfill.add_argument("--all", action="store_true", help="Backfill all YouTube entries")
     p_backfill.add_argument("--force", action="store_true", help="Re-fetch metadata and overwrite existing fields")
 
+    # search
+    p_search = sub.add_parser("search", help="Search the wisdom corpus via FTS5/BM25")
+    p_search.add_argument("query", help="Search query (whitespace-separated terms; trailing * for prefix match)")
+    p_search.add_argument("--top", type=int, default=10, help="Maximum results to return (default 10)")
+    p_search.add_argument("--type", choices=("youtube", "web", "text"), default=None,
+                          help="Restrict to a single source type")
+    p_search.add_argument("--json", action="store_true", help="Output JSON instead of text")
+
+    # related
+    p_related = sub.add_parser("related", help="Show entries related to a given wisdom entry")
+    p_related.add_argument("entry", help="Entry directory name, full path, or analysis.md path")
+    p_related.add_argument("--top", type=int, default=8, help="Maximum related entries (default 8)")
+    p_related.add_argument("--by", choices=("tags", "content", "hybrid"), default="hybrid",
+                           help="Filter results by signal source (default hybrid)")
+    p_related.add_argument("--json", action="store_true", help="Output JSON instead of text")
+
+    # tags
+    p_tags = sub.add_parser("tags", help="List, warn about, or merge tags across the corpus")
+    p_tags.add_argument("target", nargs="?", default=None,
+                        help="Target tag for --merge (positional after --merge value)")
+    p_tags.add_argument("--warnings", action="store_true",
+                        help="Print near-duplicate tag pairs flagged for review")
+    p_tags.add_argument("--merge", default=None, metavar="OLD[,OLD2]",
+                        help="Comma-separated tags to rewrite to TARGET across all entries")
+    p_tags.add_argument("--json", action="store_true", help="Output JSON instead of text")
+
     args = parser.parse_args()
 
     dispatch = {
@@ -1614,6 +2403,9 @@ def main() -> None:
         "pdf": cmd_pdf,
         "index": cmd_index,
         "backfill": cmd_backfill,
+        "search": cmd_search,
+        "related": cmd_related,
+        "tags": cmd_tags,
     }
     dispatch[args.command](args)
 

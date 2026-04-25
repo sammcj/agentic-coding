@@ -190,6 +190,177 @@
       padding: 0 1px;
     }
 
+    .tag-chip-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex: 1 1 320px;
+      min-width: 0;
+    }
+
+    .tag-chip-row:empty { display: none; }
+
+    .tag-chip-divider {
+      border-left: 1px solid var(--colour-border);
+      height: 1.2em;
+      margin: 0 0.25rem;
+      flex-shrink: 0;
+    }
+
+    .tag-chip-list {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      gap: 0.4rem;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    .tag-chip-row.expanded .tag-chip-list {
+      flex-wrap: wrap;
+      overflow: visible;
+    }
+
+    .tag-chip-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--colour-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-right: 0.25rem;
+    }
+
+    .tag-chip {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      line-height: 1;
+      padding: 0.3rem 0.65rem;
+      border: 1px solid var(--colour-border);
+      border-radius: 100px;
+      background: var(--colour-surface);
+      color: var(--colour-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .tag-chip:hover {
+      border-color: var(--colour-accent);
+      color: var(--colour-accent);
+    }
+
+    .tag-chip.active {
+      background: var(--colour-accent);
+      border-color: var(--colour-accent);
+      color: white;
+    }
+
+    .tag-chip-clear {
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      padding: 0.25rem 0.55rem;
+      border: 1px dashed var(--colour-border);
+      border-radius: 100px;
+      background: transparent;
+      color: var(--colour-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .tag-chip-clear:hover {
+      color: var(--colour-accent);
+      border-color: var(--colour-accent);
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      max-height: 1.6em;
+    }
+
+    .card-tag {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 100px;
+      background: var(--colour-bg-code);
+      color: var(--colour-muted);
+      cursor: pointer;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .card-tag:hover {
+      border-color: var(--colour-accent);
+      color: var(--colour-accent);
+    }
+
+    .card-tag.active {
+      background: var(--colour-accent);
+      color: white;
+    }
+
+    .related-panel {
+      margin-top: 1.4em;
+      padding-top: 1em;
+      border-top: 1px solid var(--colour-border);
+    }
+
+    .related-panel-title {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--colour-muted);
+      margin-bottom: 0.5em;
+    }
+
+    .related-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4em;
+    }
+
+    .related-item {
+      display: flex;
+      flex-direction: column;
+      padding: 0.5em 0.7em;
+      border: 1px solid var(--colour-border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: var(--font-sans);
+    }
+
+    .related-item:hover {
+      border-color: var(--colour-accent);
+      box-shadow: 0 1px 6px rgba(217, 119, 87, 0.08);
+    }
+
+    .related-item-title {
+      font-size: 0.92em;
+      font-weight: 600;
+      color: var(--colour-text);
+      margin-bottom: 0.15em;
+    }
+
+    .related-item-meta {
+      font-size: 0.75em;
+      color: var(--colour-muted);
+    }
+
+    .related-item-meta strong {
+      color: var(--colour-text);
+      font-weight: 600;
+    }
+
     .entry-count {
       margin-left: auto;
       font-size: 0.85rem;
@@ -831,6 +1002,7 @@
     <button class="filter-pill active" data-sort="date">Date</button>
     <button class="filter-pill" data-sort="author">Author</button>
     <button class="filter-pill" data-sort="source">Source</button>
+    <div class="tag-chip-row" id="tag-chip-row"></div>
     <span class="entry-count" id="entry-count"></span>
   </div>
 
@@ -860,18 +1032,24 @@
   <script>
     /* ---- Data (injected by wisdom.py) ---- */
     var WISDOM_ENTRIES = $ENTRIES_JSON$;
+    var WISDOM_TAG_FREQ = $TAG_FREQ_JSON$;
 
     /* ---- State ---- */
     var activeFilter = "all";
     var activeSort = "date";
+    var activeTags = new Set();
     var searchQuery = "";
     var fuse = null;
+    var MAX_VISIBLE_TAG_CHIPS = 18;
+    var tagChipsExpanded = false;
+
     /* ---- Elements ---- */
     var grid = document.getElementById("grid");
     var searchInput = document.getElementById("search");
     var entryCount = document.getElementById("entry-count");
     var filterPills = document.querySelectorAll(".filter-pill[data-filter]");
     var sortPills = document.querySelectorAll(".filter-pill[data-sort]");
+    var tagChipRow = document.getElementById("tag-chip-row");
     var viewerOverlay = document.getElementById("viewer-overlay");
     var viewerTitleEl = document.getElementById("viewer-title");
     var viewerActions = document.getElementById("viewer-actions");
@@ -932,12 +1110,13 @@
       if (typeof Fuse !== "undefined") {
         fuse = new Fuse(WISDOM_ENTRIES, {
           keys: [
-            { name: "title", weight: 0.35 },
-            { name: "author", weight: 0.2 },
-            { name: "youtube_channel", weight: 0.1 },
-            { name: "og_site_name", weight: 0.05 },
-            { name: "description", weight: 0.2 },
-            { name: "source_type", weight: 0.1 }
+            { name: "title", weight: 0.3 },
+            { name: "tags", weight: 0.25 },
+            { name: "description", weight: 0.18 },
+            { name: "author", weight: 0.15 },
+            { name: "youtube_channel", weight: 0.06 },
+            { name: "og_site_name", weight: 0.04 },
+            { name: "source_type", weight: 0.02 }
           ],
           threshold: 0.35,
           ignoreLocation: true
@@ -947,13 +1126,23 @@
 
     function search(query, entries) {
       if (!query.trim()) return entries;
-      if (fuse) return fuse.search(query).map(function(r) { return r.item; });
+      if (fuse) {
+        // Search the full corpus then intersect against the pre-filtered entries
+        // so tag/source filters compose with the search query correctly.
+        var allowed = new Set(entries.map(function(e) { return e.dir_path; }));
+        return fuse.search(query)
+          .map(function(r) { return r.item; })
+          .filter(function(e) { return allowed.has(e.dir_path); });
+      }
       var q = query.toLowerCase();
       return entries.filter(function(e) {
         return (e.title || "").toLowerCase().indexOf(q) !== -1
             || (e.author || "").toLowerCase().indexOf(q) !== -1
             || (e.description || "").toLowerCase().indexOf(q) !== -1
-            || (e.source_type || "").toLowerCase().indexOf(q) !== -1;
+            || (e.source_type || "").toLowerCase().indexOf(q) !== -1
+            || ((e.tags || []).some(function(t) {
+                 return t.toLowerCase().indexOf(q) !== -1;
+               }));
       });
     }
 
@@ -983,6 +1172,49 @@
       return path.split("/").map(encodeURIComponent).join("/");
     }
 
+    /* ---- Tag chips ----
+       Layout: divider | "Tags" label | tag-chip-list (clipped horizontally
+       when collapsed, wraps when expanded) | More toggle | Clear button.
+    */
+    function renderTagChips() {
+      if (!tagChipRow) return;
+      if (!Array.isArray(WISDOM_TAG_FREQ) || !WISDOM_TAG_FREQ.length) {
+        tagChipRow.innerHTML = "";
+        tagChipRow.classList.remove("expanded");
+        return;
+      }
+      tagChipRow.classList.toggle("expanded", tagChipsExpanded);
+      var html = '<span class="tag-chip-divider"></span>'
+        + '<span class="tag-chip-label">Tags</span>'
+        + '<div class="tag-chip-list">';
+      for (var i = 0; i < WISDOM_TAG_FREQ.length; i++) {
+        var entry = WISDOM_TAG_FREQ[i];
+        var tag = entry[0];
+        var count = entry[1];
+        var active = activeTags.has(tag);
+        html += '<button class="tag-chip' + (active ? ' active' : '')
+          + '" data-tag="' + escapeHtml(tag) + '" type="button">'
+          + escapeHtml(tag)
+          + ' <span style="opacity:0.6">' + count + '</span>'
+          + '</button>';
+      }
+      html += '</div>';
+      var toggleLabel = tagChipsExpanded ? 'Show fewer' : 'More';
+      html += '<button class="tag-chip-clear" id="tag-chip-toggle" type="button">'
+        + toggleLabel + '</button>';
+      if (activeTags.size) {
+        html += '<button class="tag-chip-clear" id="tag-chip-clear" type="button">Clear tags</button>';
+      }
+      tagChipRow.innerHTML = html;
+    }
+
+    function toggleTag(tag) {
+      if (activeTags.has(tag)) activeTags.delete(tag);
+      else activeTags.add(tag);
+      renderTagChips();
+      render();
+    }
+
     /* ---- Rendering ---- */
     function render() {
       var entries = WISDOM_ENTRIES;
@@ -990,6 +1222,18 @@
       if (activeFilter !== "all") {
         entries = entries.filter(function(e) {
           return e.source_type === activeFilter;
+        });
+      }
+
+      if (activeTags.size) {
+        entries = entries.filter(function(e) {
+          if (!e.tags || !e.tags.length) return false;
+          var entryTags = new Set(e.tags);
+          var ok = true;
+          activeTags.forEach(function(t) {
+            if (!entryTags.has(t)) ok = false;
+          });
+          return ok;
         });
       }
 
@@ -1057,6 +1301,17 @@
              : '')
           + '</div>';
 
+        var tagsHtml = '';
+        if (e.tags && e.tags.length) {
+          tagsHtml = '<div class="card-tags">'
+            + e.tags.map(function(t) {
+                var active = activeTags.has(t);
+                return '<span class="card-tag' + (active ? ' active' : '')
+                  + '" data-tag="' + escapeHtml(t) + '">' + escapeHtml(t) + '</span>';
+              }).join('')
+            + '</div>';
+        }
+
         return '<div class="card">'
           + '<div class="card-body" data-dir="' + escapeHtml(e.dir_path) + '">'
           + '<div class="card-header-row">'
@@ -1068,8 +1323,9 @@
              : '')
           + '</div>'
           + '<div class="card-actions">'
-          + '<span class="source-badge ' + badgeClass + '" style="margin-right:auto">'
+          + '<span class="source-badge ' + badgeClass + '">'
           + escapeHtml(badgeLabel) + '</span>'
+          + tagsHtml
           + (e.pdf_path
              ? '<a class="btn-action" href="' + safeHref(e.pdf_path) + '" target="_blank" title="Open PDF">'
                + pdfSvg + ' PDF</a>'
@@ -1252,12 +1508,40 @@
       }
       metaHtml += '</div>';
 
+      var relatedHtml = '';
+      if (entry.related && entry.related.length) {
+        relatedHtml = '<div class="related-panel">'
+          + '<div class="related-panel-title">Related</div>'
+          + '<div class="related-list">'
+          + entry.related.slice(0, 6).map(function(r) {
+              var why = r.why === "both"
+                ? "shared tags + similar content"
+                : r.why === "tags"
+                ? "shared tags" + (r.shared_tags && r.shared_tags.length
+                    ? ": " + r.shared_tags.join(", ") : "")
+                : "similar content";
+              return '<div class="related-item" data-related-dir="' + escapeHtml(r.dir_path) + '">'
+                + '<div class="related-item-title">' + escapeHtml(r.title || r.dir_path) + '</div>'
+                + '<div class="related-item-meta">' + escapeHtml(why) + '</div>'
+                + '</div>';
+            }).join('')
+          + '</div></div>';
+      }
+
       if (typeof marked !== "undefined") {
-        viewerContent.innerHTML = metaHtml + marked.parse(entry.body || "");
+        viewerContent.innerHTML = metaHtml + marked.parse(entry.body || "") + relatedHtml;
       } else {
         viewerContent.innerHTML = metaHtml + '<pre style="white-space:pre-wrap;font-family:inherit">'
-          + escapeHtml(entry.body || "") + '</pre>';
+          + escapeHtml(entry.body || "") + '</pre>' + relatedHtml;
       }
+
+      viewerContent.querySelectorAll(".related-item[data-related-dir]").forEach(function(el) {
+        el.addEventListener("click", function() {
+          var dir = this.getAttribute("data-related-dir");
+          var target = findEntryByDir(dir);
+          if (target) openViewer(target);
+        });
+      });
       renderMermaidBlocks();
       renderGraphvizBlocks();
       buildToc();
@@ -1316,6 +1600,12 @@
     grid.addEventListener("click", function(ev) {
       var folderBtn = ev.target.closest(".folder-btn");
       if (folderBtn) { ev.preventDefault(); openFolder(folderBtn); return; }
+      var tagEl = ev.target.closest(".card-tag[data-tag]");
+      if (tagEl) {
+        ev.stopPropagation();
+        toggleTag(tagEl.getAttribute("data-tag"));
+        return;
+      }
       var body = ev.target.closest(".card-body[data-dir]");
       if (body) {
         var dir = body.getAttribute("data-dir");
@@ -1323,6 +1613,28 @@
         if (entry) openViewer(entry);
       }
     });
+
+    if (tagChipRow) {
+      tagChipRow.addEventListener("click", function(ev) {
+        var toggleBtn = ev.target.closest("#tag-chip-toggle");
+        if (toggleBtn) {
+          tagChipsExpanded = !tagChipsExpanded;
+          renderTagChips();
+          return;
+        }
+        var clearBtn = ev.target.closest("#tag-chip-clear");
+        if (clearBtn) {
+          activeTags.clear();
+          renderTagChips();
+          render();
+          return;
+        }
+        var chip = ev.target.closest(".tag-chip[data-tag]");
+        if (chip) {
+          toggleTag(chip.getAttribute("data-tag"));
+        }
+      });
+    }
 
     document.addEventListener("keydown", function(ev) {
       if (ev.key === "Escape") {
@@ -1408,6 +1720,7 @@
       gv.src = "https://cdn.jsdelivr.net/npm/@viz-js/viz@3.11.0/lib/viz-standalone.js";
       document.head.appendChild(gv);
 
+      renderTagChips();
       render();
       searchInput.focus();
       checkHash();

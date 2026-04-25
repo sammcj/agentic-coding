@@ -50,6 +50,7 @@ def discover_config_files(root: Path) -> list[Path]:
         root / "pyproject.toml",
         root / "tauri.conf.json",
         root / "src-tauri" / "tauri.conf.json",
+        root / "VERSION",
     ]
     return [p for p in candidates if p.is_file()]
 
@@ -106,11 +107,33 @@ def stamp_toml_file(path: Path, version: str, dry_run: bool) -> str | None:
     return old_version
 
 
+def stamp_version_file(path: Path, version: str, dry_run: bool) -> str | None:
+    with open(path, encoding="utf-8") as f:
+        content = f.read().strip()
+
+    # Only stamp if existing content looks like a version. This avoids
+    # rewriting files named VERSION that hold something else (build numbers,
+    # tag-prefixed strings, multi-line metadata).
+    if not re.match(r"^\d+\.\d+\.\d+", content):
+        return None
+
+    if content == version:
+        return None
+
+    if not dry_run:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(version + "\n")
+
+    return content
+
+
 def stamp_config_file(path: Path, version: str, dry_run: bool) -> str | None:
     if path.suffix == ".json":
         return stamp_json_file(path, version, dry_run)
     elif path.suffix == ".toml":
         return stamp_toml_file(path, version, dry_run)
+    elif path.name == "VERSION":
+        return stamp_version_file(path, version, dry_run)
     return None
 
 

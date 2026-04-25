@@ -1,7 +1,7 @@
 ---
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
-allowed-tools: Read Write Edit Glob Grep Task WebSearch WebFetch WebFetch(*) Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *) Bash(prettier --write:*) Bash(gh api gists *)
+allowed-tools: Read Write Edit Glob Grep Task WebSearch WebFetch WebFetch(*) Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *) Bash(prettier --write:*) Bash(gh api gists *)
 ---
 
 # Wisdom Extraction
@@ -85,6 +85,14 @@ Determine the output directory:
 
 **File name:** `<source-title> - analysis.md`
 
+Before writing the frontmatter, list the existing canonical tags so the new entry can reuse them rather than inventing duplicates:
+
+```bash
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py tags
+```
+
+Choose 3-7 tags that describe the content's themes. Prefer reusing tags already in the corpus over inventing new ones; only add a new tag when no existing tag fits. Tag style: lowercase, hyphenated, prefer singular over plural (`agent` over `agents`), and pick one canonical form for abbreviations (`rlhf` or `reinforcement-learning`, not both).
+
 Format the analysis using this structure:
 
 ```markdown
@@ -95,6 +103,7 @@ source_type: [youtube|web|text]
 author: "[Author, speaker, or channel name]"
 content_date: [YYYY-MM-DD]                    # Optional: only if the content's publication date is known
 description: "[1-3 sentence summary suitable for sharing on Slack. Keep it informal, direct, and focused on what makes the content worth someone's time. Include the core concept and why it matters.]"
+tags: [tag-one, tag-two, tag-three]            # 3-7 tags; see guidance above
 youtube_channel: "[Channel Name]"              # YouTube only, from YOUTUBE_CHANNEL output
 youtube_title: "[Original Upload Title]"       # YouTube only, from YOUTUBE_TITLE output
 youtube_description: "[Video description]"     # YouTube only, first ~300 chars
@@ -259,7 +268,26 @@ If timestamps are needed:
 
 ### scripts/
 
-- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, and metadata backfill. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `backfill`.
+- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, metadata backfill, library indexing, full-text search, related-entry lookup, and tag management. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `backfill`, `search`, `related`, `tags`.
+
+### Querying the corpus
+
+The `index` command builds a `wisdom-search.db` (SQLite FTS5) and a `wisdom-related.json` cache alongside `index.html`. These power three agent-friendly subcommands:
+
+```bash
+# BM25-ranked full-text search across title, author, description, tags, and body.
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py search "alignment evals" --top 10
+
+# Related entries for a given wisdom directory (TF-IDF cosine + tag Jaccard, fused via RRF).
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py related "2026-04-25-Some-Entry-Name"
+
+# List tags by frequency, surface near-duplicates, or merge sprawl.
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py tags
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py tags --warnings
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py tags --merge "agents,ai-agents" agent
+```
+
+Pass `--json` to `search`, `related`, or `tags` for parseable output. `pdf` and `index` regenerate both the database and the cache, and emit `TAG_SPRAWL_WARNINGS` to stderr when near-duplicate tags are detected.
 
 ### Backfill Metadata (Manual Only)
 
