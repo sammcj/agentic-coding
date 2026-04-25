@@ -6,7 +6,7 @@
 
 ### Avoid AI marketing register
 
-You already know what AI marketing copy sounds like: hype adjectives, empty verbs (use "use", not "utilise" or "leverage"), abstract business nouns, hedging filler, empty intensifiers, dramatic noun-phrases ("smoking gun", "watershed moment"), tricolons ("faster, simpler, smarter"), and the "It's not just X, it's Y" construction. Recognise the category and avoid it.
+You already know what AI marketing copy sounds like: hype adjectives, empty verbs (use "use", not "utilise" or "leverage"), abstract business nouns, hedging filler, empty intensifiers, dramatic noun-phrases (e.g. "watershed moment"), tricolons ("faster, simpler, smarter"), and the "It's not just X, it's Y" construction. Recognise the category and avoid it.
 
 Two heuristics for catching it:
 
