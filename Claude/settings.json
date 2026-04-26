@@ -373,7 +373,16 @@
         ]
       }
     ],
-    "SessionStart": []
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/samm/.claude/hooks/context-mode-cache-heal.mjs"
+          }
+        ]
+      }
+    ]
   },
   "statusLine": {
     "type": "command",

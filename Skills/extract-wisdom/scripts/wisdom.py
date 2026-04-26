@@ -21,7 +21,10 @@ Subcommands:
     create-dir <description>        Create a date-prefixed directory for non-YouTube sources
     rename <dir> <description>      Rename directory with date prefix
     format [--check] <files...>     Format markdown with prettier
-    pdf [--css F] [--open] [file]   Render markdown to styled PDF
+    pdf [--css F] [--open] [--no-stamp] [file]
+                                    Render markdown to styled PDF
+    regenerate-pdfs [base_dir] [--stamp] [--css F]
+                                    Re-render every wisdom analysis PDF (no date stamp by default)
     index [base_dir]                Regenerate the wisdom library index.html
     backfill [dir] [--all] [--force] Backfill metadata and thumbnails
 """
@@ -44,6 +47,8 @@ import sqlite3
 import subprocess
 import sys
 import time
+import tempfile
+import urllib.error
 import urllib.request
 from collections import Counter
 from datetime import datetime
@@ -1028,6 +1033,14 @@ _DIAGRAM_BLOCK_RE = re.compile(
 _MERMAID_INK_URL = "https://mermaid.ink/img/"
 _MERMAID_TIMEOUT = 10
 
+# Cross-process throttle for mermaid.ink. Workers coordinate via a lock file
+# in the system tempdir so no single worker can exceed the rate, regardless of
+# how many ProcessPool children are active.
+_MERMAID_LOCK_PATH = Path(tempfile.gettempdir()) / "wisdom-mermaid.lock"
+_MERMAID_MIN_INTERVAL_S = float(os.environ.get("WISDOM_MERMAID_MIN_INTERVAL", "0.25"))
+_MERMAID_MAX_RETRIES = 4
+_MERMAID_BACKOFF_BASE_S = 1.0
+
 # Anthropic-aligned theme init block for Mermaid diagrams.
 _MERMAID_THEME_INIT = """\
 %%{init: {
@@ -1164,24 +1177,75 @@ def _svg_dimensions(svg: bytes) -> tuple[float, float] | None:
     return None
 
 
+def _mermaid_throttle() -> None:
+    """Cross-process token bucket: ensure at least _MERMAID_MIN_INTERVAL_S
+    has elapsed since the last mermaid.ink call by any worker.
+
+    Uses fcntl.flock on a tempfile that stores the last-call timestamp.
+    Sleeps inside the critical section to enforce spacing, then writes the
+    new timestamp before releasing the lock.
+    """
+    if _MERMAID_MIN_INTERVAL_S <= 0:
+        return
+    # 'a+' creates if missing; we read+seek+write inside the lock.
+    # Wall-clock time.time() is required: monotonic clocks have per-process
+    # origins and are not comparable across worker processes.
+    with open(_MERMAID_LOCK_PATH, "a+") as fh:
+        fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+        try:
+            fh.seek(0)
+            raw = fh.read().strip()
+            last = float(raw) if raw else 0.0
+            now = time.time()
+            wait = _MERMAID_MIN_INTERVAL_S - (now - last)
+            if wait > 0:
+                time.sleep(wait)
+            fh.seek(0)
+            fh.truncate()
+            fh.write(f"{time.time():.6f}")
+            fh.flush()
+        finally:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+
+
 def _render_mermaid(code: str) -> tuple[bytes, str] | None:
     """Render a Mermaid diagram via the mermaid.ink public API.
 
-    Returns (image_bytes, mime_type) or None on failure.  Uses the /img/
+    Returns (image_bytes, mime_type) or None on failure. Uses the /img/
     endpoint which returns a rasterised JPEG - the /svg/ endpoint uses
     foreignObject for text labels which WeasyPrint cannot render.
+
+    Cross-worker rate limiting via _mermaid_throttle prevents bursts when
+    multiple ProcessPool workers render diagrams simultaneously. Retries
+    with exponential backoff on HTTP 429/503.
     """
-    try:
-        payload = base64.urlsafe_b64encode(code.encode()).decode()
-        url = _MERMAID_INK_URL + payload
-        req = urllib.request.Request(url, headers={"User-Agent": "wisdom-pdf/1.0"})
-        with urllib.request.urlopen(req, timeout=_MERMAID_TIMEOUT) as resp:
-            data: bytes = resp.read()
-            content_type = resp.headers.get("Content-Type", "image/jpeg")
-            mime = content_type.split(";")[0].strip()
-            return data, mime
-    except Exception:
-        return None
+    payload = base64.urlsafe_b64encode(code.encode()).decode()
+    url = _MERMAID_INK_URL + payload
+    req = urllib.request.Request(url, headers={"User-Agent": "wisdom-pdf/1.0"})
+
+    for attempt in range(_MERMAID_MAX_RETRIES):
+        _mermaid_throttle()
+        try:
+            with urllib.request.urlopen(req, timeout=_MERMAID_TIMEOUT) as resp:
+                data: bytes = resp.read()
+                content_type = resp.headers.get("Content-Type", "image/jpeg")
+                mime = content_type.split(";")[0].strip()
+                return data, mime
+        except urllib.error.HTTPError as exc:
+            # Retry on rate limit / transient server errors.
+            if exc.code in (429, 502, 503, 504) and attempt < _MERMAID_MAX_RETRIES - 1:
+                retry_after = exc.headers.get("Retry-After") if exc.headers else None
+                try:
+                    delay = float(retry_after) if retry_after else 0.0
+                except (TypeError, ValueError):
+                    delay = 0.0
+                delay = max(delay, _MERMAID_BACKOFF_BASE_S * (2 ** attempt))
+                time.sleep(delay)
+                continue
+            return None
+        except Exception:
+            return None
+    return None
 
 
 def _jpeg_dimensions(data: bytes) -> tuple[int, int] | None:
@@ -1261,7 +1325,8 @@ def _render_diagrams(html_body: str) -> tuple[str, dict[str, int]]:
     return result, fallbacks
 
 
-def cmd_pdf(args: argparse.Namespace) -> None:
+def _import_pdf_deps() -> tuple[Any, Any]:
+    """Import markdown + weasyprint, exiting with a friendly message if missing."""
     try:
         import markdown as md_lib  # type: ignore[import-untyped]  # ty: ignore[unresolved-import]
         from weasyprint import HTML  # type: ignore[import-untyped]  # ty: ignore[unresolved-import]
@@ -1279,6 +1344,71 @@ def cmd_pdf(args: argparse.Namespace) -> None:
             file=sys.stderr,
         )
         sys.exit(2)
+    return md_lib, HTML
+
+
+def _render_pdf_file(
+    input_file: Path,
+    output_file: Path,
+    css_path: Path,
+    md_lib: Any,
+    HTML: Any,
+    *,
+    stamp_date: bool,
+) -> dict[str, int]:
+    """Render a single markdown file to PDF. Returns diagram fallback counts."""
+    if stamp_date:
+        _stamp_analysis_date(input_file)
+
+    _enrich_entry(input_file)
+
+    md_text = input_file.read_text(encoding="utf-8")
+    md_text = _strip_frontmatter(md_text)
+    md_text = _normalise_list_markdown(md_text)
+    html_body = md_lib.markdown(md_text, extensions=MD_EXTENSIONS)
+    html_body, diagram_fallbacks = _render_diagrams(html_body)
+
+    if TEMPLATE_FILE.is_file():
+        template = TEMPLATE_FILE.read_text(encoding="utf-8")
+        css_link = f'  <link rel="stylesheet" href="{css_path.resolve()}" />'
+        html = template.replace("$body$", html_body)
+        html = html.replace("$lang$", "en")
+        html = re.sub(r"\$for\(css\)\$.*?\$endfor\$", css_link, html, flags=re.DOTALL)
+        html = re.sub(r"\$if\(.*?\)\$.*?\$endif\$", "", html, flags=re.DOTALL)
+        html = re.sub(r"\$[a-z]+\$", "", html)
+    else:
+        html = (
+            '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
+            '  <meta charset="utf-8" />\n'
+            f'  <link rel="stylesheet" href="{css_path.resolve()}" />\n'
+            f"</head>\n<body>\n{html_body}\n</body>\n</html>"
+        )
+
+    HTML(string=html, base_url=str(css_path.resolve().parent)).write_pdf(str(output_file))
+    return diagram_fallbacks
+
+
+def _print_diagram_fallbacks(diagram_fallbacks: dict[str, int]) -> None:
+    for lang, count in diagram_fallbacks.items():
+        s = "s" if count > 1 else ""
+        print(f"DIAGRAM_FALLBACK: {count} {lang} diagram{s} could not be rendered and "
+              f"ha{'ve' if count > 1 else 's'} been included as code block{s} instead.",
+              file=sys.stderr)
+        if lang == "mermaid":
+            print("HINT: Mermaid rendering requires network access to mermaid.ink. "
+                  "If offline, consider rewriting the diagram as a graphviz/dot code "
+                  "block which renders locally. Alternatively, simplify the mermaid "
+                  "diagram as complex diagrams may exceed the API's limits.",
+                  file=sys.stderr)
+        elif lang in ("graphviz", "dot"):
+            print("HINT: Graphviz rendering requires the 'graphviz' system package. "
+                  "Install with: brew install graphviz (macOS) or "
+                  "sudo apt install graphviz (Linux).",
+                  file=sys.stderr)
+
+
+def cmd_pdf(args: argparse.Namespace) -> None:
+    md_lib, HTML = _import_pdf_deps()
 
     css_path = Path(args.css) if args.css else CSS_FILE
 
@@ -1309,88 +1439,125 @@ def cmd_pdf(args: argparse.Namespace) -> None:
         print(f"Error: CSS stylesheet not found: {css_path}", file=sys.stderr)
         sys.exit(1)
 
-    # Stamp the analysis date (always today's local date, script-controlled).
-    _stamp_analysis_date(input_file)
-
-    # Enrich entry with metadata and thumbnail if not already present.
-    _enrich_entry(input_file)
-
-    # Convert markdown to HTML
-    md_text = input_file.read_text(encoding="utf-8")
-    md_text = _strip_frontmatter(md_text)
-    md_text = _normalise_list_markdown(md_text)
-    html_body = md_lib.markdown(md_text, extensions=MD_EXTENSIONS)
-    html_body, diagram_fallbacks = _render_diagrams(html_body)
-
-    # Append thumbnail at end of PDF if available (unless disabled via frontmatter).
-    fm = _parse_frontmatter(input_file)
-    input_dir = input_file.resolve().parent
-    thumb_path = input_dir / "thumbnail.jpg"
-    if thumb_path.is_file() and (not fm or not fm.get("thumbnail", "").startswith("false")):
-        try:
-            thumb_data = thumb_path.read_bytes()
-            thumb_b64 = base64.b64encode(thumb_data).decode()
-            html_body += (
-                '<div style="margin-top:2em; padding-top:1em; '
-                'border-top:1px solid #e8e6dc; text-align:center;">'
-                f'<img src="data:image/jpeg;base64,{thumb_b64}" '
-                'alt="Source thumbnail" '
-                'style="max-width:60%; border-radius:6px; margin:0.5em auto;" />'
-                '<p style="font-family:Helvetica Neue,sans-serif; '
-                'font-size:0.8em; color:#b0aea5; margin-top:0.3em;">'
-                'Source thumbnail</p>'
-                '</div>'
-            )
-        except Exception:
-            pass
-
-    # Load and populate the HTML5 template
-    if TEMPLATE_FILE.is_file():
-        template = TEMPLATE_FILE.read_text(encoding="utf-8")
-        css_link = f'  <link rel="stylesheet" href="{css_path.resolve()}" />'
-        html = template.replace("$body$", html_body)
-        html = html.replace("$lang$", "en")
-        html = re.sub(r"\$for\(css\)\$.*?\$endfor\$", css_link, html, flags=re.DOTALL)
-        html = re.sub(r"\$if\(.*?\)\$.*?\$endif\$", "", html, flags=re.DOTALL)
-        html = re.sub(r"\$[a-z]+\$", "", html)
-    else:
-        html = (
-            '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
-            '  <meta charset="utf-8" />\n'
-            f'  <link rel="stylesheet" href="{css_path.resolve()}" />\n'
-            f"</head>\n<body>\n{html_body}\n</body>\n</html>"
-        )
-
-    HTML(string=html, base_url=str(css_path.resolve().parent)).write_pdf(str(output_file))
+    diagram_fallbacks = _render_pdf_file(
+        input_file, output_file, css_path, md_lib, HTML, stamp_date=not args.no_stamp,
+    )
 
     if args.open_after:
         _open_file(output_file)
 
     print(f"PDF_PATH: {output_file}")
-
-    # Report diagram rendering fallbacks so the calling agent can act on them
-    for lang, count in diagram_fallbacks.items():
-        s = "s" if count > 1 else ""
-        print(f"DIAGRAM_FALLBACK: {count} {lang} diagram{s} could not be rendered and "
-              f"ha{'ve' if count > 1 else 's'} been included as code block{s} instead.",
-              file=sys.stderr)
-        if lang == "mermaid":
-            print("HINT: Mermaid rendering requires network access to mermaid.ink. "
-                  "If offline, consider rewriting the diagram as a graphviz/dot code "
-                  "block which renders locally. Alternatively, simplify the mermaid "
-                  "diagram as complex diagrams may exceed the API's limits.",
-                  file=sys.stderr)
-        elif lang in ("graphviz", "dot"):
-            print("HINT: Graphviz rendering requires the 'graphviz' system package. "
-                  "Install with: brew install graphviz (macOS) or "
-                  "sudo apt install graphviz (Linux).",
-                  file=sys.stderr)
+    _print_diagram_fallbacks(diagram_fallbacks)
 
     # Regenerate the wisdom library index (non-fatal on failure).
     try:
         _regenerate_index(detect_base_dir())
     except Exception as exc:
         print(f"Warning: Index generation failed: {exc}", file=sys.stderr)
+
+
+def _render_pdf_worker(
+    md_path_str: str, output_path_str: str, css_path_str: str, stamp_date: bool,
+) -> tuple[str, dict[str, int], str | None]:
+    """Multiprocessing-safe wrapper around _render_pdf_file.
+
+    Imports weasyprint inside the worker so the heavy native libs load once
+    per process. Returns (output_path, diagram_fallbacks, error_str_or_None).
+    Strings are used for arguments because Path objects pickle fine but
+    keeping it explicit avoids surprises.
+    """
+    try:
+        md_lib, HTML = _import_pdf_deps()
+        fallbacks = _render_pdf_file(
+            Path(md_path_str), Path(output_path_str), Path(css_path_str),
+            md_lib, HTML, stamp_date=stamp_date,
+        )
+        return output_path_str, fallbacks, None
+    except SystemExit as exc:
+        return output_path_str, {}, f"PDF deps missing (exit {exc.code})"
+    except Exception as exc:
+        return output_path_str, {}, str(exc)
+
+
+def cmd_regenerate_pdfs(args: argparse.Namespace) -> None:
+    """Re-render every wisdom analysis PDF under base_dir, in parallel."""
+    # Validate deps in the parent so we fail fast with a friendly message
+    # before spawning workers.
+    _import_pdf_deps()
+
+    css_path = Path(args.css) if args.css else CSS_FILE
+    if not css_path.is_file():
+        print(f"Error: CSS stylesheet not found: {css_path}", file=sys.stderr)
+        sys.exit(1)
+
+    base_dir = Path(args.base_dir) if args.base_dir else detect_base_dir()
+    if not base_dir.is_dir():
+        print(f"Error: Base directory not found: {base_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    md_files = sorted(base_dir.glob("*/*analysis.md"))
+    if not md_files:
+        print(f"No analysis markdown files found under {base_dir}", file=sys.stderr)
+        return
+
+    cpu_total = os.cpu_count() or 1
+    default_workers = max(1, cpu_total - 2)
+    workers = args.workers if args.workers is not None else default_workers
+    workers = max(1, min(workers, len(md_files)))
+
+    print(f"Regenerating {len(md_files)} PDF(s) under {base_dir}"
+          f" (stamp_date={'on' if args.stamp else 'off'}, workers={workers})")
+
+    rendered = 0
+    failed: list[tuple[str, str]] = []
+    css_str = str(css_path)
+
+    if workers == 1:
+        # Sequential path keeps imports cheap and tracebacks clean.
+        md_lib, HTML = _import_pdf_deps()
+        for md_file in md_files:
+            output_file = md_file.with_suffix(".pdf")
+            try:
+                fallbacks = _render_pdf_file(
+                    md_file, output_file, css_path, md_lib, HTML, stamp_date=args.stamp,
+                )
+                rendered += 1
+                print(f"PDF_PATH: {output_file}")
+                _print_diagram_fallbacks(fallbacks)
+            except Exception as exc:
+                failed.append((str(md_file), str(exc)))
+                print(f"FAILED: {md_file}: {exc}", file=sys.stderr)
+    else:
+        from concurrent.futures import ProcessPoolExecutor, as_completed
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            futures = {
+                pool.submit(
+                    _render_pdf_worker,
+                    str(md_file), str(md_file.with_suffix(".pdf")), css_str, args.stamp,
+                ): md_file
+                for md_file in md_files
+            }
+            for fut in as_completed(futures):
+                md_file = futures[fut]
+                output_path_str, fallbacks, err = fut.result()
+                if err is None:
+                    rendered += 1
+                    print(f"PDF_PATH: {output_path_str}")
+                    _print_diagram_fallbacks(fallbacks)
+                else:
+                    failed.append((str(md_file), err))
+                    print(f"FAILED: {md_file}: {err}", file=sys.stderr)
+
+    print(f"Done: {rendered} rendered, {len(failed)} failed")
+
+    # Regenerate the wisdom library index once at the end (non-fatal on failure).
+    try:
+        _regenerate_index(base_dir, force=True)
+    except Exception as exc:
+        print(f"Warning: Index generation failed: {exc}", file=sys.stderr)
+
+    if failed:
+        sys.exit(1)
 
 
 # ---------------------------------------------------------------------------
@@ -2354,8 +2521,22 @@ def main() -> None:
     p_pdf = sub.add_parser("pdf", help="Render markdown to styled PDF")
     p_pdf.add_argument("--css", default=None, help="Custom CSS stylesheet")
     p_pdf.add_argument("--open", action="store_true", dest="open_after", help="Open PDF after rendering")
+    p_pdf.add_argument("--no-stamp", action="store_true", dest="no_stamp",
+                       help="Skip stamping today's date as the analysis date")
     p_pdf.add_argument("input_file", nargs="?", default=None, help="Markdown file to render")
     p_pdf.add_argument("output_file", nargs="?", default=None, help="Output PDF path")
+
+    p_regen = sub.add_parser("regenerate-pdfs",
+                             help="Re-render every wisdom analysis PDF under the base directory")
+    p_regen.add_argument("base_dir", nargs="?", default=None,
+                         help="Wisdom base directory (default: auto-detect)")
+    p_regen.add_argument("--css", default=None, help="Custom CSS stylesheet")
+    p_regen.add_argument("--stamp", action="store_true",
+                         help="Stamp today's date as the analysis date "
+                              "(default: leave existing dates untouched)")
+    p_regen.add_argument("--workers", type=int, default=None,
+                         help="Number of parallel worker processes "
+                              "(default: max(1, cpu_count - 2); use 1 for sequential)")
 
     p_index = sub.add_parser("index", help="Regenerate the wisdom library index.html")
     p_index.add_argument("base_dir", nargs="?", default=None, help="Wisdom base directory (default: auto-detect)")
@@ -2401,6 +2582,7 @@ def main() -> None:
         "rename": cmd_rename,
         "format": cmd_format,
         "pdf": cmd_pdf,
+        "regenerate-pdfs": cmd_regenerate_pdfs,
         "index": cmd_index,
         "backfill": cmd_backfill,
         "search": cmd_search,
