@@ -1,5 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "Bash(~/go/bin/run_silent *)",
@@ -378,7 +382,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/samm/.claude/hooks/context-mode-cache-heal.mjs"
+            "command": "\"/Users/samm/.local/share/fnm/node-versions/v24.15.0/installation/bin/node\" \"/Users/samm/.claude/hooks/context-mode-cache-heal.mjs\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/samm/git/preprompt/.claude/hooks/pre_prompt.py"
           }
         ]
       }
@@ -406,6 +421,36 @@
     "tofu-lsp@local-marketplace": true,
     "typescript-lsp@claude-plugins-official": true,
     "yaml-lsp@zircote-lsp": true
+  },
+  "extraKnownMarketplaces": {
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
+      },
+      "autoUpdate": true
+    },
+    "context-mode": {
+      "source": {
+        "source": "github",
+        "repo": "mksglu/context-mode"
+      },
+      "autoUpdate": true
+    },
+    "impeccable": {
+      "source": {
+        "source": "github",
+        "repo": "pbakaus/impeccable"
+      },
+      "autoUpdate": true
+    },
+    "local-marketplace": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/samm/.claude/plugins/local-marketplace"
+      },
+      "autoUpdate": true
+    }
   },
   "language": "Australian English",
   "sandbox": {
@@ -441,6 +486,7 @@
         "*.youtube.com",
         "*.youtu.be",
         "*.hf.co",
+        "*.googlevideo.com",
         "ghcr.io",
         "google.com.au",
         "google.com",
@@ -457,7 +503,6 @@
         "registry.yarnpkg.com",
         "smcleod.net",
         "swift.org",
-        "*.googlevideo.com",
         "wiki.archlinux.org"
       ],
       "allowLocalBinding": true
@@ -475,6 +520,10 @@
       "uv run"
     ]
   },
+  "effortLevel": "xhigh",
+  "fastMode": false,
+  "tui": "default",
+  "preferredNotifChannel": "ghostty",
   "thinking": {
     "level": "high",
     "type": "adaptive"
