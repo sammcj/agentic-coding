@@ -1,78 +1,84 @@
 ---
 name: improve-codebase-architecture
-description: Explore a codebase to find opportunities for architectural improvement, focusing on making the codebase more testable by deepening shallow modules. Use when user wants to improve architecture, find refactoring opportunities, consolidate tightly-coupled modules, or make a codebase more AI-navigable.
+description: Find deepening opportunities in a codebase, informed by whatever domain language and architectural decisions are already documented in the repo. Use when the user wants to improve architecture, find refactoring opportunities, consolidate tightly-coupled modules, or make a codebase more testable and AI-navigable.
 metadata:
-  source: https://github.com/mattpocock/skills
+  source: https://github.com/mattpocock/skills (adapted)
 ---
 
 # Improve Codebase Architecture
 
-Explore a codebase like an AI would, surface architectural friction, discover opportunities for improving testability, and propose module-deepening refactors as GitHub issue RFCs.
+Surface architectural friction and propose **deepening opportunities** - refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
 
-A **deep module** (John Ousterhout, "A Philosophy of Software Design") has a small interface hiding a large implementation. Deep modules are more testable, more AI-navigable, and let you test at the boundary instead of inside.
+## Glossary
+
+Use these terms exactly in every suggestion. Consistent language is the point - don't drift into "component," "service," "API," or "boundary." Full definitions in [LANGUAGE.md](LANGUAGE.md).
+
+- **Module** - anything with an interface and an implementation (function, class, package, slice).
+- **Interface** - everything a caller must know to use the module: types, invariants, error modes, ordering, config. Not just the type signature.
+- **Implementation** - the code inside.
+- **Depth** - leverage at the interface: a lot of behaviour behind a small interface. **Deep** = high leverage. **Shallow** = interface nearly as complex as the implementation.
+- **Seam** - where an interface lives; a place behaviour can be altered without editing in place. (Use this, not "boundary.")
+- **Adapter** - a concrete thing satisfying an interface at a seam.
+- **Leverage** - what callers get from depth.
+- **Locality** - what maintainers get from depth: change, bugs, knowledge concentrated in one place.
+
+Key principles (see [LANGUAGE.md](LANGUAGE.md) for the full list):
+
+- **Deletion test**: imagine deleting the module. If complexity vanishes, it was a pass-through. If complexity reappears across N callers, it was earning its keep.
+- **The interface is the test surface.**
+- **One adapter = hypothetical seam. Two adapters = real seam.**
+
+This skill is _informed_ by whatever domain documentation the project already keeps. If a glossary exists, use its terms. If decision records exist, don't re-litigate them. If neither exists, that's fine - work from the code and capture anything load-bearing as it emerges.
 
 ## Process
 
-### 1. Explore the codebase
+### 1. Explore
 
-Use the Agent tool with subagent_type=Explore to navigate the codebase naturally. Do NOT follow rigid heuristics — explore organically and note where you experience friction:
+Before exploring the code, look for any existing project documentation that names domain concepts or records architectural decisions. Common locations - check whichever apply, don't require any of them:
 
-- Where does understanding one concept require bouncing between many small files?
-- Where are modules so shallow that the interface is nearly as complex as the implementation?
-- Where have pure functions been extracted just for testability, but the real bugs hide in how they're called?
-- Where do tightly-coupled modules create integration risk in the seams between them?
-- Which parts of the codebase are untested, or hard to test?
+- A root-level glossary or context file (`CONTEXT.md`, `GLOSSARY.md`, `docs/glossary.md`, a "Domain" section in `README.md` or `CLAUDE.md`)
+- Decision records (`docs/adr/`, `docs/decisions/`, `.decisions/`, `architecture/decisions/`)
+- Per-package `README.md` files describing the slice's vocabulary
 
-The friction you encounter IS the signal.
+If you find domain documentation, read the parts relevant to the area you're touching. If you find decision records, scan titles and read any that touch the area. If neither exists, proceed without them.
+
+Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics - explore organically and note where you experience friction:
+
+- Where does understanding one concept require bouncing between many small modules?
+- Where are modules **shallow** - interface nearly as complex as the implementation?
+- Where have pure functions been extracted just for testability, but the real bugs hide in how they're called (no **locality**)?
+- Where do tightly-coupled modules leak across their seams?
+- Which parts of the codebase are untested, or hard to test through their current interface?
+
+Apply the **deletion test** to anything you suspect is shallow: would deleting it concentrate complexity, or just move it? A "yes, concentrates" is the signal you want.
 
 ### 2. Present candidates
 
-Present a numbered list of deepening opportunities. For each candidate, show:
+Present a numbered list of deepening opportunities. For each candidate:
 
-- **Cluster**: Which modules/concepts are involved
-- **Why they're coupled**: Shared types, call patterns, co-ownership of a concept
-- **Dependency category**: See [REFERENCE.md](REFERENCE.md) for the four categories
-- **Test impact**: What existing tests would be replaced by boundary tests
+- **Files** - which files/modules are involved
+- **Problem** - why the current architecture is causing friction
+- **Solution** - plain English description of what would change
+- **Benefits** - explained in terms of locality and leverage, and also in how tests would improve
+
+**Use the project's own domain vocabulary** (from whatever glossary or docs you found) **and [LANGUAGE.md](LANGUAGE.md) vocabulary for the architecture.** If the project's docs define "Order," talk about "the Order intake module" - not "the FooBarHandler," and not "the Order service." If the project has no documented vocabulary, infer the dominant terms from the code (type names, package names, table names) and use them consistently.
+
+**Conflicts with documented decisions**: if a candidate contradicts an existing decision record, only surface it when the friction is real enough to warrant revisiting that decision. Mark it clearly (e.g. _"contradicts the decision recorded in docs/adr/0007 - but worth reopening because..."_). Don't list every theoretical refactor a prior decision forbids.
 
 Do NOT propose interfaces yet. Ask the user: "Which of these would you like to explore?"
 
-### 3. User picks a candidate
+### 3. Grilling loop
 
-### 4. Frame the problem space
+Once the user picks a candidate, drop into a grilling conversation. Walk the design tree with them - constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
 
-Before spawning sub-agents, write a user-facing explanation of the problem space for the chosen candidate:
+Side effects happen inline as decisions crystallise:
 
-- The constraints any new interface would need to satisfy
-- The dependencies it would need to rely on
-- A rough illustrative code sketch to make the constraints concrete — this is not a proposal, just a way to ground the constraints
+- **Naming a deepened module after a concept that isn't in the project's vocabulary?** Capture the term. If the project already has a glossary file, append to it in that file's existing format. If it doesn't, ask the user once whether they'd like a lightweight glossary started (e.g. `CONTEXT.md` or `GLOSSARY.md` at the root, whichever fits the repo's conventions); if yes, create it lazily with a minimal structure (term + one-line definition + aliases to avoid). Don't impose a rigid template.
+- **Sharpening a fuzzy term during the conversation?** Update the glossary in place if one exists. If it doesn't and the term is genuinely load-bearing, offer to start one as above.
+- **User rejects the candidate with a load-bearing reason?** Offer to record the decision so future architecture reviews don't re-suggest it. Frame it as: _"Want me to record this so future reviews don't re-suggest the same thing?"_ Only offer when all three are true:
+  1. **Hard to reverse** - the cost of revisiting later is meaningful
+  2. **Surprising without context** - a future reader will wonder "why did they do it this way?"
+  3. **The result of a real trade-off** - there were genuine alternatives and a specific reason for the pick
 
-Show this to the user, then immediately proceed to Step 5. The user reads and thinks about the problem while the sub-agents work in parallel.
-
-### 5. Design multiple interfaces
-
-Spawn 3+ sub-agents in parallel using the Agent tool. Each must produce a **radically different** interface for the deepened module.
-
-Prompt each sub-agent with a separate technical brief (file paths, coupling details, dependency category, what's being hidden). This brief is independent of the user-facing explanation in Step 4. Give each agent a different design constraint:
-
-- Agent 1: "Minimize the interface — aim for 1-3 entry points max"
-- Agent 2: "Maximize flexibility — support many use cases and extension"
-- Agent 3: "Optimize for the most common caller — make the default case trivial"
-- Agent 4 (if applicable): "Design around the ports & adapters pattern for cross-boundary dependencies"
-
-Each sub-agent outputs:
-
-1. Interface signature (types, methods, params)
-2. Usage example showing how callers use it
-3. What complexity it hides internally
-4. Dependency strategy (how deps are handled — see [REFERENCE.md](REFERENCE.md))
-5. Trade-offs
-
-Present designs sequentially, then compare them in prose.
-
-After comparing, give your own recommendation: which design you think is strongest and why. If elements from different designs would combine well, propose a hybrid. Be opinionated — the user wants a strong read, not just a menu.
-
-### 6. User picks an interface (or accepts recommendation)
-
-### 7. Create GitHub issue
-
-Create a refactor RFC as a GitHub issue using `gh issue create`. Use the template in [REFERENCE.md](REFERENCE.md). Do NOT ask the user to review before creating — just create it and share the URL.
+  If the project already has a decision-records directory, add to it using the existing numbering and format. If it doesn't, ask once where to put it; if the user is happy to start one, create `docs/adr/0001-<slug>.md` with a simple shape (title, 1-3 sentences covering context, decision, and why). Skip ephemeral reasons ("not worth it right now") and self-evident ones.
+- **Want to explore alternative interfaces for the deepened module?** See [INTERFACE-DESIGN.md](INTERFACE-DESIGN.md).
