@@ -38,6 +38,8 @@ Confirm what task to perform and when. Parse their natural language into a wait-
 | "at 14:30" | `14:30` |
 | "at half past 9" | `9:30am` |
 
+The script self-handles timezone via the `USER_TZ` variable defined at the top of `wait-until.sh` (defaults to `Australia/Melbourne`). Clock-time arguments are interpreted in that zone regardless of host TZ. Don't ask the user about timezones unless they mention travelling.
+
 Tell the user exactly what will happen and when the timer will fire. Ask them to confirm before starting.
 
 ### Step 2: Launch the timer in background

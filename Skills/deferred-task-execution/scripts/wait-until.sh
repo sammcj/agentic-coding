@@ -13,6 +13,12 @@ set -euo pipefail
 # Clock time formats:
 #   14:30, 3pm, 3:30pm, 15:00
 #   If the time has already passed today, waits until that time tomorrow.
+#
+# Clock-time arguments are interpreted in USER_TZ. Override per-invocation with
+# USER_TZ=Australia/Perth wait-until.sh 18:00, or edit the default below.
+
+: "${USER_TZ:=Australia/Melbourne}"
+export TZ="${USER_TZ}"
 
 die() {
   echo "Error: ${1}" >&2
@@ -115,13 +121,14 @@ else
   human_duration="${seconds}s"
 fi
 
-wake_time=$(date -v+"${seconds}"S '+%H:%M:%S' 2>/dev/null) || \
-  wake_time=$(date -d "+${seconds} seconds" '+%H:%M:%S' 2>/dev/null) || \
+wake_time=$(date -v+"${seconds}"S '+%H:%M:%S %Z' 2>/dev/null) || \
+  wake_time=$(date -d "+${seconds} seconds" '+%H:%M:%S %Z' 2>/dev/null) || \
   wake_time="unknown"
 
 echo "WAITING: ${human_duration} (${seconds}s) - ${target_desc}"
 echo "WAKE_TIME: ${wake_time}"
-echo "STARTED: $(date '+%Y-%m-%d %H:%M:%S')"
+echo "STARTED: $(date '+%Y-%m-%d %H:%M:%S %Z')"
+echo "HOST_TZ: $(date '+%Z (%z)')"
 
 sleep "${seconds}"
 
