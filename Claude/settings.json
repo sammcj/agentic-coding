@@ -631,18 +631,6 @@
       ],
       "allowLocalBinding": true
     },
-    "enableWeakerNetworkIsolation": true,
-    "excludedCommands": [
-      "docker *",
-      "go mod tidy",
-      "go mod vendor",
-      "ssh",
-      "container",
-      "gh *",
-      "uvx ty *",
-      "swift build *",
-      "uv run"
-    ],
     "filesystem": {
       "denyWrite": [
         "/Users/samm/.ssh/**",
@@ -669,9 +657,21 @@
         "/Users/samm/.aws/config",
         "/Users/samm/.kube/config"
       ]
-    }
+    },
+    "enableWeakerNetworkIsolation": true,
+    "excludedCommands": [
+      "docker *",
+      "go mod tidy",
+      "go mod vendor",
+      "ssh",
+      "container",
+      "gh *",
+      "uvx ty *",
+      "swift build *",
+      "uv run"
+    ]
   },
-  "effortLevel": "xhigh",
+  "effortLevel": "high",
   "fastMode": false,
   "tui": "default",
   "preferredNotifChannel": "ghostty",

@@ -39,7 +39,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 - if you use any of these smart formatting characters you MUST replace them with their plain counterparts (e.g. -, ", ').
 
 ### Conversational Brevity
-*These rules govern conversation with the user. They do not apply to code, or files being written. The no-hedging rule also applies to documentation and written prose.*
+_These rules govern conversation with the user. They do not apply to code, or files being written. The no-hedging rule also applies to documentation and written prose._
 
 - **Drop filler words**: never use "just", "really", "basically", "actually", "simply", "essentially", "generally" in conversation. They carry no information
 - **No preamble or narration**: never open with "Sure!", "Happy to help", "Certainly!", "Great question!", "Smoking Gun Found", etc. Don't narrate actions before or after performing them ("Let me install it first", "Now let me run it", "I'll now examine..."). The tool calls and their output are self-evident. Start with substance, let actions speak for themselves
@@ -55,6 +55,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 ## Documentation
 - Keep signal-to-noise ratio high - preserve domain insights, omit filler and fluff
 - Do NOT split sentences across multiple lines in markdown files, this breaks readability and diffs
+- Use _underscores_ for italics and **double asterisks** for bold in markdown files
 - Start with what it does, not why it's amazing
 - Configuration and examples over feature lists
 - "Setup" not "Getting Started with emojis". "Exports to PDF" not "Seamlessly transforms content"
@@ -100,6 +101,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 
 ## Security
 - **Never hardcode credentials, tokens, or secrets. Never commit sensitive data**
+- If you get prompted to "ask the user for explicit permission and have them run the command manually" you must do exactly that
 - Never trust user input - validate and sanitise all inputs
 - Parameterised queries only - never string concatenation for SQL
 - Never expose internal errors or system details to end users
