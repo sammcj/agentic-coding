@@ -88,6 +88,23 @@ func TestMatchesAny(t *testing.T) {
 		{"exact match", "pwd", []string{"pwd"}, true},
 		{"exact no match", "pwd --help", []string{"pwd"}, false},
 		{"multi pattern", "sort -u", []string{"grep *", "sort *", "wc *"}, true},
+		{"leading wildcard match", "do ssh remote", []string{"* ssh *"}, true},
+		{"leading wildcard no leading text", "ssh remote", []string{"* ssh *"}, false},
+		{"trailing literal", "npm install", []string{"* install"}, true},
+		{"trailing literal no extra", "install", []string{"* install"}, false},
+		{"mid wildcard match", "git checkout main", []string{"git * main"}, true},
+		{"mid wildcard no match", "git checkout dev", []string{"git * main"}, false},
+		{"no-space trailing star matches prefix", "lsof", []string{"ls*"}, true},
+		{"space trailing star does not match prefix", "lsof", []string{"ls *"}, false},
+		{"awk system pattern", `awk 'BEGIN{system("rm")}'`, []string{"awk *system(*)*"}, true},
+		{"awk without system", "awk '/foo/{print}'", []string{"awk *system(*)*"}, false},
+		{"escapes literal dot", "a.b", []string{"a.b"}, true},
+		{"escapes literal dot no false match", "axb", []string{"a.b"}, false},
+		{"invalid regex skipped", "anything", []string{`bad[regex`, "anything"}, true},
+		{"bare wildcard matches anything", "rm -rf /", []string{"*"}, true},
+		{"bare wildcard matches empty", "", []string{"*"}, true},
+		{"empty pattern matches empty cmd", "", []string{""}, true},
+		{"empty pattern does not match non-empty", "foo", []string{""}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -174,9 +191,11 @@ func TestLoadAllSettings(t *testing.T) {
 	writeSettings(t, filepath.Join(userDir, "settings.json"), Settings{
 		Permissions: struct {
 			Allow []string `json:"allow"`
+			Ask   []string `json:"ask"`
 			Deny  []string `json:"deny"`
 		}{
 			Allow: []string{"Bash(grep *)"},
+			Ask:   []string{"Bash(git push *)"},
 			Deny:  []string{"Bash(rm -rf *)"},
 		},
 	})
@@ -185,6 +204,7 @@ func TestLoadAllSettings(t *testing.T) {
 	writeSettings(t, filepath.Join(userDir, "settings.local.json"), Settings{
 		Permissions: struct {
 			Allow []string `json:"allow"`
+			Ask   []string `json:"ask"`
 			Deny  []string `json:"deny"`
 		}{
 			Allow: []string{"Bash(jq *)"},
@@ -198,6 +218,7 @@ func TestLoadAllSettings(t *testing.T) {
 	writeSettings(t, filepath.Join(projClaudeDir, "settings.json"), Settings{
 		Permissions: struct {
 			Allow []string `json:"allow"`
+			Ask   []string `json:"ask"`
 			Deny  []string `json:"deny"`
 		}{
 			Allow: []string{"Bash(npm *)"},
@@ -208,9 +229,11 @@ func TestLoadAllSettings(t *testing.T) {
 	writeSettings(t, filepath.Join(projClaudeDir, "settings.local.json"), Settings{
 		Permissions: struct {
 			Allow []string `json:"allow"`
+			Ask   []string `json:"ask"`
 			Deny  []string `json:"deny"`
 		}{
 			Allow: []string{"Bash(cargo *)"},
+			Ask:   []string{"Bash(brew install *)"},
 			Deny:  []string{"Bash(sudo *)"},
 		},
 	})
@@ -224,8 +247,71 @@ func TestLoadAllSettings(t *testing.T) {
 	if len(got.Permissions.Allow) != 4 {
 		t.Errorf("expected 4 allow rules, got %d: %v", len(got.Permissions.Allow), got.Permissions.Allow)
 	}
+	if len(got.Permissions.Ask) != 2 {
+		t.Errorf("expected 2 ask rules, got %d: %v", len(got.Permissions.Ask), got.Permissions.Ask)
+	}
 	if len(got.Permissions.Deny) != 2 {
 		t.Errorf("expected 2 deny rules, got %d: %v", len(got.Permissions.Deny), got.Permissions.Deny)
+	}
+}
+
+func TestStripWrappers(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"no wrapper", "npx tsc", "npx tsc"},
+		{"timeout duration", "timeout 30 npx tsc", "npx tsc"},
+		{"timeout with seconds suffix", "timeout 30s npx tsc", "npx tsc"},
+		{"timeout flag and duration", "timeout --preserve-status 5 npx tsc", "npx tsc"},
+		{"timeout no duration", "timeout npx tsc", "npx tsc"},
+		{"time bare", "time pnpm build", "pnpm build"},
+		{"time -p", "time -p pnpm build", "pnpm build"},
+		{"nice bare", "nice pnpm build", "pnpm build"},
+		{"nice -n value", "nice -n 10 pnpm build", "pnpm build"},
+		{"nohup", "nohup npm run dev", "npm run dev"},
+		{"stdbuf flags", "stdbuf -oL -eL python script.py", "python script.py"},
+		{"chained wrappers", "nohup nice timeout 30 npx tsc", "npx tsc"},
+		{"bare xargs", "xargs grep pattern", "grep pattern"},
+		{"xargs with flag not stripped", "xargs -n1 grep pattern", "xargs -n1 grep pattern"},
+		{"xargs followed by long flag not stripped", "xargs --no-run-if-empty rm", "xargs --no-run-if-empty rm"},
+		{"only wrapper no command", "nohup", "nohup"},
+		{"empty", "", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := stripWrappers(tt.in)
+			if got != tt.want {
+				t.Errorf("stripWrappers(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCompileRulePattern(t *testing.T) {
+	tests := []struct {
+		pattern string
+		want    string
+	}{
+		{"grep", `^grep$`},
+		{"grep *", `^grep(?:\s.*)?$`},
+		{"grep:*", `^grep(?:\s.*)?$`},
+		{"ls*", `^ls.*$`},
+		{"* install", `^.* install$`},
+		{"git * main", `^git .* main$`},
+		{"awk *system(*)*", `^awk .*system\(.*\).*$`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.pattern, func(t *testing.T) {
+			re, err := compileRulePattern(tt.pattern)
+			if err != nil {
+				t.Fatalf("compileRulePattern(%q) returned error: %v", tt.pattern, err)
+			}
+			if re.String() != tt.want {
+				t.Errorf("compileRulePattern(%q) = %q, want %q", tt.pattern, re.String(), tt.want)
+			}
+		})
 	}
 }
 

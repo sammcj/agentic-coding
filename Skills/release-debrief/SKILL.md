@@ -26,12 +26,12 @@ Summarise what's changed in a supported tool since the user last ran this skill 
 
 Each tool has a **profile** in `resources/tools/<tool>.md` (source URLs, buckets, gotchas) and an **output file** in `resources/outputs/<tool>.md` (last-seen version and summary history). Resolve both paths relative to this `SKILL.md`, not the user's current working directory.
 
-| Tool | Aliases the user may type | Profile | Output |
-|------|---------------------------|---------|--------|
-| Claude Code | claude-code, claudecode, cc | `resources/tools/claude-code.md` | `resources/outputs/claude-code.md` |
-| OpenCode | opencode, open-code | `resources/tools/opencode.md` | `resources/outputs/opencode.md` |
-| llama-swap | llama-swap, llamaswap | `resources/tools/llama-swap.md` | `resources/outputs/llama-swap.md` |
-| llama.cpp | llama-cpp, llama.cpp, llamacpp | `resources/tools/llama-cpp.md` | `resources/outputs/llama-cpp.md` |
+| Tool        | Aliases the user may type      | Profile                          | Output                             |
+| ----------- | ------------------------------ | -------------------------------- | ---------------------------------- |
+| Claude Code | claude-code, claudecode, cc    | `resources/tools/claude-code.md` | `resources/outputs/claude-code.md` |
+| OpenCode    | opencode, open-code            | `resources/tools/opencode.md`    | `resources/outputs/opencode.md`    |
+| llama-swap  | llama-swap, llamaswap          | `resources/tools/llama-swap.md`  | `resources/outputs/llama-swap.md`  |
+| llama.cpp   | llama-cpp, llama.cpp, llamacpp | `resources/tools/llama-cpp.md`   | `resources/outputs/llama-cpp.md`   |
 
 Tool selection: match the tool from the user's prompt against the aliases above. If the user names something not in this table, reply with the supported list and stop.
 

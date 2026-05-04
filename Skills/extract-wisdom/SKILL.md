@@ -40,6 +40,7 @@ Perform analysis on the content, extracting:
 - Include context for each quote when relevant
 - Focus on quotes that encapsulate key ideas or provide unique perspectives
 - If the content itself quotes other sources, ensure those quotes are also captured
+- If you are adding quotes do not add more than 3-5 quotes unless requested by the user
 - Preserve the original wording exactly, except correct American spellings to Australian English
 
 #### 3. Structured Summary

@@ -3,8 +3,10 @@ package main
 // Claude Code PreToolUse hook for compound/subshell/pipe commands.
 
 // Auto-approves compound commands (&&, ||, ;), pipes (|), background (&),
-// and subshells for which all individual commands are in the "allow" list,
-// and none are in the "deny" list.
+// and subshells for which every individual command is in the "allow" list
+// and none are in the "ask" or "deny" lists. A part matching "ask" causes
+// the hook to fall through, so Claude Code's normal confirmation prompt
+// still fires (a broad "allow" rule never bypasses an "ask" rule).
 // Loads permissions from user, project, and project-local settings files.
 // Examples (assuming cd, npx, grep and pnpm are in the allow list):
 // cd /path && npx tsc ✅
@@ -52,6 +54,7 @@ import (
 type Settings struct {
 	Permissions struct {
 		Allow []string `json:"allow"`
+		Ask   []string `json:"ask"`
 		Deny  []string `json:"deny"`
 	} `json:"permissions"`
 }
@@ -64,11 +67,22 @@ type HookInput struct {
 }
 
 var (
-	bashPattern    = regexp.MustCompile(`^Bash\((.+)\)$`)
-	compoundOps    = regexp.MustCompile(`\s*(&&|\|\||\||;)\s*|\s+&\s*`)
-	cdPrefix       = regexp.MustCompile(`^cd(\s|$)`)
-	trailingRedir  = regexp.MustCompile(`\s*\d*>&\d+\s*$`)
-	substitution   = regexp.MustCompile("\\$\\(|`|<\\(|>\\(")
+	bashPattern   = regexp.MustCompile(`^Bash\((.+)\)$`)
+	compoundOps   = regexp.MustCompile(`\s*(&&|\|\||\||;)\s*|\s+&\s*`)
+	cdPrefix      = regexp.MustCompile(`^cd(\s|$)`)
+	trailingRedir = regexp.MustCompile(`\s*\d*>&\d+\s*$`)
+	substitution  = regexp.MustCompile("\\$\\(|`|<\\(|>\\(")
+	// wrapperRe matches process wrappers Claude Code strips before rule matching:
+	// timeout (with optional flags + duration), time (-p), nice (with optional flags),
+	// nohup, stdbuf (with optional flags). xargs is handled separately because we
+	// only strip it when bare (no leading flag), per the docs.
+	wrapperRe = regexp.MustCompile(`^(?:` +
+		`timeout(?:\s+--?\S+(?:\s+\S+)?)*(?:\s+\d+\S*)?` +
+		`|time(?:\s+-p)?` +
+		`|nice(?:\s+--?\S+(?:\s+\S+)?)*` +
+		`|nohup` +
+		`|stdbuf(?:\s+--?\S+(?:=\S+)?)*` +
+		`)\s+`)
 )
 
 func main() {
@@ -89,6 +103,7 @@ func main() {
 
 	settings := loadAllSettings(input.Cwd)
 	allowPatterns := extractBashPatterns(settings.Permissions.Allow)
+	askPatterns := extractBashPatterns(settings.Permissions.Ask)
 	denyPatterns := extractBashPatterns(settings.Permissions.Deny)
 
 	parts := splitCommand(cmd)
@@ -102,10 +117,11 @@ func main() {
 			fmt.Println("{}")
 			return
 		}
+		part = stripWrappers(part)
 		if cdPrefix.MatchString(part) {
 			continue
 		}
-		if matchesAny(part, denyPatterns) || !matchesAny(part, allowPatterns) {
+		if matchesAny(part, denyPatterns) || matchesAny(part, askPatterns) || !matchesAny(part, allowPatterns) {
 			fmt.Println("{}")
 			return
 		}
@@ -135,6 +151,7 @@ func loadAllSettings(projectDir string) Settings {
 		var s Settings
 		if json.Unmarshal(data, &s) == nil {
 			merged.Permissions.Allow = append(merged.Permissions.Allow, s.Permissions.Allow...)
+			merged.Permissions.Ask = append(merged.Permissions.Ask, s.Permissions.Ask...)
 			merged.Permissions.Deny = append(merged.Permissions.Deny, s.Permissions.Deny...)
 		}
 	}
@@ -190,20 +207,67 @@ func stripOuterParens(s string) string {
 	}
 }
 
+// compileRulePattern converts a Claude Code permission rule pattern into an
+// anchored regex. `*` is the only wildcard and matches any sequence of chars
+// (including spaces), at any position. A trailing ` *` or `:*` makes the
+// trailing segment optional, so `Bash(grep *)` matches both `grep` and
+// `grep error`. All other characters are matched literally.
+func compileRulePattern(pattern string) (*regexp.Regexp, error) {
+	body := pattern
+	if strings.HasSuffix(body, ":*") && body != ":*" {
+		body = strings.TrimSuffix(body, ":*") + " *"
+	}
+	trailingSpaceStar := strings.HasSuffix(body, " *")
+	if trailingSpaceStar {
+		body = strings.TrimSuffix(body, " *")
+	}
+	var b strings.Builder
+	b.WriteString("^")
+	for _, r := range body {
+		if r == '*' {
+			b.WriteString(".*")
+		} else {
+			b.WriteString(regexp.QuoteMeta(string(r)))
+		}
+	}
+	if trailingSpaceStar {
+		b.WriteString(`(?:\s.*)?`)
+	}
+	b.WriteString("$")
+	return regexp.Compile(b.String())
+}
+
 func matchesAny(cmd string, patterns []string) bool {
 	cmd = strings.TrimSpace(cmd)
 	for _, pattern := range patterns {
-		if prefix, ok := strings.CutSuffix(pattern, " *"); ok {
-			if cmd == prefix || strings.HasPrefix(cmd, prefix+" ") {
-				return true
-			}
-		} else if prefix, ok := strings.CutSuffix(pattern, ":*"); ok {
-			if cmd == prefix || strings.HasPrefix(cmd, prefix+" ") {
-				return true
-			}
-		} else if cmd == pattern {
+		re, err := compileRulePattern(pattern)
+		if err != nil {
+			continue
+		}
+		if re.MatchString(cmd) {
 			return true
 		}
 	}
 	return false
+}
+
+// stripWrappers removes leading process wrappers Claude Code strips before
+// rule matching: timeout, time, nice, nohup, stdbuf, and bare xargs (no flags).
+// Applied iteratively so chained wrappers like `nohup nice cmd` collapse fully.
+func stripWrappers(cmd string) string {
+	cmd = strings.TrimSpace(cmd)
+	for {
+		original := cmd
+		cmd = wrapperRe.ReplaceAllString(cmd, "")
+		cmd = strings.TrimSpace(cmd)
+		if strings.HasPrefix(cmd, "xargs ") {
+			rest := strings.TrimLeft(cmd[len("xargs "):], " ")
+			if rest != "" && !strings.HasPrefix(rest, "-") {
+				cmd = rest
+			}
+		}
+		if cmd == original {
+			return cmd
+		}
+	}
 }
