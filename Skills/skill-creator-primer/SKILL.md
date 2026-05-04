@@ -13,19 +13,19 @@ Understanding these mechanics helps you design more effective skills.
 
 **Skills are prompt-based context modifiers, not executable code.** When invoked, a skill:
 
-1. Injects instructions into the conversation context (via hidden messages to Claude)
+1. Injects instructions into the conversation context (via hidden messages to the agent)
 2. Modifies execution context by changing tool permissions and optionally switching models
-3. Guides Claude's behaviour through detailed instructions
+3. Guides the agent's behaviour through detailed instructions
 
-**Skill selection happens through pure LLM reasoning.** No algorithmic matching, keyword search, or intent classification. Claude reads skill descriptions in the `Skill` tool's prompt and uses language model reasoning to decide which skill matches. This makes the `description` field the single most critical element.
+**Skill selection happens through pure LLM reasoning.** No algorithmic matching, keyword search, or intent classification. The agent reads skill descriptions in the `Skill` tool's prompt and uses language model reasoning to decide which skill matches. This makes the `description` field the single most critical element.
 
-**Claude tends to under-trigger skills.** To combat this, make descriptions slightly assertive about when to activate. Instead of "Build dashboards for data", write "Build dashboards for data. Use this skill whenever the user mentions dashboards, data visualisation, metrics, or wants to display any kind of data."
+**Agents tend to under-trigger skills.** To combat this, make descriptions slightly assertive about when to activate. Instead of "Build dashboards for data", write "Build dashboards for data. Use this skill whenever the user mentions dashboards, data visualisation, metrics, or wants to display any kind of data."
 
 **Progressive disclosure keeps context lean.** Three-level loading:
 
 1. **Metadata** (name + description) - Always in context (~20-100 words)
 2. **SKILL.md body** - Loaded only after triggering (<5k words)
-3. **Bundled resources** - Loaded by Claude as needed (unlimited, scripts execute without reading)
+3. **Bundled resources** - Loaded by the agent as needed (unlimited, scripts execute without reading)
 
 The description must be both concise (to fit token budgets shared with all other skills) and comprehensive (to enable accurate selection).
 
@@ -46,7 +46,7 @@ Think of Claude exploring a path: a narrow bridge with cliffs needs guardrails (
 These are Claude Code-specific fields not covered by the Agent Skills spec. Only include when specifically needed:
 
 - `argument-hint`: Hint shown during autocomplete for expected arguments, e.g. `[issue-number]` or `[filename] [format]`. Only include if the skill accepts arguments
-- `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-sonnet-4-6"`. Only include if the user requests it
+- `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-opus-4-7"`. Only include if the user requests it
 - `effort`: Override effort level when the skill is active. Options: `low`, `medium`, `high`, `max`. Only include if the user requests it
 - `context`: Set to `"fork"` to run in a forked sub-agent context. Useful for skills with extensive exploration or large outputs. Only include if the user requests it
 - `disable-model-invocation`: Set to `true` to prevent Claude from auto-loading the skill. Use for side-effect workflows the user should trigger manually. Only include if the user requests it
@@ -56,7 +56,7 @@ These are Claude Code-specific fields not covered by the Agent Skills spec. Only
 
 ## Token Budget Guidance
 
-The context window is a shared resource. Only add context Claude doesn't already have. Challenge each piece: "Does Claude really need this?" and "Does this justify its token cost?"
+The context window is a shared resource. Only add context the agent (current generation frontier models such as Claude Opus/Sonnet) doesn't already have. Challenge each piece: "Does the agent really need this?" and "Does this justify its token cost?"
 
 If the `ingest` CLI tool is available, use `ingest *.md` to estimate token usage:
 
@@ -105,24 +105,27 @@ After creating or updating a skill, always perform a critical self-review:
 3. Thin the language - make important information prominent while reducing word count
 4. Verify the description is concise (short) yet comprehensive enough for triggering
 5. Ensure no extraneous files were created
+6. Frame guidance positively to avoid the pink elephant effect (see Writing Tips). Rewrite "don't do X" as "do Y", or pair the prohibition with the concrete alternative
 
 **Verbosity is not rewarded - knowledge quality is.**
 
 ## Writing Tips
 
-**Don't state the obvious.** Claude already knows a lot about coding and has default opinions. Focus skill content on information that pushes Claude *out of* its normal way of thinking. If Claude would do the right thing without your skill, that content is wasting tokens.
+**Don't state the obvious.** the agent already knows a lot about coding and has default opinions. Focus skill content on information that pushes the agent *out of* its normal way of thinking. If the agent would do the right thing without your skill, that content is wasting tokens.
 
-**Build a Gotchas section.** The highest-signal content in any skill is a Gotchas section listing common failure points Claude hits when using the skill. Build this up from real failures over time. A good Gotchas section often delivers more value than pages of general instructions.
+**Build a Gotchas section.** The highest-signal content in any skill is a Gotchas section listing common failure points the agent hits when using the skill. Build this up from real failures over time. A good Gotchas section often delivers more value than pages of general instructions.
 
-**Avoid railroading Claude.** Because skills are reusable across many different prompts and contexts, being too specific in instructions backfires. Give Claude the information it needs, but leave flexibility to adapt to the situation. Overly rigid instructions (heavy MUSTs, exact step sequences) break when the context shifts even slightly.
+**Avoid railroading the agent.** Because skills are reusable across many different prompts and contexts, being too specific in instructions backfires. Give the agent the information it needs, but leave flexibility to adapt to the situation. Overly rigid instructions (heavy MUSTs, exact step sequences) break when the context shifts even slightly.
 
 **Think through the setup.** Some skills need user-specific configuration (e.g. which Slack channel, which database, API keys). Pattern: on first run, check for a config file; if missing, ask the user and store their answers. This avoids hardcoding values that differ per user or environment.
+
+**Avoid pink elephant guidance.** Naming specific unwanted behaviour activates it. For example saying "Never use the word delve" may plant the concept and result in the AI using it. Prefer positive instructions stating the desired behaviour. If you must prohibit something, pair it with the concrete alternative so the agent has somewhere to land. Specific banned-item lists (e.g. exact phrases to avoid) are fine when paired with replacements.
 
 Do not add inline scripts within markdown, single commands / simple one liners are fine, but scripts should be their own files.
 
 ## Gotchas
 
-**The skill-creator's `quick_validate.py` has an incomplete frontmatter allowlist.** It only recognises Agent Skills spec properties (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`) and will incorrectly reject valid Claude Code extension fields like `argument-hint`, `model`, `effort`, `context`, `disable-model-invocation`, `user-invocable`, and `agent`. If validation fails on one of these fields, the skill is still valid. Refer to the official docs at https://code.claude.com/docs/en/skills#frontmatter-reference for the authoritative list.
+**The skill-creator's `quick_validate.py` has an incomplete frontmatter allowlist.** It only recognises Agent Skills spec properties (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`) and will incorrectly reject valid Claude Code (or similar) extension fields like `argument-hint`, `model`, `effort`, `context`, `disable-model-invocation`, `user-invocable`, and `agent`. If validation fails on one of these fields, the skill is still valid. Refer to the official docs at https://code.claude.com/docs/en/skills#frontmatter-reference for the authoritative list.
 
 ## Validating a Skill
 

@@ -1,17 +1,17 @@
 ---
 name: pptx-to-md
-description: Convert a PPTX deck into per-slide markdown that preserves both the verbatim text and the meaning of embedded screenshots, diagrams and charts in their original layout positions. Use this skill whenever the user wants to extract content from or convert a slide deck / PPTX to markdown.
+description: Convert a PPTX or PDF slide deck into per-slide markdown that preserves both the verbatim text and the meaning of embedded screenshots, diagrams and charts in their original layout positions. Use this skill whenever the user wants to extract content from or convert a slide deck in PDF or PPTX to markdown.
 ---
 
 # Extract PPTX to per-slide markdown
 
-This skill turns a `.pptx` file into one markdown file per slide, preserving layout context and image meaning. It does not paraphrase the text or describe images out of context. The output is suitable as input to a content uplift pass, a markdown-to-HTML build, or any other downstream transform.
+This skill turns a `.pptx` (or `.pdf`) file into one markdown file per slide, preserving layout context and image meaning. It does not paraphrase the text or describe images out of context. The output is suitable as input to a content uplift pass, a markdown-to-HTML build, or any other downstream transform.
 
 ## When to use
 
 The deck mixes text with embedded screenshots, diagrams, charts, or code samples in a layout that matters (columns, side-by-side panels, callouts). Plain text extraction would lose either the layout or the meaning of the images.
 
-If the deck is text-only with no meaningful images, `python -m markitdown deck.pptx` is faster and sufficient.
+**IMPORTANT**: If the deck is: a PDF, text-only or if it has no images that are meaningful to the content, `uvx 'markitdown[all]' <path-to-file> -o output.md` is faster and usually sufficient without going through this skill's more complex pipeline as described below. You can try this and ask the user to review the output letting them know that if it's not sufficient you will continue with the more complex slide extraction pipeline.
 
 ## Pipeline
 
