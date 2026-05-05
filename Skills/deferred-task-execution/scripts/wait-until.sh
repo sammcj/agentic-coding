@@ -128,7 +128,7 @@ wake_time=$(date -v+"${seconds}"S '+%H:%M:%S %Z' 2>/dev/null) || \
 echo "WAITING: ${human_duration} (${seconds}s) - ${target_desc}"
 echo "WAKE_TIME: ${wake_time}"
 echo "STARTED: $(date '+%Y-%m-%d %H:%M:%S %Z')"
-echo "HOST_TZ: $(date '+%Z (%z)')"
+echo "TZ: ${TZ}"
 
 sleep "${seconds}"
 

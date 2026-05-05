@@ -16,15 +16,13 @@ CLAUDE.md files and rule files provide AI agents with:
 - Project-specific context not found in standard documentation
 - Path-scoped instructions that only load when relevant files are touched
 
-**Not for**: Obvious patterns, duplicating documentation, or generic coding advice.
+**Not for Obvious patterns, duplicating documentation, or generic coding advice.**:
 
 ## Core Principles
 
-**Signal over noise**: Every sentence must add non-obvious value. If an AI agent could infer it from reading the codebase, omit it.
-
-**Actionable context**: Focus on "what to do" and "why it matters", not descriptions of what exists.
-
-**Solve real friction, not theoretical concerns**: Add to CLAUDE.md based on actual problems encountered, not hypothetical scenarios. If you repeatedly explain the same thing to Claude, document it. If you haven't hit the problem yet, don't pre-emptively solve it.
+- **Signal over noise**: Every sentence must add non-obvious value. If an AI agent could infer it from reading the codebase, omit it.
+- **Actionable context**: Focus on "what to do" and "why it matters", not descriptions of what exists.
+- **Solve real friction, not theoretical concerns**: Add to CLAUDE.md based on actual problems encountered, not hypothetical scenarios. If you repeatedly explain the same thing to Claude, document it. If you haven't hit the problem yet, don't pre-emptively solve it.
 
 ## Structure
 
@@ -106,20 +104,19 @@ Rules load every session (or when matching files are opened). For task-specific 
 
 ## What to Exclude
 
-- **Line numbers**: Files change, references break. Use descriptive paths: "in `src/auth/middleware.ts`" not "line 42"
-- **Obvious information**: "We use React" (visible in package.json)
-- **Setup steps**: Belongs in README unless highly non-standard
-- **Generic advice**: "Write good tests" adds no project-specific value
-- **Temporary notes**: "TODO: refactor this" belongs in code comments
-- **Duplicate content**: If it's in README, don't repeat it
+- Line numbers: Files change, references break. Use descriptive paths: "in `src/auth/middleware.ts`" not "line 42"
+- Obvious information: "We use React" (visible in package.json)
+- Setup steps: Belongs in README unless highly non-standard
+- Generic advice: "Write good tests" adds no project-specific value
+- Temporary notes: "TODO: refactor this" belongs in code comments
+- Duplicate content: If it's in README, don't repeat it
+- Formatting over-emphasis: You don't need to bold the start of every sentence or bullet point, only add emphasis for stand out important statements or warnings that truly warrant it
 
 ## Anti-Patterns
 
-**Code style guidelines**: Don't document formatting rules, naming conventions, or code patterns that linters enforce. Use ESLint, Prettier, Black, golangci-lint, or similar tools. LLMs are in-context learners and will pick up patterns from codebase exploration. Configure Claude Code Hooks to run formatters if needed.
-
-**Task-specific minutiae**: Database schemas, API specifications, deployment procedures belong in their own documentation. Link to them from CLAUDE.md rather than duplicating content.
-
-**Kitchen sink approach**: Not every gotcha needs CLAUDE.md. Ask: "Is this relevant across most coding sessions?" If no, it belongs in code comments or specific documentation files.
+- Code style guidelines: Don't document formatting rules, naming conventions, or code patterns that linters enforce. Use ESLint, Prettier, Black, golangci-lint, or similar tools. LLMs are in-context learners and will pick up patterns from codebase exploration. Configure Claude Code Hooks to run formatters if needed.
+- Task-specific minutiae: Database schemas, API specifications, deployment procedures belong in their own documentation. Link to them from CLAUDE.md rather than duplicating content.
+- Kitchen sink approach: Not every gotcha needs CLAUDE.md. Ask: "Is this relevant across most coding sessions?" If no, it belongs in code comments or specific documentation files.
 
 ## Linking to Existing Documentation
 
@@ -213,7 +210,7 @@ Before finalising:
 - [ ] Sections only add non-obvious value
 - [ ] No code style guidelines (use linters instead)
 - [ ] Links to existing docs rather than duplicating them
-- [ ] Simple formatting, not smart quotes or dashes
+- [ ] Simple formatting, not smart quotes or dashes, no excessive bolding
 - [ ] No vague or overly verbose guidance
 - [ ] No temporary notes or TODOs (unless requested by the user)
 - [ ] No line numbers in file references
