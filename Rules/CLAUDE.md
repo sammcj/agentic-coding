@@ -126,48 +126,12 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 - Optimise for reduced failure modes
 - Ensure config / state is not duplicated across files
 - When adding or updating dependencies in a codebase you MUST use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
-- Always use Context7 (resolve-library-id, query-docs) when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
+- Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
-
-### Golang
-- Use latest Go version (verify, don't assume). Build with `-ldflags="-s -w"`
-- Check modernity: `go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix -test ./...`
-- Copy golangci config: `$HOME/git/sammcj/mcp-devtools/.golangci.yml`
-- Idiomatic Go: explicit error handling, early returns, small interfaces, composition, defer for cleanup, table-driven tests
-
-### Python
-- Favour Python 3.14+ features. Use `uv` for .venv management. Use `uvx ty check` for type checking
-- Type hints for all functions. Dataclasses for data structures. Pathlib over os.path. f-strings
-- For standalone scripts that have a few dependencies, use PEP 723 to declare dependencies in a TOML block inside `# ///` markers (e.g. `# /// script\n# dependencies = [\n#   "beautifulsoup4",\n# ]\n# ///`)
-
-### TypeScript
-- Prefer TypeScript over JavaScript. Strict mode always
-- Avoid `any` (use `unknown`), prefer discriminated unions over enums, `readonly` for immutables
-- Const by default, async/await over promise chains, optional chaining and nullish coalescing
-- Never hardcode styles - use theme/config
-
-### Rust
-- Use the latest Rust and Cargo versions and features to ensure optimal performance
-- Consider using rust workspaces and divide the project into distinct internal crates to reduce build times
-- Avoid exposing generics via public or inter-crate APIs (unless there is a really good reason)
-- Only activate required features on external crates
-
-### Bash
-- `#!/usr/bin/env bash` with `set -euo pipefail`
-- Quote all variable expansions. Use `[[ ]]` for conditionals. Trap for error handling
 
 ### Building AI Systems
 
 - Don't use prompts for control flow, prioritise solving problems with code rather than prompting
-
-### Github
-- Use the `gh` CLI tool for interacting with GitHub (issues, PRs, releases) and perform `gh` commands outside of the sandbox
-- When writing Github Actions Workflows, always check for and use the latest Actions versions that are at least 7 days old, you can use `pinact run -update --min-age 7` to achieve this
-- For the general PR conversation timeline (not line-level review comments), use `gh pr view --comments` or the REST `/issues/N/comments` endpoint
-- When you need to read line-level review comments with their resolved state (e.g. triaging bot or human review feedback), fetch them via GraphQL in one call:  `gh api graphql -f query='query { repository(owner: "OWNER", name: "REPO") { pullRequest(number: N) { reviewThreads(first: 100) { nodes { id isResolved path line comments(first: 1) { nodes { author { login } body } } } } } } }' --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false)'`
-- When explicitly asked by the user to "close" or "resolve" a review comment, resolve the thread via the GraphQL mutation (do not reply to a comment unless instructed): `gh api graphql -f query='mutation($id: ID!) { resolveReviewThread(input: { threadId: $id }) { thread { isResolved } } }' -f id="PRRT_..."`
-- Thread IDs start with `PRRT_`. Use `unresolveReviewThread` to reopen
-- You can audit Github Actions security by running `zizmor .`
 
 ---
 
