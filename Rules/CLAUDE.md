@@ -125,6 +125,8 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 - NEVER build or develop for Windows unless explicitly instructed
 - Optimise for reduced failure modes
 - Ensure config / state is not duplicated across files
+- When adding or updating dependencies in a codebase you MUST use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
+- Always use Context7 (resolve-library-id, query-docs) when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
 
 ### Golang

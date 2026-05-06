@@ -114,7 +114,7 @@ Rules load every session (or when matching files are opened). For task-specific 
 
 ## Anti-Patterns
 
-- Code style guidelines: Don't document formatting rules, naming conventions, or code patterns that linters enforce. Use ESLint, Prettier, Black, golangci-lint, or similar tools. LLMs are in-context learners and will pick up patterns from codebase exploration. Configure Claude Code Hooks to run formatters if needed.
+- Code style guidelines: Don't document code formatting rules, naming conventions, or code patterns that linters enforce. Use ESLint, Prettier, Black, golangci-lint, or similar tools. LLMs are in-context learners and will pick up patterns from codebase exploration. Configure Claude Code Hooks to run formatters if needed.
 - Task-specific minutiae: Database schemas, API specifications, deployment procedures belong in their own documentation. Link to them from CLAUDE.md rather than duplicating content.
 - Kitchen sink approach: Not every gotcha needs CLAUDE.md. Ask: "Is this relevant across most coding sessions?" If no, it belongs in code comments or specific documentation files.
 
@@ -152,7 +152,7 @@ Use `file:line` references for specific code: "See error handling in src/utils/e
 ## When to Update
 
 Add to CLAUDE.md when:
-- Discovering a non-obvious pattern discovered after codebase exploration
+- Discovering a non-obvious pattern after codebase exploration or complex problem resolution
 - Solving an issue that took significant investigation that will be encountered again by other agents
 - Finding a gotcha that's not immediately clear from code
 
@@ -180,6 +180,7 @@ Database schema and relationships: see src/database/SCHEMA.md when working with 
 - Error codes: 4-digit format `ERRR-1001`, defined in src/errors/codes.ts
 - Feature flags: Check in middleware, not in business logic
 - Dates: Always UTC in database, format client-side via src/utils/dates.ts
+- Documentation: Use DocBlocks for public functions, never use "smart" formatting markdown
 
 # Gotchas
 
@@ -210,7 +211,7 @@ Before finalising:
 - [ ] Sections only add non-obvious value
 - [ ] No code style guidelines (use linters instead)
 - [ ] Links to existing docs rather than duplicating them
-- [ ] Simple formatting, not smart quotes or dashes, no excessive bolding
+- [ ] Simple formatting, no smart quotes, no em dashes, no excessive bolding
 - [ ] No vague or overly verbose guidance
 - [ ] No temporary notes or TODOs (unless requested by the user)
 - [ ] No line numbers in file references
