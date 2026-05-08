@@ -534,7 +534,7 @@
     "context-mode@context-mode": true,
     "frontend-design@claude-code-plugins": true,
     "gopls-lsp@claude-plugins-official": true,
-    "impeccable@impeccable": false,
+    "impeccable@impeccable": true,
     "playground@claude-plugins-official": true,
     "playwright-skill@playwright-skill": false,
     "pyright-lsp@claude-plugins-official": true,
@@ -687,7 +687,7 @@
       "uv run"
     ]
   },
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "fastMode": false,
   "tui": "default",
   "preferredNotifChannel": "ghostty",
