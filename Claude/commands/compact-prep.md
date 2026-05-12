@@ -13,6 +13,8 @@ As such, could you please:
 
 3. Give me a concise prompt that I can provide to continue our work after compaction is complete. Keep in mind that the new agent / session will have access to the same files and will have the same CLAUDE.md agent rules in context.
 
+Note: You must not quote, indent or format the prompts in any way that might impact me copying and pasting them without cleaning them up.
+
 ---
 
 `$ARGUMENTS`

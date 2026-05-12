@@ -86,7 +86,7 @@ These appear in Claude output too, sometimes at lower density than GPT, but stil
 **Sentence-initial filler**: Additionally, Furthermore, Moreover, Notably, Consequently, Accordingly, In light of this, With this in mind, Building on this, That said, Having said that, It is important to note, It is worth mentioning, It should be noted that, It goes without saying.
 
 **Rhetorical structures**:
-- "Not just X, but also Y" / "It's not just X, it's Y" parallelism
+- **Negation-antithesis** (also called corrective antithesis; reported as the single most overused AI rhetorical pattern in slop-forensics trigram analysis): "It's not X. It's Y.", "Not just X, but Y.", "It's not just X, it's Y.", "This isn't about X, it's about Y.", "Forget X. Think Y.", "The question isn't X, it's Y.", "X is dead. Long live Y." Apply the **swap test**: reverse the order to "It's not Y, it's X." If both directions are equally plausible, the contrast is decorative scaffolding, not argument. Flag for rewrite by dropping the negation and stating the substantive claim directly with its supporting fact.
 - Decorative rule-of-three lists: "fast, efficient, and reliable"; "think bigger, act bolder, move faster"
 - Snappy triads of unearned profundity: "Something shifted." "Everything changed." "But here's the thing."
 - Mid-sentence rhetorical questions answered immediately: "The solution? It's simpler than you think."
@@ -196,6 +196,7 @@ Generate verification questions about your rewrite. Answer each by inspecting th
 - Are there any em dashes (`—`), en dashes (`–`), or `--` sequences? Any smart quotes (`" "` or `' '`)?
 - Does any sentence start with Additionally, Furthermore, Moreover, Notably, Consequently, In conclusion, Overall, In summary, It is important to note?
 - Does any paragraph contain three parallel adjectives, three parallel short phrases, or three parallel clauses used decoratively?
+- Are there any "It's not X. It's Y.", "Not just X, but Y.", or cousin negation-antithesis contrasts? Apply the swap test: if "It's not Y, it's X" is equally plausible, the contrast is decorative. Drop the negation and state Y directly.
 - Are there any unnamed authorities ("experts argue", "studies show", "observers have cited", "research suggests") I left in?
 - Did I leave any sentence ending with an "-ing" clause that adds no information?
 - Are there any "Despite [positive], [subject] faces challenges" pivots?
