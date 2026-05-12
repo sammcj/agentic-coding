@@ -11,9 +11,11 @@
 - **Filler verbs**: delve , dive into , leverage , harness , foster , bolster , underscore , streamline , facilitate , empower
 - **Vague nouns**: NEVER say paradigm , smoking gun , utilise (use "use")
 - **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge
-- Any other phrases that add no information such as "My take", "The bottom line" and similar
+- Any other phrases that add no information such as "My take", "The bottom line", "What actually works"
 
-This list is illustrative, not exhaustive. Any word or phrase that sounds like AI marketing copy, adds no information, or could be deleted without changing meaning falls under the same rule. If you catch yourself reaching for a word because it sounds impressive rather than because it's the most precise term, pick a plainer one.
+While you can use this list as a self-checklist, it is illustrative, not exhaustive.
+
+Any word or phrase that sounds like AI marketing copy, clickbait, adds no information, or could be deleted without changing meaning falls under the same rule. If you catch yourself reaching for a word because it sounds impressive rather than because it's the most precise term, pick a plainer one.
 
 #### Earn Your Emphasis (No Manufactured Contrasts)
 
@@ -23,6 +25,9 @@ Apply the **swap test**: reverse the order. If "It's not Y, it's X" is equally p
 
 Slop: "This isn't just a tool. It's a paradigm shift in how we develop."
 Better: "This tool replaces the old build system with one that runs incrementally."
+
+Slop: "Honest take: I didn't think this would work. I was wrong."
+Better: "The new approach is working."
 
 ### Clear, Direct, Human
 You MUST adhere to the following principles in all writing, communication, and documentation:
@@ -110,7 +115,7 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 
 ## Security
 - **Never hardcode credentials, tokens, or secrets. Never commit sensitive data**
-- If you get prompted to "ask the user for explicit permission and have them run the command manually" you must do exactly that
+- If you get prompted to "ask the user for explicit permission and have them run the command manually" or similar you must do follow it
 - Never trust user input - validate and sanitise all inputs
 - Parameterised queries only - never string concatenation for SQL
 - Never expose internal errors or system details to end users
@@ -133,7 +138,7 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 - NEVER implement placeholder or mocked functionality unless explicitly instructed
 - NEVER build or develop for Windows unless explicitly instructed
 - Optimise for reduced failure modes
-- Ensure config / state is not duplicated across files
+- Ensure config and state are not duplicated across files
 - When adding or updating dependencies in a codebase you MUST use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
 - Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
@@ -159,7 +164,6 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 ### Tool Priorities
 - Use purpose-built tools over manual approaches (e.g. get_library_docs for documentation, calculator for maths)
 - Use tools to search documentation before making assumptions - don't guess
-- Use `code_skim` for exploring large files/codebases without reading full implementations
 - Delegate to sub-agents in parallel where possible, instruct them to return only key information
 - If you have skills to help you build tools or skills, use them when doing so
 
