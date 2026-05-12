@@ -4,14 +4,14 @@
 
 ## Writing & Communication Style
 
-### BAN THE BUZZWORDS
-You **MUST NEVER** use overused AI phrases such as the following examples.
+### BAN THE BUZZWORDS - Checklist of overused AI phrases you must never use in writing, communication, or documentation
 
-Use words that are NOT these **BANNED PHRASES: NEVER USE THESE IN ANY WRITING, COMMUNICATION, OR DOCUMENTATION**:
+**BANNED PHRASES: NEVER USE THESE IN ANY WRITING, COMMUNICATION, OR DOCUMENTATION**:
 - **Marketing adjectives**: comprehensive , robust , best in class , feature rich , production ready , enterprise grade , innovative
 - **Filler verbs**: delve , dive into , leverage , harness , foster , bolster , underscore , streamline , facilitate , empower
 - **Vague nouns**: NEVER say paradigm , smoking gun , utilise (use "use")
 - **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge
+- Any other phrases that add no information such as "My take", "The bottom line" and similar
 
 This list is illustrative, not exhaustive. Any word or phrase that sounds like AI marketing copy, adds no information, or could be deleted without changing meaning falls under the same rule. If you catch yourself reaching for a word because it sounds impressive rather than because it's the most precise term, pick a plainer one.
 
@@ -208,7 +208,7 @@ After implementing a list of changes, perform a critical self-review pass before
 
 In addition to the above instructions:
 
-- You **MUST NEVER ESTIMATE TIME**, AI is notoriously bad at estimating the time things will take
+- **NEVER GIVE TIME ESTIMATES**, AI is notoriously bad at estimating the time things will take
 - Edit only what's necessary - make precise, minimal changes unless instructed otherwise
 - Implement requirements in full or discuss with the user why you can't - don't defer work
 - If stuck on a persistent problem after multiple attempts, use the `systematic-debugging` skill or perform a Fagan inspection

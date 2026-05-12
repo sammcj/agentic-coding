@@ -57,7 +57,7 @@ The defining tells of Claude 4.x output. These rarely appear in genuine human pr
 - Sycophancy openers and validations: "You're absolutely right", "You're absolutely correct", "That's a great question", "Great question!", "Perfect!", "Excellent point!", "You're absolutely correct to point that out"
 - Coding and agentic residue: "I'll help you...", "Let me [verb]", "Let me start by", "Let me first", "Let me check", "Now let me...", "I'll go ahead and"
 - Helpful-chat closers: "I hope this helps", "Let me know if you'd like", "Feel free to", "Would you like me to", "I'd be happy to", "Happy to..."
-- Performative anti-sycophancy: "to be straight to the point", "no BS", "I want to be honest with you", "to be clear with you"
+- Performative anti-sycophancy: "to be straight to the point", "no BS", "I want to be honest with you", "to be clear with you". Also output-framing labels: "Honest take:", "Honest review:", "Honest recommendation:" (diagnostic: if removing "honest" doesn't change the meaning, drop it)
 - Parenthetical hedging asides: "(or, more precisely, ...)", "(and, increasingly, ...)"
 - Progress-update meta-narration in long-form: "Let me mark X as complete", "Now I'll examine"
 - False intimacy openers preceding the obvious: "Here's the thing:", "Let's be honest:", "The truth is"
