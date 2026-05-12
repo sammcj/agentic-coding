@@ -1,7 +1,6 @@
 ---
 name: systematic-debugging
-description: Applies a modified Fagan Inspection methodology to systematically resolve persistent bugs and complex issues. You should active this skill when multiple previous fix or debugging attempts have failed repeatedly,or when a methodical root cause analysis or complex problems is needed. Do not use for simple troubleshooting.
-model: opus
+description: Applies a modified Fagan Inspection methodology to systematically resolve persistent bugs and complex issues. You should active this skill when multiple previous fix or debugging attempts have failed repeatedly, or when a methodical root cause analysis or complex problems is needed. Highly effective for complex problems. Do not use for simple troubleshooting.
 ---
 
 # Systematic Debugging with Fagan Inspection
