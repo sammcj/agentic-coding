@@ -1,0 +1,456 @@
+/*
+ * Named themes for web-artifacts-builder
+ *
+ * Each theme below is a drop-in replacement for the `:root` and `.dark` blocks
+ * in `src/index.css`. The `@theme inline` mapping and `@layer base` rules in
+ * the generated `src/index.css` already wire these variables into Tailwind
+ * utilities - do not edit those.
+ *
+ * Each theme defines all variables used by shadcn/ui components, including
+ * --chart-1..5 (used by the Chart components) and --sidebar-* (used by the
+ * Sidebar component). Swap in :root + .dark wholesale; you do not need to
+ * preserve any of the original values.
+ *
+ * To apply a theme:
+ *   1. Pick one that fits the artefact's mood (see notes under each).
+ *   2. Replace the `:root { ... }` and `.dark { ... }` blocks in src/index.css
+ *      with the corresponding pair below.
+ *   3. Apply the suggested font stack (add it to <head> via <link>, or import
+ *      via a Google Fonts URL, then set `body { font-family: ... }` and a
+ *      `:root { --font-heading: ... }` rule as needed).
+ *
+ * All colours use OKLCH (perceptually uniform), which is what shadcn/ui
+ * defaults to under Tailwind v4. The accent value is intentionally the only
+ * chromatic colour in most themes - see the accent-discipline rule in
+ * SKILL.md before reaching for it.
+ */
+
+
+/* =========================================================================
+ * 1. Editorial paper
+ *
+ * Warm off-white background, deep ink foreground, a single ochre accent.
+ * Suits: longform writeups, plans, reports, post-mortems, anything that
+ * wants to feel like a printed page. Pair serif headings with sans body.
+ *
+ * Suggested fonts:
+ *   headings: "Source Serif 4", "Charter", Georgia, serif
+ *   body:     "Inter Tight", "IBM Plex Sans", system-ui, sans-serif
+ *   mono:     "JetBrains Mono", ui-monospace, monospace
+ * ========================================================================= */
+
+:root {
+  --radius: 0.5rem;
+  --background: oklch(0.975 0.008 85);
+  --foreground: oklch(0.22 0.018 60);
+  --card: oklch(0.985 0.006 85);
+  --card-foreground: oklch(0.22 0.018 60);
+  --popover: oklch(0.985 0.006 85);
+  --popover-foreground: oklch(0.22 0.018 60);
+  --primary: oklch(0.28 0.025 55);
+  --primary-foreground: oklch(0.975 0.008 85);
+  --secondary: oklch(0.93 0.012 80);
+  --secondary-foreground: oklch(0.28 0.025 55);
+  --muted: oklch(0.93 0.012 80);
+  --muted-foreground: oklch(0.50 0.020 60);
+  --accent: oklch(0.55 0.115 50);
+  --accent-foreground: oklch(0.975 0.008 85);
+  --destructive: oklch(0.52 0.18 25);
+  --destructive-foreground: oklch(0.975 0.008 85);
+  --border: oklch(0.86 0.012 80);
+  --input: oklch(0.86 0.012 80);
+  --ring: oklch(0.55 0.115 50);
+  --chart-1: oklch(0.55 0.115 50);
+  --chart-2: oklch(0.48 0.090 30);
+  --chart-3: oklch(0.62 0.075 90);
+  --chart-4: oklch(0.42 0.080 20);
+  --chart-5: oklch(0.58 0.060 70);
+  --sidebar: oklch(0.96 0.010 80);
+  --sidebar-foreground: oklch(0.22 0.018 60);
+  --sidebar-primary: oklch(0.28 0.025 55);
+  --sidebar-primary-foreground: oklch(0.975 0.008 85);
+  --sidebar-accent: oklch(0.93 0.012 80);
+  --sidebar-accent-foreground: oklch(0.28 0.025 55);
+  --sidebar-border: oklch(0.86 0.012 80);
+  --sidebar-ring: oklch(0.55 0.115 50);
+}
+
+.dark {
+  --background: oklch(0.18 0.015 60);
+  --foreground: oklch(0.92 0.018 80);
+  --card: oklch(0.22 0.018 60);
+  --card-foreground: oklch(0.92 0.018 80);
+  --popover: oklch(0.22 0.018 60);
+  --popover-foreground: oklch(0.92 0.018 80);
+  --primary: oklch(0.92 0.018 80);
+  --primary-foreground: oklch(0.22 0.018 60);
+  --secondary: oklch(0.26 0.020 60);
+  --secondary-foreground: oklch(0.92 0.018 80);
+  --muted: oklch(0.26 0.020 60);
+  --muted-foreground: oklch(0.68 0.020 70);
+  --accent: oklch(0.68 0.095 55);
+  --accent-foreground: oklch(0.18 0.015 60);
+  --destructive: oklch(0.62 0.18 25);
+  --destructive-foreground: oklch(0.18 0.015 60);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.68 0.095 55);
+  --chart-1: oklch(0.68 0.095 55);
+  --chart-2: oklch(0.62 0.080 30);
+  --chart-3: oklch(0.72 0.070 90);
+  --chart-4: oklch(0.55 0.080 20);
+  --chart-5: oklch(0.65 0.060 70);
+  --sidebar: oklch(0.20 0.018 60);
+  --sidebar-foreground: oklch(0.92 0.018 80);
+  --sidebar-primary: oklch(0.68 0.095 55);
+  --sidebar-primary-foreground: oklch(0.18 0.015 60);
+  --sidebar-accent: oklch(0.26 0.020 60);
+  --sidebar-accent-foreground: oklch(0.92 0.018 80);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.68 0.095 55);
+}
+
+
+/* =========================================================================
+ * 2. Technical mono
+ *
+ * Near-monochrome greyscale with a single green-amber accent reserved for
+ * status, links, and focused state. Reads like a terminal or a technical
+ * spec. Suits: code reviews, system diagrams, status pages, debugging
+ * artefacts. Use a mono or geometric sans throughout.
+ *
+ * Suggested fonts:
+ *   headings: "Geist Mono", "JetBrains Mono", ui-monospace, monospace
+ *   body:     "Geist", "Inter Tight", system-ui, sans-serif
+ *   mono:     "Geist Mono", "JetBrains Mono", ui-monospace, monospace
+ * ========================================================================= */
+
+:root {
+  --radius: 0.25rem;
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.18 0 0);
+  --card: oklch(0.99 0 0);
+  --card-foreground: oklch(0.18 0 0);
+  --popover: oklch(0.99 0 0);
+  --popover-foreground: oklch(0.18 0 0);
+  --primary: oklch(0.20 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.95 0 0);
+  --secondary-foreground: oklch(0.20 0 0);
+  --muted: oklch(0.95 0 0);
+  --muted-foreground: oklch(0.50 0 0);
+  --accent: oklch(0.62 0.16 145);
+  --accent-foreground: oklch(0.16 0 0);
+  --destructive: oklch(0.55 0.20 25);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.88 0 0);
+  --input: oklch(0.88 0 0);
+  --ring: oklch(0.62 0.16 145);
+  --chart-1: oklch(0.62 0.16 145);
+  --chart-2: oklch(0.55 0.11 145);
+  --chart-3: oklch(0.45 0.07 145);
+  --chart-4: oklch(0.40 0 0);
+  --chart-5: oklch(0.30 0 0);
+  --sidebar: oklch(0.97 0 0);
+  --sidebar-foreground: oklch(0.18 0 0);
+  --sidebar-primary: oklch(0.20 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.95 0 0);
+  --sidebar-accent-foreground: oklch(0.20 0 0);
+  --sidebar-border: oklch(0.88 0 0);
+  --sidebar-ring: oklch(0.62 0.16 145);
+}
+
+.dark {
+  --background: oklch(0.14 0 0);
+  --foreground: oklch(0.92 0 0);
+  --card: oklch(0.18 0 0);
+  --card-foreground: oklch(0.92 0 0);
+  --popover: oklch(0.18 0 0);
+  --popover-foreground: oklch(0.92 0 0);
+  --primary: oklch(0.92 0 0);
+  --primary-foreground: oklch(0.18 0 0);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(0.92 0 0);
+  --muted: oklch(0.22 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+  --accent: oklch(0.74 0.16 145);
+  --accent-foreground: oklch(0.14 0 0);
+  --destructive: oklch(0.65 0.20 25);
+  --destructive-foreground: oklch(0.14 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.74 0.16 145);
+  --chart-1: oklch(0.74 0.16 145);
+  --chart-2: oklch(0.66 0.11 145);
+  --chart-3: oklch(0.56 0.07 145);
+  --chart-4: oklch(0.62 0 0);
+  --chart-5: oklch(0.72 0 0);
+  --sidebar: oklch(0.16 0 0);
+  --sidebar-foreground: oklch(0.92 0 0);
+  --sidebar-primary: oklch(0.92 0 0);
+  --sidebar-primary-foreground: oklch(0.18 0 0);
+  --sidebar-accent: oklch(0.22 0 0);
+  --sidebar-accent-foreground: oklch(0.92 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.74 0.16 145);
+}
+
+
+/* =========================================================================
+ * 3. Warm desaturated
+ *
+ * Sand background, clay-brown foreground, muted terracotta accent. Dialled-
+ * down warm palette - the saturation never gets loud. Suits: design system
+ * pages, brand-adjacent artefacts, anything that wants warmth without
+ * looking like a Mediterranean restaurant menu.
+ *
+ * Suggested fonts:
+ *   headings: "Fraunces", "Charter", Georgia, serif
+ *   body:     "Inter Tight", "IBM Plex Sans", system-ui, sans-serif
+ *   mono:     "IBM Plex Mono", ui-monospace, monospace
+ * ========================================================================= */
+
+:root {
+  --radius: 0.5rem;
+  --background: oklch(0.955 0.013 70);
+  --foreground: oklch(0.28 0.025 40);
+  --card: oklch(0.97 0.010 70);
+  --card-foreground: oklch(0.28 0.025 40);
+  --popover: oklch(0.97 0.010 70);
+  --popover-foreground: oklch(0.28 0.025 40);
+  --primary: oklch(0.36 0.030 35);
+  --primary-foreground: oklch(0.955 0.013 70);
+  --secondary: oklch(0.92 0.018 70);
+  --secondary-foreground: oklch(0.36 0.030 35);
+  --muted: oklch(0.92 0.018 70);
+  --muted-foreground: oklch(0.52 0.025 50);
+  --accent: oklch(0.56 0.095 30);
+  --accent-foreground: oklch(0.97 0.010 70);
+  --destructive: oklch(0.52 0.17 25);
+  --destructive-foreground: oklch(0.97 0.010 70);
+  --border: oklch(0.85 0.016 65);
+  --input: oklch(0.85 0.016 65);
+  --ring: oklch(0.56 0.095 30);
+  --chart-1: oklch(0.56 0.095 30);
+  --chart-2: oklch(0.50 0.070 50);
+  --chart-3: oklch(0.60 0.060 80);
+  --chart-4: oklch(0.42 0.080 25);
+  --chart-5: oklch(0.65 0.050 40);
+  --sidebar: oklch(0.94 0.014 70);
+  --sidebar-foreground: oklch(0.28 0.025 40);
+  --sidebar-primary: oklch(0.36 0.030 35);
+  --sidebar-primary-foreground: oklch(0.955 0.013 70);
+  --sidebar-accent: oklch(0.92 0.018 70);
+  --sidebar-accent-foreground: oklch(0.36 0.030 35);
+  --sidebar-border: oklch(0.85 0.016 65);
+  --sidebar-ring: oklch(0.56 0.095 30);
+}
+
+.dark {
+  --background: oklch(0.20 0.020 35);
+  --foreground: oklch(0.90 0.015 70);
+  --card: oklch(0.24 0.022 35);
+  --card-foreground: oklch(0.90 0.015 70);
+  --popover: oklch(0.24 0.022 35);
+  --popover-foreground: oklch(0.90 0.015 70);
+  --primary: oklch(0.90 0.015 70);
+  --primary-foreground: oklch(0.24 0.022 35);
+  --secondary: oklch(0.28 0.022 35);
+  --secondary-foreground: oklch(0.90 0.015 70);
+  --muted: oklch(0.28 0.022 35);
+  --muted-foreground: oklch(0.66 0.020 60);
+  --accent: oklch(0.66 0.090 30);
+  --accent-foreground: oklch(0.20 0.020 35);
+  --destructive: oklch(0.62 0.17 25);
+  --destructive-foreground: oklch(0.20 0.020 35);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.66 0.090 30);
+  --chart-1: oklch(0.66 0.090 30);
+  --chart-2: oklch(0.60 0.070 50);
+  --chart-3: oklch(0.70 0.060 80);
+  --chart-4: oklch(0.55 0.080 25);
+  --chart-5: oklch(0.72 0.050 40);
+  --sidebar: oklch(0.18 0.018 35);
+  --sidebar-foreground: oklch(0.90 0.015 70);
+  --sidebar-primary: oklch(0.90 0.015 70);
+  --sidebar-primary-foreground: oklch(0.20 0.020 35);
+  --sidebar-accent: oklch(0.26 0.022 35);
+  --sidebar-accent-foreground: oklch(0.90 0.015 70);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.66 0.090 30);
+}
+
+
+/* =========================================================================
+ * 4. Cool muted
+ *
+ * Quiet slate background, dark slate foreground, low-chroma blue-teal
+ * accent. The cool counterpart to "Warm desaturated". Suits: dashboards,
+ * status reports, technical documentation, anything that should read as
+ * calm and considered.
+ *
+ * Suggested fonts:
+ *   headings: "Inter Tight", "IBM Plex Sans", system-ui, sans-serif
+ *   body:     "Inter Tight", "IBM Plex Sans", system-ui, sans-serif
+ *   mono:     "JetBrains Mono", ui-monospace, monospace
+ * ========================================================================= */
+
+:root {
+  --radius: 0.5rem;
+  --background: oklch(0.97 0.005 230);
+  --foreground: oklch(0.25 0.025 240);
+  --card: oklch(0.98 0.004 230);
+  --card-foreground: oklch(0.25 0.025 240);
+  --popover: oklch(0.98 0.004 230);
+  --popover-foreground: oklch(0.25 0.025 240);
+  --primary: oklch(0.30 0.030 240);
+  --primary-foreground: oklch(0.97 0.005 230);
+  --secondary: oklch(0.93 0.010 230);
+  --secondary-foreground: oklch(0.30 0.030 240);
+  --muted: oklch(0.93 0.010 230);
+  --muted-foreground: oklch(0.50 0.022 230);
+  --accent: oklch(0.55 0.070 215);
+  --accent-foreground: oklch(0.97 0.005 230);
+  --destructive: oklch(0.55 0.18 25);
+  --destructive-foreground: oklch(0.97 0.005 230);
+  --border: oklch(0.87 0.008 230);
+  --input: oklch(0.87 0.008 230);
+  --ring: oklch(0.55 0.070 215);
+  --chart-1: oklch(0.55 0.070 215);
+  --chart-2: oklch(0.50 0.060 200);
+  --chart-3: oklch(0.60 0.050 250);
+  --chart-4: oklch(0.45 0.060 180);
+  --chart-5: oklch(0.65 0.040 220);
+  --sidebar: oklch(0.96 0.006 230);
+  --sidebar-foreground: oklch(0.25 0.025 240);
+  --sidebar-primary: oklch(0.30 0.030 240);
+  --sidebar-primary-foreground: oklch(0.97 0.005 230);
+  --sidebar-accent: oklch(0.93 0.010 230);
+  --sidebar-accent-foreground: oklch(0.30 0.030 240);
+  --sidebar-border: oklch(0.87 0.008 230);
+  --sidebar-ring: oklch(0.55 0.070 215);
+}
+
+.dark {
+  --background: oklch(0.17 0.015 240);
+  --foreground: oklch(0.92 0.010 220);
+  --card: oklch(0.21 0.017 240);
+  --card-foreground: oklch(0.92 0.010 220);
+  --popover: oklch(0.21 0.017 240);
+  --popover-foreground: oklch(0.92 0.010 220);
+  --primary: oklch(0.92 0.010 220);
+  --primary-foreground: oklch(0.21 0.017 240);
+  --secondary: oklch(0.25 0.018 240);
+  --secondary-foreground: oklch(0.92 0.010 220);
+  --muted: oklch(0.25 0.018 240);
+  --muted-foreground: oklch(0.68 0.018 220);
+  --accent: oklch(0.70 0.075 210);
+  --accent-foreground: oklch(0.17 0.015 240);
+  --destructive: oklch(0.65 0.18 25);
+  --destructive-foreground: oklch(0.17 0.015 240);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.70 0.075 210);
+  --chart-1: oklch(0.70 0.075 210);
+  --chart-2: oklch(0.65 0.060 195);
+  --chart-3: oklch(0.72 0.050 245);
+  --chart-4: oklch(0.60 0.060 175);
+  --chart-5: oklch(0.75 0.050 220);
+  --sidebar: oklch(0.19 0.017 240);
+  --sidebar-foreground: oklch(0.92 0.010 220);
+  --sidebar-primary: oklch(0.92 0.010 220);
+  --sidebar-primary-foreground: oklch(0.17 0.015 240);
+  --sidebar-accent: oklch(0.25 0.018 240);
+  --sidebar-accent-foreground: oklch(0.92 0.010 220);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.70 0.075 210);
+}
+
+
+/* =========================================================================
+ * 5. Nordic dark
+ *
+ * Dark-first palette inspired by polar-night greys with restrained frost-
+ * blue accents. Light variant included for cross-mode toggling but the
+ * theme reads best in dark mode. Suits: incident write-ups, debug dumps,
+ * developer tooling artefacts, anything that benefits from a low-glare
+ * dark surface.
+ *
+ * Suggested fonts:
+ *   headings: "Geist", "Inter Tight", system-ui, sans-serif
+ *   body:     "Geist", "Inter Tight", system-ui, sans-serif
+ *   mono:     "Geist Mono", "JetBrains Mono", ui-monospace, monospace
+ * ========================================================================= */
+
+:root {
+  --radius: 0.375rem;
+  --background: oklch(0.96 0.005 250);
+  --foreground: oklch(0.28 0.020 250);
+  --card: oklch(0.97 0.004 250);
+  --card-foreground: oklch(0.28 0.020 250);
+  --popover: oklch(0.97 0.004 250);
+  --popover-foreground: oklch(0.28 0.020 250);
+  --primary: oklch(0.34 0.025 250);
+  --primary-foreground: oklch(0.96 0.005 250);
+  --secondary: oklch(0.92 0.010 250);
+  --secondary-foreground: oklch(0.34 0.025 250);
+  --muted: oklch(0.92 0.010 250);
+  --muted-foreground: oklch(0.50 0.022 250);
+  --accent: oklch(0.60 0.080 220);
+  --accent-foreground: oklch(0.96 0.005 250);
+  --destructive: oklch(0.55 0.18 25);
+  --destructive-foreground: oklch(0.96 0.005 250);
+  --border: oklch(0.85 0.010 250);
+  --input: oklch(0.85 0.010 250);
+  --ring: oklch(0.60 0.080 220);
+  --chart-1: oklch(0.60 0.080 220);
+  --chart-2: oklch(0.55 0.070 170);
+  --chart-3: oklch(0.55 0.070 280);
+  --chart-4: oklch(0.65 0.100 60);
+  --chart-5: oklch(0.62 0.060 250);
+  --sidebar: oklch(0.94 0.008 250);
+  --sidebar-foreground: oklch(0.28 0.020 250);
+  --sidebar-primary: oklch(0.34 0.025 250);
+  --sidebar-primary-foreground: oklch(0.96 0.005 250);
+  --sidebar-accent: oklch(0.92 0.010 250);
+  --sidebar-accent-foreground: oklch(0.34 0.025 250);
+  --sidebar-border: oklch(0.85 0.010 250);
+  --sidebar-ring: oklch(0.60 0.080 220);
+}
+
+.dark {
+  --background: oklch(0.21 0.015 250);
+  --foreground: oklch(0.90 0.012 240);
+  --card: oklch(0.25 0.018 250);
+  --card-foreground: oklch(0.90 0.012 240);
+  --popover: oklch(0.25 0.018 250);
+  --popover-foreground: oklch(0.90 0.012 240);
+  --primary: oklch(0.90 0.012 240);
+  --primary-foreground: oklch(0.25 0.018 250);
+  --secondary: oklch(0.29 0.020 250);
+  --secondary-foreground: oklch(0.90 0.012 240);
+  --muted: oklch(0.29 0.020 250);
+  --muted-foreground: oklch(0.66 0.018 240);
+  --accent: oklch(0.72 0.080 220);
+  --accent-foreground: oklch(0.21 0.015 250);
+  --destructive: oklch(0.65 0.18 25);
+  --destructive-foreground: oklch(0.21 0.015 250);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.72 0.080 220);
+  --chart-1: oklch(0.72 0.080 220);
+  --chart-2: oklch(0.68 0.070 170);
+  --chart-3: oklch(0.68 0.070 280);
+  --chart-4: oklch(0.72 0.100 60);
+  --chart-5: oklch(0.70 0.060 250);
+  --sidebar: oklch(0.23 0.017 250);
+  --sidebar-foreground: oklch(0.90 0.012 240);
+  --sidebar-primary: oklch(0.90 0.012 240);
+  --sidebar-primary-foreground: oklch(0.25 0.018 250);
+  --sidebar-accent: oklch(0.29 0.020 250);
+  --sidebar-accent-foreground: oklch(0.90 0.012 240);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.72 0.080 220);
+}

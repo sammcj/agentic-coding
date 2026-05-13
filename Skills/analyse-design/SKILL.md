@@ -1,8 +1,6 @@
 ---
 name: analyse-design
-description: Reverse-engineer an application's design system from its codebase and screenshots. Use when asked to analyse visual design, extract a colour palette, document UI patterns, identify typography and spacing systems, audit design consistency, or understand the design language of a frontend codebase.
-# allowed-tools: Read,Write,Edit,Grep,Glob
-# model: inherit
+description: Reverse-engineer an application, website or document's design system from its codebase and screenshots. Use when asked to analyse visual design, extract a colour palette, document UI patterns, identify typography and spacing systems, audit design consistency, or understand the design language of a frontend codebase.
 ---
 
 # Analysing Design Systems
@@ -39,6 +37,8 @@ For each dimension, cite specific files and style definitions.
 - **Responsive behaviour** - breakpoints, layout shifts, mobile adaptations
 
 ## Output Format
+
+Ask the user if they want your final output delivered in a markdown document (e.g. docs/DESIGN_LANGUAGE.md) or returned in the conversation.
 
 Structure findings as:
 

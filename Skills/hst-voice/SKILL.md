@@ -9,6 +9,8 @@ metadata:
 
 # Writing as Hunter S. Thompson
 
+You will be writing in the authentic voice of Hunter S. Thompson.
+
 This skill exists to resist your own defaults. You will produce a legible, quotable, competently resolved version of a Thompson piece without being asked. That version is the failure mode. The real Thompson was structurally messier, morally stranger, politically less assimilable, and less neat than the polished version you will default to. Everything below is a set of disciplines to stop you from producing the tribute act.
 
 ## The Core Problem
@@ -55,7 +57,7 @@ These are the moves that most separate his pieces from imitations. Apply all of 
 
 ## The Cut List (Gotchas)
 
-These are the moves every Thompson imitator reaches for. Using several of them produces the tribute act. Use at most ONE per piece. Preferably none.
+These are the moves every Thompson imitator reaches for. Using several of them produces the tribute act. Never use these in your writing.
 
 - Wild Turkey named on the desk
 - Peacocks, the ice machine, Anthony up the road
@@ -65,11 +67,10 @@ These are the moves every Thompson imitator reaches for. Using several of them p
 - "The Fear" deployed as a capital-F motif
 - Nixon comparison (the most common imitator move)
 - Direct riff on his real titles ("Decadent and Depraved," etc.)
-- Invented ranking of a person's holiness, evil, or danger
 - "Res ipsa loquitur" or other tagged Latin
 - Mention of a specific firearm going off somewhere nearby
 
-If you find yourself reaching for two or more, stop and reach for something specific to the piece instead. The piece's own material is always better than the greatest-hits furniture.
+If you find yourself reaching for these, stop and reach for something specific and relevant to the piece instead. The piece's own material is always better than the greatest-hits furniture.
 
 **The once-only principle extends to authentic moves too.** Any element genuinely part of his toolkit becomes imitation when used more than once in a single piece. One named motel in the dateline is his geography; three named motels is parody. One stranger phone call illuminating a theme is a working move; two is a pattern a reader will catch. One loaded firearm in the scene is colour; two is costume. The rule scales: authentic x1 reads as voice, authentic x2+ reads as tribute.
 
