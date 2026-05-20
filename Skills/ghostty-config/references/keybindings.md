@@ -103,6 +103,7 @@ keybind = shift+end=adjust_selection:end
 | `scroll_to_top`          | -                                 | Move to scrollback beginning        |
 | `scroll_to_bottom`       | -                                 | Move to scrollback end              |
 | `scroll_to_selection`    | -                                 | Position viewport to show selection |
+| `scroll_to_row`          | `scroll_to_row:row`               | Scroll to absolute row (0 = first)  |
 | `scroll_page_up`         | -                                 | Move up one page                    |
 | `scroll_page_down`       | -                                 | Move down one page                  |
 | `scroll_page_fractional` | `scroll_page_fractional:fraction` | Scroll by fraction (positive=down)  |
@@ -132,6 +133,28 @@ keybind = ctrl+shift+down=jump_to_prompt:1    # Next prompt
 
 ---
 
+## Search Actions
+
+Available since Ghostty 1.3. Search has its own GUI in the terminal surface.
+
+| Action             | Format                      | Description                                          |
+|--------------------|-----------------------------|------------------------------------------------------|
+| `start_search`     | -                           | Open the search UI without setting a query           |
+| `search`           | `search:text`               | Search for the given text (empty cancels)            |
+| `search_selection` | -                           | Search for the current selection                     |
+| `navigate_search`  | `navigate_search:direction` | Move between results: `previous` or `next`           |
+| `end_search`       | -                           | End the current search and hide the search GUI       |
+
+```
+keybind = ctrl+shift+f=start_search
+keybind = ctrl+f=search_selection
+keybind = ctrl+g=navigate_search:next
+keybind = ctrl+shift+g=navigate_search:previous
+keybind = escape=end_search
+```
+
+---
+
 ## File Export Actions
 
 | Action | Format | Description |
@@ -151,9 +174,15 @@ keybind = ctrl+shift+e=write_selection_file:copy
 
 ## Window Actions
 
-| Action | Description |
-|--------|-------------|
-| `new_window` | Open new terminal window |
+| Action        | Format                | Description                                  |
+|---------------|-----------------------|----------------------------------------------|
+| `new_window`  | -                     | Open new terminal window                     |
+| `goto_window` | `goto_window:target`  | Focus the `previous` or `next` window        |
+
+```
+keybind = super+shift+bracket_left=goto_window:previous
+keybind = super+shift+bracket_right=goto_window:next
+```
 
 ---
 
@@ -168,7 +197,6 @@ keybind = ctrl+shift+e=write_selection_file:copy
 | `goto_tab`             | `goto_tab:index`  | Navigate to tab by 1-based index              |
 | `move_tab`             | `move_tab:offset` | Reposition tab (wraps cyclically)             |
 | `toggle_tab_overview`  | -                 | Show/hide tab selector. **Linux only**        |
-| `prompt_surface_title` | -                 | Open dialog to rename surface. **Linux only** |
 
 ```
 keybind = ctrl+1=goto_tab:1
@@ -176,6 +204,19 @@ keybind = ctrl+9=last_tab
 keybind = ctrl+shift+left=move_tab:-1
 keybind = ctrl+shift+right=move_tab:1
 ```
+
+---
+
+## Title Actions
+
+| Action                 | Format                    | Description                                       |
+|------------------------|---------------------------|---------------------------------------------------|
+| `set_surface_title`    | `set_surface_title:title` | Set the focused surface's title (empty resets it) |
+| `set_tab_title`        | `set_tab_title:title`     | Set the current tab's title (empty clears it)     |
+| `prompt_surface_title` | -                         | Open a dialog to rename the focused surface       |
+| `prompt_tab_title`     | -                         | Open a dialog to rename the current tab           |
+
+A tab title set via `set_tab_title` or `prompt_tab_title` overrides any title the terminal application sets, and persists across focus changes.
 
 ---
 
@@ -266,16 +307,19 @@ keybind = ctrl+shift+w=close_tab
 
 ## Application Actions
 
-| Action                   | Description                   | Platform   |
-|--------------------------|-------------------------------|------------|
-| `toggle_secure_input`    | Prevent keyboard monitoring   | macOS only |
-| `toggle_command_palette` | Display action browser        | Linux only |
-| `toggle_quick_terminal`  | Show/hide drop-down terminal  | All        |
-| `toggle_visibility`      | Show/hide all windows         | macOS only |
-| `check_for_updates`      | Initiate update verification  | macOS only |
-| `undo`                   | Revert last reversible action | macOS only |
-| `redo`                   | Reapply last undone action    | macOS only |
-| `quit`                   | Terminate Ghostty application | All        |
+| Action                      | Description                                      | Platform   |
+|-----------------------------|--------------------------------------------------|------------|
+| `toggle_secure_input`       | Prevent keyboard monitoring                      | macOS only |
+| `toggle_command_palette`    | Display action browser                           | All        |
+| `toggle_quick_terminal`     | Show/hide drop-down terminal                     | All        |
+| `toggle_mouse_reporting`    | Toggle mouse reporting (see `mouse-reporting`)   | All        |
+| `toggle_readonly`           | Toggle read-only mode (no input sent to the PTY) | All        |
+| `toggle_background_opacity` | Toggle transparent/opaque (no-op if opacity >=1) | macOS only |
+| `toggle_visibility`         | Show/hide all windows                            | macOS only |
+| `check_for_updates`         | Initiate update verification                     | macOS only |
+| `undo`                      | Revert last reversible action                    | macOS only |
+| `redo`                      | Reapply last undone action                       | macOS only |
+| `quit`                      | Terminate Ghostty application                    | All        |
 
 **Reversible actions for undo/redo:** new/close window, tab, split
 
@@ -294,6 +338,29 @@ keybind = super+q=quit
 | `crash` | `crash:thread` | Intentionally crash for testing. **DATA LOSS WARNING** |
 
 **Threads:** `main`, `io`, `render`
+
+---
+
+## Key Table & Sequence Actions
+
+Available since Ghostty 1.3. Named key tables let a trigger switch into a different set of bindings (a modal layer), similar to Vim modes or tmux prefix tables. The named tables themselves are defined in the `keybind` configuration; these actions activate and deactivate them.
+
+| Action                      | Format                         | Description                                              |
+|-----------------------------|--------------------------------|----------------------------------------------------------|
+| `activate_key_table`        | `activate_key_table:name`      | Activate a named table; stays active until deactivated   |
+| `activate_key_table_once`   | `activate_key_table_once:name` | Activate a named table until its first valid binding runs|
+| `deactivate_key_table`      | -                              | Deactivate the current table; the previous one returns   |
+| `deactivate_all_key_tables` | -                              | Deactivate every active table                            |
+| `end_key_sequence`          | -                              | End the active key sequence, flushing prior keys to the terminal |
+
+```
+# Enter a modal "resize" table, then deactivate it with escape
+keybind = ctrl+a>r=activate_key_table:resize
+# Flush ctrl+w to the program instead of waiting for the next key in a sequence
+keybind = ctrl+w>escape=end_key_sequence
+```
+
+If a named table does not exist, the activate actions have no effect and report `performable` as false.
 
 ---
 

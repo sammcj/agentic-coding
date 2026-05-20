@@ -69,6 +69,7 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 ## Documentation
 - Keep signal-to-noise ratio high - preserve domain insights, omit filler and fluff
 - Do NOT split sentences across multiple lines in markdown files, this breaks readability and diffs
+- When using tables in markdown, do not include unwrapped content that causes the table to over-extend horizontally
 - Use _underscores_ for italics and **double asterisks** for bold in markdown files
 - Start with what it does, not why it's amazing
 - Configuration and examples over feature lists

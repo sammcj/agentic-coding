@@ -531,7 +531,6 @@
   "enabledPlugins": {
     "bash-lsp@zircote-lsp": true,
     "clangd-lsp@claude-plugins-official": true,
-    "context-mode@context-mode": true,
     "frontend-design@claude-code-plugins": true,
     "gopls-lsp@claude-plugins-official": true,
     "impeccable@impeccable": true,
@@ -539,14 +538,15 @@
     "playwright-skill@playwright-skill": false,
     "pyright-lsp@claude-plugins-official": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "safety-net@cc-marketplace": true,
     "skill-creator@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
     "tofu-lsp@local-marketplace": true,
     "typescript-lsp@claude-plugins-official": true,
     "yaml-lsp@zircote-lsp": true,
     "html-slides@html-slides": true,
-    "ralph-loop@claude-plugins-official": false
+    "ralph-loop@claude-plugins-official": false,
+    "safety-net@cc-marketplace": true,
+    "context-mode@context-mode": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -581,6 +581,13 @@
       "source": {
         "source": "github",
         "repo": "bluedusk/html-slides"
+      },
+      "autoUpdate": true
+    },
+    "cc-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "kenryu42/cc-marketplace"
       },
       "autoUpdate": true
     }
@@ -688,7 +695,6 @@
     ]
   },
   "effortLevel": "xhigh",
-  "fastMode": false,
   "tui": "default",
   "preferredNotifChannel": "ghostty",
   "thinking": {

@@ -3,6 +3,8 @@ name: ghostty-config
 description: Guidance for editing Ghostty terminal configuration files. You must use this skill when creating or modifying Ghostty config files.
 # allowed-tools: "Read,Edit,Write,Grep,Glob"
 model: "inherit"
+metadata:
+  config_schema_last_updated: "2026-05-20" # Claude: Update this when updating the skill to align with the latest config schema json changes
 ---
 
 # Ghostty Configuration
@@ -11,13 +13,18 @@ Guidance for configuring the Ghostty terminal emulator. Ghostty uses text-based 
 
 ## Config File Locations
 
+Since Ghostty 1.2.3 the config file is named `config.ghostty` (the `.ghostty` extension lets editors apply syntax highlighting). The extensionless `config` name is still loaded for backwards compatibility.
+
 **XDG Path (All Platforms):**
+- `$XDG_CONFIG_HOME/ghostty/config.ghostty`
 - `$XDG_CONFIG_HOME/ghostty/config`
-- Defaults to `~/.config/ghostty/config` if XDG_CONFIG_HOME undefined
+- `XDG_CONFIG_HOME` defaults to `~/.config` if undefined
 
 **macOS Additional Path:**
+- `~/Library/Application Support/com.mitchellh.ghostty/config.ghostty`
 - `~/Library/Application Support/com.mitchellh.ghostty/config`
-- If both XDG and macOS paths exist, both are loaded with macOS path taking precedence
+
+**Loading order:** all matching files are loaded, later files overriding earlier ones. Within a location `config.ghostty` loads before `config`. On macOS all macOS-path files load *after* all XDG-path files, so the macOS path wins on conflicts. Config is optional; with no file Ghostty uses its defaults.
 
 ## Config Syntax
 
@@ -127,6 +134,8 @@ keybind = ctrl+a>n=new_window      # Press ctrl+a, release, press n
 keybind = ctrl+a>ctrl+n=new_window # Both with ctrl
 ```
 Sequences wait indefinitely for next key.
+
+**Named key tables (Ghostty 1.3+):** Switch into a modal set of bindings with `activate_key_table:name` / `activate_key_table_once:name`, leave with `deactivate_key_table`. Use `end_key_sequence` to flush a partial sequence to the terminal. In-terminal search (`search`, `start_search`, `navigate_search`, `end_search`) is also available. See `references/keybindings.md`.
 
 ### Prefixes
 
@@ -252,6 +261,7 @@ background-blur = true      # macOS, KDE Plasma only
 - `macos-titlebar-style`, `toggle_window_float_on_top`
 - `font-thicken`, `font-thicken-strength`
 - `toggle_visibility`, `undo`, `redo`, `check_for_updates`
+- `toggle_secure_input`, `toggle_background_opacity`, `reset_window_size`
 - Global keybindings require Accessibility permissions
 
 **Linux/GTK Only:**
@@ -259,8 +269,7 @@ background-blur = true      # macOS, KDE Plasma only
 - `window-titlebar-background/foreground` (requires `window-theme = ghostty`)
 - `window-show-tab-bar`, `gtk-single-instance`
 - `toggle_maximize`, `toggle_window_decorations`
-- `toggle_tab_overview`, `toggle_command_palette`
-- `prompt_surface_title`
+- `toggle_tab_overview`, `show_gtk_inspector`, `show_on_screen_keyboard`
 
 **Linux Wayland Only:**
 - `quick-terminal-keyboard-interactivity`

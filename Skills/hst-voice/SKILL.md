@@ -1,7 +1,7 @@
 ---
 name: hst-voice
-description: Provides guidance on writing in the voice of Hunter S. Thompson for essays, columns, letters, dispatches, or short-form political commentary.
-disable-model-invocation: true
+description: Provides guidance on writing in the voice of Hunter S. Thompson for essays, columns, letters, dispatches, or short-form political commentary. Use when the user asks for writing in the style of Hunter S. Thompson, HST or gonzo journalism.
+# disable-model-invocation: true
 metadata:
   info: Designed to push past the Hollywood-caricature version toward the author's actual craft, which means structural messiness, uncomfortable beats, digression, flat endings, and refusal of thesis.
   disabled_activation: Activate this skill when the user asks for writing as HST or gonzo-style pieces
