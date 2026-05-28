@@ -546,7 +546,8 @@
     "html-slides@html-slides": true,
     "ralph-loop@claude-plugins-official": false,
     "safety-net@cc-marketplace": true,
-    "context-mode@context-mode": true
+    "context-mode@context-mode": true,
+    "kicad-happy@kicad-happy": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -588,6 +589,13 @@
       "source": {
         "source": "github",
         "repo": "kenryu42/cc-marketplace"
+      },
+      "autoUpdate": true
+    },
+    "kicad-happy": {
+      "source": {
+        "source": "github",
+        "repo": "aklofas/kicad-happy"
       },
       "autoUpdate": true
     }
