@@ -125,7 +125,7 @@ Do not add inline scripts within markdown, single commands / simple one liners a
 
 ## Gotchas
 
-**The skill-creator's `quick_validate.py` has an incomplete frontmatter allowlist.** It only recognises Agent Skills spec properties (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`) and will incorrectly reject valid Claude Code (or similar) extension fields like `argument-hint`, `model`, `effort`, `context`, `disable-model-invocation`, `user-invocable`, and `agent`. If validation fails on one of these fields, the skill is still valid. Refer to the official docs at https://code.claude.com/docs/en/skills#frontmatter-reference for the authoritative list.
+**Upstream validators have an incomplete frontmatter allowlist.** The `skills-ref` library (and the skill-creator's `quick_validate.py`) only recognise Agent Skills spec properties (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`) and will incorrectly reject valid Claude Code extension fields like `argument-hint`, `model`, `effort`, `context`, `disable-model-invocation`, `user-invocable`, and `agent`. The bundled `scripts/validate_skill.py` already widens the allowlist with these extensions, so use it for a clean result. If you instead run `quick_validate.py` or raw `skills-ref` and it fails only on one of these fields, the skill is still valid. Refer to the official docs at https://code.claude.com/docs/en/skills#frontmatter-reference for the authoritative list.
 
 ## Validating a Skill
 
