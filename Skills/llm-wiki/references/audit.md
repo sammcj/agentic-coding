@@ -13,7 +13,7 @@ It is not automatic and not part of every ingest. Auditing reads every cited sou
 
 ## Claim extraction
 
-1. Read the target article. List the claims that carry provenance: the headline assertions in Overview and the body sections, every inline quote, and anything a Sources or Raw line is meant to back. Skip generic framing and common knowledge.
+1. Read the target article. List the claims that carry provenance: the headline assertions in Overview and the body sections, every inline quote, and anything a Sources or Raw line is meant to back. Skip generic framing and common knowledge. A labelled edge in a concept map is a claim too - the relationship it asserts between two nodes; list every edge and treat it like any other claim.
 2. Map each claim to the `raw/` file(s) that should support it, using the Raw line and any inline raw links. A load-bearing claim with no cited source is itself a finding: the article asserts something its provenance does not cover.
 3. Group the claims by the raw file that backs them. Each group becomes one sub-agent task.
 

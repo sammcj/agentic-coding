@@ -87,7 +87,7 @@ In conversation output, use project-root-relative paths, e.g. `wiki/topic/articl
 
 `wiki/index.md` is the human-readable catalogue and the agent's first read on any query. Hand-maintained. If the user has Obsidian with Dataview, parts of it can be auto-generated from frontmatter, but never depend on a plugin: the maintained index.md is canonical.
 
-`wiki/log.md` is chronological and append-only. Each entry starts with `## [YYYY-MM-DD] <op> | <title>` so `grep "^## \[" wiki/log.md | tail -5` returns recent activity.
+`wiki/log.md` is append-only and chronological, a convenience over git history, which holds the canonical record. Each entry starts with `## [YYYY-MM-DD] <op> | <title>` so `grep "^## \[" wiki/log.md | tail -5` returns recent activity. Keep entries lean: the header carries the signal, and a sub-item names another article touched rather than narrating the change in prose. Operations only ever append; lint prunes the oldest entries for retention when the wiki is a git repo, so the file stays bounded and git recovers the rest.
 
 ### Initialization
 
@@ -139,6 +139,10 @@ Decide where the new content belongs:
 
 These are not exclusive: one source may merge into an existing article while also creating a new article for a distinct concept it introduces.
 
+**One article, one concept.** Merging keeps related knowledge together, but repeated merges can grow an article past its thesis. When an article has come to cover more than one distinct concept - typically visible as top-level sections that could each stand alone - split the secondary concept into its own article, leave a one-line summary and a See Also link in its place, and cross-link the two. Split on concept boundaries, not length: a long article on a single concept is fine. As a rough prompt to recheck scope, revisit an article that climbs past ~400-500 lines, but never split on line count alone.
+
+**Concept maps (optional).** When several articles relate in a way prose handles poorly - branching, convergence, a supersession or causal chain - a small mermaid diagram can earn its place. Draw one only when it adds what a sentence cannot; a map that restates the See Also list or a linear `A -> B -> C` is noise, and a map with no value is worse than none. A map in a current article is load-bearing: it carries a `map-sources` marker and is maintained on cascade updates; a map in a `type: archive` page is a dated snapshot. The when/when-not test, the colour palette, the format, freshness, and how to brief a sub-agent to draw one (sub-agents propose, you embed) are in `references/concept-map.md`.
+
 See `references/article-template.md` for the format. Provenance lives in the body as clickable links:
 - Sources line: author, organisation, or publication + date, semicolon-separated.
 - Raw line: markdown links to `raw/` files, semicolon-separated.
@@ -182,7 +186,7 @@ Append to `wiki/log.md`:
 - Superseded: <old article title> -> <new article title>
 ```
 
-Omit any sub-item that does not apply. The header names the primary new article; `- Created:` lists any additional articles the same source produced. Refer to articles by title, not file path.
+Omit any sub-item that does not apply. The header names the primary new article; `- Created:` lists any additional articles the same source produced. Refer to articles by title, not file path, and keep each sub-item to the title alone - the article body and the git diff hold what changed, so do not restate it here.
 
 ### Bulk and parallel ingest
 
@@ -221,6 +225,7 @@ When the user asks to save the answer to the wiki, file it as a first-class page
    - Sources line: markdown links to the wiki articles the answer cites.
    - No Raw line (content does not come from `raw/`).
    - Capture the question, the findings, the articles and entities involved, and any lesson worth keeping as a standalone point.
+   - When the relationships are non-linear, a concept map can capture them; in an archive it is a snapshot (no `map-sources` marker, never cascade-checked). See `references/concept-map.md`.
    - File name reflects the query topic; place in the most relevant topic directory.
 2. Always create a new page; never merge an archive into an existing article.
 3. Update `wiki/index.md`, prefixing the summary with `[Archived]`.
@@ -235,10 +240,10 @@ When the user asks to save the answer to the wiki, file it as a first-class page
 
 Health checks on the wiki. Two tiers with different authority. The boundary is deliberate: deterministic problems are fixed automatically; anything needing judgement is reported, never silently rewritten. You do not rewrite article prose on your own authority. Lint checks the wiki's internal consistency; to verify an article against the sources it cites, see Audit.
 
-- **Deterministic checks (auto-fix):** index consistency, internal links, raw references, frontmatter, and See Also. Safe to repair without asking.
-- **Heuristic checks (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, frequently-mentioned concepts with no page, and archive pages whose sources have drifted. Surface them; never auto-fix.
+- **Deterministic checks (auto-fix):** index consistency, internal links, raw references, frontmatter, See Also, log retention, and concept-map freshness and references. Safe to repair without asking.
+- **Heuristic checks (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, frequently-mentioned concepts with no page, articles that cover more than one concept, archive pages whose sources have drifted, and low-value or unsupported concept maps. Surface them; never auto-fix.
 
-The exact checks and their fix behaviour: `references/lint.md`.
+The exact checks and their fix behaviour: `references/lint.md`. A dependency-free mermaid validator, `scripts/lint_mermaid.py`, backs the concept-map validity check - run it with `uv` when available, otherwise skip scripted validation and check the block by eye.
 
 ### Post-lint
 
@@ -257,7 +262,7 @@ Verify that an article's claims hold up against the `raw/` sources it cites. Whe
 ### Steps
 
 1. Pick the target: one article, or every current article in a topic. Skip `status: stale` and `type: archive` pages unless asked; history and snapshots are not cascade-checked.
-2. From the target's Raw line and any inline raw links, list the cited `raw/` files and the claims each is meant to support. A load-bearing claim with no cited source is itself a finding.
+2. From the target's Raw line and any inline raw links, list the cited `raw/` files and the claims each is meant to support. A load-bearing claim with no cited source is itself a finding. A labelled edge in a concept map is a claim too - include each one, mapped to the source that should support the relationship.
 3. For each cited raw source, dispatch a sub-agent in parallel. Give it that one source and the claims that cite it. It reads the source and returns, per claim, one verdict - `supported`, `partial`, `unsupported`, or `source-missing` - with the passage that backs it or a note that none does. Sub-agents read only; they never edit the wiki.
 4. Aggregate the verdicts and report in conversation, grouped by article, worst verdicts first. For anything not `supported`, quote what the source actually says so the user can act.
 5. Report only; do not rewrite article prose on your own authority (the same boundary as Lint's heuristic tier). An unsupported claim is surfaced for the user to fix, supersede, or accept.
@@ -287,6 +292,7 @@ The subtle failure points, worth checking before you finish an operation.
 - **Ingest is fetch and compile.** A source saved to `raw/` but never compiled into `wiki/` adds nothing. Finish both, and update `index.md` and `log.md`, before treating the ingest as done.
 - **Long sources lose detail quietly.** Compiling a transcript or chat log straight to prose is where load-bearing claims and exact numbers get dropped or softened. For long or noisy sources, list the durable atoms first and re-read the source against your article before finishing (`references/high-fidelity-ingest.md`).
 - **Only delete rich originals that live in `raw/`.** After extracting a binary to markdown, delete it only when it was inside `raw/` (which stays markdown-only) and the extraction is verified faithful. A PDF in the user's Downloads or a temp dir is theirs: extract a markdown copy into `raw/`, leave the original untouched, and do not link to it.
+- **Concept maps drift silently.** A diagram in a current article is load-bearing: when a sourced article changes, the prose gets updated but the map can keep asserting the old relationships. Keep its `map-sources` marker accurate, recheck it on cascade updates, and remove it once it no longer adds value - a stale or decorative map is worse than none. Archive maps are exempt; they are dated snapshots.
 
 ---
 
@@ -297,5 +303,6 @@ The subtle failure points, worth checking before you finish an operation.
 - Dates: today's date for log entries, `collected`, and `created`/`archived`. `updated` reflects when an article's knowledge content last changed. `published` comes from the source (`Unknown` when unavailable).
 - Inside `wiki/` files use file-relative links; in conversation use project-root-relative paths.
 - Supersession replaces deletion for outdated knowledge: mark stale, link the replacement, keep the page. Git carries the history.
+- Concept maps are optional and value-gated (`references/concept-map.md`): a current-article map is load-bearing and carries `map-sources`; an archive map is a snapshot. Validate with `scripts/lint_mermaid.py` when `uv` is available.
 - Ingest updates `wiki/index.md` and `wiki/log.md`. Crystallize (from Query) updates both. Lint updates `wiki/log.md`, and `wiki/index.md` only when auto-fixing index entries. Audit updates `wiki/log.md` only, and writes an archive page only if the user asks to keep the result. Plain queries write nothing.
 - Recommend the wiki be a git repo so supersession and history have a real audit trail. Do not require it.
