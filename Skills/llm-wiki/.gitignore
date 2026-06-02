@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+*~
+.vscode/
+
+# Obsidian (keep the vault, drop the local workspace cache)
+.obsidian/workspace*
+.obsidian/cache
+.trash/
+
+# Node (for npx add-skill tooling, if used)
+node_modules/

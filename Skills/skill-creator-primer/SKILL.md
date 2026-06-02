@@ -111,7 +111,7 @@ After creating or updating a skill, always perform a critical self-review:
 
 ## Writing Tips
 
-**Don't state the obvious.** the agent already knows a lot about coding and has default opinions. Focus skill content on information that pushes the agent *out of* its normal way of thinking. If the agent would do the right thing without your skill, that content is wasting tokens.
+**Don't state the obvious.** the agent already knows a lot about coding and has default opinions. Focus skill content on information that pushes the agent **out of** its normal way of thinking. If the agent would do the right thing without your skill, that content is wasting tokens.
 
 **Build a Gotchas section.** The highest-signal content in any skill is a Gotchas section listing common failure points the agent hits when using the skill. Build this up from real failures over time. A good Gotchas section often delivers more value than pages of general instructions.
 
