@@ -12,6 +12,7 @@ examples/
 │   ├── 2017-06-12-attention-is-all-you-need.md
 │   └── 2022-05-27-flashattention.md
 └── wiki/
+    ├── README.md
     ├── index.md
     ├── log.md
     └── machine-learning/
@@ -30,8 +31,9 @@ examples/
 | `attention-efficiency.md` | A newer source that supersedes an older claim, with an evidence chain attributing each side |
 | `attention-cost.md` | A superseded page: `status: stale`, `superseded_by`, and a supersession callout. Kept for history, not deleted |
 | `why-transformers-scale.md` | A crystallised query answer: `type: archive`, with Question, Findings, and standalone Lessons |
+| `README.md` | The orientation doc that lets someone use the wiki without the skill: structure and conventions, with a pointer to the skill |
 | `index.md` | The catalogue, showing the `[Stale]` and `[Archived]` summary prefixes |
-| `log.md` | The append-only log with the greppable `## [date] op | title` prefix, including a supersede entry |
+| `log.md` | The append-only log with the greppable `## [date] op | title` prefix, including supersede and audit entries |
 
 ## Raw vs compiled
 

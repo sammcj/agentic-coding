@@ -24,7 +24,7 @@ aliases: []
 
 ## {Body Sections}
 
-{Synthesise a coherent structure from the source material. Do not copy source text verbatim; distill and reorganise. Use blockquotes sparingly for particularly important original phrasing; for a load-bearing claim from a long or noisy source, pair the quote with its raw link so it stays checkable, e.g. `> "exact sentence" ([Source](../../raw/topic/file.md))`.
+{Synthesise a coherent structure from the source material. Do not copy source text verbatim; distill and reorganise. Use blockquotes sparingly for particularly important original phrasing; for a load-bearing claim from a long or noisy source, pair the quote with its raw link and a locator (section, page, or timestamp) so it stays checkable, e.g. `> "exact sentence" ([Source](../../raw/topic/file.md) §4.2)`.
 
 Where sources disagree, annotate the conflict inline with an evidence chain that attributes each side, e.g. "Uses Redis for caching ([Source A](...), [Source B](...)); [Source C](...) reports Memcached." Never resolve a conflict with a numeric confidence score.}
 

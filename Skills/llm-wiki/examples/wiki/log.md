@@ -12,3 +12,5 @@
 ## [2026-04-06] query | Archived: Why Transformers Scale to Long Context
 
 ## [2026-04-06] lint | 1 issue found, 1 auto-fixed
+
+## [2026-04-06] audit | transformer-architectures.md: 4 claims, 4 supported, 0 unsupported/partial

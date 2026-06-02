@@ -1,6 +1,6 @@
 ---
 name: llm-wiki
-description: "Use when building or maintaining a self-contained personal knowledge base (an LLM wiki) as plain markdown, optionally opened as an Obsidian vault. Triggers: ingesting sources into a wiki, querying wiki knowledge, linting wiki health, superseding stale knowledge, 'add to wiki', or any mention of 'LLM wiki' or 'Karpathy wiki'."
+description: "Use when building or maintaining a self-contained personal knowledge base (an LLM wiki) as plain markdown, optionally opened as an Obsidian vault. Triggers: ingesting sources into a wiki, querying wiki knowledge, linting wiki health, auditing article claims against their sources, superseding stale knowledge, 'add to wiki', or any mention of 'LLM wiki' or 'Karpathy wiki'."
 ---
 
 # LLM Wiki
@@ -28,7 +28,8 @@ Three layers, all under the user's project root.
 
 **raw/** - Immutable source material. You read, never modify. Organised by topic subdirectories, e.g. `raw/machine-learning/`. The source of truth.
 
-**wiki/** - Compiled knowledge articles. You have full ownership. One level of topic subdirectories only: `wiki/<topic>/<article>.md`. Two special files:
+**wiki/** - Compiled knowledge articles. You have full ownership. One level of topic subdirectories only: `wiki/<topic>/<article>.md`. Three special files:
+- `wiki/README.md` - Orientation for anyone opening the wiki without this skill: what the structure is and the conventions that keep it sound. Mostly static; created at init.
 - `wiki/index.md` - Global catalogue. One row per article, grouped by topic, with link, summary, and Updated date. The entry point for queries.
 - `wiki/log.md` - Append-only operation log with a greppable prefix.
 
@@ -70,6 +71,8 @@ In conversation output, use project-root-relative paths, e.g. `wiki/topic/articl
 
 ### Special files
 
+`wiki/README.md` orients a reader who has the wiki but not this skill: the raw/wiki split, the frontmatter fields, supersession-not-deletion, and what index.md and log.md are, with a pointer to the skill for the full workflow. It is the GitHub landing page for the wiki directory. Keep it high-level and mostly static - it describes the format, not the catalogue, so it does not change on every ingest. Do not copy the operational procedures from this file into it; point to them. Template: `references/wiki-readme-template.md`.
+
 `wiki/index.md` is the human-readable catalogue and the agent's first read on any query. Hand-maintained. If the user has Obsidian with Dataview, parts of it can be auto-generated from frontmatter, but never depend on a plugin: the maintained index.md is canonical.
 
 `wiki/log.md` is chronological and append-only. Each entry starts with `## [YYYY-MM-DD] <op> | <title>` so `grep "^## \[" wiki/log.md | tail -5` returns recent activity.
@@ -80,6 +83,7 @@ Triggers only on the first Ingest. Check whether `raw/` and `wiki/` exist. Creat
 
 - `raw/` directory (with `.gitkeep`)
 - `wiki/` directory (with `.gitkeep`)
+- `wiki/README.md` - orientation doc from `references/wiki-readme-template.md`
 - `wiki/index.md` - heading `# Knowledge Base Index`, empty body
 - `wiki/log.md` - heading `# Wiki Log`, empty body
 
@@ -129,7 +133,7 @@ See `references/article-template.md` for the format. Provenance lives in the bod
 
 ### Long-form and noisy sources
 
-Transcripts, chat logs, long articles, and interview notes carry load-bearing detail that one compile pass can silently drop or soften. When a source is long or noisy, extract the durable items (decisions, claims, numbers, named entities, open questions) as a list first, write the article from that list, then re-read the source once against the article to confirm nothing important was lost, hardened, or overstated. Keep the source's exact terms, figures, and hedging, and anchor the heaviest claims with an inline quote next to their raw link. For short, clean, single-claim sources the normal compile above is enough. Full protocol: `references/high-fidelity-ingest.md`.
+Transcripts, chat logs, long articles, and interview notes carry load-bearing detail that one compile pass can silently drop or soften. When a source is long or noisy, extract the durable items (decisions, claims, numbers, named entities, open questions) as a list first, write the article from that list, then re-read the source once against the article to confirm nothing important was lost, hardened, or overstated. Keep the source's exact terms, figures, and hedging, and anchor the heaviest claims with an inline quote and a locator (the section, page, or timestamp) next to their raw link. For short, clean, single-claim sources the normal compile above is enough. Full protocol: `references/high-fidelity-ingest.md`.
 
 ### Conflicts and supersession
 
@@ -179,6 +183,10 @@ These rules keep a parallel batch from corrupting the wiki:
 - **The orchestrator is the sole writer to `wiki/`, `index.md`, and `log.md`.** It merges proposals against one consistent view: combine same-concept proposals into a single article with a shared evidence chain, apply in source-date order so supersession resolves newest-first, then cascade and update the index and log once.
 - **Checkpoint before committing.** Present a digest (created, merged, superseded, conflicts surfaced) and wait for the user before the batch `git commit`. Favour quality over volume: ten well-supported articles beat fifty thin ones, and this checkpoint is where that gets enforced.
 
+### Documenting a codebase
+
+When the wiki's subject is a codebase rather than external reading, the core workflow is unchanged but a few conventions help: topic directories and slug prefixes that fit source code, a rule for where the wiki ends and the repo's own README begins, and how to record decisions reconstructed from code and git history. Optional recipe: `references/codebase-wiki.md`.
+
 ---
 
 ## Query
@@ -213,15 +221,15 @@ When the user asks to save the answer to the wiki, file it as a first-class page
 
 ## Lint
 
-Health checks on the wiki. Two tiers with different authority. The boundary is deliberate: deterministic problems are fixed automatically; anything needing judgement is reported, never silently rewritten. You do not rewrite article prose on your own authority.
+Health checks on the wiki. Two tiers with different authority. The boundary is deliberate: deterministic problems are fixed automatically; anything needing judgement is reported, never silently rewritten. You do not rewrite article prose on your own authority. Lint checks the wiki's internal consistency; to verify an article against the sources it cites, see Audit.
 
 ### Deterministic checks (auto-fix)
 
-**Index consistency** - compare `wiki/index.md` against actual `wiki/` files (excluding index.md and log.md):
+**Index consistency** - compare `wiki/index.md` against actual `wiki/` files (excluding README.md, index.md and log.md):
 - File exists but missing from index -> add an entry with `(no summary)`. Use the frontmatter `updated` date if present, otherwise the file's last modified date.
 - Index entry points to a nonexistent file -> mark it `[MISSING]`. Do not delete; let the user decide.
 
-**Internal links** - for every markdown link in article bodies (including Sources lines), excluding Raw links and index.md/log.md:
+**Internal links** - for every markdown link in article bodies (including Sources lines), excluding Raw links and README.md/index.md/log.md:
 - Target missing -> search `wiki/` for a file of the same name. Exactly one match: fix the path. Zero or several: report.
 
 **Raw references** - every Raw link must point to an existing `raw/` file:
@@ -255,6 +263,32 @@ Append to `wiki/log.md`:
 
 ---
 
+## Audit
+
+Verify that an article's claims hold up against the `raw/` sources it cites. Where Lint checks the wiki's internal consistency (links, frontmatter, index), Audit checks its external fidelity: do the cited sources actually support what the article says. This is the verification the evidence chains imply but never enforce. It is opt-in and user-invoked on a named article or a topic, never automatic, and it reads every cited source in full. Triggers: "audit X", "check the citations on Y", "does the wiki still match its sources".
+
+### Steps
+
+1. Pick the target: one article, or every current article in a topic. Skip `status: stale` and `type: archive` pages unless asked; history and snapshots are not cascade-checked.
+2. From the target's Raw line and any inline raw links, list the cited `raw/` files and the claims each is meant to support. A load-bearing claim with no cited source is itself a finding.
+3. For each cited raw source, dispatch a sub-agent in parallel. Give it that one source and the claims that cite it. It reads the source and returns, per claim, one verdict - `supported`, `partial`, `unsupported`, or `source-missing` - with the passage that backs it or a note that none does. Sub-agents read only; they never edit the wiki.
+4. Aggregate the verdicts and report in conversation, grouped by article, worst verdicts first. For anything not `supported`, quote what the source actually says so the user can act.
+5. Report only; do not rewrite article prose on your own authority (the same boundary as Lint's heuristic tier). An unsupported claim is surfaced for the user to fix, supersede, or accept.
+
+Full protocol, the per-source sub-agent prompt, and the verdict schema: `references/audit.md`.
+
+### Post-audit
+
+Append to `wiki/log.md`:
+
+```
+## [YYYY-MM-DD] audit | <article or topic>: <N> claims, <S> supported, <U> unsupported/partial
+```
+
+If the user asks to keep the audit, crystallise it as a `type: archive` page (see Query > Crystallize), citing the audited article.
+
+---
+
 ## Gotchas
 
 The subtle failure points, worth checking before you finish an operation.
@@ -276,5 +310,5 @@ The subtle failure points, worth checking before you finish an operation.
 - Dates: today's date for log entries, `collected`, and `created`/`archived`. `updated` reflects when an article's knowledge content last changed. `published` comes from the source (`Unknown` when unavailable).
 - Inside `wiki/` files use file-relative links; in conversation use project-root-relative paths.
 - Supersession replaces deletion for outdated knowledge: mark stale, link the replacement, keep the page. Git carries the history.
-- Ingest updates `wiki/index.md` and `wiki/log.md`. Crystallize (from Query) updates both. Lint updates `wiki/log.md`, and `wiki/index.md` only when auto-fixing index entries. Plain queries write nothing.
+- Ingest updates `wiki/index.md` and `wiki/log.md`. Crystallize (from Query) updates both. Lint updates `wiki/log.md`, and `wiki/index.md` only when auto-fixing index entries. Audit updates `wiki/log.md` only, and writes an archive page only if the user asks to keep the result. Plain queries write nothing.
 - Recommend the wiki be a git repo so supersession and history have a real audit trail. Do not require it.

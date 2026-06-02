@@ -14,11 +14,11 @@ Reach for it when one compile pass could lose detail: meeting and call transcrip
 
 3. **Preserve exact terms, numbers, and epistemic status.** Keep the source's own terminology, figures, and hedging. "We will probably move to Postgres in Q3" is not "the team decided to move to Postgres." Do not harden a maybe into a decision, round away a load-bearing number, or flatten a disagreement into consensus. Distil the wording; preserve the meaning and the certainty.
 
-4. **Anchor load-bearing claims to the source.** For a claim the wiki will lean on (a decision, a commitment, a surprising or contested fact), make it checkable. The Raw line already links the source file; for the heaviest claims, also quote the key sentence inline next to its raw link so a reader can verify it without re-reading the whole source:
+4. **Anchor load-bearing claims to the source.** For a claim the wiki will lean on (a decision, a commitment, a surprising or contested fact), make it checkable. The Raw line already links the source file; for the heaviest claims, also quote the key sentence inline next to its raw link, and point at where in the source it lives - a section heading, a page, a transcript timestamp, the date of a post - so a reader can verify it without re-reading the whole source:
    ```
-   > "We're standardising on Postgres for all new services from Q3." ([Planning call](../../raw/infra/2026-05-03-planning-call.md))
+   > "We're standardising on Postgres for all new services from Q3." ([Planning call](../../raw/infra/2026-05-03-planning-call.md), [00:12:30])
    ```
-   This is a prose practice, not a required field. Reserve it for claims that carry weight; quote-anchoring everything just rebuilds the transcript.
+   This is a prose practice, not a required field. Reserve it for claims that carry weight; quote-anchoring everything just rebuilds the transcript. The locator is also what lets an audit (`references/audit.md`) check the claim against the exact spot rather than the whole file.
 
 5. **Triage explicitly, and say so.** Long noisy sources are mostly filler. Decide what is durable knowledge versus chatter. "Nothing here is new" or "restates a known article" is a valid outcome: keep the raw file, fold anything real in as added evidence to an existing claim, and do not spawn a thin page. Compiling noise is worse than compiling nothing.
 
