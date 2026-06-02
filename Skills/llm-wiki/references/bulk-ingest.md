@@ -22,6 +22,7 @@ Give each sub-agent its file list, the fixed topic list, and this contract:
 
 - You are one of several extractors. You own only `raw/<your-topic>/`. Do not write to `wiki/`, `index.md`, or `log.md`.
 - For each source: apply the secret and PII filter, save it under `raw/` following the naming rules in SKILL.md, then return a proposal. Do not compile.
+- For long or noisy sources (transcripts, chat logs), extract atoms faithfully: the `claims` list with `evidence` is exactly the atom extraction and anchoring from `references/high-fidelity-ingest.md`. Preserve exact terms, numbers, and hedging; set `net_new` honestly.
 - Your final message is the data the orchestrator merges, so return the proposals and nothing else.
 
 One ingest proposal per source:

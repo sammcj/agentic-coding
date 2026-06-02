@@ -121,6 +121,10 @@ See `references/article-template.md` for the format. Provenance lives in the bod
 - Sources line: author, organisation, or publication + date, semicolon-separated.
 - Raw line: markdown links to `raw/` files, semicolon-separated.
 
+### Long-form and noisy sources
+
+Transcripts, chat logs, long articles, and interview notes carry load-bearing detail that one compile pass can silently drop or soften. When a source is long or noisy, extract the durable items (decisions, claims, numbers, named entities, open questions) as a list first, write the article from that list, then re-read the source once against the article to confirm nothing important was lost, hardened, or overstated. Keep the source's exact terms, figures, and hedging, and anchor the heaviest claims with an inline quote next to their raw link. For short, clean, single-claim sources the normal compile above is enough. Full protocol: `references/high-fidelity-ingest.md`.
+
 ### Conflicts and supersession
 
 Check whether the new source disagrees with existing content.
@@ -254,6 +258,7 @@ The subtle failure points, worth checking before you finish an operation.
 - **Replace knowledge by superseding, not by editing in place or deleting.** When a new source overturns an old claim, write the replacement and mark the old page `status: stale` with `superseded_by` and a callout. The history is the point; preserve it rather than overwriting.
 - **Auto-fix only the deterministic list.** Index, links, frontmatter, and See Also are safe to repair. For contradictions, stale claims, and orphans, surface them for the user instead of rewriting prose on your own authority.
 - **Ingest is fetch and compile.** A source saved to `raw/` but never compiled into `wiki/` adds nothing. Finish both, and update `index.md` and `log.md`, before treating the ingest as done.
+- **Long sources lose detail quietly.** Compiling a transcript or chat log straight to prose is where load-bearing claims and exact numbers get dropped or softened. For long or noisy sources, list the durable atoms first and re-read the source against your article before finishing (`references/high-fidelity-ingest.md`).
 
 ---
 
