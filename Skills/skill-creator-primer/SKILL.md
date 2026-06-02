@@ -45,7 +45,9 @@ Think of Claude exploring a path: a narrow bridge with cliffs needs guardrails (
 
 These are Claude Code-specific fields not covered by the Agent Skills spec. Only include when specifically needed:
 
+- `when_to_use`: Extra triggering context appended to the description in the skill listing (trigger phrases, example requests). Counts toward the 1,536-character description cap. Only include if the description alone underspecifies triggering
 - `argument-hint`: Hint shown during autocomplete for expected arguments, e.g. `[issue-number]` or `[filename] [format]`. Only include if the skill accepts arguments
+- `arguments`: Named positional arguments for `$name` substitution in the skill body. Accepts a space-separated string or a YAML list; names map to positions in order. Only include if the skill uses named substitutions
 - `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-opus-4-7"`. Only include if the user requests it
 - `effort`: Override effort level when the skill is active. Options: `low`, `medium`, `high`, `max`. Only include if the user requests it
 - `context`: Set to `"fork"` to run in a forked sub-agent context. Useful for skills with extensive exploration or large outputs. Only include if the user requests it
@@ -53,6 +55,7 @@ These are Claude Code-specific fields not covered by the Agent Skills spec. Only
 - `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide from the menu. Only include if the user requests it
 - `agent`: Specify agent type (e.g., `"task"`). When omitted, runs in current agent context. Only include if the user requests it
 - `allowed-tools`: Space-delimited pre-approved tools. Scope where possible, e.g. `"Read Write Bash(uv run scripts/*.py *) Grep WebFetch(domain:code.claude.com)""` (don't use the deprecated `:` syntax, e.g. `Bash(command:*)`, instead use `Bash(command *)`)
+- `disallowed-tools`: Tools removed from the available pool while the skill is active (clears on the next user message). Use for autonomous skills that must never call a tool, e.g. `AskUserQuestion` in a background loop. Only include if the user requests it
 
 ## Token Budget Guidance
 
@@ -125,7 +128,7 @@ Do not add inline scripts within markdown, single commands / simple one liners a
 
 ## Gotchas
 
-**Upstream validators have an incomplete frontmatter allowlist.** The `skills-ref` library (and the skill-creator's `quick_validate.py`) only recognise Agent Skills spec properties (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`) and will incorrectly reject valid Claude Code extension fields like `argument-hint`, `model`, `effort`, `context`, `disable-model-invocation`, `user-invocable`, and `agent`. The bundled `scripts/validate_skill.py` already widens the allowlist with these extensions, so use it for a clean result. If you instead run `quick_validate.py` or raw `skills-ref` and it fails only on one of these fields, the skill is still valid. Refer to the official docs at https://code.claude.com/docs/en/skills#frontmatter-reference for the authoritative list.
+**Upstream validators have an incomplete frontmatter allowlist.** The `skills-ref` library (and the skill-creator's `quick_validate.py`) only recognise the six Agent Skills spec properties (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`) and will error on every valid Claude Code extension field (`when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `disallowed-tools`, `model`, `effort`, `context`, `agent`). The bundled `scripts/validate_skill.py` errors only on genuine spec violations and downgrades unknown-field detection to a warning, so documented extensions pass clean and a field newer than the linter won't block. If you instead run `quick_validate.py` or raw `skills-ref` and it fails only on one of these fields, the skill is still valid. The official docs at https://code.claude.com/docs/en/skills#frontmatter-reference are the authoritative, version-current list.
 
 ## Validating a Skill
 
