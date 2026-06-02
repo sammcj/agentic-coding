@@ -121,7 +121,7 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 - Parameterised queries only - never string concatenation for SQL
 - Never expose internal errors or system details to end users
 - Follow principle of least privilege. Rate-limit APIs. Keep dependencies updated
-- If you are asked to perform git commits, never use the users real email address for the commit author (e.g. `<username>@users.noreply.github.com`)
+- Never expose real email addresses in code, commits, documentation or comments
 
 ## Error Handling
 - Structured logging (JSON) with correlation IDs. Log levels: ERROR, WARN (default), INFO, DEBUG
