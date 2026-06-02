@@ -17,7 +17,7 @@ Do not draw a map when:
 - there are two nodes, or a single linear `A -> B -> C` a sentence states better,
 - it only restates the See Also list or the topic folder (the link graph already shows that),
 - the edges would be unlabelled (an unlabelled edge means "links to", which adds nothing),
-- there are no more edges than nodes and no branching (it is a list, not a graph).
+- it is purely linear - no node gains a second inbound or outbound edge - so it is a list, not a graph.
 
 The test: if a sentence conveys it, or it only mirrors existing links, do not draw it. A map with no value is worse than no map - it costs maintenance and misleads when it drifts.
 

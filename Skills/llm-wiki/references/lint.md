@@ -38,6 +38,6 @@ Rely on judgement. Report findings; do not auto-fix.
 - Missing cross-topic references.
 - Concepts mentioned often but lacking their own page.
 - Articles that appear to cover more than one distinct concept (often several top-level sections that could each stand alone) - candidates for splitting into linked articles.
-- Concept maps that do not earn their place: two-node or purely linear, a restatement of the See Also list, unlabelled edges, or no more edges than nodes. Recommend removing them - a map with no value is worse than none.
+- Concept maps that do not earn their place: two-node, purely linear (no node gains a second inbound or outbound edge, so there is no branching or convergence), a restatement of the See Also list, or unlabelled edges. Recommend removing them - a map with no value is worse than none.
 - Concept-map edges that look unsupported or contradicted by the articles they connect (verify against sources with Audit).
 - Archive pages whose cited source articles have changed substantially since archival. For a deeper version of this check that reads the cited sources and verdicts each claim, see `references/audit.md`.

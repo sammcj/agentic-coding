@@ -28,7 +28,7 @@ So the short answer: attention gives the modelling benefit, and IO-aware kernels
 
 ## Map
 
-Two paths converge on practical long context; the superseded view is shown dashed and grey. (Archive snapshot, 2026-04-06; see `../../../references/concept-map.md`.)
+Two paths converge on practical long context; the superseded view is shown dashed and grey. Archive snapshot as of 2026-04-06.
 
 ```mermaid
 flowchart LR
