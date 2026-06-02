@@ -1,6 +1,7 @@
 ---
 name: llm-wiki
 description: "Use when building or maintaining a self-contained personal knowledge base (an LLM wiki) as plain markdown, optionally opened as an Obsidian vault. Triggers: ingesting sources into a wiki, querying wiki knowledge, linting wiki health, auditing article claims against their sources, superseding stale knowledge, 'add to wiki', or any mention of 'LLM wiki' or 'Karpathy wiki'."
+argument-hint: "[ingest | query | lint | audit] [input]"
 ---
 
 # LLM Wiki
@@ -8,6 +9,17 @@ description: "Use when building or maintaining a self-contained personal knowled
 Build and maintain a personal knowledge base as plain markdown. You manage two directories: `raw/` (immutable source material) and `wiki/` (compiled knowledge you own). Sources land in `raw/`, you compile them into `wiki/` articles, and the wiki compounds over time. Everything is local markdown with YAML frontmatter, readable on GitHub and openable as an Obsidian vault. No servers, no databases, no embeddings.
 
 Core idea (Karpathy): the LLM writes and maintains the wiki; the human chooses sources and asks questions. Knowledge is compiled once at ingest and kept current, not re-derived on every query. That is the difference from RAG, which retrieves raw chunks and re-synthesises on every question.
+
+## Invocation
+
+The skill runs one of four operations: Ingest, Query, Lint, Audit. With a leading mode argument, route straight to that operation; with no argument, infer the operation from the request as before.
+
+- `ingest` (alias `add`) - Ingest. Any trailing text is the source: a URL, a path, or pasted content.
+- `query` (alias `ask`) - Query. Trailing text is the question.
+- `lint` - Lint. Health checks; needs no further input.
+- `audit` - Audit. Trailing text names the article or topic to verify.
+
+So `/llm-wiki lint` runs Lint, and `/llm-wiki ingest https://...` ingests that URL. If the first word is not one of these modes, treat the whole argument as a natural-language request and pick the operation it implies. A bare `/llm-wiki` behaves exactly as it does today: read the request and choose the operation.
 
 ## Design philosophy
 
