@@ -107,6 +107,12 @@ Fetch a source into `raw/`, then compile it into `wiki/`. Always both steps.
 
    See `references/raw-template.md` for the exact format.
 
+### Rich and external sources
+
+`raw/` holds durable markdown only. When a source is a rich format (PDF, Word, slides, images, spreadsheets), convert it to markdown before saving, following `references/rich-format-ingest.md`: it covers structure preservation, the faithfulness review, and what to do with the original file.
+
+**Compile only from `raw/`.** Land every source as markdown in `raw/` before compiling, never straight from a live URL or an external path (a temp file vanishes, a URL changes; the Raw provenance link must persist). If a markdown file is already in `raw/`, skip the fetch and compile it directly.
+
 ### Compile (wiki/)
 
 Decide where the new content belongs:
@@ -259,6 +265,7 @@ The subtle failure points, worth checking before you finish an operation.
 - **Auto-fix only the deterministic list.** Index, links, frontmatter, and See Also are safe to repair. For contradictions, stale claims, and orphans, surface them for the user instead of rewriting prose on your own authority.
 - **Ingest is fetch and compile.** A source saved to `raw/` but never compiled into `wiki/` adds nothing. Finish both, and update `index.md` and `log.md`, before treating the ingest as done.
 - **Long sources lose detail quietly.** Compiling a transcript or chat log straight to prose is where load-bearing claims and exact numbers get dropped or softened. For long or noisy sources, list the durable atoms first and re-read the source against your article before finishing (`references/high-fidelity-ingest.md`).
+- **Only delete rich originals that live in `raw/`.** After extracting a binary to markdown, delete it only when it was inside `raw/` (which stays markdown-only) and the extraction is verified faithful. A PDF in the user's Downloads or a temp dir is theirs: extract a markdown copy into `raw/`, leave the original untouched, and do not link to it.
 
 ---
 
