@@ -1,6 +1,10 @@
 # Working on the llm-wiki skill
 
-This repo is both a distributable Agent Skill and a public repo (it lives in sammcj/agentic-coding). That dual role explains things pure skill-authoring guidance would flag: `README.md`, `LICENSE`, and `examples/` are intentional and stay. Don't strip them as "skill clutter".
+This repo is both a distributable Agent Skill. That dual role explains things pure skill-authoring guidance would flag: `README.md`, `LICENSE`, `CHANGELOG.md`, and `examples/` are intentional and stay. Don't strip them as "skill clutter".
+
+## Update the changelog
+
+When you change what the skill does or how it is used, append one line to `CHANGELOG.md` (newest first): `- YYYY-MM-DD: <what changed>, see references/<doc>.md`. Keep it terse and high-level - one functional change per line, pointing at the detail doc. Skip pure copy-edits, refactors, and internal tidy-ups; the changelog is "what's new for a user of the skill", not a git log. Do not link it from `SKILL.md` - it must stay out of the skill's loaded context, read only when asked.
 
 ## Keep the three format definitions in sync
 

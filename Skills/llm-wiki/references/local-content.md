@@ -19,6 +19,8 @@ Obsidian backlinks are fine here. When a local note links to a wiki article, Obs
 
 Start flat and freeform: any subdirectories and filenames you like under `local/`. There is no enforced layout.
 
+When a note is tied to a date or an event - meeting prep, a daily note, a dated draft - prefix the filename with the date, the same idiom `raw/` uses: `local/prep/2026-06-04-scott-meeting-prep.md`. It keeps notes sortable and easy to find later. A hint, not a rule: `local/` is yours, so date what benefits from it and name the rest however suits you.
+
 If you want the same discipline the wiki uses (a private source compiling into a private article with provenance), you can mirror the split inside `local/` as `local/raw/` and `local/wiki/` and follow the normal ingest format by hand. That is an option for people who want it, not the default. Everything stays inside `local/` and inside your clone either way.
 
 ## How the operations treat `local/`
