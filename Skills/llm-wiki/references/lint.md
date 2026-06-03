@@ -30,15 +30,22 @@ Health checks on the wiki, in two tiers with different authority. Deterministic 
 - `map-sources` paths must resolve to existing articles, the same as an internal link: search for a same-named file, fix a single match, report zero or several.
 - Freshness: for a map in a `current` (non-archive) article, if any `map-sources` article's `updated` is newer than the host article's `updated`, annotate the block `<!-- stale-map: <source> updated YYYY-MM-DD after host -->`. Annotate only; redrawing is judgement, left to the user. Skip `type: archive` and `status: stale` pages - their maps are snapshots.
 
+**Gaps register** - for `wiki/gaps.md` (format in `references/gaps.md`):
+- A wiki predating this feature may have no `wiki/gaps.md`. Do not create an empty one proactively; it is created at init for new wikis, and otherwise the first time a gap needs recording (heading `# Knowledge Gaps`). Its absence is not a finding.
+- Every link in a gap entry (`Raised by`, `Referenced by`, and a resolution target) must resolve, the same as an internal link: search for a same-named file, fix a single match, report zero or several.
+- Auto-close fulfilled `wanted` gaps: if an `[open] wanted` gap names a concept that now has an article (a file or title match), close it - change `[open]` to `[resolved]`, drop the evidence lines, and append `-> [Article](path) (today)`. This is mechanical; closing a `question` is judgement and stays in the heuristic tier.
+- Retention, only when the wiki is a git repo: prune the oldest `[resolved]` entries on the same rule as the log, keeping recent ones and leaving git to carry the rest. Never prune `[open]` entries. If the wiki is not a git repo, do not prune.
+
 ## Heuristic checks (report only)
 
 Rely on judgement. Report findings; do not auto-fix.
 
 - Factual contradictions across articles that lack a conflict annotation.
 - Claims a newer source has superseded but that were never marked stale.
-- Orphan pages with no inbound links (no backlinks from other articles).
+- Orphan pages with no inbound links (no backlinks from other articles). This is a connectivity gap, not a knowledge gap: the fix is a See Also, not a `gaps.md` entry. Do not record orphans in the gap register.
 - Missing cross-topic references.
-- Concepts mentioned often but lacking their own page.
+- Concepts mentioned often but lacking their own page. Propose each as a `wanted` gap in `wiki/gaps.md` (`references/gaps.md`); add it only with the user's go-ahead, never auto-author the article.
+- Open `question` gaps in `wiki/gaps.md` that an existing article now appears to answer. Propose closing them with a resolution link; closing a `question` is judgement, so confirm rather than auto-fix.
 - Articles that appear to cover more than one distinct concept (often several top-level sections that could each stand alone) - candidates for splitting into linked articles.
 - Concept maps that do not earn their place: two-node, purely linear (no node gains a second inbound or outbound edge, so there is no branching or convergence), a restatement of the See Also list, or unlabelled edges. Recommend removing them - a map with no value is worse than none.
 - Concept-map edges that look unsupported or contradicted by the articles they connect (verify against sources with Audit).

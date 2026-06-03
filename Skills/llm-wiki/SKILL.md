@@ -40,10 +40,11 @@ Three layers, all under the user's project root.
 
 **raw/** - Immutable source material. You read, never modify. Organised by topic subdirectories, e.g. `raw/machine-learning/`. The source of truth.
 
-**wiki/** - Compiled knowledge articles. You have full ownership. One level of topic subdirectories only: `wiki/<topic>/<article>.md`. Three special files:
+**wiki/** - Compiled knowledge articles. You have full ownership. One level of topic subdirectories only: `wiki/<topic>/<article>.md`. Four special files:
 - `wiki/README.md` - Orientation for anyone opening the wiki without this skill: what the structure is and the conventions that keep it sound. Mostly static; created at init.
 - `wiki/index.md` - Global catalogue. One row per article, grouped by topic, with link, summary, and Updated date. The entry point for queries.
 - `wiki/log.md` - Append-only operation log with a greppable prefix.
+- `wiki/gaps.md` - Register of known unknowns: concepts the wiki references but has not written, and questions it cannot answer. "What we don't know yet" to the index's "what we know".
 
 **SKILL.md** (this file) - The schema layer. Defines structure, format, and workflow. This is the most important file in the system: it is what makes a disciplined wiki maintainer rather than a generic chatbot. Templates live in `references/` relative to this file; read them when you need the exact format.
 
@@ -83,13 +84,15 @@ In conversation output, use project-root-relative paths, e.g. `wiki/topic/articl
 
 ### Special files
 
-`wiki/README.md` orients a reader who has the wiki but not this skill: the raw/wiki split, the frontmatter fields, supersession-not-deletion, and what index.md and log.md are, with a pointer to the skill for the full workflow. It is the GitHub landing page for the wiki directory. Keep it high-level and mostly static - it describes the format, not the catalogue, so it does not change on every ingest. Do not copy the operational procedures from this file into it; point to them. Template: `references/wiki-readme-template.md`.
+`wiki/README.md` orients a reader who has the wiki but not this skill: the raw/wiki split, the frontmatter fields, supersession-not-deletion, and what index.md, log.md, and gaps.md are, with a pointer to the skill for the full workflow. It is the GitHub landing page for the wiki directory. Keep it high-level and mostly static - it describes the format, not the catalogue, so it does not change on every ingest. Do not copy the operational procedures from this file into it; point to them. Template: `references/wiki-readme-template.md`.
 
 `wiki/index.md` is the human-readable catalogue and the agent's first read on any query. Hand-maintained. If the user has Obsidian with Dataview, parts of it can be auto-generated from frontmatter, but never depend on a plugin: the maintained index.md is canonical.
 
 `wiki/log.md` is append-only and chronological, a convenience over git history, which holds the canonical record. Each entry starts with `## [YYYY-MM-DD] <op> | <title>` so `grep "^## \[" wiki/log.md | tail -5` returns recent activity. Keep entries lean: the header carries the signal, and a sub-item names another article touched rather than narrating the change in prose. Operations only ever append; lint prunes the oldest entries for retention when the wiki is a git repo, so the file stays bounded and git recovers the rest.
 
-### Initialization
+`wiki/gaps.md` is the register of known unknowns. Two kinds of entry: `wanted` (a concept articles reference but no page covers) and `question` (something a source raised or a user asked that the wiki cannot answer). Entries are grouped by topic and ranked by evidence of demand - which articles reference the gap, how often it has been asked - never by a score. Gaps are captured during ingest, query, and lint, never by a background process; they close by a resolution link rather than deletion, the same as supersession; and the file is greppable (`grep "^### \[open\]" wiki/gaps.md`). Full format, capture rules, and lifecycle: `references/gaps.md`.
+
+### Initialisation
 
 Triggers only on the first Ingest. Check whether `raw/` and `wiki/` exist. Create only what is missing; never overwrite existing files:
 
@@ -98,9 +101,10 @@ Triggers only on the first Ingest. Check whether `raw/` and `wiki/` exist. Creat
 - `wiki/README.md` - orientation doc from `references/wiki-readme-template.md`
 - `wiki/index.md` - heading `# Knowledge Base Index`, empty body
 - `wiki/log.md` - heading `# Wiki Log`, empty body
+- `wiki/gaps.md` - heading `# Knowledge Gaps`, empty body (`references/gaps.md`)
 - `SKILL.md` (project root) - lets the wiki load as a query-only Agent Skill, from `references/wiki-skill-template.md`. See "The wiki as a skill" below.
 
-If Query or Lint cannot find the wiki structure, tell the user: "Run an ingest first to initialize the wiki." Do not auto-create.
+If Query or Lint cannot find the wiki structure, tell the user: "Run an ingest first to initialise the wiki." Do not auto-create.
 
 ### The wiki as a skill
 
@@ -131,6 +135,8 @@ Fetch a source into `raw/`, then compile it into `wiki/`. Always both steps.
    - Include frontmatter (source, collected, published) and preserve the original text. Clean formatting noise; do not rewrite opinions.
 
    See `references/raw-template.md` for the exact format.
+
+Tip: Use sub-agents with well defined goals, scope and context to parallelise work and reduce context rot in the main conversation.
 
 ### Rich and external sources
 
@@ -186,6 +192,8 @@ Never cascade-update `type: archive` pages or `status: stale` pages. Archives ar
 
 Update `wiki/index.md`: add or update entries for every touched article, with the `updated` date from frontmatter. When adding a new topic section, include a one-line description. Prefix a stale article's summary with `[Stale]`.
 
+Update `wiki/gaps.md` if this ingest touched the frontier of what is known: record a load-bearing open question the source raised but did not answer, or a concept you forward-referenced with no page yet, as a new entry; and close (resolve-and-link) any gap a new article filled. Skip it when nothing changed. See `references/gaps.md`.
+
 Append to `wiki/log.md`:
 
 ```
@@ -225,8 +233,9 @@ Search the wiki and answer questions. Triggers: "What do I know about X?", "Summ
 3. Synthesise an answer. Prefer wiki content over your own training knowledge. Cite with markdown links: `[Article Title](wiki/topic/article.md)` (project-root-relative in conversation).
 4. Note when a cited article is `status: stale`, and point to its replacement.
 5. Output the answer in the conversation. Do not write files unless asked.
+6. **Capture a miss.** If the wiki could not answer, or answered only partially, and the question sits within the wiki's subject, propose recording it in `wiki/gaps.md`: append today's date to a matching gap's demand evidence, or add a new `question` entry. Record only with the user's go-ahead; a plain query writes nothing on its own. See `references/gaps.md`.
 
-### Crystallize (archive)
+### Crystallise (archive)
 
 When the user asks to save the answer to the wiki, file it as a first-class page so the exploration compounds like an ingested source.
 
@@ -249,8 +258,8 @@ When the user asks to save the answer to the wiki, file it as a first-class page
 
 Health checks on the wiki. Two tiers with different authority. The boundary is deliberate: deterministic problems are fixed automatically; anything needing judgement is reported, never silently rewritten. You do not rewrite article prose on your own authority. Lint checks the wiki's internal consistency; to verify an article against the sources it cites, see Audit.
 
-- **Deterministic checks (auto-fix):** index consistency, internal links, raw references, frontmatter, See Also, log retention, the wiki skill file's links, and concept-map freshness and references. Safe to repair without asking.
-- **Heuristic checks (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, frequently-mentioned concepts with no page, articles that cover more than one concept, archive pages whose sources have drifted, low-value or unsupported concept maps, and a missing root SKILL.md. Surface them; never auto-fix.
+- **Deterministic checks (auto-fix):** index consistency, internal links, raw references, frontmatter, See Also, log retention, the wiki skill file's links, concept-map freshness and references, and gap-register consistency (close a `wanted` gap whose page now exists, resolve gap links, prune resolved gaps on retention). Safe to repair without asking.
+- **Heuristic checks (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, frequently-mentioned concepts with no page (proposed as `wanted` gaps), open gaps an article now appears to answer (proposed for closing), articles that cover more than one concept, archive pages whose sources have drifted, low-value or unsupported concept maps, and a missing root SKILL.md. Surface them; never auto-fix.
 
 The exact checks and their fix behaviour: `references/lint.md`. A dependency-free mermaid validator, `scripts/lint_mermaid.py`, backs the concept-map validity check - run it with `uv` when available, otherwise skip scripted validation and check the block by eye.
 
@@ -302,6 +311,7 @@ The subtle failure points, worth checking before you finish an operation.
 - **Long sources lose detail quietly.** Compiling a transcript or chat log straight to prose is where load-bearing claims and exact numbers get dropped or softened. For long or noisy sources, list the durable atoms first and re-read the source against your article before finishing (`references/high-fidelity-ingest.md`).
 - **Only delete rich originals that live in `raw/`.** After extracting a binary to markdown, delete it only when it was inside `raw/` (which stays markdown-only) and the extraction is verified faithful. A PDF in the user's Downloads or a temp dir is theirs: extract a markdown copy into `raw/`, leave the original untouched, and do not link to it.
 - **Concept maps drift silently.** A diagram in a current article is load-bearing: when a sourced article changes, the prose gets updated but the map can keep asserting the old relationships. Keep its `map-sources` marker accurate, recheck it on cascade updates, and remove it once it no longer adds value - a stale or decorative map is worse than none. Archive maps are exempt; they are dated snapshots.
+- **Gaps are a frontier, not a wishlist.** Record a `wanted` page or open `question` only when evidence backs it - an article references it, or a query asked it. An idle "we could also cover X" rots `wiki/gaps.md` into noise. Filter at capture, and close gaps by resolution link rather than letting filled ones linger as false unknowns (`references/gaps.md`).
 
 ---
 
@@ -312,7 +322,9 @@ The subtle failure points, worth checking before you finish an operation.
 - Dates: today's date for log entries, `collected`, and `created`/`archived`. `updated` reflects when an article's knowledge content last changed. `published` comes from the source (`Unknown` when unavailable).
 - Inside `wiki/` files use file-relative links; in conversation use project-root-relative paths.
 - Supersession replaces deletion for outdated knowledge: mark stale, link the replacement, keep the page. Git carries the history.
+- `wiki/gaps.md` registers known unknowns (`references/gaps.md`): `wanted` pages and open `question`s, grouped by topic, ranked by evidence not a score, and closed by a resolution link rather than deletion. Record only gaps with evidence behind them.
 - Concept maps are optional and value-gated (`references/concept-map.md`): a current-article map is load-bearing and carries `map-sources`; an archive map is a snapshot. Validate with `scripts/lint_mermaid.py` when `uv` is available.
-- Ingest updates `wiki/index.md` and `wiki/log.md`. Crystallize (from Query) updates both. Lint updates `wiki/log.md`, and `wiki/index.md` only when auto-fixing index entries. Audit updates `wiki/log.md` only, and writes an archive page only if the user asks to keep the result. Plain queries write nothing.
+- Ingest updates `wiki/index.md` and `wiki/log.md`, and `wiki/gaps.md` when it touches the knowledge frontier. Crystallize (from Query) updates the index and log. Lint updates `wiki/log.md`, `wiki/index.md` only when auto-fixing index entries, and `wiki/gaps.md` when closing or proposing gaps. Audit updates `wiki/log.md` only, and writes an archive page only if the user asks to keep the result. A plain query writes nothing on its own; with the user's go-ahead it may add a missed question to `wiki/gaps.md`.
 - A root `SKILL.md` (`references/wiki-skill-template.md`) lets the wiki load as a query-only Agent Skill; it is created at init, named `<subject>-llm-wiki`, and routes all writes back through this skill.
 - Recommend the wiki be a git repo so supersession and history have a real audit trail. Do not require it.
+- Ensure sub-agents have clear goals and scope to understand the context of the work thery're tasked with. Use forked sub-agents (if available) when sub-agent tasks require the complete conversation history.

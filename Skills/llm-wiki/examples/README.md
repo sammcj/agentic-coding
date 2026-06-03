@@ -1,6 +1,6 @@
 # Example sample vault
 
-An illustrative wiki in the format this skill produces. It is small and self-consistent so you can see how the pieces fit, including supersession and a crystallised query. The content is a worked example, not a real knowledge base.
+An illustrative wiki in the format this skill produces. It is small and self-consistent so you can see how the pieces fit, including supersession, a crystallised query, and a knowledge-gap register. The content is a worked example, not a real knowledge base.
 
 Open this `examples/` directory as an Obsidian vault, or read the files directly. The relative links resolve within the tree.
 
@@ -16,6 +16,7 @@ examples/
     ├── README.md
     ├── index.md
     ├── log.md
+    ├── gaps.md
     └── machine-learning/
         ├── transformer-architectures.md     (current)
         ├── attention-efficiency.md          (current, supersedes attention-cost)
@@ -35,6 +36,7 @@ examples/
 | `README.md` | The orientation doc that lets someone use the wiki without the skill: structure and conventions, with a pointer to the skill |
 | `index.md` | The catalogue, showing the `[Stale]` and `[Archived]` summary prefixes |
 | `log.md` | The append-only log with the greppable `## [date] op | title` prefix, including supersede and audit entries |
+| `gaps.md` | The gap register: an open `question`, a `wanted` page, and a `resolved` gap linked to the article that closed it. Ranked by evidence, not a score |
 | `SKILL.md` | The optional root skill file: lets an agent load this wiki as a query-only skill, named `<subject>-llm-wiki` (here `ml-llm-wiki`); writes still go through the llm-wiki skill |
 
 ## Raw vs compiled

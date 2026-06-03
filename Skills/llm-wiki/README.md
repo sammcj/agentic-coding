@@ -79,7 +79,7 @@ Keep it healthy:
 
 > "Lint my wiki"
 
-Auto-fixes index drift, broken links, and frontmatter gaps; reports contradictions, orphans, and claims a newer source has superseded.
+Auto-fixes index drift, broken links, and frontmatter gaps; reports contradictions, orphans, superseded claims, and knowledge gaps (concepts the wiki references but has not yet written).
 
 ## Layout
 
@@ -92,12 +92,13 @@ your-project/
 └── wiki/               ← Compiled pages the LLM maintains (frontmatter + markdown)
     ├── index.md        ← Catalogue and query entry point
     ├── log.md          ← Append-only operation log
+    ├── gaps.md         ← Register of known unknowns: wanted pages and open questions
     └── topic/
         ├── concept.md          ← status: current
         └── old-concept.md      ← status: stale, superseded_by a newer page
 ```
 
-A worked example lives in [examples/](examples/): two raw sources, the articles they compile to, a supersession pair, a crystallised query, and the matching index and log.
+A worked example lives in [examples/](examples/): two raw sources, the articles they compile to, a supersession pair, a crystallised query, a gap register, and the matching index and log.
 
 ## Using it with Obsidian
 

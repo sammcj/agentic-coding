@@ -8,7 +8,7 @@ Reach for it when one compile pass could lose detail: meeting and call transcrip
 
 ## The steps
 
-1. **Extract atoms before prose.** Read the source once and pull the durable items into a flat list first: decisions, commitments, claims, numbers, named entities, open questions, action items. Note where each came from. Only then write the article from that list. The atom list is the checklist that catches what writing-from-memory drops.
+1. **Extract atoms before prose.** Read the source once and pull the durable items into a flat list first: decisions, commitments, claims, numbers, named entities, open questions, action items. Note where each came from. Only then write the article from that list. The atom list is the checklist that catches what writing-from-memory drops. An open question the source raises but does not answer, and the wiki cannot either, belongs in `wiki/gaps.md` as a `question` entry rather than buried in article prose where it is forgotten (`references/gaps.md`).
 
 2. **Right-size the unit.** Do not force a sprawling source into one page. A meeting that covered three decisions across two topics becomes the articles those decisions belong to (merge or new, per SKILL.md), not a single "meeting notes" dump. One raw file can legitimately feed several wiki articles.
 

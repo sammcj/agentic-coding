@@ -25,6 +25,7 @@ One topic so far, `machine-learning`: how attention works, why its memory cost w
 2. Read the articles it points to. Follow body links for related material; `grep -rl "<article>.md" wiki/` lists pages that link to a given article (backlinks).
 3. Answer from the wiki's content in preference to general knowledge. Cite articles with markdown links, e.g. `[Attention Efficiency](wiki/machine-learning/attention-efficiency.md)`.
 4. If a cited article has `status: stale`, say so and point to its replacement. Here, `attention-cost.md` is stale and superseded by `attention-efficiency.md`.
+5. If the wiki has no answer, check `wiki/gaps.md` - the question may already be a tracked gap. Recording a new gap is a write, so it goes through the llm-wiki skill, not here.
 
 ## Conventions
 
@@ -33,3 +34,7 @@ One topic so far, `machine-learning`: how attention works, why its memory cost w
 ## Updating
 
 To add a source, change an article, supersede knowledge, lint, or audit, invoke the **llm-wiki** skill. It is required for all writes and keeps the format consistent. This skill deliberately does not modify the wiki.
+
+## Tips
+
+- Use sub-agents with well defined goals, scope and context to parallelise work and reduce context rot in the main conversation.

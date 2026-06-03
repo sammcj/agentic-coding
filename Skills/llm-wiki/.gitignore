@@ -7,11 +7,28 @@ Thumbs.db
 *.swo
 *~
 .vscode/
+.idea/
 
-# Obsidian (keep the vault, drop the local workspace cache)
-.obsidian/workspace*
-.obsidian/cache
+# Obsidian
+.obsidian
 .trash/
 
 # Node (for npx add-skill tooling, if used)
 node_modules/
+
+# Misc
+*.log
+*.tmp
+*.zip
+*.tar.gz
+*.tgz
+.cache/
+*.pem
+*.crt
+*.key
+*.dmg
+*.lock
+.env
+__pycache__/
+*.pyc
+
