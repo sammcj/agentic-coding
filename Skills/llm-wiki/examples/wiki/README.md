@@ -9,6 +9,7 @@ A personal knowledge base of plain markdown, built and maintained with the llm-w
 - `wiki/index.md` - the catalogue: one row per article, grouped by topic. Start here.
 - `wiki/log.md` - append-only history of ingests, queries, lints, and audits (recent activity kept; full history in git).
 - `wiki/gaps.md` - register of known unknowns: concepts the wiki references but has not written, and questions it cannot answer yet.
+- `local/` - optional, gitignored. Personal notes kept in this clone only and never committed. It may link into `wiki/` and `raw/`, but nothing committed links into it.
 
 ## Conventions, if you maintain this by hand
 

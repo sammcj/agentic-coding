@@ -89,14 +89,17 @@ your-project/
 ├── raw/                ← Immutable sources (frontmatter + original text), never edited
 │   └── topic/
 │       └── 2026-04-03-source-article.md
-└── wiki/               ← Compiled pages the LLM maintains (frontmatter + markdown)
-    ├── index.md        ← Catalogue and query entry point
-    ├── log.md          ← Append-only operation log
-    ├── gaps.md         ← Register of known unknowns: wanted pages and open questions
-    └── topic/
-        ├── concept.md          ← status: current
-        └── old-concept.md      ← status: stale, superseded_by a newer page
+├── wiki/               ← Compiled pages the LLM maintains (frontmatter + markdown)
+│   ├── index.md        ← Catalogue and query entry point
+│   ├── log.md          ← Append-only operation log
+│   ├── gaps.md         ← Register of known unknowns: wanted pages and open questions
+│   └── topic/
+│       ├── concept.md          ← status: current
+│       └── old-concept.md      ← status: stale, superseded_by a newer page
+└── local/              ← Optional: personal notes, gitignored, this clone only
 ```
+
+`local/` is excluded from git so you can keep meeting prep, drafts, and private notes alongside the wiki without committing them. It may link into `wiki/`, but nothing committed links back into it, so the shared wiki stays self-contained for everyone else. See the llm-wiki skill's `references/local-content.md`.
 
 A worked example lives in [examples/](examples/): two raw sources, the articles they compile to, a supersession pair, a crystallised query, a gap register, and the matching index and log.
 

@@ -703,7 +703,7 @@
       "uv run"
     ]
   },
-  "effortLevel": "xhigh",
+  "effortLevel": "high",
   "tui": "default",
   "preferredNotifChannel": "ghostty",
   "thinking": {

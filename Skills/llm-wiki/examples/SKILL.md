@@ -23,9 +23,10 @@ One topic so far, `machine-learning`: how attention works, why its memory cost w
 
 1. Read `wiki/index.md` - the catalogue, grouped by topic. Start here to find relevant articles.
 2. Read the articles it points to. Follow body links for related material; `grep -rl "<article>.md" wiki/` lists pages that link to a given article (backlinks).
-3. Answer from the wiki's content in preference to general knowledge. Cite articles with markdown links, e.g. `[Attention Efficiency](wiki/machine-learning/attention-efficiency.md)`.
-4. If a cited article has `status: stale`, say so and point to its replacement. Here, `attention-cost.md` is stale and superseded by `attention-efficiency.md`.
-5. If the wiki has no answer, check `wiki/gaps.md` - the question may already be a tracked gap. Recording a new gap is a write, so it goes through the llm-wiki skill, not here.
+3. If a `local/` directory exists, search it too and fold in any relevant personal notes, labelling each hit as `local/ (uncommitted)` so it is never mistaken for shared, committed knowledge. `local/` is the user's own, gitignored and absent from the index.
+4. Answer from the wiki's content in preference to general knowledge. Cite articles with markdown links, e.g. `[Attention Efficiency](wiki/machine-learning/attention-efficiency.md)`.
+5. If a cited article has `status: stale`, say so and point to its replacement. Here, `attention-cost.md` is stale and superseded by `attention-efficiency.md`.
+6. If the wiki has no answer, check `wiki/gaps.md` - the question may already be a tracked gap. Recording a new gap is a write, so it goes through the llm-wiki skill, not here.
 
 ## Conventions
 

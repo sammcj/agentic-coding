@@ -36,7 +36,7 @@ Deliberately excluded, and why: embedding or vector search and knowledge-graph d
 
 ## Architecture
 
-Three layers, all under the user's project root.
+Three layers, all under the user's project root, plus an optional `local/` for personal content.
 
 **raw/** - Immutable source material. You read, never modify. Organised by topic subdirectories, e.g. `raw/machine-learning/`. The source of truth.
 
@@ -45,6 +45,8 @@ Three layers, all under the user's project root.
 - `wiki/index.md` - Global catalogue. One row per article, grouped by topic, with link, summary, and Updated date. The entry point for queries.
 - `wiki/log.md` - Append-only operation log with a greppable prefix.
 - `wiki/gaps.md` - Register of known unknowns: concepts the wiki references but has not written, and questions it cannot answer. "What we don't know yet" to the index's "what we know".
+
+**local/** (optional) - Personal markdown kept out of git: meeting prep, drafts, working notes, private sources. A sibling of `raw/` and `wiki/`, excluded by the wiki `.gitignore`, present in the user's clone only. It is a scratch bench, exempt from the index, log, gaps, cascade, and audit. One rule governs it: `local/` may link into `wiki/` and `raw/`, but no committed file may ever link into `local/` (broken for other clones, and it leaks the path into git). Full rules, query behaviour, and the promotion path: `references/local-content.md`.
 
 **SKILL.md** (this file) - The schema layer. Defines structure, format, and workflow. This is the most important file in the system: it is what makes a disciplined wiki maintainer rather than a generic chatbot. Templates live in `references/` relative to this file; read them when you need the exact format.
 
@@ -102,7 +104,10 @@ Triggers only on the first Ingest. Check whether `raw/` and `wiki/` exist. Creat
 - `wiki/index.md` - heading `# Knowledge Base Index`, empty body
 - `wiki/log.md` - heading `# Wiki Log`, empty body
 - `wiki/gaps.md` - heading `# Knowledge Gaps`, empty body (`references/gaps.md`)
+- `.gitignore` (project root) - from `references/wiki-gitignore-template.md`. Excludes `local/` and per-machine editor noise so the wiki can live in git cleanly. Do not overwrite an existing one; merge in the `local/` line if it is missing.
 - `SKILL.md` (project root) - lets the wiki load as a query-only Agent Skill, from `references/wiki-skill-template.md`. See "The wiki as a skill" below.
+
+`local/` is not created at init; it appears the first time the user stores personal content there (`references/local-content.md`).
 
 If Query or Lint cannot find the wiki structure, tell the user: "Run an ingest first to initialise the wiki." Do not auto-create.
 
@@ -232,8 +237,9 @@ Search the wiki and answer questions. Triggers: "What do I know about X?", "Summ
 2. Read those articles. To find connections the index misses, follow body links and use backlinks: `grep -rl "article-name.md" wiki/` lists pages that link to a given article. (In Obsidian, the graph view and backlinks panel show the same structure.)
 3. Synthesise an answer. Prefer wiki content over your own training knowledge. Cite with markdown links: `[Article Title](wiki/topic/article.md)` (project-root-relative in conversation).
 4. Note when a cited article is `status: stale`, and point to its replacement.
-5. Output the answer in the conversation. Do not write files unless asked.
-6. **Capture a miss.** If the wiki could not answer, or answered only partially, and the question sits within the wiki's subject, propose recording it in `wiki/gaps.md`: append today's date to a matching gap's demand evidence, or add a new `question` entry. Record only with the user's go-ahead; a plain query writes nothing on its own. See `references/gaps.md`.
+5. If `local/` exists, search it too and fold in any relevant personal notes, labelling each hit clearly as `local/ (uncommitted)` so it is never mistaken for shared knowledge (`references/local-content.md`).
+6. Output the answer in the conversation. Do not write files unless asked.
+7. **Capture a miss.** If the wiki could not answer, or answered only partially, and the question sits within the wiki's subject, propose recording it in `wiki/gaps.md`: append today's date to a matching gap's demand evidence, or add a new `question` entry. Record only with the user's go-ahead; a plain query writes nothing on its own. See `references/gaps.md`.
 
 ### Crystallise (archive)
 
@@ -258,8 +264,8 @@ When the user asks to save the answer to the wiki, file it as a first-class page
 
 Health checks on the wiki. Two tiers with different authority. The boundary is deliberate: deterministic problems are fixed automatically; anything needing judgement is reported, never silently rewritten. You do not rewrite article prose on your own authority. Lint checks the wiki's internal consistency; to verify an article against the sources it cites, see Audit.
 
-- **Deterministic checks (auto-fix):** index consistency, internal links, raw references, frontmatter, See Also, log retention, the wiki skill file's links, concept-map freshness and references, and gap-register consistency (close a `wanted` gap whose page now exists, resolve gap links, prune resolved gaps on retention). Safe to repair without asking.
-- **Heuristic checks (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, frequently-mentioned concepts with no page (proposed as `wanted` gaps), open gaps an article now appears to answer (proposed for closing), articles that cover more than one concept, archive pages whose sources have drifted, low-value or unsupported concept maps, and a missing root SKILL.md. Surface them; never auto-fix.
+- **Deterministic checks (auto-fix):** index consistency, internal links, raw references, frontmatter, See Also, log retention, the wiki skill file's links, concept-map freshness and references, gap-register consistency (close a `wanted` gap whose page now exists, resolve gap links, prune resolved gaps on retention), and the local-content leak guard (report any committed file that links into `local/`; never rewrite the prose). Safe to repair without asking.
+- **Heuristic checks (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, frequently-mentioned concepts with no page (proposed as `wanted` gaps), open gaps an article now appears to answer (proposed for closing), articles that cover more than one concept, archive pages whose sources have drifted, low-value or unsupported concept maps, a missing root SKILL.md, and a missing wiki `.gitignore`. Surface them; never auto-fix.
 
 The exact checks and their fix behaviour: `references/lint.md`. A dependency-free mermaid validator, `scripts/lint_mermaid.py`, backs the concept-map validity check - run it with `uv` when available, otherwise skip scripted validation and check the block by eye.
 
@@ -326,5 +332,6 @@ The subtle failure points, worth checking before you finish an operation.
 - Concept maps are optional and value-gated (`references/concept-map.md`): a current-article map is load-bearing and carries `map-sources`; an archive map is a snapshot. Validate with `scripts/lint_mermaid.py` when `uv` is available.
 - Ingest updates `wiki/index.md` and `wiki/log.md`, and `wiki/gaps.md` when it touches the knowledge frontier. Crystallize (from Query) updates the index and log. Lint updates `wiki/log.md`, `wiki/index.md` only when auto-fixing index entries, and `wiki/gaps.md` when closing or proposing gaps. Audit updates `wiki/log.md` only, and writes an archive page only if the user asks to keep the result. A plain query writes nothing on its own; with the user's go-ahead it may add a missed question to `wiki/gaps.md`.
 - A root `SKILL.md` (`references/wiki-skill-template.md`) lets the wiki load as a query-only Agent Skill; it is created at init, named `<subject>-llm-wiki`, and routes all writes back through this skill.
+- `local/` (`references/local-content.md`) is optional, gitignored personal content in the user's clone only, exempt from the index/log/gaps/cascade/audit machinery. Local files may link into `wiki/` and `raw/`; no committed file may link into `local/`. Query scans it and labels hits `local/ (uncommitted)`. Init writes a wiki `.gitignore` (`references/wiki-gitignore-template.md`) that excludes it.
 - Recommend the wiki be a git repo so supersession and history have a real audit trail. Do not require it.
 - Ensure sub-agents have clear goals and scope to understand the context of the work thery're tasked with. Use forked sub-agents (if available) when sub-agent tasks require the complete conversation history.
