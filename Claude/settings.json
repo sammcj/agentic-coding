@@ -547,7 +547,8 @@
     "ralph-loop@claude-plugins-official": false,
     "safety-net@cc-marketplace": true,
     "context-mode@context-mode": true,
-    "kicad-happy@kicad-happy": true
+    "kicad-happy@kicad-happy": true,
+    "playwright@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {

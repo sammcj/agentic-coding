@@ -8,6 +8,7 @@ Open this `examples/` directory as an Obsidian vault, or read the files directly
 
 ```text
 examples/
+├── SKILL.md                                 (load the wiki as a query-only skill)
 ├── raw/machine-learning/
 │   ├── 2017-06-12-attention-is-all-you-need.md
 │   └── 2022-05-27-flashattention.md
@@ -34,6 +35,7 @@ examples/
 | `README.md` | The orientation doc that lets someone use the wiki without the skill: structure and conventions, with a pointer to the skill |
 | `index.md` | The catalogue, showing the `[Stale]` and `[Archived]` summary prefixes |
 | `log.md` | The append-only log with the greppable `## [date] op | title` prefix, including supersede and audit entries |
+| `SKILL.md` | The optional root skill file: lets an agent load this wiki as a query-only skill, named `<subject>-llm-wiki` (here `ml-llm-wiki`); writes still go through the llm-wiki skill |
 
 ## Raw vs compiled
 

@@ -98,8 +98,17 @@ Triggers only on the first Ingest. Check whether `raw/` and `wiki/` exist. Creat
 - `wiki/README.md` - orientation doc from `references/wiki-readme-template.md`
 - `wiki/index.md` - heading `# Knowledge Base Index`, empty body
 - `wiki/log.md` - heading `# Wiki Log`, empty body
+- `SKILL.md` (project root) - lets the wiki load as a query-only Agent Skill, from `references/wiki-skill-template.md`. See "The wiki as a skill" below.
 
 If Query or Lint cannot find the wiki structure, tell the user: "Run an ingest first to initialize the wiki." Do not auto-create.
+
+### The wiki as a skill
+
+`SKILL.md` at the project root lets an agent load the wiki as an Agent Skill and *query* it without this skill present. It is a different file from this skill's own SKILL.md: lightweight, mostly links into `wiki/index.md` and `wiki/README.md`, and read-only. Write it at init from `references/wiki-skill-template.md`, which carries the exact format.
+
+- **Name and describe it from the content.** Name it `<subject>-llm-wiki` (e.g. `ml-llm-wiki`, `team-runbook-llm-wiki`), choosing the prefix from the wiki's subject or audience, so the name signals it is an llm-wiki. A skill's name must match the directory it loads from, so tell the user to load the wiki directory under that name. Write a `description` that says what the wiki is for and names concrete trigger topics. At init the wiki may be near-empty - write your best guess from the first sources or the user's stated purpose, and refresh `name` and `description` as it grows.
+- **Query only; writes go through llm-wiki.** The file routes every add, update, supersede, lint, and audit back to this skill, and reminds the user that llm-wiki is required to keep the wiki current. It must not describe a write workflow of its own. When you create it, tell the user that the llm-wiki skill must stay installed to maintain the wiki.
+- Created at init, never overwritten. Lint reports a missing one and offers to add it to wikis that predate this (`references/lint.md`).
 
 ---
 
@@ -240,8 +249,8 @@ When the user asks to save the answer to the wiki, file it as a first-class page
 
 Health checks on the wiki. Two tiers with different authority. The boundary is deliberate: deterministic problems are fixed automatically; anything needing judgement is reported, never silently rewritten. You do not rewrite article prose on your own authority. Lint checks the wiki's internal consistency; to verify an article against the sources it cites, see Audit.
 
-- **Deterministic checks (auto-fix):** index consistency, internal links, raw references, frontmatter, See Also, log retention, and concept-map freshness and references. Safe to repair without asking.
-- **Heuristic checks (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, frequently-mentioned concepts with no page, articles that cover more than one concept, archive pages whose sources have drifted, and low-value or unsupported concept maps. Surface them; never auto-fix.
+- **Deterministic checks (auto-fix):** index consistency, internal links, raw references, frontmatter, See Also, log retention, the wiki skill file's links, and concept-map freshness and references. Safe to repair without asking.
+- **Heuristic checks (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, frequently-mentioned concepts with no page, articles that cover more than one concept, archive pages whose sources have drifted, low-value or unsupported concept maps, and a missing root SKILL.md. Surface them; never auto-fix.
 
 The exact checks and their fix behaviour: `references/lint.md`. A dependency-free mermaid validator, `scripts/lint_mermaid.py`, backs the concept-map validity check - run it with `uv` when available, otherwise skip scripted validation and check the block by eye.
 
@@ -305,4 +314,5 @@ The subtle failure points, worth checking before you finish an operation.
 - Supersession replaces deletion for outdated knowledge: mark stale, link the replacement, keep the page. Git carries the history.
 - Concept maps are optional and value-gated (`references/concept-map.md`): a current-article map is load-bearing and carries `map-sources`; an archive map is a snapshot. Validate with `scripts/lint_mermaid.py` when `uv` is available.
 - Ingest updates `wiki/index.md` and `wiki/log.md`. Crystallize (from Query) updates both. Lint updates `wiki/log.md`, and `wiki/index.md` only when auto-fixing index entries. Audit updates `wiki/log.md` only, and writes an archive page only if the user asks to keep the result. Plain queries write nothing.
+- A root `SKILL.md` (`references/wiki-skill-template.md`) lets the wiki load as a query-only Agent Skill; it is created at init, named `<subject>-llm-wiki`, and routes all writes back through this skill.
 - Recommend the wiki be a git repo so supersession and history have a real audit trail. Do not require it.

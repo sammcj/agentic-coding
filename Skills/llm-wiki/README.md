@@ -85,6 +85,7 @@ Auto-fixes index drift, broken links, and frontmatter gaps; reports contradictio
 
 ```text
 your-project/
+├── SKILL.md            ← Optional: load the wiki as a query-only Agent Skill
 ├── raw/                ← Immutable sources (frontmatter + original text), never edited
 │   └── topic/
 │       └── 2026-04-03-source-article.md
