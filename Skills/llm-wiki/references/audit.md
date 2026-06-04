@@ -37,6 +37,10 @@ Per-claim verdict:
 
 Sub-agents read only. They never edit `wiki/`, `raw/`, `index.md`, or `log.md`.
 
+## Distilled sources
+
+A raw file marked `fidelity: distilled` (`references/distilled-ingest.md`) is itself an extract of a source that no longer exists, not the verbatim original. Audit it for what it can still show - that the article claims no more than the extract supports - but say plainly in the report that the guarantee is weaker: the extract cannot be checked back against the original, which was verified once at ingest by the review gate. A `supported` verdict against a distilled source means "the article matches the extract", not "the article matches the source". Flag each distilled source in the report so the user reads its verdicts with that in mind.
+
 ## Aggregation and report
 
 The orchestrator collects the verdicts and reports in conversation, grouped by article, worst verdicts first:

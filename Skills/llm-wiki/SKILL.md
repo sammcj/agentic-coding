@@ -171,6 +171,10 @@ See `references/article-template.md` for the format. Provenance lives in the bod
 
 Transcripts, chat logs, long articles, and interview notes carry load-bearing detail that one compile pass can silently drop or soften. When a source is long or noisy, extract the durable items (decisions, claims, numbers, named entities, open questions) as a list first, write the article from that list, then re-read the source once against the article to confirm nothing important was lost, hardened, or overstated. Keep the source's exact terms, figures, and hedging, and anchor the heaviest claims with an inline quote and a locator (the section, page, or timestamp) next to their raw link. For short, clean, single-claim sources the normal compile above is enough. Full protocol: `references/high-fidelity-ingest.md`.
 
+### Distilling an external source
+
+When the user points at a verbose external source that lives outside the wiki - a meeting transcript, call notes, a long document or thread - and wants its valuable content summarised rather than the whole source kept, read `references/distilled-ingest.md` and follow it. The extract saved to `raw/` is marked `fidelity: distilled` (a derived artefact, not the verbatim source), the protocol distils by cutting filler and repetition without generalising away specifics, and it ends in a mandatory critical review by a separate sub-agent before the source may be discarded. This is the opposite choice from "Long-form and noisy sources" above, which keeps the verbatim source in `raw/`.
+
 ### Conflicts and supersession
 
 Check whether the new source disagrees with existing content.
@@ -328,6 +332,7 @@ The subtle failure points, worth checking before you finish an operation.
 - Dates: today's date for log entries, `collected`, and `created`/`archived`. `updated` reflects when an article's knowledge content last changed. `published` comes from the source (`Unknown` when unavailable).
 - Inside `wiki/` files use file-relative links; in conversation use project-root-relative paths.
 - Supersession replaces deletion for outdated knowledge: mark stale, link the replacement, keep the page. Git carries the history.
+- A distilled raw (`fidelity: distilled`, `references/distilled-ingest.md`) holds an extract of a verbose external source instead of the verbatim original. It is produced through a separate-sub-agent review gate and audited with the weaker guarantee a derived source implies.
 - `wiki/gaps.md` registers known unknowns (`references/gaps.md`): `wanted` pages and open `question`s, grouped by topic, ranked by evidence not a score, and closed by a resolution link rather than deletion. Record only gaps with evidence behind them.
 - Concept maps are optional and value-gated (`references/concept-map.md`): a current-article map is load-bearing and carries `map-sources`; an archive map is a snapshot. Validate with `scripts/lint_mermaid.py` when `uv` is available.
 - Ingest updates `wiki/index.md` and `wiki/log.md`, and `wiki/gaps.md` when it touches the knowledge frontier. Crystallize (from Query) updates the index and log. Lint updates `wiki/log.md`, `wiki/index.md` only when auto-fixing index entries, and `wiki/gaps.md` when closing or proposing gaps. Audit updates `wiki/log.md` only, and writes an archive page only if the user asks to keep the result. A plain query writes nothing on its own; with the user's go-ahead it may add a missed question to `wiki/gaps.md`.
