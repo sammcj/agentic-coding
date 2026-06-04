@@ -18,6 +18,16 @@ Normally a `raw/` file is the verbatim source - the immutable ground truth Audit
 
 The trade is real. Once the source is gone, Audit can only check that an article claims no more than the extract supports; it can no longer confirm the extract itself reflects the original. The verification that matters therefore happens once, here, at ingest, against the source while it is still present. That is what the review gate below is for.
 
+## Detecting a changed source
+
+A distilled extract keeps no copy of the source, so there is nothing to diff against later. To catch a source that has changed since you last extracted from it - and to spot a re-extraction the user has forgotten they already did - record a fingerprint when the source is a persistent, addressable thing (a file, a document, a URL), and check for one before you start.
+
+- **Capture, where the environment can compute one.** Record `source_sha256` (a hash of the source bytes at extraction, e.g. `shasum -a 256 <file>`) and, when the medium exposes it, `source_modified` (the source's own last-modified or last-edited date). The hash is the definitive signal; the date is a softer fallback for a source you cannot hash cleanly. Omit both for an ephemeral paste or anything that will not persist - there is nothing to re-check.
+- **Check before re-extracting.** First look for an existing raw whose `source` names this source. If one exists and carries a `source_sha256`, recompute the current source's hash:
+  - **unchanged** -> it has already been extracted; tell the user and stop rather than producing a duplicate.
+  - **changed** -> the source has moved on since the last extract; proceed, and treat the result as an update or supersession of the prior extract (the supersession flow in SKILL.md), noting what is new.
+  - **no fingerprint on the old extract** (it predates this) -> you cannot be sure; say so and let the user decide whether to re-extract.
+
 ## Distil by removing, not by summarising
 
 The failure mode is context collapse: a summary compresses many specific statements into one general sentence and the specifics evaporate. Avoid it by treating distillation as subtraction, not paraphrase. Cut filler and repetition; keep every distinct durable atom in the source's own words. The extract is shorter because the noise is gone, not because the meaning was generalised.
@@ -35,7 +45,7 @@ Distil "we'll probably move to Postgres in Q3, though Sam flagged the auth-DB mi
 3. **Render source-shaped.** Write the extract the way the source ran (agenda items, chronology, threads), not by wiki concept: one source, one extract. Keep terms, figures, and epistemic status. Call out decisions, action items, and open questions explicitly; an open question the wiki cannot answer also belongs in `wiki/gaps.md` (`references/gaps.md`).
 4. **Anchor the heavy claims now.** For the claims the wiki will lean on, lift the key sentence as a verbatim quote with its locator (timestamp, section, page) into the extract while the source is still in front of you. After the source is gone the extract is the only anchor, so these quotes must be exact.
 5. **Hand off to a reviewer** (next section) and fix what it finds.
-6. **Save and dispose.** Write the extract to `raw/<topic>/` with `fidelity: distilled`, following the naming rules in SKILL.md. Leave an external source untouched (`original: external`). Only when the source had already been placed in `raw/` do you delete it, along with any binary you converted from it, and only after the reviewer passes (`original: discarded`). This is the same verified-then-discard gate `references/rich-format-ingest.md` uses for binaries.
+6. **Save and dispose.** Write the extract to `raw/<topic>/` with `fidelity: distilled`, following the naming rules in SKILL.md. For a source that will persist, record its `source_sha256` (and `source_modified` if available), computed while the source is still present (see "Detecting a changed source"). Leave an external source untouched (`original: external`). Only when the source had already been placed in `raw/` do you delete it, along with any binary you converted from it, and only after the reviewer passes (`original: discarded`). This is the same verified-then-discard gate `references/rich-format-ingest.md` uses for binaries.
 7. **Compile to `wiki/`** as normal, citing the distilled extract on the article's Raw line.
 
 ## The review gate (separate sub-agent)
