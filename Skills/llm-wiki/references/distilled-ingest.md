@@ -38,6 +38,8 @@ The failure mode is context collapse: a summary compresses many specific stateme
 
 Distil "we'll probably move to Postgres in Q3, though Sam flagged the auth-DB migration cost" to a line that keeps the hedge, the owner of the objection, and the quarter - not to "the team decided to adopt Postgres".
 
+The errors are not symmetric. Leaked filler is cheap - the review gate catches it and it costs a few wasted lines. A dropped specific is expensive - once the source is gone there is nothing to recover it from, and the review gate cannot restore what it never saw. So when you are unsure whether a passage is filler or signal, keep it. Be ruthless only with what is unmistakably noise (the "safe to drop" list above is the test); everything else survives to the review.
+
 ## The steps
 
 1. **Convert if needed.** Rich format to markdown first (`references/rich-format-ingest.md`); the converted markdown is working material to distil from, not the raw file you keep. Defer that protocol's "delete the original binary" step until the review gate passes - the reviewer still needs the source.

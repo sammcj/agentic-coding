@@ -108,6 +108,7 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 - Tests should have assertions and must verify behaviour
 - Build time: optimise if over 1 minute
 - Coverage: 80% minimum for new code
+- You may run `NODE_OPTIONS="--max-old-space-size=12288" npx -y fallow --format json --quiet 2>/dev/null` to get a rough estimate of code complexity and refactoring suggestions
 
 ### Configuration
 - Use .env or config files as single source of truth, ensure .env is gitignored

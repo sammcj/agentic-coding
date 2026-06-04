@@ -130,6 +130,15 @@ If Query or Lint cannot find the wiki structure, tell the user: "Run an ingest f
 
 Fetch a source into `raw/`, then compile it into `wiki/`. Always both steps.
 
+### Decide how much of the source to keep
+
+Decide this before fetching or converting; it sets what lands in `raw/`.
+
+- **Verbatim (default)** - a faithful copy of the source, the immutable ground truth Audit checks against. Use it unless the user asks otherwise.
+- **Distilled** - the high-signal content only, with filler removed. Choose it when the user asks for "the valuable content", "the high-signal parts", "the useful bits", "just the signal", "the key points", "what matters" or similar - phrasing that wants the substance, not the whole source. Follow `references/distilled-ingest.md`, which distils by *removing* filler rather than generalising specifics away, and ends in a mandatory separate-sub-agent review so nothing load-bearing is cut.
+
+Pick one mode per source. A rich format (a docx transcript, a PDF) does not decide it: convert to markdown as an intermediate step, then keep or distil per the chosen mode. Converting a transcript and copying it in whole when the user asked for the signal is the failure to avoid. If a long, noisy source carries no instruction either way, ask rather than defaulting to a verbatim dump.
+
 ### Fetch (raw/)
 
 1. Get the source content using whatever web or file tools your environment provides. If nothing can reach the source, ask the user to paste it directly.
@@ -142,7 +151,7 @@ Fetch a source into `raw/`, then compile it into `wiki/`. Always both steps.
    - Slug from source title, kebab-case, max 60 characters.
    - Published date unknown -> omit the date prefix from the file name. The frontmatter `published` field still appears, set to `Unknown`.
    - If a file with the same name exists, append a numeric suffix, e.g. `descriptive-slug-2.md`.
-   - Include frontmatter (source, collected, published) and preserve the original text. Clean formatting noise; do not rewrite opinions.
+   - Include frontmatter (source, collected, published) and preserve the original text (verbatim mode; a distilled extract follows `references/distilled-ingest.md` instead). Clean formatting noise; do not rewrite opinions.
 
    See `references/raw-template.md` for the exact format.
 
@@ -150,7 +159,7 @@ Tip: Use sub-agents with well defined goals, scope and context to parallelise wo
 
 ### Rich and external sources
 
-`raw/` holds durable markdown only. When a source is a rich format (PDF, Word, slides, images, spreadsheets), convert it to markdown before saving, following `references/rich-format-ingest.md`: it covers structure preservation, the faithfulness review, and what to do with the original file.
+`raw/` holds durable markdown only. When a source is a rich format (PDF, Word, slides, images, spreadsheets), convert it to markdown before saving, following `references/rich-format-ingest.md`: it covers structure preservation, the faithfulness review, and what to do with the original file. If the user asked for the high-signal content rather than the whole source (see "Decide how much of the source to keep"), the converted markdown is an intermediate step, not the raw file you keep - distil it per `references/distilled-ingest.md`.
 
 **Compile only from `raw/`.** Land every source as markdown in `raw/` before compiling, never straight from a live URL or an external path (a temp file vanishes, a URL changes; the Raw provenance link must persist). If a markdown file is already in `raw/`, skip the fetch and compile it directly.
 
@@ -178,7 +187,7 @@ Transcripts, chat logs, long articles, and interview notes carry load-bearing de
 
 ### Distilling an external source
 
-When the user points at a verbose external source that lives outside the wiki - a meeting transcript, call notes, a long document or thread - and wants its valuable content summarised rather than the whole source kept, read `references/distilled-ingest.md` and follow it. The extract saved to `raw/` is marked `fidelity: distilled` (a derived artefact, not the verbatim source), the protocol distils by cutting filler and repetition without generalising away specifics, and it ends in a mandatory critical review by a separate sub-agent before the source may be discarded. This is the opposite choice from "Long-form and noisy sources" above, which keeps the verbatim source in `raw/`.
+When the retention mode is distilled (see "Decide how much of the source to keep") - the user points at a verbose external source like a meeting transcript, call notes, or a long thread and wants its valuable content kept rather than the whole source - read `references/distilled-ingest.md` and follow it. The extract saved to `raw/` is marked `fidelity: distilled` (a derived artefact, not the verbatim source). The protocol distils by cutting filler and repetition without generalising away specifics - numbers, hedging, dissent, owners, conditionals, and open questions all stay - and ends in a mandatory critical review by a separate sub-agent before the source may be discarded, the guard against over-zealous cutting. This is the opposite choice from "Long-form and noisy sources" above, which keeps the verbatim source in `raw/`.
 
 ### Conflicts and supersession
 
@@ -324,6 +333,7 @@ The subtle failure points, worth checking before you finish an operation.
 - **Auto-fix only the deterministic list.** Index, links, frontmatter, and See Also are safe to repair. For contradictions, stale claims, and orphans, surface them for the user instead of rewriting prose on your own authority.
 - **Ingest is fetch and compile.** A source saved to `raw/` but never compiled into `wiki/` adds nothing. Finish both, and update `index.md` and `log.md`, before treating the ingest as done.
 - **Long sources lose detail quietly.** Compiling a transcript or chat log straight to prose is where load-bearing claims and exact numbers get dropped or softened. For long or noisy sources, list the durable atoms first and re-read the source against your article before finishing (`references/high-fidelity-ingest.md`).
+- **Extract the signal when asked; don't convert-and-dump.** When the user asks for "the valuable content" or "the high-signal parts" of a source - especially a verbose one like a meeting transcript - distilling is the job, not converting the format and copying it in whole with the hellos, logistics, and banter intact. A rich format (docx, PDF) is converted only as an intermediate step. Follow `references/distilled-ingest.md`: cut filler, keep every durable specific (numbers, hedging, owners, dissent, open questions), bias toward keeping anything you are unsure about, and let the separate-sub-agent review catch what was over-zealously dropped. Keep the source verbatim only when no such request is made (see "Decide how much of the source to keep").
 - **Only delete rich originals that live in `raw/`.** After extracting a binary to markdown, delete it only when it was inside `raw/` (which stays markdown-only) and the extraction is verified faithful. A PDF in the user's Downloads or a temp dir is theirs: extract a markdown copy into `raw/`, leave the original untouched, and do not link to it.
 - **Concept maps drift silently.** A diagram in a current article is load-bearing: when a sourced article changes, the prose gets updated but the map can keep asserting the old relationships. Keep its `map-sources` marker accurate, recheck it on cascade updates, and remove it once it no longer adds value - a stale or decorative map is worse than none. Archive maps are exempt; they are dated snapshots.
 - **Gaps are a frontier, not a wishlist.** Record a `wanted` page or open `question` only when evidence backs it - an article references it, or a query asked it. An idle "we could also cover X" rots `wiki/gaps.md` into noise. Filter at capture, and close gaps by resolution link rather than letting filled ones linger as false unknowns (`references/gaps.md`).
