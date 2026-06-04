@@ -109,7 +109,7 @@ The wiki is a folder of markdown, so it opens directly as an Obsidian vault. Fro
 
 ## Credits
 
-The idea is [Karpathy's](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). The design also learned from the [v2 gist](https://gist.github.com/rohitg00/2067ab416f7bbe447c1977edaaa681e2) and its comment thread, keeping the self-contained ideas (supersession, evidence chains, ingest-time filtering, crystallised answers) and leaving out the infrastructure-heavy ones. It began as a community Agent Skills implementation and has since been redesigned.
+I've used something similar for years with agents / agentic coding tools, but it was popularised and in some ways formalised by [Karpathy](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). The design also learned from the [v2 gist](https://gist.github.com/rohitg00/2067ab416f7bbe447c1977edaaa681e2) and its comment thread, keeping the self-contained ideas (supersession, evidence chains, ingest-time filtering, crystallised answers) and leaving out the infrastructure-heavy ones. It began as a community Agent Skills implementation and has since been redesigned.
 
 ## License
 
