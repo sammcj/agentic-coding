@@ -1,6 +1,6 @@
 ---
 name: {subject}-llm-wiki
-description: "FILL IN from the wiki's content, then delete this instruction. Pattern: Use when answering questions from the {subject} knowledge base{, for {audience}}. Triggers: questions about {topic A}, {topic B}, {topic C}; 'what do we know about {subject}', 'check the {subject} wiki'. Read-only querying of compiled knowledge; to add, update, supersede, lint, or audit, use the llm-wiki skill instead."
+description: "FILL IN from the wiki's content, then delete this instruction. Pattern: Use when answering questions from the {subject} knowledge base{, for {audience}}. Triggers: questions about {topic A}, {topic B}, {topic C}; 'what do we know about {subject}', 'check the {subject} wiki'. Read-only querying of compiled knowledge; to add, update, supersede, lint, audit, or critique, use the llm-wiki skill instead."
 ---
 
 # {Wiki Display Name}
@@ -11,7 +11,7 @@ A self-contained markdown knowledge base on {subject}{, for {audience}}. This sk
 
 Keep this current: as the wiki grows, update the `name` and `description` above so they describe what it actually covers and trigger on the right questions.
 
-Maintenance - ingesting sources, superseding stale knowledge, linting, auditing - is not done here. Use the **llm-wiki** skill, which owns the write workflow and the file format. The llm-wiki skill is required to keep this wiki current; without it the wiki is still readable, but do not hand-edit articles outside the conventions in `wiki/README.md`.
+Maintenance and deeper analysis - ingesting sources, superseding stale knowledge, linting, auditing, critiquing reasoning - is not done here. Use the **llm-wiki** skill, which owns the write workflow and the file format. The llm-wiki skill is required to keep this wiki current; without it the wiki is still readable, but do not hand-edit articles outside the conventions in `wiki/README.md`.
 
 ## What's inside
 
@@ -32,4 +32,4 @@ Maintenance - ingesting sources, superseding stale knowledge, linting, auditing 
 
 ## Updating
 
-To add a source, change an article, supersede knowledge, lint, or audit, invoke the **llm-wiki** skill. It is required for all writes and keeps the format consistent. This skill deliberately does not modify the wiki.
+To add a source, change an article, supersede knowledge, lint, audit, or critique, invoke the **llm-wiki** skill. It is required for all writes and keeps the format consistent. This skill deliberately does not modify the wiki.

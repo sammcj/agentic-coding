@@ -11,7 +11,7 @@ When you change what the skill does or how it is used, append one line to `CHANG
 The file format is defined in three coupled places. Change a detail in one, update all three in the same pass:
 
 - `SKILL.md` - the spec and workflow (source of truth)
-- `references/*.md` - the fill-in templates (authoritative for exact format)
+- `references/templates/*.md` - the fill-in templates (authoritative for exact format)
 - `examples/` - a self-consistent sample vault that must conform to the spec
 
 The examples are validated against the spec, not decorative. After any format change, re-check that example frontmatter, links, the supersession pair, and the index/log still match SKILL.md and the templates. The structural linter must stay clean on the sample vault: `uv run scripts/lint_wiki.py examples` reports no issues.

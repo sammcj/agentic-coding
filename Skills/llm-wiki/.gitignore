@@ -31,4 +31,6 @@ node_modules/
 .env
 __pycache__/
 *.pyc
-
+*.local.*
+*.lock
+*.bak

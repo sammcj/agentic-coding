@@ -1,6 +1,6 @@
 ---
 title: {Title}
-source: {URL or origin description}
+source: {URL or origin description}    # carried across from another of the user's wikis? record that origin and prefer the upstream original, e.g. 'via ml-wiki; original: <upstream source>' (references/multiple-wikis.md). Never a link into the other wiki.
 collected: {YYYY-MM-DD}
 published: {YYYY-MM-DD or Unknown}
 type: raw
@@ -17,4 +17,6 @@ source_modified: {YYYY-MM-DD}        # optional - the source's own last-modified
 
 If this is a distilled extract (`fidelity: distilled`), it is the high-signal content kept in place of a verbose external source the user did not want retained in full. It is source-shaped, not concept-shaped, and was produced and reviewed per `references/distilled-ingest.md`. Keep the source's own terms, numbers, and hedging; anchor the heaviest claims with a verbatim quote and a locator.
 
-If this content was converted from a rich format (PDF, slides, document, image), it is the extracted markdown: preserve tables, reading order, and the meaning of figures and charts, and name the original in `source`.}
+If this content was converted from a rich format (PDF, slides, document, image), it is the extracted markdown: preserve tables, reading order, and the meaning of figures and charts, and name the original in `source`.
+
+If this source was carried across from another of the user's wikis (`references/multiple-wikis.md`), re-land the underlying source it cited - not the other wiki's compiled article - and chase the upstream original so provenance ends at the real origin. Record the other wiki only as a breadcrumb in `source`, never a link into it. `fidelity: distilled` applies if you kept only the high-signal part.}

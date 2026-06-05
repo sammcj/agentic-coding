@@ -1,7 +1,7 @@
 ---
 name: llm-wiki
-description: "Use when building or maintaining a self-contained personal knowledge base (an LLM wiki) as plain markdown, optionally opened as an Obsidian vault. Triggers: ingesting sources into a wiki, querying wiki knowledge, linting wiki health, auditing article claims against their sources, superseding stale knowledge, 'add to wiki', or any mention of 'LLM wiki' or 'Karpathy wiki'."
-argument-hint: "[ingest | query | lint | audit] [input]"
+description: "Use when building or maintaining a self-contained personal knowledge base (an LLM wiki) as plain markdown, optionally opened as an Obsidian vault. Triggers: ingesting sources into a wiki, querying wiki knowledge, linting wiki health, auditing article claims against their sources, critiquing the reasoning in a source or article, superseding stale knowledge, 'add to wiki', or any mention of 'LLM wiki' or 'Karpathy wiki'."
+argument-hint: "[ingest | query | lint | audit | critique] [input]"
 ---
 
 # LLM Wiki
@@ -12,14 +12,23 @@ Core idea (Karpathy): the LLM writes and maintains the wiki; the human chooses s
 
 ## Invocation
 
-The skill runs one of four operations: Ingest, Query, Lint, Audit. With a leading mode argument, route straight to that operation; with no argument, infer the operation from the request as before.
+**Query is the default.** Ingest, Lint, Audit, and Critique are the four deliberate operations - each opted into by its verb or by a request that plainly calls for it. Anything else is a Query against the wiki: a bare question, "what do I know about X", "summarise everything on Y". You do not need a `query` keyword to query; it is what the skill does unless one of the four operations is clearly being asked for.
+
+A leading mode argument routes straight to that operation:
 
 - `ingest` (alias `add`) - Ingest. Any trailing text is the source: a URL, a path, or pasted content.
-- `query` (alias `ask`) - Query. Trailing text is the question.
 - `lint` - Lint. Health checks; needs no further input.
 - `audit` - Audit. Trailing text names the article or topic to verify.
+- `critique` (alias `scrutinise`) - Critique. Trailing text names the article, topic, or pasted content whose reasoning to examine.
+- `query` (alias `ask`) - Query. Rarely needed as an explicit keyword, but it forces query handling when a question might otherwise look like one of the four operations above.
 
-So `/llm-wiki lint` runs Lint, and `/llm-wiki ingest https://...` ingests that URL. If the first word is not one of these modes, treat the whole argument as a natural-language request and pick the operation it implies. A bare `/llm-wiki` behaves exactly as it does today: read the request and choose the operation.
+So `/llm-wiki lint` runs Lint and `/llm-wiki ingest https://...` ingests that URL. Otherwise treat the whole argument as a natural-language request: route it to Ingest, Lint, Audit, or Critique only when it clearly calls for one, and answer everything else as a Query.
+
+### What's always required, and what's scenario-gated
+
+Every operation, always: you act only on the user's request (never background-write); any write compiles from a source already in `raw/` (never straight from a live URL or external path), then updates `wiki/index.md` and appends `wiki/log.md`; you bump an article's `updated` whenever its content changes; and you replace outdated knowledge by superseding it, never by deleting or editing in place. These hold across all five operations.
+
+Everything else is scenario-gated, and its detailed protocol lives in `references/` - the authoritative procedure, which SKILL.md only summarises. When the request or the situation matches one - a rich-format source, a distilled extract, a long or noisy source, a concept map, the gap register, local content, a lint, an audit, a critique - you MUST read the named reference and follow it before acting, rather than working from memory or assuming you know the format or the steps. If a section points at a reference, that pointer is an instruction to open it, not a citation to note. When unsure whether a reference applies, read it and decide; the cost of reading is small next to the cost of corrupting the wiki by guessing.
 
 ## Design philosophy
 
@@ -86,7 +95,7 @@ In conversation output, use project-root-relative paths, e.g. `wiki/topic/articl
 
 ### Special files
 
-`wiki/README.md` orients a reader who has the wiki but not this skill: the raw/wiki split, the frontmatter fields, supersession-not-deletion, and what index.md, log.md, and gaps.md are, with a pointer to the skill for the full workflow. It is the GitHub landing page for the wiki directory. Keep it high-level and mostly static - it describes the format, not the catalogue, so it does not change on every ingest. Do not copy the operational procedures from this file into it; point to them. Template: `references/wiki-readme-template.md`.
+`wiki/README.md` orients a reader who has the wiki but not this skill: the raw/wiki split, the frontmatter fields, supersession-not-deletion, and what index.md, log.md, and gaps.md are, with a pointer to the skill for the full workflow. It is the GitHub landing page for the wiki directory. Keep it high-level and mostly static - it describes the format, not the catalogue, so it does not change on every ingest. Do not copy the operational procedures from this file into it; point to them. Template: `references/templates/wiki-readme-template.md`.
 
 `wiki/index.md` is the human-readable catalogue and the agent's first read on any query. Hand-maintained. If the user has Obsidian with Dataview, parts of it can be auto-generated from frontmatter, but never depend on a plugin: the maintained index.md is canonical.
 
@@ -100,21 +109,21 @@ Triggers only on the first Ingest. Check whether `raw/` and `wiki/` exist. Creat
 
 - `raw/` directory (with `.gitkeep`)
 - `wiki/` directory (with `.gitkeep`)
-- `wiki/README.md` - orientation doc from `references/wiki-readme-template.md`
+- `wiki/README.md` - orientation doc from `references/templates/wiki-readme-template.md`
 - `wiki/index.md` - heading `# Knowledge Base Index`, empty body
 - `wiki/log.md` - heading `# Wiki Log`, empty body
 - `wiki/gaps.md` - heading `# Knowledge Gaps`, empty body (`references/gaps.md`)
-- `.gitignore` (project root) - from `references/wiki-gitignore-template.md`. Excludes `local/` and per-machine editor noise so the wiki can live in git cleanly. Do not overwrite an existing one; merge in the `local/` line if it is missing.
-- `SKILL.md` (project root) - lets the wiki load as a query-only Agent Skill, from `references/wiki-skill-template.md`. See "The wiki as a skill" below.
-- `CLAUDE.md` (project root) - project memory that orients any agent whose working directory is the wiki repo and tells it to activate the llm-wiki skill if present, from `references/wiki-claude-md-template.md`. See "The wiki's CLAUDE.md" below.
+- `.gitignore` (project root) - from `references/templates/wiki-gitignore-template.md`. Excludes `local/` and per-machine editor noise so the wiki can live in git cleanly. Do not overwrite an existing one; merge in the `local/` line if missing.
+- `SKILL.md` (project root) - lets the wiki load as a query-only Agent Skill, from `references/templates/wiki-skill-template.md`. See "The wiki as a skill" below.
+- `CLAUDE.md` (project root) - project memory that orients any agent whose working directory is the wiki repo and tells it to activate the llm-wiki skill if present, from `references/templates/wiki-claude-md-template.md`. See "The wiki's CLAUDE.md" below.
 
 `local/` is not created at init; it appears the first time the user stores personal content there (`references/local-content.md`).
 
-If Query or Lint cannot find the wiki structure, tell the user: "Run an ingest first to initialise the wiki." Do not auto-create.
+If Query or Lint cannot find the wiki structure at the working directory, first check whether the directory instead holds several wiki subdirectories (each with its own `wiki/` and `raw/`): that is a multi-wiki setup, handled per "Working across separate wikis" above, not an uninitialised wiki. Only when neither a wiki nor sibling wikis are present, tell the user: "Run an ingest first to initialise the wiki." Do not auto-create.
 
 ### The wiki as a skill
 
-`SKILL.md` at the project root lets an agent load the wiki as an Agent Skill and *query* it without this skill present. It is a different file from this skill's own SKILL.md: lightweight, mostly links into `wiki/index.md` and `wiki/README.md`, and read-only. Write it at init from `references/wiki-skill-template.md`, which carries the exact format.
+`SKILL.md` at the project root lets an agent load the wiki as an Agent Skill and *query* it without this skill present. It is a different file from this skill's own SKILL.md: lightweight, mostly links into `wiki/index.md` and `wiki/README.md`, and read-only. Write it at init from `references/templates/wiki-skill-template.md`, which carries the exact format.
 
 - **Name and describe it from the content.** Name it `<subject>-llm-wiki` (e.g. `ml-llm-wiki`, `team-runbook-llm-wiki`), choosing the prefix from the wiki's subject or audience, so the name signals it is an llm-wiki. A skill's name must match the directory it loads from, so tell the user to load the wiki directory under that name. Write a `description` that says what the wiki is for and names concrete trigger topics. At init the wiki may be near-empty - write your best guess from the first sources or the user's stated purpose, and refresh `name` and `description` as it grows.
 - **Query only; writes go through llm-wiki.** The file routes every add, update, supersede, lint, and audit back to this skill, and reminds the user that llm-wiki is required to keep the wiki current. It must not describe a write workflow of its own. When you create it, tell the user that the llm-wiki skill must stay installed to maintain the wiki.
@@ -122,7 +131,16 @@ If Query or Lint cannot find the wiki structure, tell the user: "Run an ingest f
 
 ### The wiki's CLAUDE.md
 
-`CLAUDE.md` at the project root is project memory: an agent auto-loads it whenever the wiki repo is its working directory, no skill required. It complements the root SKILL.md - SKILL.md loads by description match, CLAUDE.md by location, so it is the entry point for an agent working *inside* the wiki. Keep it tiny: state what the repo is, point the agent at the root SKILL.md to learn how to interface with the wiki, and tell it to activate the **llm-wiki** skill if available (otherwise treat the wiki as read-only and route writes through it). It defers the query steps to SKILL.md rather than repeating them. Write it at init from `references/wiki-claude-md-template.md`; created once, never overwritten. Lint reports a missing one and offers to add it (`references/lint.md`).
+`CLAUDE.md` at the project root is project memory: an agent auto-loads it whenever the wiki repo is its working directory, no skill required. It complements the root SKILL.md - SKILL.md loads by description match, CLAUDE.md by location, so it is the entry point for an agent working *inside* the wiki. Keep it tiny: state what the repo is, point the agent at the root SKILL.md to learn how to interface with the wiki, and tell it to activate the **llm-wiki** skill if available (otherwise treat the wiki as read-only and route writes through it). It defers the query steps to SKILL.md rather than repeating them. Write it at init from `references/templates/wiki-claude-md-template.md`; created once, never overwritten. Lint reports a missing one and offers to add it (`references/lint.md`).
+
+### Working across separate wikis
+
+A user may keep several independent wikis side by side - each a full, self-contained llm-wiki cloned wherever they like (e.g. `~/git/wikis/{ml,payments,ops}/`). The wikis do not nest and do not know about each other; there is no host wiki and no shared root inside any of them.
+
+When your session's working directory holds more than one wiki (subdirectories that each have their own `wiki/` and `raw/`), you are in a multi-wiki setup. Two rules then apply, and the full protocol is in `references/multiple-wikis.md` - read it before querying or maintaining across wikis:
+
+- **Catalogue them in `WIKI-INDEX.md`.** Maintain a `WIKI-INDEX.md` at that working directory (create it if missing): what each wiki is for and how to tell them apart, plus the cross-wiki rules below. If a wiki's purpose is not clear from its own README/SKILL, ask the user rather than guessing.
+- **Each wiki is isolated; read its own instructions first.** Before you query or change a wiki, read that wiki's own `CLAUDE.md` and `SKILL.md` (and any skill it bundles) - they do not auto-load from a parent directory. No wiki links or refers to another. If a fact in one wiki is worth having in another, ask the user, then add a version to the target as a normal ingest (cite the true origin; never link across wikis).
 
 ---
 
@@ -153,7 +171,7 @@ Pick one mode per source. A rich format (a docx transcript, a PDF) does not deci
    - If a file with the same name exists, append a numeric suffix, e.g. `descriptive-slug-2.md`.
    - Include frontmatter (source, collected, published) and preserve the original text (verbatim mode; a distilled extract follows `references/distilled-ingest.md` instead). Clean formatting noise; do not rewrite opinions.
 
-   See `references/raw-template.md` for the exact format.
+   See `references/templates/raw-template.md` for the exact format.
 
 Tip: Use sub-agents with well defined goals, scope and context to parallelise work and reduce context rot in the main conversation.
 
@@ -163,21 +181,25 @@ Tip: Use sub-agents with well defined goals, scope and context to parallelise wo
 
 **Compile only from `raw/`.** Land every source as markdown in `raw/` before compiling, never straight from a live URL or an external path (a temp file vanishes, a URL changes; the Raw provenance link must persist). If a markdown file is already in `raw/`, skip the fetch and compile it directly.
 
+Another of the user's wikis can be the origin of a source. To carry a fact across, re-land its underlying source into this wiki's `raw/` and compile it like any normal ingest, citing the true upstream origin - never a link into the other wiki. The cross-wiki rules are in `references/multiple-wikis.md`.
+
 ### Compile (wiki/)
 
 Decide where the new content belongs:
 
 - **Same core thesis as an existing article** -> Merge into it. Add the new source to the article's Sources/Raw lines. Update affected sections and bump `updated`.
-- **New concept** -> Create a new article in the most relevant topic directory. Name the file after the concept, not the raw file. Write full frontmatter.
+- **New concept** -> Create a new article in the most relevant topic directory. Name the file after the concept, not the raw file. Write full frontmatter. Give it at least one inbound link from a related article (a See Also or an in-body reference), not just an `index.md` row - an article nothing links to is an orphan.
 - **Spans multiple topics** -> Place in the most relevant directory; add See Also links to related articles elsewhere.
 
 These are not exclusive: one source may merge into an existing article while also creating a new article for a distinct concept it introduces.
+
+When a source is persuasive or argumentative rather than factual - an opinion piece, a vendor's case for its product, a strategy memo - consider a Critique pass (`references/critical-analysis.md`) before compiling it as settled knowledge, so its reasoning risks are on record. Report them and let the user decide; a common outcome is to attribute a contested claim to its source rather than assert it, or to log the open question in `gaps.md`.
 
 **One article, one concept.** Merging keeps related knowledge together, but repeated merges can grow an article past its thesis. When an article has come to cover more than one distinct concept - typically visible as top-level sections that could each stand alone - split the secondary concept into its own article, leave a one-line summary and a See Also link in its place, and cross-link the two. Split on concept boundaries, not length: a long article on a single concept is fine. As a rough prompt to recheck scope, revisit an article that climbs past ~400-500 lines, but never split on line count alone.
 
 **Concept maps (optional).** When several articles relate in a way prose handles poorly - branching, convergence, a supersession or causal chain - a small mermaid diagram can earn its place. Draw one only when it adds what a sentence cannot; a map that restates the See Also list or a linear `A -> B -> C` is noise, and a map with no value is worse than none. A map in a current article is load-bearing: it carries a `map-sources` marker and is maintained on cascade updates; a map in a `type: archive` page is a dated snapshot. The when/when-not test, the colour palette, the format, freshness, and how to brief a sub-agent to draw one (sub-agents propose, you embed) are in `references/concept-map.md`.
 
-See `references/article-template.md` for the format. Provenance lives in the body as clickable links:
+See `references/templates/article-template.md` for the format. Provenance lives in the body as clickable links:
 - Sources line: author, organisation, or publication + date, semicolon-separated.
 - Raw line: markdown links to `raw/` files, semicolon-separated.
 
@@ -255,15 +277,17 @@ Search the wiki and answer questions. Triggers: "What do I know about X?", "Summ
 2. Read those articles. To find connections the index misses, follow body links and use backlinks: `grep -rl "article-name.md" wiki/` lists pages that link to a given article. (In Obsidian, the graph view and backlinks panel show the same structure.)
 3. Synthesise an answer. Prefer wiki content over your own training knowledge. Cite with markdown links: `[Article Title](wiki/topic/article.md)` (project-root-relative in conversation).
 4. Note when a cited article is `status: stale`, and point to its replacement.
-5. If `local/` exists, search it too and fold in any relevant personal notes, labelling each hit clearly as `local/ (uncommitted)` so it is never mistaken for shared knowledge (`references/local-content.md`).
+5. If `local/` exists, search it too and fold in any relevant personal notes, labelling each hit clearly as `local/ (uncommitted)` so it is never mistaken for shared knowledge (`references/local-content.md`). A query runs against one wiki; never silently fold another of the user's wikis into the answer. If the question really spans wikis, say so and ask which to draw on (`references/multiple-wikis.md`).
 6. Output the answer in the conversation. Do not write files unless asked.
 7. **Capture a miss.** If the wiki could not answer, or answered only partially, and the question sits within the wiki's subject, propose recording it in `wiki/gaps.md`: append today's date to a matching gap's demand evidence, or add a new `question` entry. Record only with the user's go-ahead; a plain query writes nothing on its own. See `references/gaps.md`.
+
+When the user asks not just what the wiki says but whether the reasoning behind it holds - to scrutinise or stress-test an answer or a wiki position rather than retrieve it - switch to Critique and follow `references/critical-analysis.md`.
 
 ### Crystallise (archive)
 
 When the user asks to save the answer to the wiki, file it as a first-class page so the exploration compounds like an ingested source.
 
-1. Write the answer as a new article with `type: archive`. See `references/archive-template.md`. Convert conversation citations to file-relative paths (e.g. `wiki/topic/article.md` becomes `../topic/article.md`, or `article.md` for the same directory).
+1. Write the answer as a new article with `type: archive`. See `references/templates/archive-template.md`. Convert conversation citations to file-relative paths (e.g. `wiki/topic/article.md` becomes `../topic/article.md`, or `article.md` for the same directory).
    - Sources line: markdown links to the wiki articles the answer cites.
    - No Raw line (content does not come from `raw/`).
    - Capture the question, the findings, the articles and entities involved, and any lesson worth keeping as a standalone point.
@@ -280,12 +304,14 @@ When the user asks to save the answer to the wiki, file it as a first-class page
 
 ## Lint
 
-Health checks on the wiki. Two tiers with different authority. The boundary is deliberate: deterministic problems are fixed automatically; anything needing judgement is reported, never silently rewritten. You do not rewrite article prose on your own authority. Lint checks the wiki's internal consistency; to verify an article against the sources it cites, see Audit.
+Health checks on the wiki, in two tiers with different authority. The load-bearing boundary: **deterministic problems are auto-fixed; anything needing judgement is reported, never silently rewritten.** You never rewrite article prose on your own authority. Lint checks the wiki's internal consistency; to verify an article against the sources it cites, use Audit.
 
-- **Deterministic checks (auto-fix):** index consistency, internal links, raw references, frontmatter, See Also, log retention, the wiki skill file's links, concept-map freshness and references, gap-register consistency (close a `wanted` gap whose page now exists, resolve gap links, prune resolved gaps on retention), and the local-content leak guard (report any committed file that links into `local/`; never rewrite the prose). Safe to repair without asking.
-- **Heuristic checks (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, frequently-mentioned concepts with no page (proposed as `wanted` gaps), open gaps an article now appears to answer (proposed for closing), articles that cover more than one concept, archive pages whose sources have drifted, low-value or unsupported concept maps, a missing root SKILL.md, a missing root CLAUDE.md, and a missing wiki `.gitignore`. Surface them; never auto-fix.
+**Before fixing anything you MUST read `references/lint.md` and follow it** - it enumerates every check in each tier and its exact fix behaviour. SKILL.md states only the boundary; the checks below are an index, not the procedure.
 
-The exact checks and their fix behaviour: `references/lint.md`. Two dependency-free helpers back the deterministic tier, both read-only and run with `uv` when available: `scripts/lint_wiki.py <project-root>` reports the structural findings (frontmatter, index, links, raw, local-leak), and `scripts/lint_mermaid.py` backs the concept-map validity check. Run them rather than improvising a script piped through the shell (a heredoc mangles `!`); when `uv` is absent, fall back to grep and the file tools, and check mermaid blocks by eye. The helpers detect; you apply the fixes.
+- **Deterministic (auto-fix):** index consistency, internal and raw links, frontmatter, See Also, log retention, the wiki skill file's links, concept-map freshness, the gap register, and the `local/` leak guard. Safe to repair without asking.
+- **Heuristic (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, undocumented concepts (propose as `wanted` gaps), open gaps an article now answers, multi-concept articles, drifted archives, low-value concept maps, and a missing root `SKILL.md`, `CLAUDE.md`, or wiki `.gitignore`. Surface them; never auto-fix.
+
+Two dependency-free helpers back the deterministic tier, read-only and run with `uv` when available: `scripts/lint_wiki.py <project-root>` for structural findings (frontmatter, index, links, raw, and the `local/` leak guard) and `scripts/lint_mermaid.py` for concept-map validity. Run them rather than improvising a shell script (a heredoc mangles `!`); when `uv` is absent, fall back to grep and the file tools, and check mermaid by eye. The helpers detect; you apply the fixes.
 
 ### Post-lint
 
@@ -299,17 +325,9 @@ Append to `wiki/log.md`:
 
 ## Audit
 
-Verify that an article's claims hold up against the `raw/` sources it cites. Where Lint checks the wiki's internal consistency (links, frontmatter, index), Audit checks its external fidelity: do the cited sources actually support what the article says. This is the verification the evidence chains imply but never enforce. It is opt-in and user-invoked on a named article or a topic, never automatic, and it reads every cited source in full. Triggers: "audit X", "check the citations on Y", "does the wiki still match its sources".
+Verify that an article's claims hold up against the `raw/` sources it cites. Where Lint checks internal consistency (links, frontmatter, index), Audit checks external fidelity: do the cited sources actually support what the article says - the verification the evidence chains imply but never enforce. Opt-in and user-invoked on a named article or topic, never automatic; it reads every cited source in full. Triggers: "audit X", "check the citations on Y", "does the wiki still match its sources".
 
-### Steps
-
-1. Pick the target: one article, or every current article in a topic. Skip `status: stale` and `type: archive` pages unless asked; history and snapshots are not cascade-checked.
-2. From the target's Raw line and any inline raw links, list the cited `raw/` files and the claims each is meant to support. A load-bearing claim with no cited source is itself a finding. A labelled edge in a concept map is a claim too - include each one, mapped to the source that should support the relationship.
-3. For each cited raw source, dispatch a sub-agent in parallel. Give it that one source and the claims that cite it. It reads the source and returns, per claim, one verdict - `supported`, `partial`, `unsupported`, or `source-missing` - with the passage that backs it or a note that none does. Sub-agents read only; they never edit the wiki.
-4. Aggregate the verdicts and report in conversation, grouped by article, worst verdicts first. For anything not `supported`, quote what the source actually says so the user can act.
-5. Report only; do not rewrite article prose on your own authority (the same boundary as Lint's heuristic tier). An unsupported claim is surfaced for the user to fix, supersede, or accept.
-
-Full protocol, the per-source sub-agent prompt, and the verdict schema: `references/audit.md`.
+**Before auditing you MUST read `references/audit.md` and follow it** - it carries the claim-extraction steps, the per-source sub-agent prompt, and the verdict schema. In outline: pick the target (skip `status: stale` and `type: archive` pages unless asked); list the article's provenance-bearing claims, including each labelled concept-map edge, and map each to the `raw/` file that should back it (a load-bearing claim with no cited source is itself a finding); dispatch one read-only sub-agent per source in parallel to verdict each claim - `supported`, `partial`, `unsupported`, or `source-missing` - with the passage that backs it; aggregate worst-first and report, quoting what the source actually says for anything not `supported`. Report only - never rewrite article prose on your own authority (the same boundary as Lint's heuristic tier); a failed claim is surfaced for the user to fix, supersede, or accept.
 
 ### Post-audit
 
@@ -319,7 +337,25 @@ Append to `wiki/log.md`:
 ## [YYYY-MM-DD] audit | <article or topic>: <N> claims, <S> supported, <U> unsupported/partial
 ```
 
-If the user asks to keep the audit, crystallise it as a `type: archive` page (see Query > Crystallize), citing the audited article.
+If the user asks to keep the audit, crystallise it as a `type: archive` page (see Query > Crystallise), citing the audited article.
+
+---
+
+## Critique
+
+Examine the reasoning in a source or article and report what holds up. Where Audit checks external fidelity (do the cited `raw/` sources support the claims), Critique checks internal soundness: argument structure, hidden assumptions, logical fallacies, bias risk, internal consistency. It deliberately does not fact-check empirical claims against the world - that is Audit's job - so the two are complementary halves of "is this knowledge trustworthy". Like Audit, it is opt-in, user-invoked, read-only, and reports its findings; it never rewrites prose. It runs on whatever the user points at - a `raw/` source, a `wiki/` article, or pasted content - and needs no `raw/` to run. Triggers: "critique X", "is this argument sound?", "what is this assuming?", "stress-test the reasoning in Y".
+
+**Before critiquing you MUST read `references/critical-analysis.md` and follow its analysis steps and output structure - do not work from memory.** In outline: pick the target (or several); work through the reasoning - understand the argument as the author would state it, isolate the core claims, weigh the evidence, spot logical issues, surface hidden assumptions, check what is missing and whether it is internally consistent; report the four sections - Summary, Key Issues, Questions to Probe, Bottom Line. Say so plainly when the reasoning is sound; do not manufacture criticism. For many targets, fan out one read-only sub-agent per target in parallel, then present grouped weakest-first.
+
+### Post-critique
+
+Append to `wiki/log.md`:
+
+```
+## [YYYY-MM-DD] critique | <article, topic, or source>: <overall assessment>
+```
+
+Critique writes nothing else on its own. With the user's go-ahead it may crystallise the analysis as a `type: archive` page (see Query > Crystallise) citing the critiqued target, or record an assumption or open question it surfaced as a `question` gap in `wiki/gaps.md` (`references/gaps.md`). Full protocol, output structure, and guidelines: `references/critical-analysis.md`.
 
 ---
 
@@ -327,32 +363,58 @@ If the user asks to keep the audit, crystallise it as a `type: archive` page (se
 
 The subtle failure points, worth checking before you finish an operation.
 
+**Paths and consistency**
+
 - **Path direction inside the wiki.** From `wiki/<topic>/`, a raw file is two levels up (`../../raw/<topic>/file.md`) and a same-topic article is just its filename. A wrong `../` count is the most common broken link.
 - **Keep `updated` and the index in step.** Whenever an article's content changes (a cascade update or a supersession counts), bump `updated` in its frontmatter and the matching `index.md` row in the same pass. They are meant to agree, and drift between them is easy to miss.
-- **Replace knowledge by superseding, not by editing in place or deleting.** When a new source overturns an old claim, write the replacement and mark the old page `status: stale` with `superseded_by` and a callout. The history is the point; preserve it rather than overwriting.
-- **Auto-fix only the deterministic list.** Index, links, frontmatter, and See Also are safe to repair. For contradictions, stale claims, and orphans, surface them for the user instead of rewriting prose on your own authority.
+
+**Ingest fidelity**
+
 - **Ingest is fetch and compile.** A source saved to `raw/` but never compiled into `wiki/` adds nothing. Finish both, and update `index.md` and `log.md`, before treating the ingest as done.
-- **Long sources lose detail quietly.** Compiling a transcript or chat log straight to prose is where load-bearing claims and exact numbers get dropped or softened. For long or noisy sources, list the durable atoms first and re-read the source against your article before finishing (`references/high-fidelity-ingest.md`).
-- **Extract the signal when asked; don't convert-and-dump.** When the user asks for "the valuable content" or "the high-signal parts" of a source - especially a verbose one like a meeting transcript - distilling is the job, not converting the format and copying it in whole with the hellos, logistics, and banter intact. A rich format (docx, PDF) is converted only as an intermediate step. Follow `references/distilled-ingest.md`: cut filler, keep every durable specific (numbers, hedging, owners, dissent, open questions), bias toward keeping anything you are unsure about, and let the separate-sub-agent review catch what was over-zealously dropped. Keep the source verbatim only when no such request is made (see "Decide how much of the source to keep").
+- **Long sources lose detail quietly.** Load-bearing claims and exact numbers get dropped or softened when a transcript or chat log is compiled straight to prose. List the durable atoms first and re-read the source against your article before finishing (`references/high-fidelity-ingest.md`).
+- **Extract the signal when asked; don't convert-and-dump.** When the user wants "the valuable content" or "the high-signal parts" - especially of a verbose source like a transcript - distilling is the job, not copying the whole thing in with the hellos and banter intact; a rich format (docx, PDF) is converted only as an intermediate step (`references/distilled-ingest.md`).
 - **Only delete rich originals that live in `raw/`.** After extracting a binary to markdown, delete it only when it was inside `raw/` (which stays markdown-only) and the extraction is verified faithful. A PDF in the user's Downloads or a temp dir is theirs: extract a markdown copy into `raw/`, leave the original untouched, and do not link to it.
-- **Concept maps drift silently.** A diagram in a current article is load-bearing: when a sourced article changes, the prose gets updated but the map can keep asserting the old relationships. Keep its `map-sources` marker accurate, recheck it on cascade updates, and remove it once it no longer adds value - a stale or decorative map is worse than none. Archive maps are exempt; they are dated snapshots.
-- **Gaps are a frontier, not a wishlist.** Record a `wanted` page or open `question` only when evidence backs it - an article references it, or a query asked it. An idle "we could also cover X" rots `wiki/gaps.md` into noise. Filter at capture, and close gaps by resolution link rather than letting filled ones linger as false unknowns (`references/gaps.md`).
+
+**Lifecycle and authority**
+
+- **Replace knowledge by superseding, not by editing in place or deleting.** Write the replacement, mark the old page `status: stale` with `superseded_by` and a callout, and keep it - the history is the point. Full mechanic: Conflicts and supersession, above.
+- **Auto-fix only the deterministic list.** Index, links, frontmatter, and See Also are safe to repair; surface contradictions, stale claims, and orphans for the user rather than rewriting prose on your own authority (see Lint).
+- **Critique and Audit answer different questions.** Audit checks whether the cited `raw/` sources support an article's claims (external fidelity); Critique checks whether the reasoning itself holds up (internal soundness) and does not fact-check claims against the world. Both report only - neither rewrites prose on its own authority (`references/critical-analysis.md`, `references/audit.md`).
+- **Gaps are a frontier, not a wishlist.** Record a `wanted` page or open `question` only when evidence backs it - an article references it, or a query asked it - and close gaps by resolution link rather than letting filled ones linger (`references/gaps.md`).
+
+**Maps and separate wikis**
+
+- **Concept maps drift silently.** A current-article map is load-bearing: when the article changes, the prose gets updated but the map can keep asserting the old relationships. Recheck it on cascade updates, keep its `map-sources` marker accurate, and remove it once it no longer adds value (`references/concept-map.md`).
+- **Keep separate wikis separate.** When the user has several wikis side by side, each operates in isolation: read the target wiki's own `CLAUDE.md` and `SKILL.md` before touching it (they do not auto-load from a parent directory), never link or fold one wiki's content into another, and carry a fact across only by re-ingesting its source into the target with the user's go-ahead. Catalogue the wikis in a `WIKI-INDEX.md` at the directory holding them (`references/multiple-wikis.md`).
 
 ---
 
 ## Conventions
 
+**Format, paths, and dates**
+
 - Standard markdown throughout. YAML frontmatter on every article and raw file; relative links in bodies.
 - `wiki/` supports one level of topic subdirectories only. No deeper nesting.
 - Dates: today's date for log entries, `collected`, and `created`/`archived`. `updated` reflects when an article's knowledge content last changed. `published` comes from the source (`Unknown` when unavailable).
 - Inside `wiki/` files use file-relative links; in conversation use project-root-relative paths.
-- Supersession replaces deletion for outdated knowledge: mark stale, link the replacement, keep the page. Git carries the history.
 - A distilled raw (`fidelity: distilled`, `references/distilled-ingest.md`) holds an extract of a verbose external source instead of the verbatim original. It is produced through a separate-sub-agent review gate and audited with the weaker guarantee a derived source implies.
+
+**Supersession, gaps, maps, and critique**
+
+- Supersession replaces deletion for outdated knowledge: mark stale, link the replacement, keep the page. Git carries the history.
 - `wiki/gaps.md` registers known unknowns (`references/gaps.md`): `wanted` pages and open `question`s, grouped by topic, ranked by evidence not a score, and closed by a resolution link rather than deletion. Record only gaps with evidence behind them.
 - Concept maps are optional and value-gated (`references/concept-map.md`): a current-article map is load-bearing and carries `map-sources`; an archive map is a snapshot. Validate with `scripts/lint_mermaid.py` when `uv` is available.
-- Ingest updates `wiki/index.md` and `wiki/log.md`, and `wiki/gaps.md` when it touches the knowledge frontier. Crystallize (from Query) updates the index and log. Lint updates `wiki/log.md`, `wiki/index.md` only when auto-fixing index entries, and `wiki/gaps.md` when closing or proposing gaps. Audit updates `wiki/log.md` only, and writes an archive page only if the user asks to keep the result. A plain query writes nothing on its own; with the user's go-ahead it may add a missed question to `wiki/gaps.md`.
-- A root `SKILL.md` (`references/wiki-skill-template.md`) lets the wiki load as a query-only Agent Skill; it is created at init, named `<subject>-llm-wiki`, and routes all writes back through this skill.
-- A root `CLAUDE.md` (`references/wiki-claude-md-template.md`) is project memory that orients any agent whose working directory is the wiki repo and tells it to activate the llm-wiki skill if available. It loads by location where the root SKILL.md loads by description match; created at init, never overwritten.
-- `local/` (`references/local-content.md`) is optional, gitignored personal content in the user's clone only, exempt from the index/log/gaps/cascade/audit machinery. Local files may link into `wiki/` and `raw/`; no committed file may link into `local/`. Query scans it and labels hits `local/ (uncommitted)`. Init writes a wiki `.gitignore` (`references/wiki-gitignore-template.md`) that excludes it.
+- Critique (`references/critical-analysis.md`) examines reasoning quality - argument structure, hidden assumptions, fallacies, bias risk, internal consistency - and is the internal-soundness counterpart to Audit's external-fidelity check. It deliberately does not fact-check claims against sources. Opt-in, read-only, reports a four-section analysis, and never rewrites prose.
+
+**Operational behaviour**
+
+- Ingest updates `wiki/index.md` and `wiki/log.md`, and `wiki/gaps.md` when it touches the knowledge frontier. Crystallise (from Query) updates the index and log. Lint updates `wiki/log.md`, `wiki/index.md` only when auto-fixing index entries, and `wiki/gaps.md` when closing or proposing gaps. Audit updates `wiki/log.md` only, and writes an archive page only if the user asks to keep the result. Critique updates `wiki/log.md` only, and writes an archive page or a `gaps.md` question only if the user asks to keep the result. A plain query writes nothing on its own; with the user's go-ahead it may add a missed question to `wiki/gaps.md`.
+- Ensure sub-agents have clear goals and scope to understand the context of the work they're tasked with. Use forked sub-agents (if available) when sub-agent tasks require the complete conversation history.
+
+**Repo infrastructure**
+
+- A root `SKILL.md` (`references/templates/wiki-skill-template.md`) lets the wiki load as a query-only Agent Skill; it is created at init, named `<subject>-llm-wiki`, and routes all writes back through this skill.
+- A root `CLAUDE.md` (`references/templates/wiki-claude-md-template.md`) is project memory that orients any agent whose working directory is the wiki repo and tells it to activate the llm-wiki skill if available. It loads by location where the root SKILL.md loads by description match; created at init, never overwritten.
+- `local/` (`references/local-content.md`) is optional, gitignored personal content in the user's clone only, exempt from the index/log/gaps/cascade/audit machinery (Critique may still run on it when the user points at it). Local files may link into `wiki/` and `raw/`; no committed file may link into `local/`. Query scans it and labels hits `local/ (uncommitted)`. Init writes a wiki `.gitignore` (`references/templates/wiki-gitignore-template.md`) that excludes it.
+- Multiple wikis (`references/multiple-wikis.md`) are independent, side-by-side llm-wikis the user clones wherever they like; they do not nest and do not reference each other. When a session's working directory holds more than one, catalogue them in a `WIKI-INDEX.md` there, read each wiki's own `CLAUDE.md`/`SKILL.md` before querying or maintaining it, and carry a fact across only by re-ingesting its source into the target wiki with the user's go-ahead - never a cross-wiki link.
 - Recommend the wiki be a git repo so supersession and history have a real audit trail. Do not require it.
-- Ensure sub-agents have clear goals and scope to understand the context of the work thery're tasked with. Use forked sub-agents (if available) when sub-agent tasks require the complete conversation history.

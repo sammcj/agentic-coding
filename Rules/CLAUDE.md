@@ -11,7 +11,7 @@
 - **Filler verbs**: delve , dive into , leverage , harness , foster , bolster , underscore , streamline , facilitate , empower
 - **Vague nouns**: NEVER say paradigm , smoking gun , utilise (use "use")
 - **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge
-- Any other phrases that add no information such as "My take", "The bottom line", "What actually works"
+- Any other phrases that add no information such as "My take", "Honest take", "The bottom line", "What actually works" are all BANNED
 
 While you can use this list as a self-checklist, it is illustrative, not exhaustive.
 

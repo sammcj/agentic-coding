@@ -1,6 +1,6 @@
 # Local content: personal notes kept out of git
 
-An optional `local/` directory at the project root holds personal markdown that lives in your clone only and never reaches the remote: meeting prep, half-formed ideas, drafts, working notes, and private sources you cannot or do not want to commit. It is a sibling of `raw/` and `wiki/`, and the wiki `.gitignore` excludes it (`references/wiki-gitignore-template.md`).
+An optional `local/` directory at the project root holds personal markdown that lives in your clone only and never reaches the remote: meeting prep, half-formed ideas, drafts, working notes, and private sources you cannot or do not want to commit. It is a sibling of `raw/` and `wiki/`, and the wiki `.gitignore` excludes it (`references/templates/wiki-gitignore-template.md`).
 
 `local/` is a scratch bench, not part of the compiled knowledge base. It carries none of the raw->wiki discipline: no required frontmatter, no index row, no log entry, no supersession. Write whatever you like, however you like.
 
@@ -36,4 +36,4 @@ If you want the same discipline the wiki uses (a private source compiling into a
 
 ## Setup
 
-`local/` is created the first time you store something there, not at init, so empty wikis stay empty. The exclusion comes from the wiki `.gitignore` written at init (`references/wiki-gitignore-template.md`). For a wiki that predates this, add `local/` to its `.gitignore` (lint offers to write the template if there is none), then confirm with `git status` that `local/` shows nothing before you trust it. If the wiki is not in git, `local/` is moot - nothing is committed anyway - but the same link-direction rule still keeps shared articles self-contained.
+`local/` is created the first time you store something there, not at init, so empty wikis stay empty. The exclusion comes from the wiki `.gitignore` written at init (`references/templates/wiki-gitignore-template.md`). For a wiki that predates this, add `local/` to its `.gitignore` (lint offers to write the template if there is none), then confirm with `git status` that `local/` shows nothing before you trust it. If the wiki is not in git, `local/` is moot - nothing is committed anyway - but the same link-direction rule still keeps shared articles self-contained.

@@ -1,6 +1,6 @@
 ---
 name: ml-llm-wiki
-description: "Use when answering questions from this machine-learning knowledge base. Triggers: questions about transformers, attention cost and efficiency, and long-context scaling; 'what do we know about attention', 'check the ML wiki'. Read-only querying of compiled knowledge; to add, update, supersede, lint, or audit, use the llm-wiki skill instead."
+description: "Use when answering questions from this machine-learning knowledge base. Triggers: questions about transformers, attention cost and efficiency, and long-context scaling; 'what do we know about attention', 'check the ML wiki'. Read-only querying of compiled knowledge; to add, update, supersede, lint, audit, or critique, use the llm-wiki skill instead."
 context: fork
 allowed-tools: Read Grep Glob Agent
 ---
@@ -13,7 +13,7 @@ Keep this current: as the wiki grows, update the `name` and `description` above 
 
 (Sample note: this example wiki lives in `examples/` within the llm-wiki repo. To load it as a skill, place the directory in your skills path named `ml-llm-wiki`, so the directory matches the `name` above.)
 
-Maintenance - ingesting sources, superseding stale knowledge, linting, auditing - is not done here. Use the **llm-wiki** skill, which owns the write workflow and the file format. The llm-wiki skill is required to keep this wiki current; without it the wiki is still readable, but do not hand-edit articles outside the conventions in `wiki/README.md`.
+Maintenance and deeper analysis - ingesting sources, superseding stale knowledge, linting, auditing, critiquing reasoning - is not done here. Use the **llm-wiki** skill, which owns the write workflow and the file format. The llm-wiki skill is required to keep this wiki current; without it the wiki is still readable, but do not hand-edit articles outside the conventions in `wiki/README.md`.
 
 ## What's inside
 
@@ -34,7 +34,7 @@ One topic so far, `machine-learning`: how attention works, why its memory cost w
 
 ## Updating
 
-To add a source, change an article, supersede knowledge, lint, or audit, invoke the **llm-wiki** skill. It is required for all writes and keeps the format consistent. This skill deliberately does not modify the wiki.
+To add a source, change an article, supersede knowledge, lint, audit, or critique, invoke the **llm-wiki** skill. It is required for all writes and keeps the format consistent. This skill deliberately does not modify the wiki.
 
 ## Tips
 

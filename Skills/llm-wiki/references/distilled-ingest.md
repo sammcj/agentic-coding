@@ -75,3 +75,7 @@ Apply the high-severity findings, re-run the reviewer if the changes were substa
 ## In bulk ingest
 
 When distilling many sources at once, slot the review between extract and compile: each source runs extract, then critical review, then proposal, with the reviewer a different sub-agent from the extractor, and the orchestrator compiles serially as in `references/bulk-ingest.md`. The reviewer's pass is per source; the orchestrator still owns the cross-source dedup, supersession, and cascade.
+
+## Tips for extracting and distilling content
+
+- You may need to use tools outside the Sandbox if the source file is on the user's local machine.

@@ -10,15 +10,24 @@ local/
 .DS_Store
 Thumbs.db
 
-# Obsidian per-machine state (vault config and graph are fine to commit; these are not)
-.obsidian/workspace*
-.obsidian/cache
+# Obsidian
+.obsidian
 .trash/
 
 # Safety net: the wiki should hold no secrets (filter at ingest), but never commit these
 .env
 *.pem
 *.key
+
+# misc
+__pycache__/
+*.pyc
+*.tmp
+*.log
+*.local.*
+*.lock
+.vscode
+.env
 ```
 
 Notes:
