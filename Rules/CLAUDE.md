@@ -195,6 +195,7 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 - Include "you are one of several agents" in instructions
 - Set explicit success criteria. Combine small updates to prevent over-splitting
 - Sub-agents can compete and erase each other's changes - ensure no overlap
+- If the task for sub-agent is simple and does not require careful consideration, reasoning or creativity (for example summarising simple web searches) you may use the sonnet model
 
 ##### Forked Sub-agents
 - A fork inherits the main session's full conversation history, system prompt, tools, and model. Output isolation is preserved (only the final result returns) but input isolation is lost
