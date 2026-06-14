@@ -605,6 +605,7 @@
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
+    "failIfUnavailable": true,
     "network": {
       "allowedDomains": [
         "*.anthropic.com",
@@ -654,37 +655,42 @@
         "swift.org",
         "wiki.archlinux.org"
       ],
+      "deniedDomains": [
+        "*.ru",
+        "*.cn"
+      ],
       "allowLocalBinding": true
     },
     "filesystem": {
       "denyWrite": [
-        "/Users/samm/.ssh/**",
-        "/Users/samm/Library/Keychains/**",
-        "/Users/samm/Library/Mail/**",
-        "/Users/samm/Library/Messages/**",
-        "/Users/samm/Library/Safari/**",
-        "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/1Password/**",
-        "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Backups/**",
-        "/Users/samm/Library/Application Support/1Password/**",
-        "/Users/samm/.claude.json",
-        "/Users/samm/.zshenv",
-        "/Library/LaunchAgents/**",
-        "/Library/LaunchDaemons/**"
+        "~/.ssh",
+        "~/Library/Keychains",
+        "~/Library/Mail",
+        "~/Library/Messages",
+        "~/Library/Safari",
+        "~/Library/Mobile Documents/com~apple~CloudDocs/1Password",
+        "~/Library/Mobile Documents/com~apple~CloudDocs/Backups",
+        "~/Library/Application Support/1Password",
+        "~/.claude.json",
+        "~/.zshenv",
+        "/Library/LaunchAgents",
+        "/Library/LaunchDaemons"
       ],
       "denyRead": [
-        "/Users/samm/.ssh/**",
-        "/Users/samm/Library/Keychains/**",
-        "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/1Password/**",
-        "/Users/samm/Library/Application Support/1Password/**",
-        "/Users/samm/Library/Application Support/Firefox/**",
-        "/Users/samm/Library/Application Support/Brave/**",
-        "/Users/samm/.aws/credentials",
-        "/Users/samm/.aws/config",
-        "/Users/samm/.kube/config"
+        "~/.ssh",
+        "~/Library/Keychains",
+        "~/Library/Mobile Documents/com~apple~CloudDocs/1Password",
+        "~/Library/Application Support/1Password",
+        "~/Library/Application Support/Firefox",
+        "~/Library/Application Support/Brave",
+        "~/.aws/credentials",
+        "~/.aws/config",
+        "~/.kube/config"
       ],
       "allowRead": [
-        "/usr/share/zoneinfo/**",
-        "/var/db/timezone/**"
+        ".",
+        "/usr/share/zoneinfo",
+        "/var/db/timezone"
       ]
     },
     "enableWeakerNetworkIsolation": true,
