@@ -1,12 +1,18 @@
 {
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
   "features": {
-    "ghcr.io/devcontainers/features/node:2": {},
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installGit": "true",
       "configureZshAsDefaultShell": "true",
       "installZsh": "true"
     },
+    "ghcr.io/devcontainers/features/node:2": {},
+    "ghcr.io/devcontainers/features/rust:1": {},
+    "ghcr.io/devcontainers/features/go:1": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/python:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/aws-cli:1": {},
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
   }
 }
