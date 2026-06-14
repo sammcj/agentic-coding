@@ -1,0 +1,12 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/node:2": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installGit": "true",
+      "configureZshAsDefaultShell": "true",
+      "installZsh": "true"
+    },
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  }
+}

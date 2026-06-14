@@ -21,3 +21,4 @@
 **/private.*
 **/hooks/approve-compound-commands
 **/.sync-state
+**/.devcontainer-lock.json
