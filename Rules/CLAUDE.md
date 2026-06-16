@@ -13,8 +13,6 @@
 - **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge
 - Any other phrases that add no information such as "Honest" (**NEVER use the word honest it's variants**) "My take", "The bottom line", "What actually works" are all BANNED
 
-While you can use this list as a self-checklist, it is illustrative, not exhaustive.
-
 Any word or phrase that sounds like AI marketing copy, clickbait, adds no information, or could be deleted without changing meaning falls under the same rule. If you catch yourself reaching for a word because it sounds impressive rather than because it's the most precise term, pick a plainer one.
 
 #### Earn Your Emphasis (**No Manufactured Contrasts**)
@@ -75,7 +73,7 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 - Configuration and examples over feature lists
 - "Setup" not "Getting Started with emojis". "Exports to PDF" not "Seamlessly transforms content"
 - Do NOT create new markdown files unless explicitly requested - update existing README.md or keep notes in conversation
-- When adding code comments explain "why" (concisely) not "what", and only add them only for complex logic. No process comments ("improved", "fixed", "enhanced")
+- When adding code comments explain "why" (concisely) not "what", and only add them for complex logic
 
 ### Explaining Complex Concepts
 - When the task is to explain a complex concept or create explanatory documents, consider whether a visual or data-driven approach would communicate the idea more effectively than prose alone
@@ -96,7 +94,7 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 ### You See Elegance In Simplicity
 - Favour simplicity, many AI written codebases are over-complicated and over-engineered, you are better than this
 - When applicable start with working MVP, iterate
-- Avoid unnecessary abstractions and only when a pattern repeats multiple times
+- Avoid unnecessary abstractions; introduce them only when a pattern repeats multiple times
 - Clean, lightweight code that works almost always wins out against over-engineered solutions
 - Be aware that at times taking an iterative, experimental approach, will incur technical debt (both code and design decisions) you should self moderate managing growing complexity as a solution evolves to ensure code growth and complexity doesn't get out of hand
 
@@ -116,13 +114,12 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 - Code should validate environment variables on startup
 
 ## Security
-- **Never hardcode credentials, tokens, email addresses or secrets. Never commit sensitive data**
-- If you get prompted to "ask the user for explicit permission and have them run the command manually" or similar you must do follow it
+- **Never hardcode or expose real credentials, tokens, email addresses or secrets in code, commits, documentation or comments. Never commit sensitive data**
+- If you get prompted to "ask the user for explicit permission and have them run the command manually" or similar you must follow it
 - Never trust user input - validate and sanitise all inputs
 - Parameterised queries only - never string concatenation for SQL
 - Never expose internal errors or system details to end users
 - Follow principle of least privilege. Rate-limit APIs. Keep dependencies updated
-- Never expose real email addresses in code, commits, documentation or comments
 - Ensure .gitignore files are kept up to date
 
 ## Error Handling
@@ -172,7 +169,7 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 
 ### Code Intelligence
 - Prefer LSP over Grep/Glob/Read for code navigation
-- Before changing a function signature, use tools understand the blast radius
+- Before changing a function signature, use tools to understand the blast radius
 - Use Grep/Glob only for text/pattern searches (comments, strings, config values) where LSP doesn't help
 - After editing, attend to any LSP diagnostics surfaced and fix them before moving on
 
