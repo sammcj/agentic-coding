@@ -44,19 +44,19 @@ ctx7 library nextjs "How to set up app router with middleware"
 ctx7 library prisma "How to define one-to-many relations with cascade delete"
 ```
 
-Always pass a `query` argument — it is required and directly affects result ranking. Use the user's intent to form the query, which helps disambiguate when multiple libraries share a similar name. Do not include any sensitive or confidential information such as API keys, passwords, credentials, personal data, or proprietary code in your query.
+Always pass a `query` argument - it is required and directly affects result ranking. Use the user's intent to form the query, which helps disambiguate when multiple libraries share a similar name. Do not include any sensitive or confidential information such as API keys, passwords, credentials, personal data, or proprietary code in your query.
 
 ### Result fields
 
 Each result includes:
 
-- **Library ID** — Context7-compatible identifier (format: `/org/project`)
-- **Name** — Library or package name
-- **Description** — Short summary
-- **Code Snippets** — Number of available code examples
-- **Source Reputation** — Authority indicator (High, Medium, Low, or Unknown)
-- **Benchmark Score** — Quality indicator (100 is the highest score)
-- **Versions** — List of versions if available. Use one of those versions if the user provides a version in their query. The format is `/org/project/version`.
+- **Library ID** - Context7-compatible identifier (format: `/org/project`)
+- **Name** - Library or package name
+- **Description** - Short summary
+- **Code Snippets** - Number of available code examples
+- **Source Reputation** - Authority indicator (High, Medium, Low, or Unknown)
+- **Benchmark Score** - Quality indicator (100 is the highest score)
+- **Versions** - List of versions if available. Use one of those versions if the user provides a version in their query. The format is `/org/project/version`.
 
 ### Selection process
 
@@ -129,11 +129,11 @@ If a command fails with a quota error ("Monthly quota reached" or "quota exceede
 2. Suggest they authenticate for higher limits: `ctx7 login`
 3. If they cannot or choose not to authenticate, answer from training knowledge and clearly note it may be outdated
 
-Do not silently fall back to training data — always tell the user why Context7 was not used.
+Do not silently fall back to training data - always tell the user why Context7 was not used.
 
 ## Common Mistakes
 
-- Library IDs require a `/` prefix — `/facebook/react` not `facebook/react`
-- Always run `ctx7 library` first — `ctx7 docs react "hooks"` will fail without a valid ID
-- Use descriptive queries, not single words — `"React useEffect cleanup function"` not `"hooks"`
+- Library IDs require a `/` prefix - `/facebook/react` not `facebook/react`
+- Always run `ctx7 library` first - `ctx7 docs react "hooks"` will fail without a valid ID
+- Use descriptive queries, not single words - `"React useEffect cleanup function"` not `"hooks"`
 - Do not include sensitive information (API keys, passwords, credentials) in queries

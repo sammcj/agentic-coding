@@ -101,6 +101,8 @@ Fill gaps with the user, then proceed to skill creation.
 
 ## Self-Review Protocol
 
+When a skill spans many files, fan the per-file read-only passes out to sub-agents in parallel (each reviews its own reference files for low-value prose and within-file repetition, returning a summary) - this is safe because reads don't collide. Cross-file checks like duplication between SKILL.md and reference files can't be split this way, since each agent sees only its slice; have the main agent reconcile those from the returned summaries. Keep edits to a single agent, or give each sub-agent a non-overlapping set of files to avoid clobbering each other's writes.
+
 After creating or updating a skill, always perform a critical self-review:
 
 1. Check for duplicated information across SKILL.md and reference files
@@ -114,7 +116,9 @@ After creating or updating a skill, always perform a critical self-review:
 
 ## Writing Tips
 
-**Don't state the obvious.** the agent already knows a lot about coding and has default opinions. Focus skill content on information that pushes the agent **out of** its normal way of thinking. If the agent would do the right thing without your skill, that content is wasting tokens.
+**Don't state the obvious.** the agent already knows a lot about coding and has default opinions. Focus skill content on information that pushes the agent **out of** its normal way of thinking. If the agent would reliably do the right thing without your skill, that content is wasting tokens.
+
+**Knowing is not doing - keep process even when the agent knows the steps.** The test for cutting content is not "does the agent know this?" but "would the agent reliably do this, in this order, every time, without being told?" Declarative knowledge that lives in training data (how a well-known API behaves, what a design pattern is, standard language syntax) is recalled reliably, so restating it wastes tokens - cut it. A required workflow is different: the agent may know each step yet still default to its own approach or skip the sequence unless the skill commits it to that process. The trigger for enforcement, ordering constraints, gates, and checklists earn their tokens by changing what the agent _does_, not by teaching it something new. Cut the knowledge the agent already has; keep the enforcement that changes its behaviour. With this in mind, process guidance should be clear, actionable and concise.
 
 **Build a Gotchas section.** The highest-signal content in any skill is a Gotchas section listing common failure points the agent hits when using the skill. Build this up from real failures over time. A good Gotchas section often delivers more value than pages of general instructions.
 
