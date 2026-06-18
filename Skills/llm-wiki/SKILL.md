@@ -359,6 +359,12 @@ Critique writes nothing else on its own. With the user's go-ahead it may crystal
 
 ---
 
+## Optional: graphify as an external lens
+
+If the **graphify** skill or tool is available, you can run it over the wiki as a disposable, read-only knowledge-graph lens: to see how articles actually connect, surface orphans and missing cross-references, triage a large `raw/` corpus before ingest, or answer connection-heavy cross-document questions. The graph stays external. Markdown remains the source of truth; `graphify-out/` is generated and gitignored, never committed or treated as a parallel store; and any finding is acted on only through normal llm-wiki operations (a See Also, a `gaps.md` entry, a supersession, a Query answer), verified against the markdown first. This does not contradict the design philosophy's exclusion of a knowledge-graph database: the graph is a throwaway analysis pass, not stored wiki infrastructure. **When you reach for graphify, read `references/graphify.md` first and follow it.**
+
+---
+
 ## Gotchas
 
 The subtle failure points, worth checking before you finish an operation.
