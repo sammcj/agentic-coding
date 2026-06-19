@@ -548,7 +548,8 @@
     "safety-net@cc-marketplace": true,
     "context-mode@context-mode": true,
     "kicad-happy@kicad-happy": true,
-    "playwright@claude-plugins-official": true
+    "playwright@claude-plugins-official": true,
+    "improve@improve": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -599,13 +600,25 @@
         "repo": "aklofas/kicad-happy"
       },
       "autoUpdate": true
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
+    },
+    "improve": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/shadcn/improve.git"
+      }
     }
   },
   "language": "Australian English",
   "sandbox": {
     "enabled": true,
-    "autoAllowBashIfSandboxed": true,
     "failIfUnavailable": true,
+    "autoAllowBashIfSandboxed": true,
     "network": {
       "allowedDomains": [
         "*.anthropic.com",
