@@ -41,6 +41,7 @@
       "Bash(git status *)",
       "Bash(git tag -l *)",
       "Bash(git log *)",
+      "Bash(git show *)",
       "Bash(go *)",
       "Bash(gofmt *)",
       "Bash(golangci-lint *)",
@@ -92,7 +93,9 @@
       "Bash(sqlite *)",
       "Bash(sqlite3 *)",
       "Bash(sscache *)",
+      "Bash(swift *)",
       "Bash(swiftlint *)",
+      "Bash(xcodebuild *)",
       "Bash(stat *)",
       "Bash(sleep *)",
       "Bash(tail *)",
@@ -704,6 +707,21 @@
         ".",
         "/usr/share/zoneinfo",
         "/var/db/timezone"
+      ],
+      "allowWrite": [
+        "~/.local/share/uv",
+        "~/.local/bin",
+        "~/Library/org.swift.swiftpm",
+        "~/Library/Caches/org.swift.swiftpm",
+        "~/.swiftpm",
+        "~/Library/Caches/clang",
+        "~/Library/Developer/Xcode/DerivedData",
+        "~/Library/Logs/CoreSimulator",
+        "~/Library/Caches/pip",
+        "~/go",
+        "~/.cargo/registry",
+        "~/.cargo/git",
+        "~/.npm"
       ]
     },
     "enableWeakerNetworkIsolation": true,
@@ -717,9 +735,8 @@
       "container",
       "date",
       "gh *",
-      "uvx ty *",
       "swift build *",
-      "uv run"
+      "xcodebuild *"
     ]
   },
   "effortLevel": "high",

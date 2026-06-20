@@ -1,0 +1,22 @@
+[
+  {"query": "the sentiment scores in my analytics pipeline jumped from 12% to 18% between Q1 and Q2 and I can't tell if it's real or a bug in how I'm bucketing messages, dig into it properly", "should_trigger": true},
+  {"query": "classify.py is flagging too many false positives on support tickets, iterate on it until precision is above 90% on a sample without tanking recall", "should_trigger": true},
+  {"query": "refactor src/export/ to the new streaming API, but I need to be sure I haven't regressed any of the 200 golden-file fixtures in tests/golden/", "should_trigger": true},
+  {"query": "tune the chunking params for our RAG ingestion, sweep chunk size and overlap, measure retrieval hit-rate on our 50 eval questions, keep going till it plateaus", "should_trigger": true},
+  {"query": "our nightly job's p99 latency doubled last week and the dashboards don't agree with the traces, work through it methodically and find what's actually going on", "should_trigger": true},
+  {"query": "bring test coverage on the payments service from 60 to 85%, but a lot of the existing passing tests don't actually assert anything, verify as you go", "should_trigger": true},
+  {"query": "this win-rate metric in our A/B analysis looks too good (+40%), reproduce it from raw events before we ship and sanity check it isn't a measurement artefact", "should_trigger": true},
+  {"query": "optimise the prompt for our summarisation feature and actually measure whether each change helps, set up a proper loop with a held-out set", "should_trigger": true},
+  {"query": "we have 18 flaky tests, systematically work through them, fix each, and confirm the fix holds over repeated runs without breaking others", "should_trigger": true},
+  {"query": "reduce the duplicate-row rate below 1% on the full customer dataset in this 4000-line cleaning script, but loop on a small sample first so it's fast", "should_trigger": true},
+  {"query": "quickly rename the variable `usr` to `user` across auth.py", "should_trigger": false},
+  {"query": "what's the current stable version of pandas?", "should_trigger": false},
+  {"query": "fix this typo in the README, it says 'recieve'", "should_trigger": false},
+  {"query": "add a loop that retries the HTTP request 3 times with backoff in fetch.js", "should_trigger": false},
+  {"query": "improve the wording of this sentence in my email to sound more polite", "should_trigger": false},
+  {"query": "run the test suite and tell me if it passes", "should_trigger": false},
+  {"query": "this SQL query is slow because it's doing a full table scan on orders, add the right index", "should_trigger": false},
+  {"query": "what's the difference between precision and recall?", "should_trigger": false},
+  {"query": "format this JSON file so it's pretty-printed", "should_trigger": false},
+  {"query": "optimise this image to a smaller file size for the web", "should_trigger": false}
+]
