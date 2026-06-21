@@ -82,10 +82,11 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 
 ---
 
-## Architecture and Design
+## Software Architecture and Design
 
 ### Design Principles
 - Follow SOLID principles - small interfaces, composition, depend on abstractions
+- Follow YAGNI principles where applicable
 - Reuse and align with existing components, utilities, and logic where possible
 - Use appropriate design patterns (repository, DI, circuit breaker, strategy, observer, factory) based on context
 - For greenfield projects: provide a single Makefile entrypoint to lint, test, version, build and run
