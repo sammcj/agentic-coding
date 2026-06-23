@@ -1,6 +1,6 @@
 ---
 name: skill-creator-primer
-description: Foundational skill-authoring knowledge to use alongside the skill-creator skill. You MUST always load this skill before loading the skill-creator skill, when creating or updating skills.
+description: Foundational skill-authoring knowledge to use alongside the skill-creator skill. You MUST load this skill before loading the skill-creator skill and whenever creating, updating or improving a skill.
 ---
 
 # Skill Creator Primer
@@ -108,7 +108,7 @@ After creating or updating a skill, always perform a critical self-review:
 1. Check for duplicated information across SKILL.md and reference files
 2. Remove low-value prose, filler, and fluff
 3. Thin the language - make important information prominent while reducing word count
-4. Verify the description is concise (short) yet comprehensive enough for triggering
+4. Verify the description is concise (short) yet comprehensive enough for triggering. **30-55 words is ideal**
 5. Ensure no extraneous files were created
 6. Frame guidance positively to avoid the pink elephant effect (see Writing Tips). Rewrite "don't do X" as "do Y", or pair the prohibition with the concrete alternative
 7. If the skill carries trigger evals, confirm the eval set is current and runs cleanly (see Testing Skill Triggering)
@@ -131,9 +131,19 @@ After creating or updating a skill, always perform a critical self-review:
 
 Do not add inline scripts within markdown, single commands / simple one liners are fine, but scripts should be their own files.
 
+### Writing effective descriptions
+
+**Ensure the description is unique.** The description should not clash or be confused with other skill descriptions in the library.
+
+**Use imperative phrasing**. Frame the description as an instruction to the agent: Use this skill when rather than This skill does The agent is deciding whether to act, so tell it when to act.
+
+**Focus on user intent, not implementation**. Describe what the user is trying to achieve, not the skills internal mechanics. The agent matches against what the user asked for.
+
+**Be concise**. This is _especially_ important for skill descriptions. The description shares a token budget with all other skill descriptions and is always active in every agent's context across all conversations. Words matter so keep it tight and move anything other than when it should trigger in the context of what value it provides to the skill body or reference files. Aim for 30-55 words (and no more than 65!) which is approximately 1-2 sentences.
+
 ## Gotchas
 
-**Upstream validators have an incomplete frontmatter allowlist.** The `skills-ref` library (and the skill-creator's `quick_validate.py`) only recognise the six Agent Skills spec properties (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`) and will error on every valid Claude Code extension field (`when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `disallowed-tools`, `model`, `effort`, `context`, `agent`). The bundled `scripts/validate_skill.py` errors only on genuine spec violations and downgrades unknown-field detection to a warning, so documented extensions pass clean and a field newer than the linter won't block. If you instead run `quick_validate.py` or raw `skills-ref` and it fails only on one of these fields, the skill is still valid. The official docs at https://code.claude.com/docs/en/skills#frontmatter-reference are the authoritative, version-current list.
+**Upstream validators have an incomplete frontmatter allowlist.** The `skills-ref` library (and the skill-creator's `quick_validate.py`) only recognise the six Agent Skills spec properties (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`) and will error on every valid Claude Code extension field (`when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `disallowed-tools`, `model`, `effort`, `context`, `agent`). The bundled `scripts/validate_skill.py` errors only on genuine spec violations and downgrades unknown-field detection to a warning, so documented extensions pass clean and a field newer than the linter won't block. If you instead run `quick_validate.py` or raw `skills-ref` and it fails only on one of these fields, the skill is still valid. The bundled validator also parses frontmatter with standard PyYAML rather than skills-ref's StrictYAML loader, so flow-style arrays (`allowed-tools: [Read, Write]`) pass instead of failing on a style preference. The official docs at https://code.claude.com/docs/en/skills#frontmatter-reference are the authoritative, version-current list.
 
 ## Testing Skill Triggering
 
@@ -148,6 +158,8 @@ Validate against the official Agent Skills specification:
 ```bash
 uv run scripts/validate_skill.py <skill-directory>
 ```
+
+Pass a real path, not `.` (skills-ref matches the directory's basename against the skill name, and `.` resolves to an empty basename). On a valid skill it also prints a token-budget estimate across the Markdown that SKILL.md transitively references, with a Great/Good/OK/Poor rating. Add `--tiktoken` (via `uv run --with tiktoken`) to count with the real tokeniser instead of the chars/token heuristic.
 
 ---
 

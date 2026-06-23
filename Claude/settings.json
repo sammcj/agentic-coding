@@ -552,7 +552,8 @@
     "context-mode@context-mode": true,
     "kicad-happy@kicad-happy": false,
     "playwright@claude-plugins-official": true,
-    "improve@improve": true
+    "improve@improve": true,
+    "session-report@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
