@@ -1,0 +1,11 @@
+[
+  {"query": "I want to build a new skill that converts messy CSV exports into clean formatted markdown tables - help me create it from scratch.", "should_trigger": true},
+  {"query": "Turn the workflow we just worked through in this conversation into a reusable skill so I can run it again later.", "should_trigger": true},
+  {"query": "My pdf-export skill keeps firing on plain image-resize requests. Rework its description and frontmatter so it only triggers on actual PDF work.", "should_trigger": true},
+  {"query": "Review my SKILL.md before I publish it - check the description triggers well, the frontmatter is right, and it's within token budget.", "should_trigger": true},
+  {"query": "Write a trigger eval set for my new skill's description and run it to see whether it over- or under-fires.", "should_trigger": true},
+  {"query": "Use the find-docs skill to pull the latest Stripe webhooks API reference for me.", "should_trigger": false},
+  {"query": "What skills are installed in my Claude Code setup right now, and which ones are slash commands?", "should_trigger": false},
+  {"query": "Write a Python script that scaffolds a new project directory with a Makefile, a src folder and a basic pyproject.toml.", "should_trigger": false},
+  {"query": "Add a section to my project's README.md documenting the build and deploy steps for new contributors.", "should_trigger": false}
+]

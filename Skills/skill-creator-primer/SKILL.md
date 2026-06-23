@@ -111,6 +111,7 @@ After creating or updating a skill, always perform a critical self-review:
 4. Verify the description is concise (short) yet comprehensive enough for triggering
 5. Ensure no extraneous files were created
 6. Frame guidance positively to avoid the pink elephant effect (see Writing Tips). Rewrite "don't do X" as "do Y", or pair the prohibition with the concrete alternative
+7. If the skill carries trigger evals, confirm the eval set is current and runs cleanly (see Testing Skill Triggering)
 
 **Verbosity is not rewarded - knowledge quality is.**
 
@@ -133,6 +134,12 @@ Do not add inline scripts within markdown, single commands / simple one liners a
 ## Gotchas
 
 **Upstream validators have an incomplete frontmatter allowlist.** The `skills-ref` library (and the skill-creator's `quick_validate.py`) only recognise the six Agent Skills spec properties (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`) and will error on every valid Claude Code extension field (`when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `disallowed-tools`, `model`, `effort`, `context`, `agent`). The bundled `scripts/validate_skill.py` errors only on genuine spec violations and downgrades unknown-field detection to a warning, so documented extensions pass clean and a field newer than the linter won't block. If you instead run `quick_validate.py` or raw `skills-ref` and it fails only on one of these fields, the skill is still valid. The official docs at https://code.claude.com/docs/en/skills#frontmatter-reference are the authoritative, version-current list.
+
+## Testing Skill Triggering
+
+A skill activates purely on its `description`. To measure whether a description fires on the right requests and stays quiet on the rest - especially when over- or under-triggering is a risk - write trigger evals: realistic queries, each labelled with whether the skill should activate, scored against the live description.
+
+Place an eval set at `evals/<set>.json` beside the skill and run it with the bundled `scripts/eval_triggering.py`. Read `references/trigger-evals.md` before writing or running skill evals.
 
 ## Validating a Skill
 
