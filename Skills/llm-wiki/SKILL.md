@@ -51,7 +51,7 @@ Three layers, all under the user's project root, plus an optional `local/` for p
 
 **wiki/** - Compiled knowledge articles. You have full ownership. One level of topic subdirectories only: `wiki/<topic>/<article>.md`. Four special files:
 - `wiki/README.md` - Orientation for anyone opening the wiki without this skill: what the structure is and the conventions that keep it sound. Mostly static; created at init.
-- `wiki/index.md` - Global catalogue. One row per article, grouped by topic, with link, summary, and Updated date. The entry point for queries.
+- `wiki/index.md` - Global catalogue in OKF index form (§6): per-topic sections, each a bullet list of `* [Title](path) - summary`. No Updated column - freshness lives in each article's `updated` frontmatter. The entry point for queries.
 - `wiki/log.md` - Append-only operation log with a greppable prefix.
 - `wiki/gaps.md` - Register of known unknowns: concepts the wiki references but has not written, and questions it cannot answer. "What we don't know yet" to the index's "what we know".
 
@@ -70,6 +70,7 @@ Article frontmatter:
 title: Transformer Architectures
 type: concept          # concept | entity | archive
 topic: machine-learning
+resource:              # optional canonical URI of the asset an entity describes
 created: 2026-04-03
 updated: 2026-04-03
 status: current        # current | stale
@@ -79,10 +80,17 @@ aliases: []
 ---
 ```
 
-- `updated` is the canonical "knowledge last changed" date. The index mirrors it; lint reads it. It changes when the article's content changes, not when the file is touched.
+- `updated` is the canonical "knowledge last changed" date; lint reads it. It changes when the article's content changes, not when the file is touched. The index does not carry it (OKF §6 keeps freshness in frontmatter, not the catalogue).
 - `type: archive` marks crystallised query answers (see Query). Archives are point-in-time and are never cascade-updated.
+- `resource` is the canonical URI of the underlying asset an `entity` article describes (a table, service, API, repo). It is the asset's stable identity, distinct from the body Sources/Raw lines, which record provenance. Optional and absent for abstract `concept` articles. Mirrors the Open Knowledge Format `resource` field (see below).
 - `status` and `superseded_by` drive supersession (see below). Leave `superseded_by` empty for current articles.
 - `tags` and `aliases` are optional and exist for Obsidian and Dataview; the agent does not depend on them.
+
+#### Open Knowledge Format (OKF) compatibility
+
+Treat `wiki/` as the OKF bundle root (`raw/`, `local/`, and the root `SKILL.md`/`CLAUDE.md` sit outside it). Inside `wiki/`, the format is a superset of an OKF v0.1 bundle: every non-reserved file carries a non-empty `type` (articles, plus `README.md` as `Reference` and `gaps.md` as `Gap Register`); `index.md` and `log.md` are OKF's reserved filenames and carry no frontmatter; cross-links are plain markdown; and `resource` carries OKF's meaning. `index.md` follows OKF's index form (§6) and `log.md` its update-log form (§7). So an llm-wiki is consumable by generic OKF tooling (for example a static graph viewer) with no export step and no typeless files. The wiki extends OKF with the `raw/` provenance layer, supersession (`status`/`superseded_by`), the `gaps.md` frontier register, and evidence chains; an OKF consumer ignores those extra frontmatter keys, which it is required to tolerate. Maintaining the wiki still goes through this skill - OKF compatibility is about who can *read* a bundle, not a second way to write one.
+
+When you work with a wiki that predates these OKF alignments - no `type` on `README.md`/`gaps.md`, a table-form `index.md`, or per-operation `## [date] op | title` log entries - offer to migrate it to the current OKF-conformant format; do not migrate silently.
 
 ### Links and paths
 
@@ -99,7 +107,7 @@ In conversation output, use project-root-relative paths, e.g. `wiki/topic/articl
 
 `wiki/index.md` is the human-readable catalogue and the agent's first read on any query. Hand-maintained. If the user has Obsidian with Dataview, parts of it can be auto-generated from frontmatter, but never depend on a plugin: the maintained index.md is canonical.
 
-`wiki/log.md` is append-only and chronological, a convenience over git history, which holds the canonical record. Each entry starts with `## [YYYY-MM-DD] <op> | <title>` so `grep "^## \[" wiki/log.md | tail -5` returns recent activity. Keep entries lean: the header carries the signal, and a sub-item names another article touched rather than narrating the change in prose. Operations only ever append; lint prunes the oldest entries for retention when the wiki is a git repo, so the file stays bounded and git recovers the rest.
+`wiki/log.md` is append-only and chronological, a convenience over git history, which holds the canonical record. It follows OKF's update-log form (§7): newest-first `## YYYY-MM-DD` date headings, and under each, one bullet per operation led by a bold operation word - `**Ingest**`, `**Query**`, `**Lint**`, `**Audit**`, `**Critique**` (`**Supersession**` for a supersession). An operation appends its bullet under today's date heading, creating that heading at the top when today's is not already present. `grep "^## " wiki/log.md | head` returns recent dates. Keep bullets lean: link the articles touched and let the article body and git diff carry what changed. Operations only ever append; lint prunes the oldest date sections for retention when the wiki is a git repo, so the file stays bounded and git recovers the rest.
 
 `wiki/gaps.md` is the register of known unknowns. Two kinds of entry: `wanted` (a concept articles reference but no page covers) and `question` (something a source raised or a user asked that the wiki cannot answer). Entries are grouped by topic and ranked by evidence of demand - which articles reference the gap, how often it has been asked - never by a score. Gaps are captured during ingest, query, and lint, never by a background process; they close by a resolution link rather than deletion, the same as supersession; and the file is greppable (`grep "^### \[open\]" wiki/gaps.md`). Full format, capture rules, and lifecycle: `references/gaps.md`.
 
@@ -112,7 +120,7 @@ Triggers only on the first Ingest. Check whether `raw/` and `wiki/` exist. Creat
 - `wiki/README.md` - orientation doc from `references/templates/wiki-readme-template.md`
 - `wiki/index.md` - heading `# Knowledge Base Index`, empty body
 - `wiki/log.md` - heading `# Wiki Log`, empty body
-- `wiki/gaps.md` - heading `# Knowledge Gaps`, empty body (`references/gaps.md`)
+- `wiki/gaps.md` - `type: Gap Register` frontmatter, heading `# Knowledge Gaps`, empty body (`references/gaps.md`)
 - `.gitignore` (project root) - from `references/templates/wiki-gitignore-template.md`. Excludes `local/` and per-machine editor noise so the wiki can live in git cleanly. Do not overwrite an existing one; merge in the `local/` line if missing.
 - `SKILL.md` (project root) - lets the wiki load as a query-only Agent Skill, from `references/templates/wiki-skill-template.md`. See "The wiki as a skill" below.
 - `CLAUDE.md` (project root) - project memory that orients any agent whose working directory is the wiki repo and tells it to activate the llm-wiki skill if present, from `references/templates/wiki-claude-md-template.md`. See "The wiki's CLAUDE.md" below.
@@ -153,7 +161,7 @@ Fetch a source into `raw/`, then compile it into `wiki/`. Always both steps.
 Decide this before fetching or converting; it sets what lands in `raw/`.
 
 - **Verbatim (default)** - a faithful copy of the source, the immutable ground truth Audit checks against. Use it unless the user asks otherwise.
-- **Distilled** - the high-signal content only, with filler removed. Choose it when the user asks for "the valuable content", "the high-signal parts", "the useful bits", "just the signal", "the key points", "what matters" or similar - phrasing that wants the substance, not the whole source. Follow `references/distilled-ingest.md`, which distils by *removing* filler rather than generalising specifics away, and ends in a mandatory separate-sub-agent review so nothing load-bearing is cut.
+- **Distilled** - the high-signal content only, with filler removed. Choose it when the user asks for "the valuable content", "the high-signal parts", "the useful bits", "just the signal", "the key points", "what matters" or similar - phrasing that wants the substance, not the whole source. Follow `references/distilled-ingest.md`, which distils by _removing_ filler rather than generalising specifics away, and ends in a mandatory separate-sub-agent review so nothing load-bearing is cut.
 
 Pick one mode per source. A rich format (a docx transcript, a PDF) does not decide it: convert to markdown as an intermediate step, then keep or distil per the chosen mode. Converting a transcript and copying it in whole when the user asked for the signal is the failure to avoid. If a long, noisy source carries no instruction either way, ask rather than defaulting to a verbatim dump.
 
@@ -239,16 +247,15 @@ Update `wiki/index.md`: add or update entries for every touched article, with th
 
 Update `wiki/gaps.md` if this ingest touched the frontier of what is known: record a load-bearing open question the source raised but did not answer, or a concept you forward-referenced with no page yet, as a new entry; and close (resolve-and-link) any gap a new article filled. Skip it when nothing changed. See `references/gaps.md`.
 
-Append to `wiki/log.md`:
+Append to `wiki/log.md`, under today's `## YYYY-MM-DD` heading (create it at the top if today's is not already there):
 
 ```
-## [YYYY-MM-DD] ingest | <primary article title>
-- Created: <additional new article title>
-- Updated: <cascade-updated article title>
-- Superseded: <old article title> -> <new article title>
+## YYYY-MM-DD
+* **Ingest**: compiled [<primary article>](<path>); created [<additional article>](<path>); updated [<cascade-updated article>](<path>).
+* **Supersession**: [<old article>](<path>) superseded by [<new article>](<path>).
 ```
 
-Omit any sub-item that does not apply. The header names the primary new article; `- Created:` lists any additional articles the same source produced. Refer to articles by title, not file path, and keep each sub-item to the title alone - the article body and the git diff hold what changed, so do not restate it here.
+Drop any clause or bullet that does not apply. The **Ingest** bullet names the primary article first, then any additional articles the same source created and any cascade-updated articles; a supersession gets its own **Supersession** bullet. Link each article (title as the link text); the article body and the git diff hold what changed, so do not restate it here.
 
 ### Bulk and parallel ingest
 
@@ -295,9 +302,10 @@ When the user asks to save the answer to the wiki, file it as a first-class page
    - File name reflects the query topic; place in the most relevant topic directory.
 2. Always create a new page; never merge an archive into an existing article.
 3. Update `wiki/index.md`, prefixing the summary with `[Archived]`.
-4. Append to `wiki/log.md`:
+4. Append to `wiki/log.md`, under today's `## YYYY-MM-DD` heading (create it if absent):
    ```
-   ## [YYYY-MM-DD] query | Archived: <page title>
+   ## YYYY-MM-DD
+   * **Query**: archived [<page title>](<path>).
    ```
 
 ---
@@ -315,10 +323,11 @@ Two dependency-free helpers back the deterministic tier, read-only and run with 
 
 ### Post-lint
 
-Append to `wiki/log.md`:
+Append to `wiki/log.md`, under today's `## YYYY-MM-DD` heading (create it if absent):
 
 ```
-## [YYYY-MM-DD] lint | <N> issues found, <M> auto-fixed
+## YYYY-MM-DD
+* **Lint**: <N> issues found, <M> auto-fixed.
 ```
 
 ---
@@ -331,10 +340,11 @@ Verify that an article's claims hold up against the `raw/` sources it cites. Whe
 
 ### Post-audit
 
-Append to `wiki/log.md`:
+Append to `wiki/log.md`, under today's `## YYYY-MM-DD` heading (create it if absent):
 
 ```
-## [YYYY-MM-DD] audit | <article or topic>: <N> claims, <S> supported, <U> unsupported/partial
+## YYYY-MM-DD
+* **Audit**: [<article or topic>](<path>) - <N> claims, <S> supported, <U> unsupported/partial.
 ```
 
 If the user asks to keep the audit, crystallise it as a `type: archive` page (see Query > Crystallise), citing the audited article.
@@ -349,10 +359,11 @@ Examine the reasoning in a source or article and report what holds up. Where Aud
 
 ### Post-critique
 
-Append to `wiki/log.md`:
+Append to `wiki/log.md`, under today's `## YYYY-MM-DD` heading (create it if absent):
 
 ```
-## [YYYY-MM-DD] critique | <article, topic, or source>: <overall assessment>
+## YYYY-MM-DD
+* **Critique**: [<article, topic, or source>](<path>) - <overall assessment>.
 ```
 
 Critique writes nothing else on its own. With the user's go-ahead it may crystallise the analysis as a `type: archive` page (see Query > Crystallise) citing the critiqued target, or record an assumption or open question it surfaced as a `question` gap in `wiki/gaps.md` (`references/gaps.md`). Full protocol, output structure, and guidelines: `references/critical-analysis.md`.
@@ -372,7 +383,7 @@ The subtle failure points, worth checking before you finish an operation.
 **Paths and consistency**
 
 - **Path direction inside the wiki.** From `wiki/<topic>/`, a raw file is two levels up (`../../raw/<topic>/file.md`) and a same-topic article is just its filename. A wrong `../` count is the most common broken link.
-- **Keep `updated` and the index in step.** Whenever an article's content changes (a cascade update or a supersession counts), bump `updated` in its frontmatter and the matching `index.md` row in the same pass. They are meant to agree, and drift between them is easy to miss.
+- **Keep the index in step with the article.** Whenever an article's content changes (a cascade update or a supersession counts), bump `updated` in its frontmatter; the index no longer carries that date (OKF §6 keeps freshness in frontmatter), but in the same pass refresh the index summary if the thesis moved and set or flip the `[Stale]`/`[Archived]` prefix on supersession or archival. A stale prefix that lags the article's status is the easy miss.
 
 **Ingest fidelity**
 

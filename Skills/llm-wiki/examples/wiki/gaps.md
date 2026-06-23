@@ -1,3 +1,7 @@
+---
+type: Gap Register
+---
+
 # Knowledge Gaps
 
 Known unknowns. Open gaps are ranked by evidence of demand, never by a score.

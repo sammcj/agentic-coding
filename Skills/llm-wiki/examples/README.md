@@ -35,7 +35,7 @@ examples/
 | `why-transformers-scale.md` | A crystallised query answer: `type: archive`, with Question, Findings, and standalone Lessons |
 | `README.md` | The orientation doc that lets someone use the wiki without the skill: structure and conventions, with a pointer to the skill |
 | `index.md` | The catalogue, showing the `[Stale]` and `[Archived]` summary prefixes |
-| `log.md` | The append-only log with the greppable `## [date] op | title` prefix, including supersede and audit entries |
+| `log.md` | The append-only log in OKF update-log form: newest-first `## YYYY-MM-DD` date headings with one bold-led bullet per operation, including supersession and audit entries |
 | `gaps.md` | The gap register: an open `question`, a `wanted` page, and a `resolved` gap linked to the article that closed it. Ranked by evidence, not a score |
 | `SKILL.md` | The optional root skill file: lets an agent load this wiki as a query-only skill, named `<subject>-llm-wiki` (here `ml-llm-wiki`); writes still go through the llm-wiki skill |
 

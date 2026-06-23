@@ -534,10 +534,10 @@
   "enabledPlugins": {
     "bash-lsp@zircote-lsp": true,
     "clangd-lsp@claude-plugins-official": true,
-    "frontend-design@claude-code-plugins": true,
+    "frontend-design@claude-code-plugins": false,
     "gopls-lsp@claude-plugins-official": true,
-    "impeccable@impeccable": true,
-    "playground@claude-plugins-official": true,
+    "impeccable@impeccable": false,
+    "playground@claude-plugins-official": false,
     "playwright-skill@playwright-skill": false,
     "pyright-lsp@claude-plugins-official": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
@@ -546,11 +546,11 @@
     "tofu-lsp@local-marketplace": true,
     "typescript-lsp@claude-plugins-official": true,
     "yaml-lsp@zircote-lsp": true,
-    "html-slides@html-slides": true,
+    "html-slides@html-slides": false,
     "ralph-loop@claude-plugins-official": false,
     "safety-net@cc-marketplace": true,
     "context-mode@context-mode": true,
-    "kicad-happy@kicad-happy": true,
+    "kicad-happy@kicad-happy": false,
     "playwright@claude-plugins-official": true,
     "improve@improve": true
   },
@@ -678,6 +678,21 @@
       "allowLocalBinding": true
     },
     "filesystem": {
+      "allowWrite": [
+        "~/.local/share/uv",
+        "~/.local/bin",
+        "~/Library/org.swift.swiftpm",
+        "~/Library/Caches/org.swift.swiftpm",
+        "~/.swiftpm",
+        "~/Library/Caches/clang",
+        "~/Library/Developer/Xcode/DerivedData",
+        "~/Library/Logs/CoreSimulator",
+        "~/Library/Caches/pip",
+        "~/go",
+        "~/.cargo/registry",
+        "~/.cargo/git",
+        "~/.npm"
+      ],
       "denyWrite": [
         "~/.ssh",
         "~/Library/Keychains",
@@ -707,21 +722,6 @@
         ".",
         "/usr/share/zoneinfo",
         "/var/db/timezone"
-      ],
-      "allowWrite": [
-        "~/.local/share/uv",
-        "~/.local/bin",
-        "~/Library/org.swift.swiftpm",
-        "~/Library/Caches/org.swift.swiftpm",
-        "~/.swiftpm",
-        "~/Library/Caches/clang",
-        "~/Library/Developer/Xcode/DerivedData",
-        "~/Library/Logs/CoreSimulator",
-        "~/Library/Caches/pip",
-        "~/go",
-        "~/.cargo/registry",
-        "~/.cargo/git",
-        "~/.npm"
       ]
     },
     "enableWeakerNetworkIsolation": true,

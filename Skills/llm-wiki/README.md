@@ -10,21 +10,21 @@ A knowledge system where the LLM maintains structured wiki pages instead of re-s
 
 The split of work, from Karpathy: the LLM writes and maintains the wiki; you choose sources and ask questions.
 
-| Operation | What it does | Output |
-|-----------|--------------|--------|
-| **Ingest** | Filters and stores a source in `raw/`, then compiles it into the wiki | New or updated pages |
-| **Query** | Reads the index, follows links, answers with citations | Grounded answers; optionally filed back as a page |
-| **Lint** | Checks index, links, frontmatter, and health | Auto-fixes the deterministic issues, reports the rest |
+| Operation  | What it does                                                          | Output                                                |
+| ---------- | --------------------------------------------------------------------- | ----------------------------------------------------- |
+| **Ingest** | Filters and stores a source in `raw/`, then compiles it into the wiki | New or updated pages                                  |
+| **Query**  | Reads the index, follows links, answers with citations                | Grounded answers; optionally filed back as a page     |
+| **Lint**   | Checks index, links, frontmatter, and health                          | Auto-fixes the deterministic issues, reports the rest |
 
 See [SKILL.md](SKILL.md) for the full specification.
 
 ## Why not just RAG
 
-| | RAG | LLM wiki |
-|--|-----|----------|
-| Knowledge lives in | Raw chunks and embeddings | Curated markdown pages |
-| Synthesis happens | At query time, every time | Once, at ingest, then kept current |
-| Good for | Broad retrieval over large corpora | Compounding knowledge, summaries, durable cross-links |
+|                    | RAG                                | LLM wiki                                              |
+| ------------------ | ---------------------------------- | ----------------------------------------------------- |
+| Knowledge lives in | Raw chunks and embeddings          | Curated markdown pages                                |
+| Synthesis happens  | At query time, every time          | Once, at ingest, then kept current                    |
+| Good for           | Broad retrieval over large corpora | Compounding knowledge, summaries, durable cross-links |
 
 RAG retrieves and re-derives on every question. A wiki accumulates: the cross-references are already there, contradictions are already flagged, and the synthesis reflects everything you have read.
 
@@ -39,12 +39,12 @@ flowchart TB
     agent["Coding agent<br/>compiles, maintains, answers"]:::actor
     skill["SKILL.md<br/>schema: structure, format, workflow"]:::schema
 
-    subgraph repo["Wiki repo · plain markdown in git"]
+    subgraph repo["Wiki repo * plain markdown in git"]
         direction TB
         raw["raw/<br/>immutable sources, read never edited"]:::raw
         wiki["wiki/<br/>compiled articles the agent owns"]:::wiki
-        special["index.md · log.md · gaps.md · README.md<br/>catalogue, history, known unknowns"]:::special
-        local["local/<br/>personal notes · gitignored · this clone only"]:::local
+        special["index.md * log.md * gaps.md * README.md<br/>catalogue, history, known unknowns"]:::special
+        local["local/<br/>personal notes * gitignored * this clone only"]:::local
     end
 
     you --> agent
@@ -71,14 +71,14 @@ Ingest is always two steps. A source is fetched, filtered for secrets, and lande
 ```mermaid
 %%{init: {'flowchart': {'curve': 'basis'}, 'themeVariables': {'fontFamily': 'ui-sans-serif, system-ui, sans-serif'}}}%%
 flowchart LR
-    src["Source<br/>URL · file · paste"]:::ext
+    src["Source<br/>URL * file * paste"]:::ext
     mode{"Keep verbatim<br/>or distil?"}:::decision
     fetch["Fetch + filter<br/>strip secrets & PII"]:::step
     rawf["raw/topic/<br/>YYYY-MM-DD-slug.md"]:::raw
     compile["Compile<br/>merge into article<br/>or create new"]:::step
     art["wiki/topic/article.md"]:::wiki
     cascade["Cascade<br/>update affected articles,<br/>supersede the outdated"]:::step
-    book["Update index.md · log.md,<br/>gaps.md if the frontier moved"]:::special
+    book["Update index.md * log.md,<br/>gaps.md if the frontier moved"]:::special
 
     src --> mode --> fetch --> rawf --> compile --> art --> cascade --> book
 
@@ -103,7 +103,7 @@ flowchart TB
     audit["Audit<br/>claims vs raw/ sources"]:::read
     critique["Critique<br/>reasoning soundness"]:::read
 
-    book["index.md · log.md · gaps.md"]:::special
+    book["index.md * log.md * gaps.md"]:::special
 
     ingest ==> book
     lint ==> book
@@ -211,6 +211,12 @@ A worked example lives in [examples/](examples/): two raw sources, the articles 
 ## Using it with Obsidian
 
 The wiki is a folder of markdown, so it opens directly as an Obsidian vault. Frontmatter shows up as Properties, body links populate the graph view and backlinks panel, and the Dataview plugin can query frontmatter if you want it. None of that is required: the hand-maintained `index.md` is canonical and the skill works with no plugins.
+
+## Relationship to the Open Knowledge Format (OKF)
+
+Take `wiki/` as the OKF bundle root. Inside it the format is a superset of an Open Knowledge Format (OKF) v0.1 bundle: every non-reserved file carries a non-empty `type` (articles, plus `README.md` and `gaps.md`); `index.md` and `log.md` are OKF's reserved filenames, following its index (§6) and update-log (§7) forms; cross-links are plain markdown links; and a `resource` field carries the same meaning. The practical payoff is portability of consumers. Any tool that reads OKF can read an llm-wiki with no export step, so the wiki inherits OKF's ecosystem - a static graph viewer, for instance - without this skill having to build or maintain one.
+
+The wiki adds what OKF leaves out for a _maintained_ knowledge base rather than a static interchange format: the `raw/` provenance layer, supersession (`status` / `superseded_by`), the `gaps.md` frontier register, and evidence chains over numeric scores. An OKF consumer ignores those extra frontmatter keys, which its permissive conformance model requires it to tolerate. Compatibility runs one way on writes: maintenance still goes through this skill, since OKF specifies a format, not the ingest, supersession, and audit discipline that keeps the wiki sound.
 
 ## Credits
 

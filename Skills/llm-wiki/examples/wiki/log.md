@@ -1,18 +1,16 @@
 # Wiki Log
 
-<!-- Format: ## [YYYY-MM-DD] op | title. Sub-items note created, updated, and superseded articles by title. grep "^## \[" log.md | tail -5 for recent activity. -->
+<!-- Format (OKF v0.1 §7): ## YYYY-MM-DD date headings, newest first; one bullet per operation, led by a bold op word (Ingest, Query, Lint, Audit, Critique; Supersession for a supersession). grep "^## " log.md | head for recent dates. -->
 
-## [2026-04-03] ingest | Transformer Architectures
-- Created: Attention Memory Cost (separate concept from the same source)
+## 2026-04-06
+* **Query**: archived [Why Transformers Scale to Long Context](machine-learning/why-transformers-scale.md).
+* **Lint**: 1 issue found, 1 auto-fixed.
+* **Audit**: [Transformer Architectures](machine-learning/transformer-architectures.md) - 4 claims, 4 supported, 0 unsupported/partial.
+* **Critique**: [Attention Efficiency](machine-learning/attention-efficiency.md) - reasoning sound, no key issues.
 
-## [2026-04-05] ingest | Attention Efficiency
-- Updated: Transformer Architectures
-- Superseded: Attention Memory Cost -> Attention Efficiency
+## 2026-04-05
+* **Ingest**: compiled [Attention Efficiency](machine-learning/attention-efficiency.md); updated [Transformer Architectures](machine-learning/transformer-architectures.md).
+* **Supersession**: [Attention Memory Cost](machine-learning/attention-cost.md) superseded by [Attention Efficiency](machine-learning/attention-efficiency.md).
 
-## [2026-04-06] query | Archived: Why Transformers Scale to Long Context
-
-## [2026-04-06] lint | 1 issue found, 1 auto-fixed
-
-## [2026-04-06] audit | transformer-architectures.md: 4 claims, 4 supported, 0 unsupported/partial
-
-## [2026-04-06] critique | attention-efficiency.md: reasoning sound, no key issues
+## 2026-04-03
+* **Ingest**: compiled [Transformer Architectures](machine-learning/transformer-architectures.md); created [Attention Memory Cost](machine-learning/attention-cost.md).

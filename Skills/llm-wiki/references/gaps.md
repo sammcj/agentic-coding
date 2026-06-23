@@ -1,6 +1,6 @@
 # Gaps: tracking what the wiki does not yet cover
 
-`wiki/gaps.md` is the register of known unknowns. If `index.md` is "what we know" and `log.md` is "what we did", `gaps.md` is "what we don't know yet". It is a maintained markdown file at the `wiki/` root, the same level as the index and the log, and it follows the same rules: plain markdown, relative links, a greppable prefix, and git as the audit trail.
+`wiki/gaps.md` is the register of known unknowns. If `index.md` is "what we know" and `log.md` is "what we did", `gaps.md` is "what we don't know yet". It is a maintained markdown file at the `wiki/` root, the same level as the index and the log, and it follows the same rules: plain markdown, relative links, a greppable prefix, and git as the audit trail. It carries a single `type: Gap Register` frontmatter key (the only frontmatter in the file) so an OKF consumer reads it as a typed concept; the gap entries below it use none.
 
 A gap is a first-class but lightweight citizen. It uses the same lifecycle grammar as the rest of the wiki: filtered at capture, ranked by evidence rather than a score, closed by a resolution link rather than deleted, and found by grep plus the lint heuristics that already exist. No new field types, no database, no background process.
 
@@ -22,6 +22,10 @@ Not a gap:
 Group entries by topic, mirroring `index.md`. Within a topic, list open entries first, then resolved ones. Each entry is a level-3 heading with a greppable prefix, followed by evidence lines:
 
 ```markdown
+---
+type: Gap Register
+---
+
 # Knowledge Gaps
 
 Known unknowns. Open gaps are ranked by evidence of demand, never by a score.
@@ -39,7 +43,7 @@ Known unknowns. Open gaps are ranked by evidence of demand, never by a score.
 ### [resolved] question | Is attention's quadratic memory cost a hard limit? -> [Attention Efficiency](machine-learning/attention-efficiency.md) (2026-05-27)
 ```
 
-`grep "^### \[open\]" wiki/gaps.md` lists every open gap, the same way the log's `## [` prefix lists recent activity. The heading is `### [<status>] <kind> | <title>`, where status is `open` or `resolved` and kind is `wanted` or `question`. A resolved entry appends `-> [Article](path) (YYYY-MM-DD)` to its title line and keeps no evidence lines; the link is the record.
+`grep "^### \[open\]" wiki/gaps.md` lists every open gap, the same way the log's `## ` date headings list recent activity. The heading is `### [<status>] <kind> | <title>`, where status is `open` or `resolved` and kind is `wanted` or `question`. A resolved entry appends `-> [Article](path) (YYYY-MM-DD)` to its title line and keeps no evidence lines; the link is the record.
 
 Links inside `gaps.md` use the same `topic/article.md` form as `index.md` (the file sits at the `wiki/` root). Quote-style markdown links, not wikilinks, so it renders on GitHub.
 

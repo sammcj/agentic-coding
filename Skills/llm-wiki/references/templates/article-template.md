@@ -2,6 +2,7 @@
 title: {Title}
 type: concept            # concept | entity | archive
 topic: {topic-name}
+resource:                # optional canonical URI of the asset an entity describes; omit for abstract concepts
 created: {YYYY-MM-DD}
 updated: {YYYY-MM-DD}
 status: current          # current | stale

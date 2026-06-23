@@ -50,12 +50,11 @@ net_new: yes | restates-known          # transcript triage: does this add anythi
 3. Group by target concept. Several proposals about one concept become a single article whose evidence chain lists every supporting source. This "many sources, one well-supported claim" consolidation is only possible with all proposals in view, and it is the main reason the compile is serial.
 4. Triage `net_new`. A `restates-known` source keeps its raw file but folds in as added evidence to an existing claim rather than spawning a new article. Avoid compiling noise.
 5. Apply writes to `wiki/` one at a time, resolving conflicts (annotate inline with an evidence chain) and supersession (mark the old page stale with `superseded_by` and a callout) against the now-stable state.
-6. Update `index.md` and `log.md` once, as the sole writer. Use a single batch log entry:
+6. Update `index.md` and `log.md` once, as the sole writer. Use a single batch bullet under today's date heading (OKF §7 form):
    ```
-   ## [YYYY-MM-DD] ingest | batch: <label> (<N> sources)
-   - Created: <article title>
-   - Updated: <article title>
-   - Superseded: <old title> -> <new title>
+   ## YYYY-MM-DD
+   * **Ingest**: batch <label> (<N> sources) - created [<article>](<path>); updated [<article>](<path>).
+   * **Supersession**: [<old title>](<path>) superseded by [<new title>](<path>).
    ```
 7. Cascade once across the touched topics, now that every article in the batch exists.
 8. Checkpoint, then commit (see below).
