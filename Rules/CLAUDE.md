@@ -160,7 +160,8 @@ _These rules govern conversation with the user. They do not apply to code, or fi
 ### CLI Commands
 - Always quote all paths in bash commands
 - When fetching google docs via HTTP, append `export?format=md` to the URL
-- If you have the context-mode tool: to read a web page **in full**, don't use WebFetch or bare `curl|head` (denied/redirected). Use `ctx_execute` with `fetch`, or `curl -sL` to a file then Read; for docs sites append `.md` to the URL. Use `ctx_fetch_and_index` + `ctx_search` only to _query_ a page, not to read it whole.
+- If you have the context-mode tool: to read a web page **in full**, don't use WebFetch or bare `curl|head` (denied/redirected). Use `ctx_execute` with `fetch`, or `curl -sL` to a file then Read; for docs sites append `.md` to the URL. Use `ctx_fetch_and_index` + `ctx_search` only to _query_ a page, not to read it whole
+- When fetching from the official Anthropic docs site append .md to the URL and fetch that, provides clean markdown
 - NEVER run `kill` or `pkill` commands without knowing for _certain_ the process and PID you're targeting is relating to your task only and will not cause other processes to exit
 
 ### Tool Priorities
