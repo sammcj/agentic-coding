@@ -128,8 +128,20 @@ Place an eval set at `evals/<set>.json` beside the skill and run it with the bun
 - **Think through the setup.** Some skills need user-specific configuration (e.g. which Slack channel, which database, API keys). Pattern: on first run, check for a config file; if missing, ask the user and store their answers. This avoids hardcoding values that differ per user or environment.
 - **Avoid pink elephant guidance.** Naming specific unwanted behaviour activates it. For example saying "Never use the word delve" may plant the concept and result in the AI using it. Prefer positive instructions stating the desired behaviour. If you must prohibit something, pair it with the concrete alternative so the agent has somewhere to land. Specific banned-item lists (e.g. exact phrases to avoid) are fine when paired with replacements.
 - **Do not add inline scripts within markdown.** Single commands / simple one liners are fine, but scripts should be their own files.
+- **Use consistent terminology.** Pick one term per concept and use it throughout (always "field", not a mix of "field", "box", "element").
 - Avoid deeply nested references
 - For reference files (`references/*.md`) longer than 100 lines, include a concise table of contents at the top. This ensures the agent can see the full scope of available information even when previewing with partial reads.
+
+Don't assume packages are installed.** List required packages and how to install them. Note that claude.ai can install from npm/PyPI, but the Claude API code execution environment has no network access.
+
+### Writing Scripts
+
+When a skill bundles scripts:
+
+- **Solve, don't punt.** Handle error conditions in the script rather than failing and leaving the agent to improvise. A script that creates a missing file or falls back to a sensible default is more reliable than one that throws.
+- **No voodoo constants.** Justify and document config values in a comment. If you can't explain why a timeout is 30s, the agent can't either.
+- **State execution intent.** Make clear whether to run the script ("Run `extract_fields.py` to pull form fields") or read it as reference ("See `extract_fields.py` for the extraction algorithm"). Execution is usually preferred.
+- **Don't assume packages are installed.** List required packages and how to install them. Note that claude.ai can install from npm/PyPI, but the Claude API code execution environment has no network access.
 
 ### Token Budget Guidance
 
