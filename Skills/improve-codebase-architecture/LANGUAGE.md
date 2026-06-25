@@ -38,6 +38,46 @@ What maintainers get from depth. Change, bugs, knowledge, and verification conce
 - **The interface is the test surface.** Callers and tests cross the same seam. If you want to test *past* the interface, the module is probably the wrong shape.
 - **One adapter means a hypothetical seam. Two adapters means a real one.** Don't introduce a seam unless something actually varies across it.
 
+## Deep vs shallow
+
+A **deep module** has a small interface over a large implementation:
+
+```
+┌─────────────────────┐
+│   Small Interface   │  ← Few methods, simple params
+├─────────────────────┤
+│                     │
+│  Deep Implementation│  ← Complex logic hidden
+│                     │
+└─────────────────────┘
+```
+
+A **shallow module** has a large interface over little implementation (avoid):
+
+```
+┌─────────────────────────────────┐
+│       Large Interface           │  ← Many methods, complex params
+├─────────────────────────────────┤
+│  Thin Implementation            │  ← Just passes through
+└─────────────────────────────────┘
+```
+
+When designing an interface, ask:
+
+- Can I reduce the number of methods?
+- Can I simplify the parameters?
+- Can I hide more complexity behind the interface?
+
+## Designing for testability
+
+Good interfaces make testing natural. Three rules, stated language-neutrally:
+
+1. **Accept dependencies, don't create them.** A function that receives its collaborators as arguments (e.g. the payment gateway is passed in) can be exercised with a fake. A function that constructs them internally (e.g. it news up a concrete gateway) forces tests to reach through to the real thing.
+
+2. **Return results, don't produce side effects.** A function that computes a value and returns it (e.g. returns the calculated discount) is checked by inspecting the return value. A function that mutates shared state in place (e.g. subtracts from a cart total) forces tests to reconstruct that state to observe the effect.
+
+3. **Keep a small surface area.** Fewer methods means fewer tests. Fewer parameters means simpler test setup. The smaller the interface, the less a test has to arrange before it can assert.
+
 ## Relationships
 
 - A **Module** has exactly one **Interface** (the surface it presents to callers and tests).

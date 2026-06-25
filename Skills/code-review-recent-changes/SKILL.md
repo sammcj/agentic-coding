@@ -35,6 +35,8 @@ Capture three things once and reuse them across all sub-agents:
 - Commits: `git log <fixed-point>..HEAD --oneline`.
 - Size deltas: `git diff <fixed-point>...HEAD --stat` - the Maintainability axis uses this to spot files crossing a size boundary.
 
+Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside the parallel sub-agents.
+
 ### 2. Check for a spec
 
 Scan the captured commit list and the user's request for a spec signal: an issue reference (`#123`, `Closes #45`, `!67`), a spec/PRD path the user passed, or an issue/PRD the user named. This is a cheap check - the commit list is already in context.

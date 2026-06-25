@@ -17,7 +17,7 @@ Work from whatever is already in the conversation context. If the user passes an
 
 ### 2. Explore the codebase (optional)
 
-If you have not already explored the codebase, do so to understand the current state of the code. Issue titles and descriptions should use the project's domain glossary vocabulary, and respect ADRs in the area you're touching.
+If you have not already explored the codebase, do so to understand the current state of the code. Issue titles and descriptions should use the project's domain glossary vocabulary, and respect ADRs in the area you're touching. Look for opportunities to prefactor the code to make the implementation easier. "Make the change easy, then make the easy change."
 
 ### 3. Draft vertical slices
 
@@ -95,7 +95,7 @@ Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all op
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "..."`
 
-Infer the repo from `git remote -v` — `gh` does this automatically when run inside a clone.
+Infer the repo from `git remote -v` - `gh` does this automatically when run inside a clone.
 
 ### When a skill says "publish to the issue tracker"
 

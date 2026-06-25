@@ -91,7 +91,9 @@ If you are genuinely torn between two verdicts, say so explicitly and name what 
 
 ## Output format
 
-Be concise, but show your workings when they add trust to your verdict.
+Be concise, but show your workings when they add value or trust to your verdict.
+
+**Be terse / concise. Don't add filler. Less is more. The agent reading this is a capable model, not an audience. TLDRs are great.**
 
 Return a short markdown report with the five sections above as headings, in order. End with the verdict heading clearly marked.
 The caller will act on your review, so make the right call obvious and the reasoning checkable.

@@ -13,4 +13,4 @@ If working in a codebase and a question can be answered by exploring the codebas
 
 Use the multiple choice question answer tool for questions with a discrete set of options.
 
-Ask the questions one at a time.
+Ask the questions one at a time, waiting for feedback on each question before continuing. Asking multiple questions at once is bewildering.
