@@ -76,7 +76,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 
 ### Explaining Complex Concepts
 - When the task is to explain a complex concept or create explanatory documents, consider whether a visual or data-driven approach would communicate the idea more effectively than prose alone
-- If visualisation or storytelling with data skills are available, use them to structure the explanation around clear visuals rather than walls of text
+- Use skills to visualise or aid with storytelling with data, use them to structure the explanation around clear visuals rather than walls of text
 - This applies to deliberate explanation tasks (documents, diagrams, presentations), not to inline code comments, chat responses, or routine development work
 
 ---
@@ -123,7 +123,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 - Ensure .gitignore files are kept up to date
 
 ## Error Handling
-- Structured logging (JSON) with correlation IDs. Log levels: ERROR, WARN (default), INFO, DEBUG
+- Structured logging with correlation IDs. Log levels: ERROR, WARN (default), INFO, DEBUG
 - Meaningful, terse errors for developers, safe errors for end users. Never log sensitive data
 - Graceful degradation over complete failure. Retry with exponential backoff for transient failures
 

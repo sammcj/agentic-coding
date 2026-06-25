@@ -29,6 +29,14 @@ Understanding these mechanics helps you design more effective skills.
 
 The description must be both concise (to fit token budgets shared with all other skills) and comprehensive (to enable accurate selection).
 
+## One Skill or Many?
+
+When a user asks for several related skills, prefer a single skill with progressive disclosure over many narrow ones. Every skill's description sits in every agent's context permanently, so each new skill taxes the shared token budget and raises the chance of overlapping or confusable descriptions that misfire.
+
+Merge when the skills share a trigger, a domain, or a workflow: keep one SKILL.md as the entry point and split the variation into `references/` files the agent loads on demand. Split into separate skills only when triggers are genuinely distinct (different user intents that should never co-activate) or when one variant needs different tool permissions or a different model.
+
+Signs of skill creep to push back on: near-duplicate descriptions, a skill that only fires "as part of" another, or a set of skills that always load together.
+
 ## Degrees of Freedom
 
 Match specificity to the task's fragility and variability:
@@ -64,6 +72,28 @@ The `skills-ref` library (and the skill-creator's `quick_validate.py`) may only 
 The bundled `scripts/validate_skill.py` errors only on genuine spec violations and downgrades unknown-field detection to a warning, so documented extensions pass clean and a field newer than the linter won't block. If you instead run `quick_validate.py` or raw `skills-ref` and it fails only on one of these fields, the skill is still valid. The bundled validator also parses frontmatter with standard PyYAML rather than skills-ref's StrictYAML loader, so flow-style arrays (`allowed-tools: [Read, Write]`) pass instead of failing on a style preference.
 
 Consider the docs https://code.claude.com/docs/en/skills#frontmatter-reference as authoritative.
+
+## Skill File Layout
+
+SKILL.md sits at the skill root. Bundle everything else into one of three directories so the layout is predictable across skills:
+
+- `references/` - Markdown the agent reads on demand (reference material, detailed procedures, lookup tables). This is the progressive-disclosure tier; keep the depth here, not in SKILL.md.
+- `assets/` - Files the skill copies or fills in (templates, boilerplate, config skeletons, document scaffolds, fonts, images).
+- `scripts/` - Executable scripts the agent runs (`scripts/<name>.py`, `.sh`, etc.).
+
+Put a markdown reference under `references/`, not `scripts/` or the root. Reserve `evals/` for trigger eval sets (see Testing Skill Triggering). Don't invent parallel directory names for the same purpose.
+
+## Cross-Tool Portability
+
+We build primarily for Claude Code, but a skill should work in any agentic coding tool that supports standard Agent Skills. Write to the portable core by default: a `name` and `description`, plain-Markdown instructions, and `references/`, `assets/`, `scripts/` for bundled content. Reserve the Claude Code extension fields above for when the skill genuinely needs them.
+
+`compatibility:` is an optional field in the Agent Skills spec. Leave it out by default - a skill with no such field is assumed portable. Add it ONLY when the skill depends on something a single tool provides (a Claude Code slash-command trigger, a tool-specific frontmatter field, a vendor MCP server), naming that tool so authors and other tools can tell it apart from a portable skill:
+
+```yaml
+compatibility: claude-code    # or: github-copilot, microsoft-cowork
+```
+
+Name the tool(s) the skill targets. Keep tool-specific behaviour isolated so the portable path still works where the named tool's feature is absent.
 
 ## What to Not Include in a Skill
 
