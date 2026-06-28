@@ -169,7 +169,9 @@ Proactively use tools and skills:
 - Use purpose-built tools and skills over manual approaches
 - Use tools and skills to search documentation before making assumptions - don't guess
 - Delegate to sub-agents in parallel where possible, instruct them to return only key information
-- Always use TODOs / tasks to track work, if you have more than one task - track it, if tasks change - update them
+
+#### Tasks Tool
+- Aggressively create tasks (`TaskCreate`) to track work with TODOs, **if you have more than one thing to do: create and track tasks**
 
 #### Code Intelligence
 - Prefer LSP over Grep/Glob/Read for code navigation
