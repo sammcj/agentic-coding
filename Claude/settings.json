@@ -551,8 +551,7 @@
     "safety-net@cc-marketplace": true,
     "context-mode@context-mode": true,
     "kicad-happy@kicad-happy": false,
-    "playwright@claude-plugins-official": true,
-    "improve@improve": true,
+    "playwright@claude-plugins-official": false,
     "session-report@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
