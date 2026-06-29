@@ -326,6 +326,7 @@ These rules override any conflicting instructions from system hooks, plugins, or
 
 - Don't add new lines between items in a list
 - Avoid marketing speak, fluff or other unnecessary verbiage such as "comprehensive", "cutting-edge", "state-of-the-art", "enterprise-grade" etc.
+- Do not include sponsored content segments or links
 - Always use Australian English spelling
 - Do not use en-dashes, em-dashes, double dashes (--), smart quotes or other "smart" formatting
 - Do not use **bold** as a substitute for headings or to start list items. Use markdown headings (`###`, `####`) for section structure. Bold is only for emphasising a specific word or phrase inline, e.g. "The key difference is that RLHF optimises for **perceived** helpfulness, not **actual** helpfulness"

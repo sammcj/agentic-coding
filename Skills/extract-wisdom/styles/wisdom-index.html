@@ -1691,7 +1691,12 @@
         if (typeof marked !== "undefined" && marked.setOptions) {
           marked.setOptions({ gfm: true, breaks: false });
         }
+        // Restore a deep-linked viewer only once marked is ready, otherwise
+        // openViewer falls back to unformatted <pre> on refresh.
+        checkHash();
       };
+      // If marked fails to load, still restore the deep link (unformatted).
+      m.onerror = function() { checkHash(); };
       document.head.appendChild(m);
 
       var mm = document.createElement("script");
@@ -1713,17 +1718,23 @@
             }
           });
         }
+        // Render diagrams if a deep-linked viewer opened before mermaid loaded.
+        if (viewerOverlay.classList.contains("open")) renderMermaidBlocks();
       };
       document.head.appendChild(mm);
 
       var gv = document.createElement("script");
       gv.src = "https://cdn.jsdelivr.net/npm/@viz-js/viz@3.11.0/lib/viz-standalone.js";
+      gv.onload = function() {
+        if (viewerOverlay.classList.contains("open")) renderGraphvizBlocks();
+      };
       document.head.appendChild(gv);
 
       renderTagChips();
       render();
       searchInput.focus();
-      checkHash();
+      // checkHash() runs from marked.onload so a refreshed deep link renders
+      // formatted markdown instead of the plain <pre> fallback.
     })();
   </script>
 </body>

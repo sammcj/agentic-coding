@@ -11,13 +11,13 @@ Validate a skill against the Agent Skills specification.
 
 Uses the official skills-ref reference library for the actual spec checks
 (https://github.com/agentskills/agentskills/tree/main/skills-ref), with two
-deliberate adaptations:
+deliberate adaptations for how Netwealth authors skills:
 
 1. Frontmatter is parsed with standard PyYAML, not skills-ref's StrictYAML loader.
    StrictYAML rejects flow-style arrays ("allowed-tools: [Read]") on style grounds,
    but those are valid YAML, valid per the spec, and exactly what the real consumers
-   (Claude Code, Copilot) accept and what skill generators emit. PyYAML matches the
-   real loaders, so a compliant skill no longer fails on a style preference.
+   (Claude Code, Copilot) accept and what this repo's generator emits. PyYAML matches
+   the real loaders, so a compliant skill no longer fails on a style preference.
 
 2. skills-ref's field allowlist only knows the six Agent Skills spec fields, so it
    errors on every Claude Code extension field (argument-hint, model, when_to_use, ...)
@@ -51,8 +51,9 @@ _FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
 # Token-budget estimate. The chars/N heuristic is a dependency-free stand-in for a
 # real tokeniser; N is calibrated against tiktoken's o200k_base BPE (a reproducible
 # proxy for Claude's unpublished tokeniser), measured at ~4.12 chars/token over ~60
-# sampled skills. Pass --tiktoken to count with the real tokeniser instead (needs
-# tiktoken: run via `uv run --with tiktoken`).
+# sampled skills. This is the single calibration source: toolkit's corpus checks
+# import estimate_tokens from here rather than keeping their own. Pass --tiktoken to
+# count with the real tokeniser instead (needs tiktoken: run via `uv run --with tiktoken`).
 CHARS_PER_TOKEN = 4.12
 TIKTOKEN_ENCODING = "o200k_base"
 _TOKEN_RATINGS = ((5_000, "Great"), (9_000, "Good"), (12_000, "OK"))

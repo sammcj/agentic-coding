@@ -185,6 +185,7 @@ Proactively use tools and skills:
 - Use tasks tool to track planning and work in progress. When working from a dev plan, keep tasks and plan in sync
 - When creating or updating CLAUDE.md or AGENTS.md files you MUST use the `authoring-claude-md` skill first
 - DO NOT include line numbers when referencing files in CLAUDE.md or documentation
+- When asking multi-choice questions, always allow the user to provide annotations to their answers
 
 #### Sub-agent Coordination
 - **Named** (standard) sub-agents have their own context window - good for parallel research, inspection, or separate features
@@ -207,7 +208,7 @@ After implementing a list of changes, perform a critical self-review pass before
 
 ## Supplementary Rules
 
-- Edit only what's necessary - make precise, minimal changes unless instructed otherwise
+- Edit only what's necessary - make precise, minimal changes unless instructed otherwise, but leave code you touch cleaner than you found it
 - Implement requirements in full or discuss with the user why you can't - don't defer work
 - If stuck on a persistent problem after multiple attempts, use the `systematic-debugging` skill or perform a Fagan inspection
 - **Never give time estimates**, AI is notoriously bad at estimating the time things will take
