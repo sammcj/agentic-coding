@@ -1,9 +1,4 @@
----
-name: writing-go-tests
-description: Applies current Go testing best practices. Use when writing or modifying Go test files or advising on Go testing strategies.
----
-
-# Go Testing Best Practices
+# Go Testing
 
 This skill provides actionable testing guidelines. For detailed implementation patterns, code examples, rationale, and production system references, consult `go-testing-best-practices.md`.
 

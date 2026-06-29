@@ -16,6 +16,7 @@ allowed-tools: >-
   Bash(open *)
 metadata:
   author: 'Sam McLeod (adapted from Arjen Schwarz)'
+disable-model-invocation: true
 ---
 
 # Release Notes Catch-Up

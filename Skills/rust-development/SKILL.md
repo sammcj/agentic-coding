@@ -1,5 +1,5 @@
 ---
-name: rust
+name: rust-development
 description: You MUST activate this skill when working on Rust projects
 ---
 

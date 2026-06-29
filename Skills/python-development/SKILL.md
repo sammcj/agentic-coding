@@ -1,5 +1,5 @@
 ---
-name: python
+name: python-development
 description: You MUST activate this skill when working on Python projects
 ---
 

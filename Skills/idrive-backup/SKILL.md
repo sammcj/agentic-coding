@@ -2,6 +2,7 @@
 name: idrive-backup
 description: Use this skill whenever the user wants you to manage, discuss or diagnose iDrive Backup configuration on macOS
 allowed-tools: Read Edit Write Bash Glob Grep
+disable-model-invocation: true
 ---
 
 # iDrive Backup for macOS

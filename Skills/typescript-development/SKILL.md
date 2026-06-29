@@ -1,5 +1,5 @@
 ---
-name: typescript
+name: typescript-development
 description: You MUST activate this skill when working on TypeScript or JavaScript projects
 ---
 

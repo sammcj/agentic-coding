@@ -1,7 +1,6 @@
 ---
 name: authoring-claude-md
 description: Creating and maintaining CLAUDE.md project memory files and .claude/rules/ rule files that provide non-obvious codebase context. Use when (1) creating a new CLAUDE.md for a project, (2) adding architectural patterns or design decisions to existing CLAUDE.md, (3) capturing project-specific conventions that aren't obvious from code inspection, (4) organising instructions into path-scoped rule files.
-model# allowedTools: Read,Write,Edit,Grep,Glob
 ---
 
 # CLAUDE.md and Rules Authoring

@@ -1,6 +1,7 @@
 ---
 name: backlog
 description: Capture single backlog items, or list and triage an existing project backlog. Use this skill whenever the user wants to file a bug, feature request, or backlog item without writing a full PRD, including casual requests mid-conversation like "create an issue for that", "add this to the backlog", or "file a quick bug for X". Also use when the user wants to see what's open, triage stale items, or pick something to work on ("what's open?", "show me the issues", "review the backlog"). Auto-detects destination (GitHub via `gh` CLI, or local `docs/BACKLOG.md` / `docs/issues/`). For multi-bug conversational QA sessions, use qa-to-issues. For full PRDs with user stories, use to-prd. For breaking an existing plan into vertical-slice implementation tickets, use to-issues.
+disable-model-invocation: true
 ---
 
 # Backlog management
