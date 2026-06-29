@@ -2,20 +2,22 @@
 name: skill-creator-primer
 description: Foundational skill-authoring knowledge to use alongside the skill-creator skill. You **MUST** load this skill before the skill-creator skill whenever creating, editing, reviewing, improving, or contributing a skill - its frontmatter, body, evals, or description, including checking a description for trigger conflicts with other skills, or when you are making ANY changes to ANY agent skill.
 metadata:
-  maturity: orange
-  updated: 2026-06-26
-  version: 1.4.0
-  owners: [ai-pdlc-team]
-  tags: [authoring, skills, meta, frontmatter]
+  version: 1.5.0
 ---
 
 # Skill Creator Primer
 
 Note: If your environment does not have the `skill-creator` skill: Stop and ask the user to run `/plugin marketplace add anthropics/skills` then `skill-creator@claude-plugins-official` before proceeding, they may alternatively clone https://github.com/anthropics/skills and link its `skills` directory to their local skills directory.
 
-## How Skills Actually Work
+## Predictable Process, Not Identical Output
 
-Understanding these mechanics helps you design more effective skills.
+A skill wrangles determinism out of a stochastic system where applicable. What it makes predictable is the _process_ - the agent taking the same steps each run - not the _output_. A brainstorming skill should predictably diverge: its tokens vary, its behaviour doesn't. This is the lens for the rest of this primer: triggering, structure, steering, and pruning are all levers on process consistency, and cost and maintainability follow from it. Judge any change by whether it makes the agent behave more consistently, given what that particular skill is for.
+
+## Track Each Step as a Task
+
+Before you create, update, or review a skill, create a task (todo) for each step of the work - the primer sections you'll apply, plus a self-review pass - then work them to completion, marking each done as you go. This is the primer's own defence against premature completion: with the finish line in view, the agent tends to make the visible edit and skip the review. Tracked tasks keep the whole process in front of you so none of it gets dropped. Scale the ceremony to the change: substantial skill work warrants a task per step; a trivial edit still earns its description update, a trigger-conflict check, and a self-review pass, tracked or not.
+
+## How Skills Actually Work
 
 **Skills are prompt-based context modifiers, not executable code.** When invoked, a skill:
 
@@ -32,6 +34,10 @@ Understanding these mechanics helps you design more effective skills.
 1. **Metadata** (name + description) - Always in context (~20-100 words)
 2. **SKILL.md body** - Loaded only after triggering (<5k words)
 3. **Bundled resources** - Loaded by the agent as needed (unlimited, scripts execute without reading)
+
+**Branches decide what to disclose.** Inline what every branch of the skill needs; push behind a context pointer (a bundled file) only what a single branch reaches. A pointer's _wording_, not its target, decides whether the agent follows it - a must-have target behind a weak pointer is a variance bug, so sharpen the wording before settling for inlining. When in doubt for this primer, keep almost-certainly-needed material inline so the agent never has to decide whether to read it.
+
+**Invocation mode is a trade-off, choose it deliberately.** Model-invoked skills cost context load: every description sits in the agent's context on every request and competes for attention, and the agent may decline to fire even a well-matched skill - so model-invocation demands trigger evals to confirm it fires (see "Testing Skill Triggering"). User-invoked skills (`disable-model-invocation: true`) cost cognitive load instead: the description stays out of every agent session - freeing context for unrelated work - but the user must remember the skill exists and trigger it with a slash command. TLDR: default to model-invoked so the agent can discover it mid-task; switch to user-invoked when the skill is needed only occasionally and the user will reliably reach for it. When the right mode isn't obvious, give the user both options with a one-line pro/con each and let them pick.
 
 The description must be both concise (to fit token budgets shared with all other skills) and comprehensive (to enable accurate selection).
 
@@ -55,7 +61,6 @@ Think of Claude exploring a path: a narrow bridge with cliffs needs guardrails (
 
 These are Claude Code-specific fields not covered by the Agent Skills spec. Only include when specifically needed:
 
-- `when_to_use`: Optional extra triggering context appended to the description in the skill listing (trigger phrases, example requests). Normally not needed. Shares the description's always-in-context budget - the listing truncates the combined `description` + `when_to_use` at 1,536 characters (default; configurable via `maxSkillDescriptionChars`), silently dropping trailing text - so add it only when a tight description still under-triggers (see "Writing Effective Descriptions")
 - `argument-hint`: Hint shown during autocomplete for expected arguments, e.g. `[issue-number]` or `[filename] [format]`. Only include if the skill accepts arguments
 - `arguments`: Named positional arguments for `$name` substitution in the skill body. Accepts a space-separated string or a YAML list; names map to positions in order. Only include if the skill uses named substitutions
 - `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-opus-4-7"`. Only include if the user requests it
@@ -66,6 +71,7 @@ These are Claude Code-specific fields not covered by the Agent Skills spec. Only
 - `agent`: Specify agent type (e.g., `"task"`). When omitted, runs in current agent context. Only include if the user requests it
 - `allowed-tools`: Space-delimited pre-approved tools. Scope where possible, e.g. `"Read Write Bash(uv run scripts/*.py *) Grep WebFetch(domain:code.claude.com)""` (don't use the deprecated `:` syntax, e.g. `Bash(command:*)`, instead use `Bash(command *)`)
 - `disallowed-tools`: Tools removed from the available pool while the skill is active (clears on the next user message). Use for autonomous skills that must never call a tool, e.g. `AskUserQuestion` in a background loop. Only include if the user requests it
+- `when_to_use`: Not usually needed. Optionally provides extra triggering context appended to the description in the skill listing (trigger phrases, example requests). Shares the description's always-in-context budget - the listing truncates the combined `description` + `when_to_use` at 1,536 characters (default; configurable via `maxSkillDescriptionChars`), silently dropping trailing text - so add it only when a tight description still under-triggers (see "Writing Effective Descriptions")
 
 ### Upstream validators may have an incomplete frontmatter allowlist
 
@@ -97,7 +103,7 @@ Skills should only contain files that directly support functionality.
 - Content that an agent could easily infer or would know to access without the skill
 - Rich file formats (e.g. zip, pptx, png, pdf etc.) unless they're a template (AI is most efficient with text and tools, bundled file formats add overhead and complexity)
 
-The skill is for an AI agent to do the job. Auxiliary documentation adds clutter and wastes context.
+The skill is for an AI agent to do the job; auxiliary documentation adds clutter and wastes context.
 
 ## Bundled File Layout
 
@@ -120,26 +126,22 @@ Fill gaps with the user, then proceed to skill creation.
 
 ## Writing Effective Descriptions
 
-The description is arguably the single most important part of a skill to get right.
-
-It shares a token budget with all other skill descriptions and is always active in every agent's context across all conversations and alongside other skills.
-
-Below is a checklist of items you should loop through and consider when writing or reviewing a skill description. It is **critical** that you follow these guidelines to both ensure the skill triggers correctly but also that it does not interfere with other skills or bloat the agent's context.
+The description is arguably the single most important part of a skill to get right. It shares a token budget with every other skill's description and is always active in the agent's context.
 
 ### Skill Description Checklist
+
+**Create tasks / TODOs for each of the following** and loop over them to improve or provide feedback until the description follows our best practices:
 
 1. **Be concise, keep it tight and focused**. This is _especially_ important for skill descriptions. Skills are for agent consumption, not human; agents don't need verbose prose, they need clear, high-signal instructions and workflows.
 2. **Aim for 30-55 words** (and no more than 65!) which is approximately 1-2 sentences.
 3. **Skill descriptions are solely for the purpose of the agent deciding whether to load the skill**. Descriptions should NOT contain instructions for the agent to follow once the skill has been activated, general information about the inner workings of the skill, or any other content that does not help the agent decide whether to load the skill. The description is _not_ a summary of the skill's content, but a guide for when to use it.
-4. **Ensure the description is unique.** The description should not clash or be confused with other skill descriptions in the library. See "Check for trigger conflicts" below to compare it against every existing skill.
+4. **Ensure the description is unique.** The description should not clash or be confused with other skill descriptions in the library. See "Check for Description Trigger Conflicts" below to compare it against every existing skill.
 5. **Use imperative phrasing**. Frame the description as an instruction to the agent: Use this skill when rather than This skill does. The agent is deciding whether to act, so tell it when to act.
 6. **Focus on user intent, not implementation**. Describe what the user is trying to achieve, not the skill's internal mechanics. The agent matches against what the user asked for.
+7. **Front-load the leading word**. The description is where a leading word does its invocation work, so lead with it. If the same word lives in the user's prompts, docs, and code, invocation lands harder.
+8. **One trigger per branch, no synonym padding**. Give one trigger for each distinct branch the skill handles; synonyms that rename a single branch are duplication that spends context without widening coverage. Cut identity already stated in the skill body.
 
-Loop over this checklist as you improve or provide feedback on a skill description.
-
-The word limit above is the `description` alone. The optional `when_to_use` field is normally not needed. If set, it shares this budget: the listing appends it to the description and truncates the combined text at 1,536 characters, so an overflow silently drops trailing trigger words. The limits apply to the two combined - add trigger signal a tight description lacks, and if the total runs long, cut rather than move it.
-
-### Check for trigger conflicts
+### Check for Description Trigger Conflicts
 
 A description is a discovery trigger: the agent picks a skill by reading descriptions and matching them to the request. Two skills conflict when an agent, reading both triggers, cannot reliably tell which one a request should load. That is the only thing this check looks for - skills covering related ground are fine and expected.
 
@@ -179,19 +181,21 @@ On a real conflict, pick the lightest fix that restores routing: sharpen one des
 
 A skill activates purely on its `description`. To measure whether a description fires on the right requests and stays quiet on the rest - especially when over- or under-triggering is a risk - write trigger evals: realistic queries, each labelled with whether the skill should activate, scored against the live description.
 
-Place an eval set at `evals/<set>.json` beside the skill and run it with the bundled `scripts/eval_triggering.py`. Read `references/trigger-evals.md` before writing or running skill evals.
+Place an eval set at `evals/<set>.json` beside the skill and run it with the bundled `scripts/eval_triggering.py`. **Read `references/trigger-evals.md`** before writing or running skill evals.
 
 ---
 
 ## Skill Writing Tips
 
 - **Don't state the obvious.** the agent already knows a lot about coding and has default opinions. Focus skill content on information that pushes the agent **out of** its normal way of thinking. If the agent would reliably do the right thing without your skill, that content is wasting tokens.
-- **Knowing is not doing - keep process even when the agent knows the steps.** The test for cutting content is not "does the agent know this?" but "would the agent reliably do this, in this order, every time, without being told?" Declarative knowledge that lives in training data (how a well-known API behaves, what a design pattern is, standard language syntax) is recalled reliably, so restating it wastes tokens - cut it. A required workflow is different: the agent may know each step yet still default to its own approach or skip the sequence unless the skill commits it to that process. The trigger for enforcement, ordering constraints, gates, and checklists earn their tokens by changing what the agent _does_, not by teaching it something new. Cut the knowledge the agent already has; keep the enforcement that changes its behaviour. With this in mind, process guidance should be clear, actionable and concise.
+- **Knowing is not doing - keep process even when the agent knows the steps.** The test for cutting content is not "does the agent know this?" but "would the agent reliably do this, in this order, every time, without being told?" Declarative knowledge that lives in training data (how a well-known API behaves, what a design pattern is, standard language syntax) is recalled reliably, so restating it wastes tokens - cut it. A required workflow is different: the agent may know each step yet still default to its own approach or skip the sequence unless the skill commits it to that process. Enforcement, ordering constraints, gates, and checklists earn their tokens by changing what the agent _does_, not by teaching it something new.
 - **Build a Gotchas section.** The highest-signal content in any skill is a Gotchas section listing common failure points the agent hits when using the skill. Build this up from real failures over time. A good Gotchas section often delivers more value than pages of general instructions.
 - **Avoid railroading the agent.** Because skills are reusable across many different prompts and contexts, being too specific in instructions backfires. Give the agent the information it needs, but leave flexibility to adapt to the situation. Overly rigid instructions (heavy MUSTs, exact step sequences) break when the context shifts even slightly.
 - **Think through the setup.** Some skills need user-specific configuration (e.g. which Slack channel, which database, API keys). Pattern: on first run, check for a config file; if missing, ask the user and store their answers. This avoids hardcoding values that differ per user or environment.
 - **Avoid pink elephant guidance.** Naming specific unwanted behaviour activates it. For example saying "Never use the word delve" may plant the concept and result in the AI using it. Prefer positive instructions stating the desired behaviour. If you must prohibit something, pair it with the concrete alternative so the agent has somewhere to land. Specific banned-item lists (e.g. exact phrases to avoid) are fine when paired with replacements.
-- **Use consistent terminology.** Pick one term per concept and use it throughout (always "field", not a mix of "field", "box", "element").
+- **Steer with leading words.** Pick one pretrained, meaning-dense term per concept and repeat it throughout (always "field", not a mix of "field", "box", "element"); the agent echoes the term in its reasoning and the prior it carries steers behaviour. **Read `references/steering.md`** whenever a skill won't comply (the agent ignores an instruction, skips or finishes a step early), when you are choosing or strengthening a leading word, or when a skill has multi-step procedures that need completion criteria - it covers leading words, completion criteria, and defending against premature completion.
+- **Make task-tracking the first step of any encoded workflow.** When a skill encodes a multi-step workflow, write its first step as an instruction to the agent: create a task (todo) for each step of the workflow, then work them to completion. The visible checklist keeps the agent on task and improves completeness - the same defence against premature completion this primer applies to itself (see "Track Each Step as a Task").
+- **Co-locate a concept's parts.** Keep a concept's definition, rules, and caveats under one heading rather than scattered, so reading one part brings its neighbours. The test: a skill should read like documentation written for the agent. This differs from duplication (one meaning repeated in two places); scattering fragments a single meaning across many.
 - **Do not add inline scripts within markdown.** Single commands / simple one liners are fine, but scripts should be their own files.
 - Avoid deeply nested references.
 - For reference files (`references/*.md`) longer than 100 lines, include a concise table of contents at the top. This ensures the agent can see the full scope of available information even when previewing with partial reads.
@@ -206,7 +210,7 @@ When a skill bundles scripts:
 
 ### Token Budget Guidance
 
-The context window is a shared resource. Only add context the agent (current generation frontier models such as Claude Opus/Sonnet) doesn't already have. Challenge each piece: "Does the agent really need this?" and "Does this justify its token cost?"
+The context window is a shared resource. Only add context the agent (frontier models) doesn't already have. Challenge each piece: "Does the agent really need this?" and "Does this justify its token cost?"
 
 Validating a skill with `scripts/validate_skill.py` (resolve it from this skill's `scripts/` directory) reports a token count and budget rating alongside the spec checks. It counts only the Markdown that SKILL.md actually references (transitively), so a stray unreferenced file does not inflate the figure. It does not run automatically - invoke it against a skill when you want a measurement:
 
@@ -229,21 +233,18 @@ Aim for <4k tokens in the main SKILL.md. Move detailed content to reference file
 
 Good example (concise, actionable):
 
-````
+```
 ## Extract PDF text
 
 Use pdfplumber for text extraction:
 
-```python
-python scripts/extract_pdf_text.py <pdf-file>
-````
+`python scripts/extract_pdf_text.py <pdf-file>`
 
 ```
 
 Bad example (verbose):
 
 ```
-
 ## Extract PDF text
 
 PDF (Portable Document Format) files are a common file format that contains
@@ -251,25 +252,37 @@ text, images, and other content. To extract text from a PDF, you'll need to
 use a library. There are many libraries available for PDF processing, but
 pdfplumber is recommended because it's easy to use and handles most cases well.
 First, you'll need to install it using pip. Then you can use the code below...
-
-````
+```
 
 ---
+
+## Failure Modes
+
+A big or unreliable skill is a symptom. Diagnose it against these five named modes, each with its cure. Two distinctions to hold: _relevance_ asks whether a line still bears on the task; _no-op_ asks whether it changes behaviour versus the default - a line can be relevant and still a no-op. And the no-op test is model-relative, settled by running the skill, not by debate.
+
+| Failure mode | What it is | Cure |
+| ------------ | ---------- | ---- |
+| Premature completion | Ending a step before it's done | Sharpen the completion criterion; then hide later steps (see `references/steering.md`) |
+| Duplication | The same meaning in more than one place | One source of truth per step and per reference item |
+| Sediment | Stale layers that accumulate because adding feels safer than deleting | A pruning discipline: restructure into branches, then delete what no branch needs |
+| Sprawl | Simply too long, even when every line is live and unique | Progressive disclosure: split by branch (the branch test under "How Skills Actually Work") or into a separate sequenced skill |
+| No-op | A line the model already obeys by default | A stronger leading word, or deletion (apply the deletion test) |
 
 ## Self-Review Protocol
 
 When a skill spans many files, fan the per-file read-only passes out to sub-agents in parallel (each reviews its own reference files for low-value prose and within-file repetition, returning a summary) - this is safe because reads don't collide. Cross-file checks like duplication between SKILL.md and reference files can't be split this way, since each agent sees only its slice; have the main agent reconcile those from the returned summaries. Keep edits to a single agent, or give each sub-agent a non-overlapping set of files to avoid clobbering each other's writes.
 
-After creating or updating a skill, always perform a critical self-review:
+After creating or updating a skill, always perform a critical self-review. **Create and complete tasks / TODOs for each of the following**:
 
 1. Check for duplicated information across SKILL.md and reference files
-2. Remove low-value prose, filler, and fluff
+2. Remove low-value prose, filler, and fluff. Apply the **deletion test** to suspect lines: cut the passage and ask whether the agent's behaviour would change. If it wouldn't, the line is a no-op - leave it deleted (see "Failure Modes" for what counts as a no-op).
 3. Thin the language - make important information prominent while reducing word count
 4. Verify the description is concise (short) yet comprehensive enough for triggering (see the Writing Effective Descriptions checklist)
-5. Ensure no extraneous files were created
-6. Frame guidance positively to avoid the pink elephant effect (see Skill Writing Tips). Rewrite "don't do X" as "do Y", or pair the prohibition with the concrete alternative
-7. Deterministic tools are used for deterministic outcomes. If a script can perform a task, have the agent call that script rather than relying on interpreted instructions.
-8. If the skill has evals, the evals are up to date and run without issue.
+5. Decide the invocation mode (see "Invocation mode is a trade-off"). If the skill is clearly one the agent should discover mid-task, leave it model-invoked; if it's needed only occasionally and the user will reach for it, set `disable-model-invocation: true` to keep its description out of every session. In doubt, present the user both options with a one-line pro/con each and let them choose.
+6. Ensure no extraneous files were created
+7. Frame guidance positively to avoid the pink elephant effect (see Skill Writing Tips). Rewrite "don't do X" as "do Y", or pair the prohibition with the concrete alternative
+8. Deterministic tools are used for deterministic outcomes. If a script can perform a task, have the agent call that script rather than relying on interpreted instructions.
+9. If the skill has evals, the evals are up to date and run without issue.
 
 **Verbosity is not rewarded - knowledge quality is.**
 
@@ -279,11 +292,9 @@ After creating or updating a skill, always perform a critical self-review:
 
 Validate against the official Agent Skills specification:
 
-```bash
-uv run scripts/validate_skill.py <skill-directory>
-````
+`uv run scripts/validate_skill.py <skill-directory>`
 
-Pass a real path, not `.` (skills-ref matches the directory's basename against the skill name, and `.` resolves to an empty basename). On a valid skill it also prints a token-budget estimate across the Markdown that SKILL.md transitively references, with a Great/Good/OK/Poor rating. Add `--tiktoken` (via `uv run --with tiktoken`) to count with the real tokeniser instead of the chars/token heuristic.
+Pass a real path, not `.` (skills-ref matches the directory's basename against the skill name, and `.` resolves to an empty basename). On a valid skill it also prints a token-budget estimate across the Markdown that SKILL.md transitively references, with a Great/Good/OK/Poor rating (see "Token Budget Guidance" for the `--tiktoken` option).
 
 ---
 

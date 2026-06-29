@@ -1,18 +1,21 @@
 ---
 name: ai-changelog
-description: Set up an AI-driven changelog system in any project. Creates CHANGELOG.md with an [Unreleased] section for AI agents, a Python version/changelog stamping script (CalVer or SemVer), and build/CI integration. Use when the user wants to add automated changelog management, AI-friendly changelog workflows, version stamping, or set up a changelog system for a new or existing project. Also use when asked to improve an existing changelog process.
+description: Set up an AI-driven changelog system in any project, code or not. Suitable for both software projects and for non-code projects. Creates a CHANGELOG.md and instructions for agents to log changes. Use when the user wants to add or improve automated changelog management, AI-friendly changelog workflows, version stamping, or set up a changelog system for a new or existing project.
 allowed-tools: Read Write Edit Bash Glob Grep
 ---
 
 # AI-Driven Changelog
 
-Set up a changelog system where AI coding agents write entries under `## [Unreleased]` during development, and automation stamps version numbers at release time. No agent ever writes version numbers; the build process handles that.
+Set up a changelog system AI agents maintain during development. Two shapes, chosen by project type:
+
+- **Software projects**: agents write entries under `## [Unreleased]`; automation stamps version numbers at release time (CalVer or SemVer). No agent ever writes version numbers; the build process handles that.
+- **Non-code projects** (no build system): agents add terse bullets under a date heading (`## YYYY-MM-DD`) by hand. No script, no version numbers. See `references/dated.md`.
 
 ## Setup workflow
 
 1. **Detect the build system**: Check for Makefile, Justfile, package.json, Cargo.toml, pyproject.toml, go.mod. Note which config files contain a `"version"` field.
 
-2. **Detect the versioning scheme** by inspecting (highest confidence first):
+2. **Check whether this is a software project at all.** If there's no build system from step 1 and no version convention (a docs repo, writing or notes vault, content site, research or config collection), use **Dated** mode: date-based changelog headings, no version script, no build integration. Skip straight to `references/dated.md` and ignore the script/build steps below. Otherwise, **detect the versioning scheme** by inspecting (highest confidence first):
    - `CHANGELOG.md` heading style: `## [YYYY.M.N]` headings → CalVer; `## [X.Y.Z]` headings or prose mentioning "SemVer" → SemVer
    - Git tags from `git tag --list | head`: `vX.Y.Z` → SemVer; `YYYY.M.N` → CalVer
    - `VERSION` file with content matching `^[0-9]+\.[0-9]+\.[0-9]+` → SemVer
@@ -23,22 +26,24 @@ Set up a changelog system where AI coding agents write entries under `## [Unrele
 3. **Read the scheme reference** that matches the chosen scheme. It contains the build integration recipes, CLAUDE.md snippet, GitHub Actions pattern, and scheme-specific gotchas:
    - CalVer → `references/calver.md`
    - SemVer → `references/semver.md`
+   - Dated (non-code projects) → `references/dated.md`
 
-4. **Ask the user** about optional features:
+4. **Ask the user** about optional features (CalVer/SemVer only; skip for Dated mode):
    - Pinned `## Known Bugs` section above `## [Unreleased]`? (default: yes)
    - GitHub Actions release workflow integration? (default: skip unless asked)
 
-5. **Generate or update CHANGELOG.md** using `references/changelog-template.md`. If a CHANGELOG.md already exists, do NOT overwrite it; insert the HTML comment and the `## [Unreleased]` (and optional `## Known Bugs`) structure above existing entries.
+5. **Generate or update CHANGELOG.md**. For CalVer/SemVer use `references/changelog-template.md`; for Dated use the template in `references/dated.md`. If a CHANGELOG.md already exists, do NOT overwrite it; insert the HTML comment and the appropriate structure (`## [Unreleased]` for CalVer/SemVer, today's date heading for Dated) above existing entries.
 
-6. **Copy `scripts/version.py`** from this skill into the target project's `scripts/` directory. Make it executable (`chmod +x`).
+6. **Copy `scripts/version.py`** from this skill into the target project's `scripts/` directory. Make it executable (`chmod +x`). _Skip in Dated mode - there is no script._
 
-7. **Apply the scheme reference**: follow the build-integration recipe from the chosen reference file. Add targets to the existing build system, or create a minimal Makefile if none exists.
+7. **Apply the scheme reference**: follow the build-integration recipe from the chosen reference file. Add targets to the existing build system, or create a minimal Makefile if none exists. _Skip in Dated mode - there is no build integration._
 
-8. **Update CLAUDE.md** with the snippet from the chosen scheme reference. Insert into the project's development workflow section, or create one.
+8. **Update CLAUDE.md** with the snippet from the chosen scheme reference. Insert into the project's development workflow section, or create one. In Dated mode this is the only mechanism that keeps the changelog current, so make sure the snippet lands.
 
 9. **Verify**:
    - CalVer: `uv run scripts/version.py version` should print today's CalVer; then `uv run scripts/version.py stamp --dry-run` previews the stamp
    - SemVer: `uv run scripts/version.py stamp --version <current-version> --dry-run --changelog-only` previews the stamp without touching the canonical version source
+   - Dated: confirm CHANGELOG.md has today's date heading and the CLAUDE.md snippet is in place; nothing to run
 
 ## Project detection
 
@@ -51,7 +56,8 @@ Set up a changelog system where AI coding agents write entries under `## [Unrele
 | `pyproject.toml` | `pyproject.toml` | Makefile wrapper |
 | `go.mod` | `VERSION` (if present) or none | Makefile wrapper |
 | `VERSION` file | `VERSION` | Makefile wrapper |
-| None | none | Create minimal Makefile |
+| None (code project) | none | Create minimal Makefile |
+| None (non-code project) | none | Dated mode - no script, no Makefile |
 
 ## How the script works
 
