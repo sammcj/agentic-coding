@@ -71,7 +71,7 @@ These are Claude Code-specific fields not covered by the Agent Skills spec. Only
 - `agent`: Specify agent type (e.g., `"task"`). When omitted, runs in current agent context. Only include if the user requests it
 - `allowed-tools`: Space-delimited pre-approved tools. Scope where possible, e.g. `"Read Write Bash(uv run scripts/*.py *) Grep WebFetch(domain:code.claude.com)""` (don't use the deprecated `:` syntax, e.g. `Bash(command:*)`, instead use `Bash(command *)`)
 - `disallowed-tools`: Tools removed from the available pool while the skill is active (clears on the next user message). Use for autonomous skills that must never call a tool, e.g. `AskUserQuestion` in a background loop. Only include if the user requests it
-- `when_to_use`: Not usually needed. Optionally provides extra triggering context appended to the description in the skill listing (trigger phrases, example requests). Shares the description's always-in-context budget - the listing truncates the combined `description` + `when_to_use` at 1,536 characters (default; configurable via `maxSkillDescriptionChars`), silently dropping trailing text - so add it only when a tight description still under-triggers (see "Writing Effective Descriptions")
+- `when_to_use`: Avoid. It's just appended to the description and shares the same character budget, so it adds no space - put any trigger phrases in the description itself rather than splitting them across two fields.
 
 ### Upstream validators may have an incomplete frontmatter allowlist
 

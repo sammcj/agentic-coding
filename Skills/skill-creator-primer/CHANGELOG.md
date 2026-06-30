@@ -4,6 +4,8 @@
 
 ## 2026-06-30
 
+- Reworked the `when_to_use` frontmatter bullet to discourage it (just appends to the description, shares the same char budget); dropped the `maxSkillDescriptionChars`/1,536-char detail.
+- Pruned restatement and preamble from SKILL.md (no-op intro, duplicate phrasing, validator `--tiktoken` duplication, trimmed "Knowing is not doing"); fixed the "Check for Description Trigger Conflicts" cross-reference. No workflow or decision content removed.
 - Sharpened the invocation-mode guidance with a TLDR decision rule: user-invoked (`disable-model-invocation: true`) keeps a rarely-needed skill's description out of every agent session (context efficiency) at the cost of user cognitive load; when unclear, present the user both options with pros/cons. Added a matching Self-Review step to decide invocation mode.
 - Reframed the predictability section heading to "Predictable Process, Not Identical Output" and reworded the body so it scopes consistency to what each skill is for, rather than asserting a blanket goal.
 - Added a Skill Writing Tip: when a skill encodes a multi-step workflow, make its first step instruct the agent to create a task per step, to keep it on task and improve completeness.
