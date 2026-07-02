@@ -66,6 +66,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 ## Documentation
 - Keep signal-to-noise ratio high - preserve domain insights, omit preamble, filler and fluff
 - Do NOT split sentences across multiple lines in markdown files, this breaks readability and diffs
+- Prefer concise bullet points over tables for text information, tables are better suited to structure data than prose
 - When using tables in markdown, do not include unwrapped content that causes the table to over-extend horizontally, do not add sentences of text inside tables, tables should be for terse, structured data, not prose
 - Use _underscores_ for italics and **double asterisks** for bold in markdown files
 - Start with what it does, not why it's amazing
