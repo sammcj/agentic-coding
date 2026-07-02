@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: Foundational skill-authoring knowledge to use alongside the skill-creator skill. You **MUST** load this skill before the skill-creator skill whenever creating, editing, reviewing, improving, or contributing a skill - its frontmatter, body, evals, or description, including checking a description for trigger conflicts with other skills, or when you are making ANY changes to ANY agent skill.
 metadata:
-  version: 1.5.0
+  version: 2026-07-02
 ---
 
 # Skill Creator Primer
@@ -41,9 +41,21 @@ Before you create, update, or review a skill, create a task (todo) for each step
 
 The description must be both concise (to fit token budgets shared with all other skills) and comprehensive (to enable accurate selection).
 
+## Skills vs Custom Agents
+
+Before writing a skill, confirm a skill is the right vehicle:
+
+- **Skill** - knowledge, a detailed workflow, or helper tools the agent loads on demand within its current context.
+- **Custom agent** - a persona with its own context window and world view, carrying at most a lightweight workflow. Adversarial or fresh-perspective work (review, red-teaming, premise-checking) belongs here precisely because the separate context stops it inheriting the caller's assumptions.
+- **They compose** - an agent can load skills, so shared knowledge still lives in a skill even when a persona needs its own context.
+
 ## Prefer one skill over many
 
-When a request spans several related capabilities, default to a single skill that uses progressive disclosure rather than a separate skill per capability. Every extra skill adds a description that is always in every agent's context, competes with the others at selection time, and risks overlapping triggers - this is skill bloat. Consolidate the related behaviours into one SKILL.md and push each one's detail into bundled `references/` the agent loads on demand. Split into separate skills only when they trigger on genuinely distinct intents or carry conflicting tool or permission needs.
+When a request spans several related capabilities, default to a single skill that uses progressive disclosure rather than a separate skill per capability:
+
+- **Why one wins** - every extra skill adds a description that is always in every agent's context, competes with the others at selection time, and risks overlapping triggers. This is skill bloat.
+- **How to consolidate** - fold the related behaviours into one SKILL.md and push each one's detail into bundled `references/` the agent loads on demand.
+- **When to split** - only when the skills trigger on genuinely distinct intents or carry conflicting tool or permission needs.
 
 ## Degrees of Freedom
 
@@ -207,6 +219,7 @@ When a skill bundles scripts:
 - **Solve, don't punt.** Handle error conditions in the script rather than failing and leaving the agent to improvise. A script that creates a missing file or falls back to a sensible default is more reliable than one that throws.
 - **No voodoo constants.** Justify and document config values in a comment. If you can't explain why a timeout is 30s, the agent can't either.
 - **State execution intent.** Make clear whether to run the script ("Run `extract_fields.py` to pull form fields") or read it as reference ("See `extract_fields.py` for the extraction algorithm"). Execution is usually preferred.
+- **Lean on the standard library; declare real deps inline.** A stdlib-only script runs anywhere with no setup, so prefer it. When a script genuinely needs a third-party package, run it with `uv` and declare the dependency in [PEP-723](https://peps.python.org/pep-0723/) inline metadata at the top of the script - the dependency then travels with the file instead of relying on the environment being pre-provisioned.
 
 ### Token Budget Guidance
 

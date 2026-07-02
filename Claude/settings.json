@@ -739,7 +739,7 @@
       "xcodebuild *"
     ]
   },
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "tui": "default",
   "preferredNotifChannel": "ghostty",
   "thinking": {
