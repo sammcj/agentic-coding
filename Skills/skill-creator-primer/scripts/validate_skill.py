@@ -143,7 +143,7 @@ def parse_frontmatter(text: str) -> dict:
 
 
 # Claude Code extension fields documented at code.claude.com/docs/en/skills
-# (verified 2026-06). Valid in Claude Code but outside the cross-vendor spec.
+# (verified 2026-07). Valid in Claude Code but outside the cross-vendor spec.
 CLAUDE_CODE_FIELDS = {
     "when_to_use",
     "argument-hint",
@@ -156,6 +156,9 @@ CLAUDE_CODE_FIELDS = {
     "effort",
     "context",
     "agent",
+    "paths",
+    "hooks",
+    "shell",
 }
 
 

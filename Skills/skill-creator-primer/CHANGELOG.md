@@ -4,6 +4,9 @@
 
 ## 2026-07-02
 
+- Corrected the frontmatter reference against current Claude Code docs: added `paths`, `hooks` and `shell` fields, added the `xhigh` effort option, fixed `agent` semantics (subagent type used under `context: fork`), and noted `paths` as the sole non-reasoning gate on skill selection. `validate_skill.py`'s Claude Code field allowlist updated to match.
+- Fixed the skill-creator install note: the marketplace add and plugin install pointed at different marketplaces; now installs `skill-creator@claude-plugins-official` with the matching `anthropics/claude-plugins-official` marketplace add as the fallback.
+- Added a "Build with sub-agents in mind" writing tip: skills should mark fan-out and hand-off points (what each sub-agent needs, what it returns) rather than prescribing orchestration.
 - Added a "Writing Scripts" bullet: prefer the standard library, and when a real third-party dep is needed, run with `uv` and declare it via PEP-723 inline metadata so the dependency travels with the script.
 - Added a "Skills vs Custom Agents" section: skills for knowledge/workflows/tools loaded into the current context; custom agents for a persona with its own context (adversarial/fresh-perspective work); the two compose.
 - Reformatted "Skills vs Custom Agents" and "Prefer one skill over many" from prose paragraphs into concise heading + bullets (no content change).

@@ -7,7 +7,7 @@ metadata:
 
 # Skill Creator Primer
 
-Note: If your environment does not have the `skill-creator` skill: Stop and ask the user to run `/plugin marketplace add anthropics/skills` then `skill-creator@claude-plugins-official` before proceeding, they may alternatively clone https://github.com/anthropics/skills and link its `skills` directory to their local skills directory.
+Note: If your environment does not have the `skill-creator` skill: Stop and ask the user to install `skill-creator@claude-plugins-official` (running `/plugin marketplace add anthropics/claude-plugins-official` first if that marketplace isn't registered) before proceeding; they may alternatively clone https://github.com/anthropics/skills and link its `skills` directory to their local skills directory.
 
 ## Predictable Process, Not Identical Output
 
@@ -25,7 +25,7 @@ Before you create, update, or review a skill, create a task (todo) for each step
 2. Modifies execution context by changing tool permissions and optionally switching models
 3. Guides the agent's behaviour through detailed instructions
 
-**Skill selection happens through pure LLM reasoning.** No algorithmic matching, keyword search, or intent classification. The agent reads skill descriptions in the `Skill` tool's prompt and uses language model reasoning to decide which skill matches. This makes the `description` field the single most critical element.
+**Skill selection happens through pure LLM reasoning.** No algorithmic matching, keyword search, or intent classification (the optional `paths` frontmatter, a file-glob gate, is the sole exception). The agent reads skill descriptions in the `Skill` tool's prompt and uses language model reasoning to decide which skill matches. This makes the `description` field the single most critical element.
 
 **Agents tend to under-trigger skills.** To combat this, make descriptions slightly assertive about when to activate. Instead of "Build dashboards for data", write "Build dashboards for data. Use this skill whenever the user mentions dashboards, data visualisation, metrics, or wants to display any kind of data."
 
@@ -76,11 +76,14 @@ These are Claude Code-specific fields not covered by the Agent Skills spec. Only
 - `argument-hint`: Hint shown during autocomplete for expected arguments, e.g. `[issue-number]` or `[filename] [format]`. Only include if the skill accepts arguments
 - `arguments`: Named positional arguments for `$name` substitution in the skill body. Accepts a space-separated string or a YAML list; names map to positions in order. Only include if the skill uses named substitutions
 - `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-opus-4-7"`. Only include if the user requests it
-- `effort`: Override effort level when the skill is active. Options: `low`, `medium`, `high`, `max`. Only include if the user requests it
+- `effort`: Override effort level when the skill is active. Options: `low`, `medium`, `high`, `xhigh`, `max`. Only include if the user requests it
 - `context`: Set to `"fork"` to run in a forked sub-agent context. Useful for skills with extensive exploration or large outputs. Only include if the user requests it
 - `disable-model-invocation`: Set to `true` to prevent Claude from auto-loading the skill. Use for side-effect workflows the user should trigger manually. Only include if the user requests it
 - `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide from the menu. Only include if the user requests it
-- `agent`: Specify agent type (e.g., `"task"`). When omitted, runs in current agent context. Only include if the user requests it
+- `agent`: Subagent type used when `context: "fork"` is set (defaults to general-purpose); has no effect without it. Only include if the user requests it
+- `paths`: Glob patterns that limit when the skill activates. Only include if the skill is scoped to particular files or directories
+- `hooks`: Hooks scoped to this skill's lifecycle. Only include if the skill needs a hook while active
+- `shell`: Shell used for inline `` !`command` `` blocks (`bash` or `powershell`). Only include if the skill uses them
 - `allowed-tools`: Space-delimited pre-approved tools. Scope where possible, e.g. `"Read Write Bash(uv run scripts/*.py *) Grep WebFetch(domain:code.claude.com)""` (don't use the deprecated `:` syntax, e.g. `Bash(command:*)`, instead use `Bash(command *)`)
 - `disallowed-tools`: Tools removed from the available pool while the skill is active (clears on the next user message). Use for autonomous skills that must never call a tool, e.g. `AskUserQuestion` in a background loop. Only include if the user requests it
 - `when_to_use`: Avoid. It's just appended to the description and shares the same character budget, so it adds no space - put any trigger phrases in the description itself rather than splitting them across two fields.
@@ -203,6 +206,7 @@ Place an eval set at `evals/<set>.json` beside the skill and run it with the bun
 - **Knowing is not doing - keep process even when the agent knows the steps.** The test for cutting content is not "does the agent know this?" but "would the agent reliably do this, in this order, every time, without being told?" Declarative knowledge that lives in training data (how a well-known API behaves, what a design pattern is, standard language syntax) is recalled reliably, so restating it wastes tokens - cut it. A required workflow is different: the agent may know each step yet still default to its own approach or skip the sequence unless the skill commits it to that process. Enforcement, ordering constraints, gates, and checklists earn their tokens by changing what the agent _does_, not by teaching it something new.
 - **Build a Gotchas section.** The highest-signal content in any skill is a Gotchas section listing common failure points the agent hits when using the skill. Build this up from real failures over time. A good Gotchas section often delivers more value than pages of general instructions.
 - **Avoid railroading the agent.** Because skills are reusable across many different prompts and contexts, being too specific in instructions backfires. Give the agent the information it needs, but leave flexibility to adapt to the situation. Overly rigid instructions (heavy MUSTs, exact step sequences) break when the context shifts even slightly.
+- **Build with sub-agents in mind.** Sub-agents parallelise independent work and keep bulky intermediate output out of the main conversation. Where a skill's workflow has steps that could fan out - per-item passes, independent research questions, read-only sweeps - mark the hand-off: what each sub-agent needs, and what it should return (a summary, a verdict, a file path; not a raw dump). Suggest fan-out points rather than prescribing orchestration; the model running the skill may coordinate sub-agents better than the one authoring it today.
 - **Think through the setup.** Some skills need user-specific configuration (e.g. which Slack channel, which database, API keys). Pattern: on first run, check for a config file; if missing, ask the user and store their answers. This avoids hardcoding values that differ per user or environment.
 - **Avoid pink elephant guidance.** Naming specific unwanted behaviour activates it. For example saying "Never use the word delve" may plant the concept and result in the AI using it. Prefer positive instructions stating the desired behaviour. If you must prohibit something, pair it with the concrete alternative so the agent has somewhere to land. Specific banned-item lists (e.g. exact phrases to avoid) are fine when paired with replacements.
 - **Steer with leading words.** Pick one pretrained, meaning-dense term per concept and repeat it throughout (always "field", not a mix of "field", "box", "element"); the agent echoes the term in its reasoning and the prior it carries steers behaviour. **Read `references/steering.md`** whenever a skill won't comply (the agent ignores an instruction, skips or finishes a step early), when you are choosing or strengthening a leading word, or when a skill has multi-step procedures that need completion criteria - it covers leading words, completion criteria, and defending against premature completion.
