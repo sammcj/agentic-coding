@@ -2,7 +2,6 @@
 name: step-back
 description: Use when you suspect the current approach is over-engineered, over-abstracted, or solving an imagined problem rather than the real one. Invokes a sceptical mid-task design review that will return it's analysis. Read-only - won't make changes.
 tools: Read, Grep, Glob
-model: inherit
 memory: project
 color: red
 permissionMode: plan

@@ -2,7 +2,6 @@
 name: critical-reviewer
 description: Fresh-context critical review of recent changes (code, documentation, plans, or designs). Read-only. Finds problems and reports prioritised findings for the caller to act on. Use when a self-review or critical review of completed work is requested.
 disallowedTools: Write, Edit, NotebookEdit, mcp__playwright, mcp__plugin_playwright_playwright, mcp__chrome-devtools, mcp__browser-use
-model: inherit
 memory: project
 color: purple
 permissionMode: plan

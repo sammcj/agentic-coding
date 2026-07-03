@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: Foundational skill-authoring knowledge to use alongside the skill-creator skill. You **MUST** load this skill before the skill-creator skill whenever creating, editing, reviewing, improving, or contributing a skill - its frontmatter, body, evals, or description, including checking a description for trigger conflicts with other skills, or when you are making ANY changes to ANY agent skill.
 metadata:
-  version: 2026-07-02
+  version: 2026-07-03
 ---
 
 # Skill Creator Primer
@@ -36,6 +36,13 @@ Before you create, update, or review a skill, create a task (todo) for each step
 3. **Bundled resources** - Loaded by the agent as needed (unlimited, scripts execute without reading)
 
 **Branches decide what to disclose.** Inline what every branch of the skill needs; push behind a context pointer (a bundled file) only what a single branch reaches. A pointer's _wording_, not its target, decides whether the agent follows it - a must-have target behind a weak pointer is a variance bug, so sharpen the wording before settling for inlining. When in doubt for this primer, keep almost-certainly-needed material inline so the agent never has to decide whether to read it.
+
+**Routing when branches multiply.** When a skill fans out to many references, write the load decision as a decision tree: each branch a one-line qualifier, each leaf a reference pointer.
+
+- Phrase the qualifier as the task's need, not the target's name - the agent routes by matching its task against it: "key-value (config, sessions, cache) -> `references/kv.md`".
+- Keep the tree one level deep with mutually exclusive branches - every routing hop is a decision the agent can get wrong.
+- Below a handful of references, skip the tree - plain pointers with sharp wording cost less than a routing layer.
+- Trees carry which-one decisions only - reference material wants tables, sequences want numbered lists.
 
 **Invocation mode is a trade-off, choose it deliberately.** Model-invoked skills cost context load: every description sits in the agent's context on every request and competes for attention, and the agent may decline to fire even a well-matched skill - so model-invocation demands trigger evals to confirm it fires (see "Testing Skill Triggering"). User-invoked skills (`disable-model-invocation: true`) cost cognitive load instead: the description stays out of every agent session - freeing context for unrelated work - but the user must remember the skill exists and trigger it with a slash command. TLDR: default to model-invoked so the agent can discover it mid-task; switch to user-invoked when the skill is needed only occasionally and the user will reliably reach for it. When the right mode isn't obvious, give the user both options with a one-line pro/con each and let them pick.
 
@@ -127,6 +134,7 @@ Standardise where bundled files live so skills stay predictable across the toolk
 - `references/` - Markdown the agent reads as reference (the loaded-on-demand layer of progressive disclosure).
 - `scripts/` - executable scripts the agent runs.
 - `assets/` - templates the agent copies or fills in, plus non-text artefacts like SVGs and icons. Prefer referencing these from an external source over committing them; bundled binaries add weight and context overhead with no benefit to the agent.
+- When `references/` spans many sibling domains, give each domain the same file set (e.g. `<domain>/patterns.md`, `<domain>/gotchas.md`, omitting any that would be empty) so the agent knows what exists at the next level without reading an index.
 
 ## Capture Intent from Conversation
 
@@ -149,7 +157,7 @@ The description is arguably the single most important part of a skill to get rig
 
 1. **Be concise, keep it tight and focused**. This is _especially_ important for skill descriptions. Skills are for agent consumption, not human; agents don't need verbose prose, they need clear, high-signal instructions and workflows.
 2. **Aim for 30-55 words** (and no more than 65!) which is approximately 1-2 sentences.
-3. **Skill descriptions are solely for the purpose of the agent deciding whether to load the skill**. Descriptions should NOT contain instructions for the agent to follow once the skill has been activated, general information about the inner workings of the skill, or any other content that does not help the agent decide whether to load the skill. The description is _not_ a summary of the skill's content, but a guide for when to use it.
+3. **Skill descriptions are solely for the purpose of the agent deciding whether to load the skill**. Descriptions should NOT contain instructions for the agent to follow once the skill has been activated, general information about the inner workings of the skill, or any other content that does not help the agent decide whether to load the skill. The description is _not_ a summary of the skill's content but a guide for when to use it - a workflow summary invites the agent to act on the summary and skip the skill's branches.
 4. **Ensure the description is unique.** The description should not clash or be confused with other skill descriptions in the library. See "Check for Description Trigger Conflicts" below to compare it against every existing skill.
 5. **Use imperative phrasing**. Frame the description as an instruction to the agent: Use this skill when rather than This skill does. The agent is deciding whether to act, so tell it when to act.
 6. **Focus on user intent, not implementation**. Describe what the user is trying to achieve, not the skill's internal mechanics. The agent matches against what the user asked for.

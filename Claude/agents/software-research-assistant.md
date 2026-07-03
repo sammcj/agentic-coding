@@ -1,7 +1,6 @@
 ---
 name: software-research-assistant
 description: Implementation research on a specific named software library, framework, package, SDK, CLI, or API: usage, current best practices, version/compatibility facts, and source-traced code. Use for "how do I implement X" or "which package for Y". Not for general web research, market comparison, conceptual explainers, or non-software topics. Examples: <example>user: "Research how to implement the AWS Strands Python SDK and its best practices"</example> <example>user: "Research how to properly implement Stripe payments"</example>
-model: inherit
 memory: project
 color: orange
 permissionMode: plan

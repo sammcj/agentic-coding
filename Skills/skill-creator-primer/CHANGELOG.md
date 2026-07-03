@@ -2,6 +2,12 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-07-03
+
+- Added "Routing when branches multiply": skills with many references should route loads via a one-level decision tree of need-phrased qualifiers -> reference pointers; trees carry which-one decisions only, never process. Informed by dmmulroy/cloudflare-skill and superpowers' writing-skills scoping rules.
+- Added a Bundled File Layout bullet: many sibling reference domains should share a uniform file set so the next-level load needs no index.
+- Strengthened description checklist item 3: a description that summarises the workflow invites the agent to act on the summary and skip the skill's branches.
+
 ## 2026-07-02
 
 - Corrected the frontmatter reference against current Claude Code docs: added `paths`, `hooks` and `shell` fields, added the `xhigh` effort option, fixed `agent` semantics (subagent type used under `context: fork`), and noted `paths` as the sole non-reasoning gate on skill selection. `validate_skill.py`'s Claude Code field allowlist updated to match.

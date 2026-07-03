@@ -85,6 +85,7 @@
       "Bash(rgrep *)",
       "Bash(run_silent *)",
       "Bash(rustfmt *)",
+      "Bash(go run *)",
       "Bash(sed *)",
       "Bash(shellcheck *)",
       "Bash(sort *)",
@@ -342,7 +343,6 @@
       "Bash(* git branch -d *)",
       "Bash(git commit *)",
       "Bash(* git commit *)",
-      "Bash(go run *)",
       "Bash(brew install *)",
       "Bash(* brew install *)",
       "Bash(brew tap *)",
@@ -739,9 +739,9 @@
       "xcodebuild *"
     ]
   },
-  "effortLevel": "xhigh",
   "tui": "default",
   "preferredNotifChannel": "ghostty",
+  "effortLevel": "xhigh",
   "thinking": {
     "level": "high",
     "type": "adaptive"
