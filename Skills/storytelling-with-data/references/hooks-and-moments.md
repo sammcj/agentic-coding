@@ -2,6 +2,14 @@
 
 Hooks open attention loops. Aha Moments close them. Together they power every compelling narrative: data presentation, pitch, or conference talk.
 
+## Contents
+
+- What Makes a Hook Work (Neuroscience)
+- Hook Types for Data Storytelling (Anomaly, Stakes, Contrast, Question, Confession/Vulnerability, In Medias Res)
+- What Makes an Aha Moment Work (Insight Test, placement, landing techniques)
+- The Transformation Arc
+- Quick Reference: Hook + Aha Moment Checklist
+
 ---
 
 ## What Makes a Hook Work (Neuroscience)

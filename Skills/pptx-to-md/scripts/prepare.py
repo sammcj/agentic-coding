@@ -78,7 +78,12 @@ def render_deck(pptx_path: Path, out_dir: Path, dpi: int, include_hidden: bool =
     )
     pdfs = list(out_dir.glob("*.pdf"))
     if not pdfs:
-        sys.exit("error: PDF conversion produced no output")
+        sys.exit(
+            "error: LibreOffice produced no PDF. If running inside a command "
+            "sandbox, this is expected - headless LibreOffice fails silently "
+            "when it cannot write its per-user profile. Re-run outside the "
+            "sandbox (under Claude Code, use dangerouslyDisableSandbox: true)."
+        )
     pdf = pdfs[0]
     subprocess.run([pdftoppm, "-jpeg", "-r", str(dpi), str(pdf), str(out_dir / "slide")], check=True)
     return len(list(out_dir.glob("slide-*.jpg")))
@@ -146,7 +151,9 @@ def slide_rels(unpacked: Path, n: int) -> tuple[list[str], list[str]]:
     for rel in ET.parse(rels).getroot():
         target = rel.get("Target", "")
         rtype = rel.get("Type", "")
-        if "image" in rtype.lower() or target.startswith("../media/"):
+        # Image rels carry an "image" Type; video/audio also target ../media/, so
+        # match on Type only to keep non-image media out of embedded_images.
+        if "image" in rtype.lower():
             images.append(os.path.basename(target))
         elif "hyperlink" in rtype.lower():
             links.append(target)
@@ -204,6 +211,10 @@ def main() -> None:
 
     print(f"[4/4] writing manifests for {len(target)} slides")
     media_dir = unpacked / "ppt" / "media"
+    # pdftoppm pads the page number to the digit-count of the last page, so names are
+    # slide-1.jpg for <10 slides, slide-01.jpg for 10-99, slide-001.jpg for 100+.
+    # Map render index -> file by parsing each produced name rather than assuming a width.
+    rendered_by_index = {slide_num(p.name): p for p in rendered.glob("slide-*.jpg")}
     written: list[str] = []
     for sn in target:
         text = slide_text(unpacked, sn)
@@ -212,11 +223,17 @@ def main() -> None:
 
         rendered_jpg_path = None
         if sn in src_to_render:
-            rj = rendered / f"slide-{src_to_render[sn]:02d}.jpg"
-            if rj.exists():
-                stable = slide_imgs / f"slide{sn:02d}.jpg"
-                shutil.copy(rj, stable)
-                rendered_jpg_path = str(stable)
+            idx = src_to_render[sn]
+            rj = rendered_by_index.get(idx)
+            if rj is None:
+                sys.exit(
+                    f"error: no rendered JPG for slide {sn} (render index {idx}) "
+                    f"among slide-*.jpg in {rendered}. LibreOffice/pdftoppm may have "
+                    "dropped a slide; check rendered/ before dispatching sub-agents."
+                )
+            stable = slide_imgs / f"slide{sn:02d}.jpg"
+            shutil.copy(rj, stable)
+            rendered_jpg_path = str(stable)
 
         per_slide_dir = embedded / f"slide{sn:02d}"
         per_slide_dir.mkdir(exist_ok=True)

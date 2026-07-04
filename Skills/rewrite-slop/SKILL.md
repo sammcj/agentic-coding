@@ -1,13 +1,13 @@
 ---
 name: rewrite-slop
-description: Rewrites text containing AI slop to make it more human-like. Use when explicitly asked to rewrite AI generated text.
+description: Rewrites text containing AI slop to make it more human-like. Use when explicitly asked to rewrite AI-generated text, or with phrasings like "de-slop", "humanise this", "make it sound less like AI", or "remove the AI tells".
 ---
 
 # rewrite-slop
 
-You review and/or rewrite AI-flavoured text into prose that reads like a tired human journalist filing copy on deadline. If no other context is provided the input is a draft. The output is the same content with its AI fingerprint removed: meaning preserved, structure preserved, facts unchanged.
+You rewrite AI-flavoured text into prose that reads like a tired human journalist filing copy on deadline. If no other context is provided the input is a draft. The output is the same content with its AI fingerprint removed: meaning preserved, structure preserved, facts unchanged.
 
-This is reviewing and/or editing, not authoring. You add no new information. You change no facts, names, numbers, dates, citations, or claims. You preserve quoted speech, code blocks, and direct citations exactly as they appear in the input.
+This is editing, not authoring. You add no new information. You change no facts, names, numbers, dates, citations, or claims. You preserve quoted speech, code blocks, and direct citations exactly as they appear in the input.
 
 ---
 
@@ -19,7 +19,7 @@ Scan the input and remove the following. These are pure AI markers with no legit
 - Citation markers: `citeturn0search0`, `iturn0image0`, `citeturn0news0`, `oai_citation`, `[attached_file:1]`, `[web:1]`, `<grok-card>`, `:contentReference[oaicite:N]{index=N}`
 - JSON tails: `({"attribution":{"attributableIndex":"X-Y"}})`
 - Placeholder tokens: `[Your Name]`, `INSERT_SOURCE_URL_30`, `2025-XX-XX`, `[Describe the specific section]`, any other unfilled bracket placeholder
-- Decorative unicode: mathematical bold (`𝗯𝗼𝗹𝗱`), italic (`𝘪𝘵𝘢𝘭𝘪𝘤`), arrows used as bullets (`->`), multiplication signs in prose (`x` rendered as `×`)
+- Decorative unicode: mathematical bold (`𝗯𝗼𝗹𝗱`), italic (`𝘪𝘵𝘢𝘭𝘪𝘤`), arrows used as bullets (`→`), multiplication signs in prose (`x` rendered as `×`)
 - Em dashes (`—`) and en dashes (`–`): replace with comma, period, colon, parentheses, or hyphen as the sentence requires. Zero tolerance: not one is acceptable in the output.
 - Smart quotes (`" "`, `' '`): replace with straight quotes (`"`, `'`). Zero tolerance.
 - Double-dash sequences (`--`) used as em-dash substitutes: same treatment as em dashes.
@@ -226,14 +226,3 @@ Return only the rewritten text. No preamble, no notes, no change log, no meta-co
 - If the input has nothing to rewrite (a code listing, a table of facts, dense reference material), return it unchanged.
 - Do not rewrite the input's structure unless the structure itself is the slop (e.g. inline-bold-header bullets in flowing prose, a `---` thematic break before every heading, emoji in headers).
 - Voice resources tune register and vocabulary; they do not override em-dash, smart-quote, or factual-fidelity rules.
-
----
-
-## Voice resources
-
-- `resources/technologist.md`: engineering, code, systems, infrastructure, APIs
-- `resources/researcher.md`: academic papers and theses
-- `resources/scientist.md`: empirical findings, methods, data
-- `resources/critic.md`: book, film, art reviews and critique
-- `resources/policy-analyst.md`: briefs to decision-makers
-- `resources/novelist.md`: fiction

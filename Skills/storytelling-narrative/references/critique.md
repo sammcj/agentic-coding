@@ -4,6 +4,14 @@ Use this reference when the user has existing content (a draft, a deck, a memo, 
 
 The goal of critique is to find the structural and rhetorical reasons a piece isn't landing - not to layer surface polish on a broken arc. Surface fixes on a piece with no through-line just produce smoother slop.
 
+## Contents
+
+- How to read existing content
+- Diagnostic checklist: through-line, audience, hook, tension and stakes, turn, resolution, pacing and structure, prose
+- Slop tells
+- Common failure patterns
+- Self-review pass for drafted output
+
 ---
 
 ## How to read existing content

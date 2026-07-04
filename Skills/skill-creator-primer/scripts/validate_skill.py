@@ -11,7 +11,7 @@ Validate a skill against the Agent Skills specification.
 
 Uses the official skills-ref reference library for the actual spec checks
 (https://github.com/agentskills/agentskills/tree/main/skills-ref), with two
-deliberate adaptations for how Netwealth authors skills:
+deliberate adaptations for how skills are authored in practice:
 
 1. Frontmatter is parsed with standard PyYAML, not skills-ref's StrictYAML loader.
    StrictYAML rejects flow-style arrays ("allowed-tools: [Read]") on style grounds,

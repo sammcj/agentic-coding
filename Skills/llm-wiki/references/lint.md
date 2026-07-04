@@ -7,7 +7,7 @@ Health checks on the wiki, in two tiers with different authority. Deterministic 
 Run the structural detections with the bundled helper rather than improvising a script: `uv run scripts/lint_wiki.py <project-root>` reports the `frontmatter`, `index`, `links`, `raw`, and `local` findings below (read-only; `--checks` selects a subset, `--json` for machine output, exit 1 when anything is found). It detects; you apply the fixes described here. If `uv` is unavailable, fall back to the `grep` and file-tool checks - and never heredoc a one-off script through the shell, since `!` gets backslash-escaped and corrupts the code. The other deterministic checks - See Also, log retention, the wiki skill file's links, concept-map freshness and `map-sources` resolution, and the gap register - are not scripted; do them with the file tools and grep. Concept-map mermaid syntax has its own validator (see the Concept maps check).
 
 **Index consistency** - compare `wiki/index.md` against actual `wiki/` files (excluding README.md, index.md and log.md):
-- File exists but missing from index -> add a bullet `* [Title](path) - (no summary)` under its topic section (OKF §6 form; no date column).
+- File exists but missing from index -> add a bullet `* [Title](path) - (no summary)` under its topic section (OKF index form; no date column).
 - Index entry points to a nonexistent file -> mark it `[MISSING]`. Do not delete; let the user decide.
 
 **Internal links** - for every markdown link in article bodies (including Sources lines), excluding Raw links and README.md/index.md/log.md:

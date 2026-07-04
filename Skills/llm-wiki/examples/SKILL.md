@@ -1,8 +1,6 @@
 ---
 name: ml-llm-wiki
 description: "Use when answering questions from this machine-learning knowledge base. Triggers: questions about transformers, attention cost and efficiency, and long-context scaling; 'what do we know about attention', 'check the ML wiki'. Read-only querying of compiled knowledge; to add, update, supersede, lint, audit, or critique, use the llm-wiki skill instead."
-context: fork
-allowed-tools: Read Grep Glob Agent
 ---
 
 # Machine Learning Wiki

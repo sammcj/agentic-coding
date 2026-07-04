@@ -1,7 +1,7 @@
 ---
 name: extract-wisdom
-description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to analyse, summarise, or extract wisdom or key insights from a given content source. Downloads YouTube transcripts, fetches web articles, reads local files, performs analysis, and saves structured markdown.
-allowed-tools: Read Write Edit Glob Grep Task WebSearch WebFetch WebFetch(*) Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py *) Bash(mv *) Bash(mkdir *) Bash(mmdc *) Bash(mermaid-check *) Bash(npx @mermaid-js/mermaid-cli *) Bash(npx -y @mermaid-js/mermaid-cli *) Bash(* --help *) Bash(prettier --write:*) Bash(gh api gists *)
+description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to extract wisdom or key insights from a given content source.
+allowed-tools: Read Write Edit Glob Grep Task WebSearch WebFetch Bash(uv run ~/.claude/skills/extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py *) Bash(mv *)
 ---
 
 # Wisdom Extraction
@@ -60,15 +60,7 @@ Perform analysis on the content, extracting:
 - Include any tools, resources, or techniques mentioned
 - Distinguish between immediate actions and longer-term strategies
 
-#### 5. Notable Quotes
-
-- Extract memorable, impactful, or particularly well-articulated statements
-- Include context for each quote when relevant
-- Focus on quotes that encapsulate key ideas or provide unique perspectives
-- If the content itself quotes other sources, ensure those quotes are also captured
-- Preserve the original wording exactly, except correct American spellings to Australian English
-
-#### 6. Your Own Insights On The Content
+#### 5. Your Own Insights On The Content
 
 Do this in a separate step, only after you've added the content from the source.
 
@@ -80,9 +72,9 @@ Do this in a separate step, only after you've added the content from the source.
 
 Determine the output directory:
 
-**YouTube sources:** The renamed directory from Step 2.
+**YouTube sources:** The renamed directory from Step 1.
 
-**Web and text sources:** The directory created in Step 2 via `create-dir`.
+**Web and text sources:** The directory created in Step 1 via `create-dir`.
 
 **File name:** `<source-title> - analysis.md`
 

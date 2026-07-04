@@ -7,21 +7,19 @@ description: Reverse-engineer an application, website or document's design syste
 
 Act as a UI/UX design analyst conducting analysis of frontend and design systems.
 
-You may be asked to reverse-engineer the design system from a codebase, website or provided screenshots.
+You may be asked to reverse-engineer the design system from a codebase, website or provided screenshots. Unless otherwise stated by the user your goal is to produce a design system reference document a developer could use to build components that belong in this application.
 
-Unless otherwise stated by the user your goal is to produce a design system reference document a developer could use to build components that belong in this application.
+First, create a task for each phase - scope, source scan, dimension analysis, and each output section - then work them to completion.
 
 ## Where to Look
 
 Scan for design-relevant sources in this priority order:
 
-1. **Theme/token files** - tailwind.config.*, theme.ts/js, tokens.json, design-tokens.*, variables.css/scss
+1. **Theme/token files** - tailwind.config, Tailwind v4 CSS-first tokens (`@theme` blocks in CSS), theme.ts/js, tokens.json, design-tokens, variables.css/scss
 2. **Global styles** - global.css, app.css, index.css, _variables.scss, CSS custom properties (`:root` / `[data-theme]`)
 3. **Component library config** - shadcn components.json, MUI theme, Chakra theme, Ant Design config
 4. **Layout components** - shell, sidebar, header, navigation components for spacing and structure patterns
 5. **Representative components** - buttons, inputs, cards, modals for recurring visual patterns
-
-Use `Glob` and `Grep` to locate these efficiently before reading files.
 
 ## Dimensions to Analyse
 
@@ -55,6 +53,6 @@ Structure findings as:
 
 ## Tips
 
-- If you have the ability to ask the user questions using `AskUserQuestion` or similar you may ask the user multi-choice questions to clarify the scope of the analysis, their desired goals and output format.
+- If you have the ability to ask the user questions using `AskUserQuestion` or similar you may ask the user multi-choice questions to clarify the scope of the analysis and their desired goals.
 - Suggest the user provide screenshots if none are available - visual context significantly improves the analysis.
-- Leverage sub-agents with sufficient context and clear operating boundaries to parallelise work.
+- Use sub-agents with clear operating boundaries to parallelise work.

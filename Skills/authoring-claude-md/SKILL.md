@@ -15,7 +15,7 @@ CLAUDE.md files and rule files provide AI agents with:
 - Project-specific context not found in standard documentation
 - Path-scoped instructions that only load when relevant files are touched
 
-**Not for Obvious patterns, duplicating documentation, or generic coding advice.**:
+**Not for**: obvious patterns, duplicating documentation, or generic coding advice.
 
 ## Core Principles
 
@@ -25,8 +25,7 @@ CLAUDE.md files and rule files provide AI agents with:
 
 ## Structure
 
-- Use headings for clear organisation. Suggested sections:
-- Use 2-4 sections. Only include what adds value.
+Use headings for clear organisation. Common sections: Architecture, Conventions, Gotchas, Testing. Use 2-4 sections and only include what adds value.
 
 ## When to Use `.claude/rules/` Instead
 
@@ -103,19 +102,17 @@ Rules load every session (or when matching files are opened). For task-specific 
 
 ## What to Exclude
 
-- Line numbers: Files change, references break. Use descriptive paths: "in `src/auth/middleware.ts`" not "line 42"
-- Obvious information: "We use React" (visible in package.json)
-- Setup steps: Belongs in README unless highly non-standard
-- Generic advice: "Write good tests" adds no project-specific value
-- Temporary notes: "TODO: refactor this" belongs in code comments
-- Duplicate content: If it's in README, don't repeat it
-- Formatting over-emphasis: You don't need to bold the start of every sentence or bullet point, only add emphasis for stand out important statements or warnings that truly warrant it
-
-## Anti-Patterns
-
-- Code style guidelines: Don't document code formatting rules, naming conventions, or code patterns that linters enforce. Use ESLint, Prettier, Black, golangci-lint, or similar tools. LLMs are in-context learners and will pick up patterns from codebase exploration. Configure Claude Code Hooks to run formatters if needed.
-- Task-specific minutiae: Database schemas, API specifications, deployment procedures belong in their own documentation. Link to them from CLAUDE.md rather than duplicating content.
-- Kitchen sink approach: Not every gotcha needs CLAUDE.md. Ask: "Is this relevant across most coding sessions?" If no, it belongs in code comments or specific documentation files.
+- Line numbers: files change and references break. Use descriptive paths: "in `src/auth/middleware.ts`" not "line 42"
+- Obvious information: "We use React" (visible in package.json). LLMs are in-context learners and pick up patterns from codebase exploration.
+- Code style guidelines: formatting rules, naming conventions, or patterns that linters enforce. Use ESLint, Prettier, Black, golangci-lint or similar, and Claude Code Hooks to run formatters.
+- Generic advice: "Write good tests" adds no project-specific value.
+- Setup steps: belong in README unless highly non-standard.
+- Duplicate content: if it's in the README or existing docs, link to it rather than repeat it.
+- Task-specific minutiae: database schemas, API specifications, deployment procedures belong in their own docs. Link to them rather than duplicating.
+- Temporary notes: TODOs, one-off bug fixes, and temporary workarounds belong in code comments.
+- Verbose descriptions: keep entries terse, drop long explanations.
+- Kitchen sink entries: not every gotcha belongs here. Ask "Is this relevant across most coding sessions?" If no, it belongs in code comments or specific docs.
+- Formatting over-emphasis: don't bold the start of every sentence or bullet, reserve emphasis for warnings that truly warrant it.
 
 ## Linking to Existing Documentation
 
@@ -132,21 +129,19 @@ Event-driven architecture using AWS EventBridge.
 
 **Bad**: Copying schema tables, pasting deployment steps, or duplicating API flows into CLAUDE.md
 
-Use `file:line` references for specific code: "See error handling in src/utils/errors.ts:45-67"
-
 ## Writing Style
 
 **Be specific**:
-- ❌ "Use caution with the authentication system"
-- ✅ "Auth tokens expire after 1 hour. Background jobs must refresh tokens using `refreshToken()` in `src/auth/refresh.ts`"
+- Bad: "Use caution with the authentication system"
+- Good: "Auth tokens expire after 1 hour. Background jobs must refresh tokens using `refreshToken()` in `src/auth/refresh.ts`"
 
 **Be concise**:
-- ❌ "It's important to note that when working with our database layer, you should be aware that..."
-- ✅ "Database queries: Use Prisma for CRUD, raw SQL for complex reports in `/queries`"
+- Bad: "It's important to note that when working with our database layer, you should be aware that..."
+- Good: "Database queries: Use Prisma for CRUD, raw SQL for complex reports in `/queries`"
 
 **Use active voice**:
-- ❌ "Migrations should be run before deployment"
-- ✅ "Run migrations before deployment: `npm run migrate:prod`"
+- Bad: "Migrations should be run before deployment"
+- Good: "Run migrations before deployment: `npm run migrate:prod`"
 
 ## When to Update
 
@@ -155,11 +150,7 @@ Add to CLAUDE.md when:
 - Solving an issue that took significant investigation that will be encountered again by other agents
 - Finding a gotcha that's not immediately clear from code
 
-Don't add:
-- One-off fixes for specific bugs
-- Information easily found in existing docs
-- Temporary workarounds (these belong in code comments)
-- Verbose descriptions or explanations
+Don't add anything covered under What to Exclude (one-off fixes, temporary workarounds, info already in docs, verbose explanations).
 
 ## Spelling Conventions
 
@@ -201,19 +192,16 @@ Aim for 1k-4k tokens for CLAUDE.md. Most projects fit in 100-300 lines. A single
 2. Remove generic advice
 3. Ensure there's no duplicated content
 
-Check token count: `ingest CLAUDE.md` (if available)
+Estimate token count with `wc -c CLAUDE.md`, then divide the character count by roughly 4.
 
 ## Review Checklist
 
 Before finalising:
+- [ ] Nothing from What to Exclude slipped in (line numbers, code style, duplicated docs, temporary notes, verbose guidance)
 - [ ] Wording is concise and not duplicated
 - [ ] Sections only add non-obvious value
-- [ ] No code style guidelines (use linters instead)
-- [ ] Links to existing docs rather than duplicating them
 - [ ] Simple formatting, no smart quotes, no em dashes, no excessive bolding
-- [ ] No vague or overly verbose guidance
-- [ ] No temporary notes or TODOs (unless requested by the user)
-- [ ] No line numbers in file references
 - [ ] Information is unlikely to become stale quickly
 - [ ] Prefer positive rules with a substitute ("use semicolons or periods to separate clauses") over bare prohibitions ("never use em-dashes")
 - [ ] Focused on stable, long-term patterns
+- [ ] Content is tight, concise and actionable, not verbose or narrative driven

@@ -1,11 +1,11 @@
 ---
 name: pptx-to-md
-description: Convert a PPTX or PDF slide deck into per-slide markdown that preserves both the verbatim text and the meaning of embedded screenshots, diagrams and charts in their original layout positions. Use this skill whenever the user wants to extract content from or convert a slide deck in PDF or PPTX to markdown.
+description: Convert a PPTX slide deck into per-slide markdown that preserves both the verbatim text and the meaning of embedded screenshots, diagrams and charts in their original layout positions. Use this skill (over pptx or liteparse) whenever the deliverable is markdown of a deck's content including interpreted visuals.
 ---
 
 # Extract PPTX to per-slide markdown
 
-This skill turns a `.pptx` (or `.pdf`) file into one markdown file per slide, preserving layout context and image meaning. It does not paraphrase the text or describe images out of context. The output is suitable as input to a content uplift pass, a markdown-to-HTML build, or any other downstream transform.
+This skill turns a `.pptx` file into one markdown file per slide, preserving layout context and image meaning. It does not paraphrase the text or describe images out of context. The output is suitable as input to a content uplift pass, a markdown-to-HTML build, or any other downstream transform.
 
 ## When to use
 
@@ -32,7 +32,7 @@ python <skill>/scripts/prepare.py <pptx-path> <workspace-dir>
 
 This unzips the PPTX, renders every visible slide to a JPG via LibreOffice and `pdftoppm`, then writes one manifest JSON per visible slide. After rendering, the script checks the JPG count matches the slide count and warns to stderr if they diverge - LibreOffice has been known to silently drop slides, so always read that warning before dispatching sub-agents.
 
-Hidden slides (those with `show="0"` in the slide XML) are skipped by default. Pass `--include-hidden` to render and manifest them too; this enables the LibreOffice `ExportHiddenSlides` filter so hidden slides get real JPGs, not empty ones.
+**Run this step OUTSIDE any command sandbox.** LibreOffice headless needs to write its per-user profile and set OS/task policies that a sandbox blocks, so under sandboxing `soffice` fails silently: no PDF, empty output, and no `deck_index.json`. Under Claude Code specifically, run `prepare.py` with the Bash tool's `dangerouslyDisableSandbox: true`. Symptom to recognise: `rendered/` stays empty and no `deck_index.json` is written while the `soffice` process sits at near-zero CPU.
 
 The workspace looks like:
 
@@ -84,8 +84,6 @@ This stitches the per-slide markdown into a single `deck.md` in source-slide ord
 **Speaker notes mapping is not always 1:1.** This skill reads the slide-to-notesSlide relationship from the slide's `_rels` file rather than assuming `slideN.xml` maps to `notesSlideN.xml`. Most decks happen to be 1:1 but it isn't guaranteed.
 
 **Source XML can have typos.** The pipeline preserves them verbatim. Correct them in a later content-uplift pass, not during extraction - this keeps extraction deterministic.
-
-**Don't fork the sub-agents.** A fork inherits the orchestrator's full conversation context, which is large and unrelated. The sub-agent only needs the manifest. Use a named subagent type (e.g. `general-purpose`) so each starts fresh.
 
 **Hidden slides are excluded by default.** Most decks contain hidden slides for a reason (work-in-progress, deprecated content, internal-only notes). Pass `--include-hidden` only when you want them in the output - the script then renders them properly via LibreOffice's `ExportHiddenSlides` filter, so they get real JPGs in the manifests.
 

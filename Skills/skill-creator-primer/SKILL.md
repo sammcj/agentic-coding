@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: Foundational skill-authoring knowledge to use alongside the skill-creator skill. You **MUST** load this skill before the skill-creator skill whenever creating, editing, reviewing, improving, or contributing a skill - its frontmatter, body, evals, or description, including checking a description for trigger conflicts with other skills, or when you are making ANY changes to ANY agent skill.
 metadata:
-  version: 2026-07-03
+  version: 2026-07-04
 ---
 
 # Skill Creator Primer
@@ -26,14 +26,6 @@ Before you create, update, or review a skill, create a task (todo) for each step
 3. Guides the agent's behaviour through detailed instructions
 
 **Skill selection happens through pure LLM reasoning.** No algorithmic matching, keyword search, or intent classification (the optional `paths` frontmatter, a file-glob gate, is the sole exception). The agent reads skill descriptions in the `Skill` tool's prompt and uses language model reasoning to decide which skill matches. This makes the `description` field the single most critical element.
-
-**Agents tend to under-trigger skills.** To combat this, make descriptions slightly assertive about when to activate. Instead of "Build dashboards for data", write "Build dashboards for data. Use this skill whenever the user mentions dashboards, data visualisation, metrics, or wants to display any kind of data."
-
-**Progressive disclosure keeps context lean.** Three-level loading:
-
-1. **Metadata** (name + description) - Always in context (~20-100 words)
-2. **SKILL.md body** - Loaded only after triggering (<5k words)
-3. **Bundled resources** - Loaded by the agent as needed (unlimited, scripts execute without reading)
 
 **Branches decide what to disclose.** Inline what every branch of the skill needs; push behind a context pointer (a bundled file) only what a single branch reaches. A pointer's _wording_, not its target, decides whether the agent follows it - a must-have target behind a weak pointer is a variance bug, so sharpen the wording before settling for inlining. When in doubt for this primer, keep almost-certainly-needed material inline so the agent never has to decide whether to read it.
 
@@ -64,18 +56,6 @@ When a request spans several related capabilities, default to a single skill tha
 - **How to consolidate** - fold the related behaviours into one SKILL.md and push each one's detail into bundled `references/` the agent loads on demand.
 - **When to split** - only when the skills trigger on genuinely distinct intents or carry conflicting tool or permission needs.
 
-## Degrees of Freedom
-
-Match specificity to the task's fragility and variability:
-
-**High freedom** (text instructions): Multiple approaches valid, decisions depend on context, heuristics guide approach.
-
-**Medium freedom** (pseudocode/parameterised scripts): Preferred pattern exists, some variation acceptable, configuration affects behaviour.
-
-**Low freedom** (specific scripts, few parameters): Operations fragile and error-prone, consistency critical, specific sequence required.
-
-Think of Claude exploring a path: a narrow bridge with cliffs needs guardrails (low freedom), an open field allows many routes (high freedom).
-
 ## Claude Code Frontmatter & Extensions
 
 These are Claude Code-specific fields not covered by the Agent Skills spec. Only include when specifically needed:
@@ -85,7 +65,7 @@ These are Claude Code-specific fields not covered by the Agent Skills spec. Only
 - `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-opus-4-7"`. Only include if the user requests it
 - `effort`: Override effort level when the skill is active. Options: `low`, `medium`, `high`, `xhigh`, `max`. Only include if the user requests it
 - `context`: Set to `"fork"` to run in a forked sub-agent context. Useful for skills with extensive exploration or large outputs. Only include if the user requests it
-- `disable-model-invocation`: Set to `true` to prevent Claude from auto-loading the skill. Use for side-effect workflows the user should trigger manually. Only include if the user requests it
+- `disable-model-invocation`: Set to `true` to prevent Claude from auto-loading the skill. Use for side-effect workflows the user should trigger manually. Choose this mode deliberately per "Invocation mode is a trade-off" above (and Self-Review step 5), not only on user request
 - `user-invocable`: Skills appear as slash commands by default. Set to `false` to hide from the menu. Only include if the user requests it
 - `agent`: Subagent type used when `context: "fork"` is set (defaults to general-purpose); has no effect without it. Only include if the user requests it
 - `paths`: Glob patterns that limit when the skill activates. Only include if the skill is scoped to particular files or directories
@@ -105,7 +85,7 @@ Consider the official docs at https://code.claude.com/docs/en/skills#frontmatter
 
 ## Write Skills to Run Across Agents
 
-Skills in this toolkit should work on any tool that supports standard Agent Skills. Claude Code is our primary target, but GitHub Copilot and others read the same format, so keep wording and tooling portable rather than silently Claude Code-only:
+Skills should work on any tool that supports standard Agent Skills. Claude Code is our primary target, but GitHub Copilot and others read the same format, so keep wording and tooling portable rather than silently Claude Code-only:
 
 - Say "the agent", not "Claude Code" or "Copilot", when referring to whatever runs the skill.
 - Favour the spec's standard frontmatter and portable commands; reach for the Claude Code-specific extension fields above only when the skill genuinely needs them.
@@ -138,14 +118,7 @@ Standardise where bundled files live so skills stay predictable across the toolk
 
 ## Capture Intent from Conversation
 
-When a user says "turn this into a skill", extract the workflow from the current conversation before asking questions. Look for:
-
-- Tools used and the sequence of steps taken
-- Corrections the user made along the way
-- Input/output formats observed
-- Patterns that repeated across the conversation
-
-Fill gaps with the user, then proceed to skill creation.
+When the user says "turn this into a skill", or a workflow to capture already sits in the current conversation, read `references/authoring.md` to extract it (tools used, step sequence, corrections, I/O formats) before asking questions.
 
 ## Writing Effective Descriptions
 
@@ -213,25 +186,16 @@ Place an eval set at `evals/<set>.json` beside the skill and run it with the bun
 - **Don't state the obvious.** the agent already knows a lot about coding and has default opinions. Focus skill content on information that pushes the agent **out of** its normal way of thinking. If the agent would reliably do the right thing without your skill, that content is wasting tokens.
 - **Knowing is not doing - keep process even when the agent knows the steps.** The test for cutting content is not "does the agent know this?" but "would the agent reliably do this, in this order, every time, without being told?" Declarative knowledge that lives in training data (how a well-known API behaves, what a design pattern is, standard language syntax) is recalled reliably, so restating it wastes tokens - cut it. A required workflow is different: the agent may know each step yet still default to its own approach or skip the sequence unless the skill commits it to that process. Enforcement, ordering constraints, gates, and checklists earn their tokens by changing what the agent _does_, not by teaching it something new.
 - **Build a Gotchas section.** The highest-signal content in any skill is a Gotchas section listing common failure points the agent hits when using the skill. Build this up from real failures over time. A good Gotchas section often delivers more value than pages of general instructions.
-- **Avoid railroading the agent.** Because skills are reusable across many different prompts and contexts, being too specific in instructions backfires. Give the agent the information it needs, but leave flexibility to adapt to the situation. Overly rigid instructions (heavy MUSTs, exact step sequences) break when the context shifts even slightly.
+- **Avoid railroading the agent.** Because skills are reusable across many different prompts and contexts, being too specific in instructions backfires. Give the agent the information it needs, but leave flexibility to adapt to the situation. Overly rigid instructions (heavy MUSTs, exact step sequences) break when the context shifts even slightly. When creating a skill and calibrating how prescriptive to make instructions (high/medium/low freedom, matched to the task's fragility), read `references/authoring.md`.
 - **Build with sub-agents in mind.** Sub-agents parallelise independent work and keep bulky intermediate output out of the main conversation. Where a skill's workflow has steps that could fan out - per-item passes, independent research questions, read-only sweeps - mark the hand-off: what each sub-agent needs, and what it should return (a summary, a verdict, a file path; not a raw dump). Suggest fan-out points rather than prescribing orchestration; the model running the skill may coordinate sub-agents better than the one authoring it today.
 - **Think through the setup.** Some skills need user-specific configuration (e.g. which Slack channel, which database, API keys). Pattern: on first run, check for a config file; if missing, ask the user and store their answers. This avoids hardcoding values that differ per user or environment.
 - **Avoid pink elephant guidance.** Naming specific unwanted behaviour activates it. For example saying "Never use the word delve" may plant the concept and result in the AI using it. Prefer positive instructions stating the desired behaviour. If you must prohibit something, pair it with the concrete alternative so the agent has somewhere to land. Specific banned-item lists (e.g. exact phrases to avoid) are fine when paired with replacements.
 - **Steer with leading words.** Pick one pretrained, meaning-dense term per concept and repeat it throughout (always "field", not a mix of "field", "box", "element"); the agent echoes the term in its reasoning and the prior it carries steers behaviour. **Read `references/steering.md`** whenever a skill won't comply (the agent ignores an instruction, skips or finishes a step early), when you are choosing or strengthening a leading word, or when a skill has multi-step procedures that need completion criteria - it covers leading words, completion criteria, and defending against premature completion.
 - **Make task-tracking the first step of any encoded workflow.** When a skill encodes a multi-step workflow, write its first step as an instruction to the agent: create a task (todo) for each step of the workflow, then work them to completion. The visible checklist keeps the agent on task and improves completeness - the same defence against premature completion this primer applies to itself (see "Track Each Step as a Task").
 - **Co-locate a concept's parts.** Keep a concept's definition, rules, and caveats under one heading rather than scattered, so reading one part brings its neighbours. The test: a skill should read like documentation written for the agent. This differs from duplication (one meaning repeated in two places); scattering fragments a single meaning across many.
-- **Do not add inline scripts within markdown.** Single commands / simple one liners are fine, but scripts should be their own files.
+- **Do not add inline scripts within markdown.** Single commands / simple one liners are fine, but scripts should be their own files. When a skill bundles scripts, read `references/authoring.md` for how to write them (error handling, documented constants, execution intent, inline deps).
 - Avoid deeply nested references.
 - For reference files (`references/*.md`) longer than 100 lines, include a concise table of contents at the top. This ensures the agent can see the full scope of available information even when previewing with partial reads.
-
-### Writing Scripts
-
-When a skill bundles scripts:
-
-- **Solve, don't punt.** Handle error conditions in the script rather than failing and leaving the agent to improvise. A script that creates a missing file or falls back to a sensible default is more reliable than one that throws.
-- **No voodoo constants.** Justify and document config values in a comment. If you can't explain why a timeout is 30s, the agent can't either.
-- **State execution intent.** Make clear whether to run the script ("Run `extract_fields.py` to pull form fields") or read it as reference ("See `extract_fields.py` for the extraction algorithm"). Execution is usually preferred.
-- **Lean on the standard library; declare real deps inline.** A stdlib-only script runs anywhere with no setup, so prefer it. When a script genuinely needs a third-party package, run it with `uv` and declare the dependency in [PEP-723](https://peps.python.org/pep-0723/) inline metadata at the top of the script - the dependency then travels with the file instead of relying on the environment being pre-provisioned.
 
 ### Token Budget Guidance
 
@@ -252,32 +216,7 @@ The count uses a chars/4.12 heuristic calibrated against tiktoken; add `--tiktok
 | OK     | 9k-12k |
 | Poor   | 12k+   |
 
-Aim for <4k tokens in the main SKILL.md. Move detailed content to reference files.
-
-### Examples
-
-Good example (concise, actionable):
-
-```
-## Extract PDF text
-
-Use pdfplumber for text extraction:
-
-`python scripts/extract_pdf_text.py <pdf-file>`
-
-```
-
-Bad example (verbose):
-
-```
-## Extract PDF text
-
-PDF (Portable Document Format) files are a common file format that contains
-text, images, and other content. To extract text from a PDF, you'll need to
-use a library. There are many libraries available for PDF processing, but
-pdfplumber is recommended because it's easy to use and handles most cases well.
-First, you'll need to install it using pip. Then you can use the code below...
-```
+Aim for <4k tokens in the main SKILL.md. Move detailed content to reference files. For a good/bad illustration of concise vs verbose section writing, read `references/authoring.md`.
 
 ---
 

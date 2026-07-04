@@ -57,47 +57,9 @@ Layer these preattentive attributes for progressive emphasis:
 
 ---
 
-## Colour for Specific Chart Types
+## Palette and colour system
 
-### Bar Charts
-
-- Grey all bars, accent the one(s) that tell the story
-- Or: grey all bars, use a gradient of the accent colour to show magnitude
-- Never use a different colour for every bar unless the categories ARE the point
-
-### Line Charts
-
-- Grey all lines, accent the one series the audience should track
-- Use line weight (thickness) as secondary emphasis - thicker = more important
-- Dashed lines for projections/forecasts to distinguish from actual data
-
-### Tables & Heatmaps
-
-- Use subtle alternating row shading (very light grey, not colour)
-- Use a single-hue sequential palette for heatmap values
-- Bold + accent colour for the specific cells you want to highlight
-
-### Text-Heavy Content (Slides, Reports, Infographic Panels)
-
-- Title hierarchy: dark colour for main title, medium grey for subtitles
-- Use accent colour in text sparingly - highlight only the key phrase or number
-- Never use more than 2 text colours in a single view or section (excluding grey for de-emphasis)
-
----
-
-## Recommended Palettes
-
-### Safe Defaults (accessible, professional)
-
-- **Accent**: Steel blue (#4472C4) or Teal (#008080) - professional, colour-blind safe
-- **De-emphasis**: Medium grey (#A6A6A6) for supporting data
-- **Background elements**: Light grey (#D9D9D9) for gridlines and borders
-- **Positive/Negative**: Blue (#4472C4) / Orange (#ED7D31) - avoids red/green issues
-
-### For Dark Backgrounds
-
-- If the user insists on dark backgrounds, invert: use lighter greys for de-emphasis and brighter accent colours
-- Test carefully - dark backgrounds reduce readability and are rarely worth the aesthetic trade-off
+For the validated colour palette and per-chart colour mechanics, defer to the dataviz skill (its `references/palette.md` documents the validated default palette). This reference keeps the grey-plus-accent emphasis strategy above; dataviz owns the specific colour values and mark rendering.
 
 ---
 

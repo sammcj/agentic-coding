@@ -28,4 +28,4 @@ The transcript command also outputs `YOUTUBE_CHANNEL`, `YOUTUBE_TITLE`, and `THU
 
 **Note:** The script uses `--restrict-filenames` to sanitise special characters in filenames for safer handling.
 
-Return to SKILL.md and continue with Step 3.
+Return to SKILL.md and continue with Step 2.

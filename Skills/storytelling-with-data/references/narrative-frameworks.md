@@ -2,6 +2,16 @@
 
 A synthesis of frameworks from respected storytelling thought leaders, adapted for data communication. Use this reference when structuring any narrative: presentations, pitches, reports, or data stories.
 
+## Contents
+
+1. The Data Storytelling Arc (Brent Dykes)
+2. The Sparkline / Presentation Form (Nancy Duarte)
+3. The StoryBrand SB7 Framework (Donald Miller)
+4. The Five-Second Moment (Matthew Dicks)
+5. Brain Science of Story (Lisa Cron)
+6. SUCCESs Framework (Chip & Dan Heath)
+- Recommended Reading (Prioritised)
+
 ---
 
 ## 1. The Data Storytelling Arc (Brent Dykes)
@@ -184,18 +194,6 @@ Why some ideas stick and others don't. A diagnostic checklist for any message.
 **The Curse of Knowledge**: The single biggest barrier to sticky messages. Once you know something, you can't imagine not knowing it. This is why experts produce terrible presentations: they skip context their audience needs. Combat it by using concrete language and the Dinner Test.
 
 **When to use**: As a final review checklist for any presentation, pitch, or report. Run your key message through each letter of SUCCESs.
-
----
-
-## Framework Selection Guide
-
-| Scenario | Primary Framework | Supporting Framework(s) |
-|---|---|---|
-| Data insight presentation to stakeholders | Dykes Data Storytelling Arc | Cron (why hooks work), Heath SUCCESs (message check) |
-| Persuasive keynote or pitch | Duarte Sparkline | Miller SB7 (audience as hero), Dicks (personal anecdotes) |
-| Product/brand positioning | Miller SB7 | Duarte (contrast), Heath (stickiness) |
-| Conference talk with personal stories | Dicks Five-Second Moment | Duarte (structure), Cron (brain engagement) |
-| Reviewing/critiquing a presentation | All: use as diagnostic lenses | Heath SUCCESs as final checklist |
 
 ---
 

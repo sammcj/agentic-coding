@@ -1,10 +1,9 @@
 ---
 name: guided-demo
 description: >
-  A pattern for adding self-narrating (typed out) guided walkthrough to any HTML/web application.
-  Use this skill whenever the user wants to add a guided demo, auto-narration, typewriter walkthrough,
-  self-presenting mode, automated tour, auto-play demo, self-running presentation, presentation mode,
-  or step-by-step tour to an HTML page, web app, prototype, slide deck, dashboard, or data story.
+  A pattern for adding a self-narrating (typed out) guided walkthrough to any HTML/web application.
+  Use this skill whenever the user wants to add a guided demo, auto-narration, self-running presentation,
+  or step-by-step tour to an HTML page, web app, prototype, HTML slide deck, dashboard, or data story.
 ---
 
 # Guided Demo Pattern
@@ -74,26 +73,11 @@ Gate all keyboard capture behind an `isActive` flag so it does not interfere wit
 
 ### Text-to-speech narration
 
-Browser-native TTS using the `speechSynthesis` Web Speech API. Reads each step's narration aloud alongside the typewriter effect. Include in all guided demos but must be **off by default** - never start speaking without explicit user action. The user toggles TTS via a speaker icon in the control bar (dimmed when off, full opacity when on).
-
-Key requirements:
-- **Default off.** The toggle icon renders in the control bar but TTS is muted until the user clicks it.
-- **Voice selection.** Voices load asynchronously in some browsers. Listen for `speechSynthesis.addEventListener('voiceschanged', ...)` and cache the selected voice. Implement a preference cascade: filter `speechSynthesis.getVoices()` by predicate functions in priority order, returning the first match. Adjust the locale cascade to suit the project's target audience (e.g. en-AU, en-GB, en-US).
-- **Playback integration.** Call `speakText()` at the start of every step, before both the typewriter branch (auto-play) and the instant-text branch (paused/manual stepping). One call site, not two. Set `utterance.rate` to track the demo's speed setting.
-- **Cancellation.** `speechSynthesis.cancel()` must be called in: `clearAllTimers()`, `stopDemo()`, component unmount cleanup, and inside the mute toggle when muting. `speakText()` itself should cancel before speaking so stepping to a new step cuts off the previous utterance. Guard every `speechSynthesis` call with `if ('speechSynthesis' in window)` for SSR/test environments.
-- **Keyboard shortcut.** M to toggle. Gate behind the `isActive` flag and skip when focus is in form inputs, same as existing keyboard controls.
+Browser-native TTS via the `speechSynthesis` Web Speech API reads each step's narration aloud alongside the typewriter. Include it in every demo but keep it **off by default** - never speak without explicit user action. The user toggles it with a speaker icon in the control bar and the `M` key. See `references/implementation.md` (Text-to-speech narration) for voice selection, the single call site, and cancellation.
 
 ### Step countdown indicator
 
-A subtle progress bar that fills left-to-right during the pause after the typewriter text finishes, showing how much time remains before auto-advancing. Gives the viewer a sense of pacing without being distracting. Include in all guided demos.
-
-Key design decisions:
-- **CSS animation, not JS intervals.** The fill uses a `@keyframes` animation with `animation-duration` set dynamically from the actual pause duration. No `setInterval`, no `requestAnimationFrame`. The browser handles smooth rendering.
-- **Placement.** Directly below the overall step progress bar (the "step X of Y" bar), above the narrator text. This keeps the two progress indicators visually grouped. Do not place it between the narrator text and the controls.
-- **Cleanup via `clearAllTimers()`.** Every action that interrupts the current step (manual step, pause, stop) calls `clearAllTimers()` first. Resetting the countdown there means you never need to clear it elsewhere.
-- **No countdown on last step.** The `onDone` callback only starts the countdown when `stepIdx < script.length - 1`. There is nothing to count down to on the final step.
-- **Speed changes mid-countdown.** The current bar keeps its original duration. The new speed applies to the next step's countdown. Restarting the animation mid-step to match the new speed is not worth the complexity.
-- **Visual tuning.** 2px height. Container background at `rgba(255, 255, 255, 0.06)` reads as a subtle track when empty. Fill colour should be the application's accent colour at 0.6-0.8 opacity. Use `linear` timing, not `ease` - the viewer reads it as a countdown and easing makes the remaining time harder to judge.
+A thin bar below the step progress bar fills during the pause after the typewriter finishes, showing time until auto-advance. Include it in every demo. See `references/implementation.md` (Step countdown indicator) for the CSS-animation approach, placement, and reset via `clearAllTimers()`.
 
 ### Optional: transition interstitials
 
@@ -117,8 +101,6 @@ These are the failure points that come up repeatedly:
 - **ES modules**: If using `<script type="module">`, all demo functions called from `onclick` must be on `window.*`.
 - **Print**: Hide demo panel and interstitial in `@media print`.
 - **Accessibility**: Narrator panel should have `role="status"` and `aria-live="polite"`. Highlight outlines must meet contrast requirements.
-- **TTS cancellation leaks**: If `speechSynthesis.cancel()` is missing from any cleanup path (stop, step, mute, unmount), the previous utterance plays over the new one. Every function that clears timers must also cancel speech. Guard all `speechSynthesis` calls with `if ('speechSynthesis' in window)`.
-- **TTS voices async**: `speechSynthesis.getVoices()` returns an empty array on first call in some browsers. Always listen for the `voiceschanged` event and cache the result.
 
 ## Applicability
 

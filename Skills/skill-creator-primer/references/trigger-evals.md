@@ -13,7 +13,7 @@ An array of cases at `evals/<set>.json` beside the skill:
 ]
 ```
 
-Write queries that are self-contained and substantive. Put any sample content (a sensitive snippet, a data row) inline - a query that only references an artifact ("here is the PDF") makes the agent go looking for it rather than do the work, so it never reaches the point of consulting a skill. The most valuable negatives are near-misses that a naive keyword match would trip on. Trivial one-step queries trigger nothing regardless of description, so they make poor tests.
+Write queries that are self-contained and substantive. Put any sample content (a sensitive snippet, a data row) inline - a query that only references an artifact ("here is the PDF") makes the agent go looking for it rather than do the work, so it never reaches the point of consulting a skill. The most valuable negatives are near-misses that a naive keyword match would trip on.
 
 ## Running the eval
 
@@ -26,19 +26,7 @@ Use the bundled `scripts/eval_triggering.py` (resolve it from the skill-creator-
 
 It installs the real skill into a throwaway project and reports, per query, how often the skill activated within the first N tool calls (default 3; `--within N`). `--runs`, `--workers`, `--timeout` and `--model` all have sensible defaults. It streams each run and kills it as soon as the decision is made, so the model never plays the task out to completion, and every run is confined to a temp dir that is deleted afterwards.
 
-### In the ai-toolkit repo
-
-The script lives under this skill, and skills sit in `library/skills/`. From the repo root, run it against any skill that carries an eval set:
-
-```bash
-library/skills/skill-creator-primer/scripts/eval_triggering.py \
-  --skill-path library/skills/netwealth-org \
-  --eval-set library/skills/netwealth-org/evals/trigger.json
-```
-
-These evals are a tuning aid, not part of `uv run toolkit-test`: the build does not run or gate on them (they each spawn `claude -p`, which is time consuming and non-deterministic). The runner's own unit tests, which mock out `claude`, do run under `toolkit-test`.
-
-Counting activation "within the first N tool calls" rather than "as the very first action" matters for skills that do real work: on a tool-using task (read a file, query a database) the skill legitimately fires after an opening Read or Bash, and what you care about is that it activates early, not strictly first.
+Counting activation "within the first N tool calls" rather than "as the very first action" matters for skills that do real work: on a tool-using task (read a file, query a database) the skill legitimately fires after an opening Read or Bash, and what you care about is that it activates early, not strictly first. These evals are a tuning aid, not a build gate: each query spawns `claude -p`, which is time consuming and non-deterministic, so run them by hand when tuning a description.
 
 ### Why it wraps claude with --setting-sources project
 

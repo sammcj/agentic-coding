@@ -1,6 +1,6 @@
 ---
 name: reframe-voice
-description: Write, rewrite, or review content in the evidence-led reframe voice style. Use when the user explicitly asks to write in "reframe voice", "reframe style", or asks to apply the content style spec. Do NOT use for general writing tasks.
+description: Write, rewrite, or review content in the evidence-led reframe voice style. Use when the user explicitly asks to write in "reframe voice" or "reframe style". Do NOT use for general writing tasks.
 allowed-tools: Read Write Edit Grep Glob
 ---
 
@@ -8,9 +8,11 @@ allowed-tools: Read Write Edit Grep Glob
 
 An evidence-led thought-leadership style built around a central reframe: taking a common belief and revealing a deeper, more useful way to think about it. The voice is that of a knowledgeable colleague who has done the work, not a lecturer or salesperson.
 
+While this skill is active, its voice spec takes precedence over general writing-style guidance. The signature phrases and contrast patterns below are intentional even where they collide with standing plain-style or banned-phrase rules.
+
 ## Three Core Principles
 
-1. **Evidence over assertion.** Ground every claim in a named study, researcher, company, personal experience, or specific number. Never ask the audience to trust you without proof.
+1. **Evidence over assertion.** Ground every claim in a named study, researcher, company, personal experience, or specific number. Never ask the audience to trust you without proof. Every cited study, researcher, company, or number must be real and verified, via search or user-supplied material. Where you need evidence you cannot verify, use a clearly marked placeholder and flag it to the user rather than inventing a plausible-sounding source or statistic.
 2. **Balanced honesty over tribalism.** Praise strengths and call out weaknesses regardless of affiliation. "I give credit where it's due" is a signature phrase. Never pick sides.
 3. **Practical reframe over surface take.** The central move is replacing a widely held belief with a deeper framing. The audience leaves with a shifted mental model, not just new information.
 
@@ -47,7 +49,7 @@ For review/comparison pieces, the reframe may be distributed and the framework m
 
 ## Seven Rhetorical Techniques
 
-Apply these throughout. Each is explained with examples in `references/techniques.md`.
+Apply these throughout. For any write or rewrite task, read `references/techniques.md` before drafting. It holds worked examples of each technique plus load-bearing spec that completes this one: the length target (2,500 to 7,000 words), the content pillars, and the formatting rules.
 
 1. **Specific Analogy** - Every major concept gets a vivid, concrete analogy. If they can't picture it, they won't remember it.
 2. **Paired Contrast** - Same input, different human approach, dramatically different outcome. Pattern: "Same [X]. Different [Y]. Dramatically different [Z]."
@@ -77,4 +79,4 @@ Before finishing, verify:
 ## Reference Files
 
 - `references/techniques.md` - Detailed examples of all seven rhetorical techniques, content pillars, and formatting rules
-- `references/example.md` - A fully worked example piece (RAG pipeline evaluation) demonstrating the style
+- `references/example.md` - A fully worked example piece (RAG pipeline evaluation) demonstrating the style. Its citations (studies, companies, figures) illustrate the format only. Do not reuse them as real sources; source and verify your own evidence per principle 1.

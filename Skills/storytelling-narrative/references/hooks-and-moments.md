@@ -2,6 +2,14 @@
 
 Hooks open attention loops. Turns close them. Together they power every compelling narrative - pitch, post, talk, memo, or report. Most weak business writing fails at one of these two points: the hook is generic and buried, or the turn is missing.
 
+## Contents
+
+- What makes a hook work
+- Six hook types: anomaly, stakes, contrast, question, confession/vulnerability, in medias res
+- What makes a turn work: the turn test, placement, making the turn land
+- The transformation arc (framework shapes)
+- Quick checklists: hook check, turn check
+
 ---
 
 ## What makes a hook work

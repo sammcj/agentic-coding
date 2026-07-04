@@ -2,6 +2,23 @@
 
 Copy-paste example code snippets for implementing the guided demo pattern. Adapt colours, selectors, timing etc. to suit the application.
 
+## Contents
+
+- Narrator panel
+- Highlight class
+- Typewriter function
+- Playback loop
+- Transition interstitials
+- Step actions
+- Keyboard controls
+- Progress bar
+- Step countdown indicator (defines `clearAllTimers()`)
+- Cleanup
+- Flow diagram
+- Text-to-speech narration
+- Print styles
+- Accessibility
+
 ## Narrator panel
 
 ```html
@@ -344,8 +361,7 @@ document.addEventListener('keydown', (e) => {
 function togglePlayback() {
   if (isPlaying) {
     isPlaying = false;
-    clearTimeout(typeTimer);
-    clearTimeout(pauseTimer);
+    clearAllTimers();
   } else {
     isPlaying = true;
     playStep(currentStep);
@@ -354,18 +370,14 @@ function togglePlayback() {
 }
 
 function stepForward() {
-  clearTimeout(typeTimer);
-  clearTimeout(pauseTimer);
-  isPlaying = false;
-  updatePlayButton();
+  clearAllTimers();
+  // Do not force isPlaying = false - preserve play state so the new step
+  // auto-types when playing and shows instantly when paused.
   if (currentStep < DEMO_SCRIPT.length - 1) playStep(currentStep + 1);
 }
 
 function stepBack() {
-  clearTimeout(typeTimer);
-  clearTimeout(pauseTimer);
-  isPlaying = false;
-  updatePlayButton();
+  clearAllTimers();
   if (currentStep > 0) playStep(currentStep - 1);
 }
 
@@ -374,7 +386,7 @@ function updatePlayButton() {
 }
 ```
 
-The `isActive` gate prevents keyboard capture when the demo is not running.
+The `isActive` gate prevents keyboard capture when the demo is not running. `togglePlayback`, `stepForward`, and `stepBack` call `clearAllTimers()` (see Step countdown indicator) so timers, the countdown, and speech reset in one place. Manual stepping preserves the current play state rather than forcing a pause.
 
 ---
 
@@ -498,8 +510,7 @@ function clearAllTimers() {
 function stopDemo() {
   isActive = false;
   isPlaying = false;
-  clearTimeout(typeTimer);
-  clearTimeout(pauseTimer);
+  clearAllTimers();  // clears timers, resets countdown, cancels speech
   document.getElementById('demoPanel').classList.remove('open');
   clearHighlight();
   document.getElementById('narrator').textContent = '';
@@ -672,25 +683,7 @@ The `M` shortcut is already included in the keyboard handler (see Keyboard contr
 
 ### Cancellation sites
 
-`speechSynthesis.cancel()` must appear in every cleanup path. Missing any one of these causes the previous utterance to play over the new step's narration:
-
-```javascript
-function stopDemo() {
-  isActive = false;
-  isPlaying = false;
-  clearTimeout(typeTimer);
-  clearTimeout(pauseTimer);
-  if ('speechSynthesis' in window) speechSynthesis.cancel();
-  // ... rest of cleanup
-}
-
-// Also add to clearAllTimers if you have a consolidated timer-clearing function:
-function clearAllTimers() {
-  clearTimeout(typeTimer);
-  clearTimeout(pauseTimer);
-  if ('speechSynthesis' in window) speechSynthesis.cancel();
-}
-```
+Speech cancellation is centralised in `clearAllTimers()` (see Step countdown indicator), which `stopDemo`, `togglePlayback`, `stepForward`, and `stepBack` all call. `speakText()` also cancels before speaking, and `toggleTTS()` cancels when muting. With those in place no per-path `speechSynthesis.cancel()` is needed; missing one is what causes a previous utterance to play over the new step's narration.
 
 ---
 

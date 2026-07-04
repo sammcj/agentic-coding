@@ -4,6 +4,16 @@ The narrative principles in `SKILL.md` are format-agnostic. This reference captu
 
 For each format below: the dominant rhythm, the load-bearing rules, the common failure modes.
 
+## Contents
+
+- Slide deck
+- Blog post / article
+- Pitch (investor / customer / internal)
+- Exec memo / status update / 1-pager
+- Long report / strategy document / board paper
+- Conference talk / keynote
+- When the format isn't decided yet
+
 ---
 
 ## Slide deck

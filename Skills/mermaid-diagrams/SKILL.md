@@ -5,10 +5,10 @@ description: Use the mermaid-diagrams skill whenever you are creating or updatin
 
 # Mermaid Diagramming Guidelines
 
-- You MUST NOT use round brackets ( ) within item labels or descriptions
+- Wrap any label containing parentheses or other special characters in double quotes, e.g. `id1["Send request (POST)"]`; unquoted parentheses break parsing
 - Use `<br>` instead of `\n` for line breaks
 - Mermaid does not support unordered lists within item labels
-- Apply this colour theme unless specified otherwise:
+- For flowchart, state and class diagrams, apply this colour theme unless specified otherwise:
 
 ```
 classDef inputOutput fill:#F5F5F5,stroke:#9E9E9E,color:#616161

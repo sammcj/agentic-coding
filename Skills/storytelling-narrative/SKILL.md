@@ -1,6 +1,6 @@
 ---
 name: storytelling-narrative
-description: "Structure, refine, or draft narrative content or storytelling for business communication such as slide decks, blog posts, pitches, reports. Use when the user wants help build a narrative arc, find the through-line, sequence beats or refine existing content for flow and impact"
+description: "Structure, refine, or draft narrative content or storytelling for business communication such as slide decks, blog posts, pitches, reports. Use when the user wants help building a narrative arc, find the through-line, sequence beats or refine existing content for flow and impact."
 ---
 
 # Storytelling & Narrative
@@ -155,8 +155,8 @@ Fix these before delivering. If you find structural issues, surface them rather 
 
 ## When to use which reference
 
-- `references/narrative-frameworks.md` - when picking a lens, or when the user wants to commit to a specific framework. Full descriptions, selection guidance, recommended reading.
-- `references/hooks-and-moments.md` - when crafting a hook or sharpening a turn. Six hook types, the insight test, placement principles.
+- `references/narrative-frameworks.md` - when picking a lens, or when the user wants to commit to a specific framework. Selection guidance, per-framework failure modes, and detail on the lesser-known lenses.
+- `references/hooks-and-moments.md` - when crafting a hook or sharpening a turn. Six hook types, the turn test, placement principles.
 - `references/formats.md` - when format-specific concerns matter (slide deck rules, blog opener, pitch arc length, memo bottom-line-up-front).
 - `references/critique.md` - when reviewing existing content, or running self-review on drafted output.
 
@@ -179,8 +179,8 @@ Ask 1-3 questions at a time, not 5+. Let the user steer; don't quiz them.
 
 ## Gotchas
 
-- **Don't fall back to the same handful of frameworks every time.** Pixar, Three-Act, Golden Circle, StoryBrand, Hero's Journey, ABT are widely known, but they're a subset. SCQA, Pyramid Principle, Dykes Data Storytelling Arc, and Duarte's Sparkline are often the better fit for exec, consulting, data-driven, or report-style work. Storytelling With Data (SWD) if it's data based etc... Pick by audience-goal-material fit, not by familiarity.
-- **This skill is narrative-first and format-agnostic.** Charts, dashboards, and visual design are not in scope - those belong to data-viz skills if available, or to format-specific tooling. Stay on the narrative.
+- **Don't fall back to the same handful of frameworks every time.** Pixar, Three-Act, Golden Circle, StoryBrand, Hero's Journey, ABT are widely known, but they're a subset. SCQA, Pyramid Principle, Dykes Data Storytelling Arc, and Duarte's Sparkline are often the better fit for exec, consulting, data-driven, or report-style work. Pick by audience-goal-material fit, not by familiarity.
+- **This skill is narrative-first and format-agnostic.** Charts, dashboards, and visual design are not in scope. If the piece is primarily data-driven visuals, hand off to the `storytelling-with-data` skill; otherwise stay on the narrative.
 - **Don't skip Phase 2.** Engaging with the material is what makes the rest work. Frameworks applied to thin material produce slop.
 - **Don't manufacture options to ask the user.** If there's one obvious answer, propose it. Multi-choice questions are for genuine forks, not for performance of consultation.
 - **Don't lecture the user about narrative theory.** They want help with their content, not a lesson. Apply the lens silently; surface only what they need to make decisions.

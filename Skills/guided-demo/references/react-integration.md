@@ -2,6 +2,24 @@
 
 Guidance for implementing the guided demo pattern in React applications with React Router. The vanilla JS patterns from `implementation.md` need adaptation for React's rendering model.
 
+## Contents
+
+- Architecture decision: Context + Components
+- Step definitions use routes, not section indices
+- Stale closures: the core React challenge
+- querySelector timing after route navigation
+- Interstitial promise cancellation
+- Step actions: the .click() bridge
+- Highlight survival across re-renders
+- Data attributes on React components
+- Keyboard handler: skip form inputs
+- Typewriter in React: state vs DOM
+- Cleanup: local vs global state
+- Text-to-speech narration in React
+- Step countdown indicator in React
+- Scroll padding target
+- React StrictMode
+
 ## Architecture decision: Context + Components
 
 Use a React Context provider for the demo engine, not a vanilla JS overlay mounted outside the React tree. The primary reason is that `useNavigate()` (React Router) is only available inside the router's component tree. A vanilla overlay would need hacks to trigger route changes.
@@ -275,7 +293,7 @@ Tailwind utility classes (e.g. `.grid.grid-cols-3`) are stable across builds (un
 
 ## Keyboard handler: skip form inputs
 
-The vanilla skill's keyboard section doesn't mention this. React apps commonly have form inputs on demo-targeted pages. Without this guard, pressing Space while focused on a text input triggers play/pause instead of typing a space character.
+Carry over the vanilla keyboard handler's form-input guard: React apps commonly have form inputs on demo-targeted pages, and without it pressing Space while focused on a text input triggers play/pause instead of typing a space character. The React version gates on `isActiveRef.current` rather than a plain `isActive` variable.
 
 ```typescript
 function handleKeyDown(e: KeyboardEvent) {

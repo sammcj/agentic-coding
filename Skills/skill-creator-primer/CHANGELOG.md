@@ -2,6 +2,14 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-07-04
+
+- Relocated four single-branch sections (Degrees of Freedom, Capture Intent from Conversation, Writing Scripts, concise-vs-verbose Examples) out of SKILL.md into new `references/authoring.md`, each with a sharp "read when" pointer, to move SKILL.md from ~7.6k tokens toward its 4k aim.
+- Cut content duplicated from the co-loaded skill-creator: the pushy under-triggering example, the three-level progressive-disclosure list (kept the primer's branch-test delta), and the "trivial one-step queries" note in `references/trigger-evals.md`.
+- Repointed the `disable-model-invocation` frontmatter bullet at "Invocation mode is a trade-off" (and Self-Review step 5) rather than "only if the user requests it", removing the contradiction.
+- Added description-checklist item 9: when a skill over-fires, add a negative-trigger exclusion clause ("Do NOT use for X, use Y instead") naming the neighbouring intent.
+- Removed wrong-repo content: the "In the ai-toolkit repo" section in `references/trigger-evals.md` (kept the general "within first N tool calls" note), the "Netwealth" reference in `scripts/validate_skill.py`, and "Skills in this toolkit" in SKILL.md.
+
 ## 2026-07-03
 
 - Added "Routing when branches multiply": skills with many references should route loads via a one-level decision tree of need-phrased qualifiers -> reference pointers; trees carry which-one decisions only, never process. Informed by dmmulroy/cloudflare-skill and superpowers' writing-skills scoping rules.

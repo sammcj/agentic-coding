@@ -38,4 +38,4 @@ The script automatically prepends today's date (local timezone) and creates the 
 - Example: `create-dir "Sam Altman On AGI"` produces `2026-03-25-Sam-Altman-On-Agi`
 - Do NOT create the directory manually or use `mkdir`. Always use `create-dir` to ensure the date is today's date in the local timezone.
 
-Return to SKILL.md and continue with Step 3.
+Return to SKILL.md and continue with Step 2.

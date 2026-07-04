@@ -1,19 +1,11 @@
 ---
 name: storytelling-with-data
-description: "Apply storytelling principles to create, review, and improve data visualisations and data-driven communications. Use when creating charts, dashboards, infographics, presentations, pitch decks, or reports that communicate data, or when structuring narrative arcs, hooks, aha moments, or persuasive stories."
+description: "Apply storytelling principles to create, review, and improve data visualisations and data-driven communications. Use when the message or story of a data communication (chart, dashboard, infographic, data-driven deck or report) needs structuring or review, or when structuring narrative arcs, hooks, or aha moments in data-driven communications."
 ---
 
 # Storytelling with Data (SWD) Skill
 
 Apply the 6-lesson SWD framework from Cole Nussbaumer Knaflic for visual and design decisions, combined with narrative storytelling frameworks (Dykes, Duarte, Miller, Dicks, Cron, Heath) for structuring compelling stories that drive action.
-
-## When to Use This Skill
-
-- **Creating**: Building new visualisations, dashboards, infographics, presentations, pitch decks, or data-driven pages
-- **Reviewing**: Critiquing existing data communications for clarity and impact
-- **Improving**: Performing "makeovers" on charts, dashboards, or layouts to make them more effective
-- **Advising**: Helping choose the right chart type, structure a narrative, declutter, craft a hook, or position a message
-- **Storytelling**: Structuring any narrative: data stories, pitches, brand positioning, conference talks, stakeholder briefings
 
 > **Format-agnostic by design**: This skill covers _what_ to communicate and _how_ to design it. Pair it with format-specific skills that handle output mechanics (e.g. pptx skill for slide decks, a web framework for dashboards).
 
@@ -110,6 +102,8 @@ Use **preattentive attributes** - visual properties the brain processes before c
 
 **The Grey + One Colour rule**: Default everything to grey, then use ONE strategic accent colour to highlight the story. This is the single most impactful SWD technique.
 
+**Read `references/colour-and-emphasis.md` for the emphasis hierarchy and grey-plus-accent strategy.** This skill owns the message and emphasis strategy; for the visual rendering and colour system (validated palettes, mark specs) defer to the dataviz skill.
+
 **Memory matters:**
 
 - **Iconic memory** (~0.5 seconds): Preattentive attributes are processed here - that's why colour and size pop instantly
@@ -150,31 +144,6 @@ Without narrative, data visualisations are just pretty pictures. Multiple framew
 | Product/brand positioning | Miller StoryBrand SB7 | Duarte, Heath |
 | Conference talk / personal story | Dicks Five-Second Moment | Duarte, Cron |
 | Message stickiness review | Heath SUCCESs checklist | |
-
-#### The Data Storytelling Arc (Brent Dykes) - Default for Data Presentations
-
-1. **Setting & Hook**: Provide "just enough" context, then present a notable observation that reveals a problem or opportunity. The Hook creates an open question.
-2. **Rising Points**: Focused supporting details that build understanding and tension. Not a data dump.
-3. **Aha Moment**: The central insight: an unexpected shift in understanding + explicit "so what." This is the climax. Do NOT put it upfront.
-4. **Solution & Next Steps**: Provide options and make a recommendation.
-
-**Key principle**: Data storytelling = Data + Narrative + Visuals (all three required). An insight must surprise, shift understanding, AND inspire action. Reporting is not storytelling.
-
-#### The Sparkline (Nancy Duarte) - For Persuasive Presentations
-
-Alternate between **"what is"** (current state) and **"what could be"** (desired future) throughout. Contrast creates energy. End with **"new bliss"**: the world with your idea adopted. The audience is the hero; the presenter is the mentor.
-
-#### The StoryBrand SB7 (Donald Miller) - For Product/Brand Positioning
-
-7 elements: Character (customer = hero) > Problem (external, internal, philosophical) > Guide (your brand: empathy + authority) > Plan (clear steps) > Call to Action > Failure (stakes if they don't act) > Success (transformation). Key insight: *Companies sell solutions to external problems, but customers buy solutions to internal problems.*
-
-#### The Five-Second Moment (Matthew Dicks) - For Personal Stories
-
-Every great story is about a single moment of transformation taking no more than five seconds. Start at the end (know your moment), begin as close to it as possible. Use the **Dinner Test**: if you wouldn't tell it this way to a friend, don't tell it that way at all.
-
-#### Brain Science (Lisa Cron) + Sticky Messages (Heath Brothers)
-
-Hooks work because they create **knowledge gaps** that trigger dopamine. Use the **SUCCESs** checklist: Simple, Unexpected, Concrete, Credible, Emotional, Stories. Combat the **Curse of Knowledge**: once you know something, you can't imagine not knowing it.
 
 #### Storytelling techniques (applicable across all frameworks):
 
@@ -268,7 +237,7 @@ Run through the **SWD Review Checklist** in `references/review-checklist.md`. Fo
 
 | File | When to read |
 |------|-------------|
-| `references/narrative-frameworks.md` | When structuring any narrative: data stories, pitches, keynotes, brand positioning. Contains Dykes (Data Storytelling Arc), Duarte (Sparkline), Miller (SB7), Dicks (Five-Second Moment), Cron (Brain Science), Heath (SUCCESs), plus framework selection guide. |
+| `references/narrative-frameworks.md` | When structuring any narrative: data stories, pitches, keynotes, brand positioning. Contains Dykes (Data Storytelling Arc), Duarte (Sparkline), Miller (SB7), Dicks (Five-Second Moment), Cron (Brain Science), Heath (SUCCESs). Framework selection table is in Lesson 6. |
 | `references/hooks-and-moments.md` | When crafting a hook or aha moment. Contains 6 hook types, the Insight Test, placement principles, and engagement devices. |
 | `references/chart-selection.md` | When choosing a chart type or advising on visual selection |
 | `references/review-checklist.md` | When reviewing or critiquing existing data communications |
