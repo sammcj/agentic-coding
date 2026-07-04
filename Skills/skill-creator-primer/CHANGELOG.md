@@ -4,7 +4,6 @@
 
 ## 2026-07-04
 
-- Relocated four single-branch sections (Degrees of Freedom, Capture Intent from Conversation, Writing Scripts, concise-vs-verbose Examples) out of SKILL.md into new `references/authoring.md`, each with a sharp "read when" pointer, to move SKILL.md from ~7.6k tokens toward its 4k aim.
 - Cut content duplicated from the co-loaded skill-creator: the pushy under-triggering example, the three-level progressive-disclosure list (kept the primer's branch-test delta), and the "trivial one-step queries" note in `references/trigger-evals.md`.
 - Repointed the `disable-model-invocation` frontmatter bullet at "Invocation mode is a trade-off" (and Self-Review step 5) rather than "only if the user requests it", removing the contradiction.
 - Added description-checklist item 9: when a skill over-fires, add a negative-trigger exclusion clause ("Do NOT use for X, use Y instead") naming the neighbouring intent.
