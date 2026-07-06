@@ -153,7 +153,7 @@ li > ul {
 
 li > ul > li {
   font-size: 0.95em;
-  color: var(--colour-muted);
+  color: #4a4540;
 }
 
 /* ── Blockquotes (notable quotes) ───────────────────────── */
@@ -163,7 +163,7 @@ blockquote {
   padding: 0.8em 1.2em;
   border-left: 4px solid var(--colour-quote-bar);
   background: var(--colour-bg-quote);
-  font-style: italic;
+  font-style: normal;
   font-size: 1.05em;
   color: #3d3530;
   page-break-inside: avoid;
