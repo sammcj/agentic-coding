@@ -26,6 +26,9 @@ deliberate adaptations for how skills are authored in practice:
    and downgrade unknown-field detection to a WARNING: documented extensions pass clean,
    newer/community fields don't block, and typos still surface as a visible warning.
 
+3. The primer's description word-count rule is enforced on top of the spec checks:
+   a warning outside the 30-55 aim, a hard error over 65.
+
 Field list verified against the official docs:
 https://code.claude.com/docs/en/skills#frontmatter-reference
 
@@ -48,6 +51,20 @@ except ModuleNotFoundError:
 
 _FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
 
+# Description word-count rule from the primer's Skill Description Checklist:
+# aim for 30-55 words, hard cap 65. Descriptions share the agent's always-loaded
+# token budget with every other skill, so length is policed mechanically here
+# rather than by eyeballing.
+DESCRIPTION_WORDS_MIN = 30
+DESCRIPTION_WORDS_WARN = 55
+DESCRIPTION_WORDS_FAIL = 65
+
+
+def description_word_count(description: str) -> int:
+    """Count words as whitespace tokens containing at least one alphanumeric
+    character, so markdown dashes and bare punctuation don't inflate the count."""
+    return sum(1 for token in str(description).split() if any(c.isalnum() for c in token))
+
 # Token-budget estimate. The chars/N heuristic is a dependency-free stand-in for a
 # real tokeniser; N is calibrated against tiktoken's o200k_base BPE (a reproducible
 # proxy for Claude's unpublished tokeniser), measured at ~4.12 chars/token over ~60
@@ -58,6 +75,11 @@ CHARS_PER_TOKEN = 4.12
 TIKTOKEN_ENCODING = "o200k_base"
 _TOKEN_RATINGS = ((5_000, "Great"), (9_000, "Good"), (12_000, "OK"))
 _MD_REF = re.compile(r"[\w./-]+\.md")
+
+# Repo housekeeping files are never loaded as skill content, so prose mentions of
+# them (e.g. a "DO NOT create README.md, CHANGELOG.md..." list) must not drag them
+# into the token count. Matched on basename, case-insensitively.
+IGNORED_MD_BASENAMES = {"changelog.md", "contributing.md", "claude.md", "agents.md", "readme.md"}
 
 
 def referenced_md_files(skill_dir: Path) -> list[Path]:
@@ -78,6 +100,8 @@ def referenced_md_files(skill_dir: Path) -> list[Path]:
         seen.add(current)
         text = current.read_text(encoding="utf-8", errors="ignore")
         for match in _MD_REF.finditer(text):
+            if Path(match.group(0)).name.lower() in IGNORED_MD_BASENAMES:
+                continue
             for base in (skill_dir, current.parent):
                 candidate = (base / match.group(0)).resolve()
                 if candidate.is_file() and candidate not in seen:
@@ -215,6 +239,23 @@ def lint(skill_dir: Path) -> tuple[list[str], list[str]]:
     # skills-ref's own allowlist doesn't re-flag the extensions we just allowed.
     spec_metadata = {k: v for k, v in metadata.items() if k in spec_fields}
     errors = validator.validate_metadata(spec_metadata, skill_dir)
+
+    words = description_word_count(metadata.get("description") or "")
+    if words > DESCRIPTION_WORDS_FAIL:
+        errors.append(
+            f"Description is {words} words; the checklist caps it at "
+            f"{DESCRIPTION_WORDS_FAIL} (aim for {DESCRIPTION_WORDS_MIN}-{DESCRIPTION_WORDS_WARN})"
+        )
+    elif words > DESCRIPTION_WORDS_WARN:
+        warnings.append(
+            f"Description is {words} words; aim for {DESCRIPTION_WORDS_MIN}-{DESCRIPTION_WORDS_WARN} "
+            f"(hard cap {DESCRIPTION_WORDS_FAIL})"
+        )
+    elif 0 < words < DESCRIPTION_WORDS_MIN:
+        warnings.append(
+            f"Description is {words} words; aim for {DESCRIPTION_WORDS_MIN}-{DESCRIPTION_WORDS_WARN} - "
+            "very short descriptions risk under-triggering"
+        )
 
     return errors, warnings
 

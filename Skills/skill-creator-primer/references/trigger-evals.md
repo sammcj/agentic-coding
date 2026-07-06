@@ -24,7 +24,9 @@ Use the bundled `scripts/eval_triggering.py` (resolve it from the skill-creator-
   --skill-path <skill-dir> --eval-set <skill-dir>/evals/trigger.json
 ```
 
-It installs the real skill into a throwaway project and reports, per query, how often the skill activated within the first N tool calls (default 3; `--within N`). `--runs`, `--workers`, `--timeout` and `--model` all have sensible defaults. It streams each run and kills it as soon as the decision is made, so the model never plays the task out to completion, and every run is confined to a temp dir that is deleted afterwards.
+It installs the real skill into a throwaway project and reports, per query, how often the skill activated within the first N tool calls (default 3; `--within N`). `--runs`, `--workers` and `--timeout` have sensible defaults.
+
+While tuning, re-run only the affected queries with `--only SUBSTRING` (repeatable, case-insensitive substring match; bump `--runs` if you need a stabler read), then confirm with a full run at the end. Set `--model` to a mid-range model (e.g. Claude Sonnet), not the strongest or weakest available: the strongest reasons its way to the right skill despite a weak description (masking under-triggering), the weakest misroutes in ways typical sessions won't, and a description that routes cleanly mid-range carries upward. It streams each run and kills it as soon as the decision is made, so the model never plays the task out to completion, and every run is confined to a temp dir that is deleted afterwards.
 
 Counting activation "within the first N tool calls" rather than "as the very first action" matters for skills that do real work: on a tool-using task (read a file, query a database) the skill legitimately fires after an opening Read or Bash, and what you care about is that it activates early, not strictly first. These evals are a tuning aid, not a build gate: each query spawns `claude -p`, which is time consuming and non-deterministic, so run them by hand when tuning a description.
 

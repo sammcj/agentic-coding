@@ -6,9 +6,16 @@
   {"query": "i think my new skill's 'use when' is stepping on an existing skill of mine - can you compare the two descriptions and tell me whether an agent would get confused about which one to load?", "should_trigger": true},
   {"query": "I've written a skill for tidying up Jira tickets and I want to add it to the ai toolkit - help me get it ready to contribute.", "should_trigger": true},
   {"query": "Just need to tweak the allowed-tools and bump the version in my existing skill's frontmatter - nothing major, can you make that change?", "should_trigger": true},
+  {"query": "The helper script in my csv-cleaner skill blows up on empty files - can you fix scripts/clean.py so it handles them?", "should_trigger": true},
+  {"query": "references/gotchas.md in my deploy skill has gone stale - rewrite it to match our new rollout process.", "should_trigger": true},
+  {"query": "My teammate opened a PR changing our terraform skill's description and adding a new reference file - can you review the diff before I approve it?", "should_trigger": true},
   {"query": "Use the find-docs skill to pull the latest Stripe webhooks API reference for me.", "should_trigger": false},
   {"query": "What skills are installed in my Claude Code setup right now, and which ones are slash commands?", "should_trigger": false},
   {"query": "Write a Python script that scaffolds a new project directory with a Makefile, a src folder and a basic pyproject.toml.", "should_trigger": false},
   {"query": "Add a section to my project's README.md documenting the build and deploy steps for new contributors.", "should_trigger": false},
-  {"query": "Add this MCP server config to the ai toolkit and bundle it into a plugin so my team can install it.", "should_trigger": false}
+  {"query": "Add this MCP server config to the ai toolkit and bundle it into a plugin so my team can install it.", "should_trigger": false},
+  {"query": "Create a custom subagent definition in .claude/agents/security-reviewer.md that reviews our PRs for injection risks.", "should_trigger": false},
+  {"query": "Add a PostToolUse hook to my Claude Code settings that runs prettier after every file edit.", "should_trigger": false},
+  {"query": "Update my project's CLAUDE.md to document our commit message conventions for the team.", "should_trigger": false},
+  {"query": "Summarise what the pdf-tools SKILL.md in this repo actually does - I just want to understand the workflow it encodes.", "should_trigger": false}
 ]

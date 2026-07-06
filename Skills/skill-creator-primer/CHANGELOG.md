@@ -2,6 +2,16 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-07-06
+
+- Restructured SKILL.md layout (content unchanged): entry-point router up top, sections reordered into principles -> decide -> author -> verify clusters, Skill Writing Tips grouped by content/structure/steering, and the three validator fragments merged into one "Validating a Skill" section. Strays: title-cased "Prefer One Skill Over Many", fixed a doubled quote in the `allowed-tools` example.
+- Added "Reviewing a Skill" (same criteria regardless of ownership; findings graded spec violation / primer violation / judgement call - only the first two block; fix by default, report when review-only) and Self-Review step 10: a fresh-context sub-agent (not a fork) reviews a newly created skill read-only.
+- Description reworded, keeping the ANY-change catch-all - Sonnet trigger evals under-fired to 2/10 positives without it. A negative-trigger exclusion clause was trialled and dropped: the skill has never over-fired, so checklist item 9's precondition isn't met. Item 9 restored; item 4 and the conflict check reframed against co-active neighbours rather than "a library".
+- Expanded `evals/trigger.json` with boundary probes (3 positives, 4 near-miss negatives). The new positives under-fire on the fixture-less harness (the target skill doesn't exist in the throwaway project) - weak signal, see `references/trigger-evals.md`.
+- Scripts: `validate_skill.py` enforces the 30-55 word description aim (hard error over 65) and excludes housekeeping .md files (README, CHANGELOG, etc.) from the token report; `eval_triggering.py` gained a repeatable `--only SUBSTRING` filter; trigger evals now run against a mid-range model (e.g. Claude Sonnet) - the strongest masks under-triggering, the weakest misroutes atypically.
+- Token Budget Guidance: when the branch test keeps nearly everything inline, a larger SKILL.md is the correct trade, judged by the deletion test (this primer qualifies).
+- Re-verified the upstream-allowlist caveat against current skills-ref and the cached plugin (zero drift); noted `quick_validate.py` gates `package_skill.py`, so the error surfaces at packaging time.
+
 ## 2026-07-04
 
 - Cut content duplicated from the co-loaded skill-creator: the pushy under-triggering example, the three-level progressive-disclosure list (kept the primer's branch-test delta), and the "trivial one-step queries" note in `references/trigger-evals.md`.

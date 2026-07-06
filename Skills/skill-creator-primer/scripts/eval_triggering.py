@@ -18,6 +18,7 @@ keychain auth. Run outside any command sandbox: claude/node need network.
 Usage:
   eval_triggering.py --eval-set FILE --skill-path DIR [--within N] [--runs N]
                      [--model ID] [--workers N] [--timeout SECONDS]
+                     [--only SUBSTRING]...
 """
 
 import argparse
@@ -124,6 +125,15 @@ def query_passes(should_trigger: bool, fired: int, runs: int) -> bool:
     return (rate >= 0.5) if should_trigger else (rate < 0.5)
 
 
+def select_cases(cases, substrings):
+    """Return cases whose query contains any of substrings (case-insensitive).
+    With no substrings, returns the cases unchanged - the full set."""
+    if not substrings:
+        return list(cases)
+    needles = [s.lower() for s in substrings]
+    return [c for c in cases if any(n in c["query"].lower() for n in needles)]
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--eval-set", required=True)
@@ -135,11 +145,25 @@ def main():
     p.add_argument("--model", default=None)
     p.add_argument("--workers", type=int, default=8)
     p.add_argument("--timeout", type=int, default=150)
+    p.add_argument(
+        "--only",
+        action="append",
+        metavar="SUBSTRING",
+        help="run only cases whose query contains SUBSTRING (case-insensitive); "
+        "repeatable, a case matching ANY is included",
+    )
     args = p.parse_args()
 
     skill_path = Path(args.skill_path).resolve()
     name = skill_name(skill_path)
     cases = json.loads(Path(args.eval_set).read_text())
+    if args.only:
+        selected = select_cases(cases, args.only)
+        if not selected:
+            names = ", ".join(repr(s) for s in args.only)
+            sys.exit(f"--only matched no queries: {names}")
+        print(f"{len(selected)}/{len(cases)} queries selected by --only")
+        cases = selected
     claude = shutil.which("claude")
     if not claude:
         sys.exit("claude not found on PATH")
