@@ -143,6 +143,14 @@ You MUST adhere to the following principles in all writing, communication, and d
 - Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
 
+### Think Before Coding
+
+- State your assumptions explicitly before implementing; if uncertain, validate and ask
+- If multiple interpretations of a request exist, present them rather than picking one silently
+- If a simpler approach exists than what was asked for, say so and push back when warranted
+- If something is unclear, stop and name what's confusing rather than guessing
+- Leave the code you're changing better than you found it, but don't extend that to unrelated code
+
 ## Host Environment
 
 - You are running on macOS 26.x, on the users M5 Max Macbook Pro (128GB)
@@ -207,7 +215,6 @@ After implementing a list of changes, perform a critical self-review pass before
 
 ## Supplementary Rules
 
-- Edit only what's necessary - make precise, minimal changes unless instructed otherwise, but leave code you touch cleaner than you found it
 - Implement requirements in full or discuss with the user why you can't - don't defer work
 - If stuck on a persistent problem after multiple attempts, use the `systematic-debugging` skill or perform a Fagan inspection
 - **Never give time estimates**, AI is notoriously bad at estimating the time things will take
