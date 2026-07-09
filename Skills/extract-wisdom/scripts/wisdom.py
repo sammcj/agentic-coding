@@ -451,8 +451,12 @@ def _enrich_entry(md_path: Path, *, overwrite: bool = False) -> bool:
     OpenGraph/Twitter Card metadata. Returns True if anything was updated.
     """
     fm = _parse_frontmatter(md_path)
-    if not fm or not fm.get("source"):
+    if not fm:
         return False
+    sources = _fm_sources(fm)
+    if not sources:
+        return False
+    primary = sources[0]
 
     source_type = fm.get("source_type", "")
     entry_dir = md_path.parent
@@ -462,7 +466,7 @@ def _enrich_entry(md_path: Path, *, overwrite: bool = False) -> bool:
     if source_type == "youtube":
         if not overwrite and has_thumbnail and fm.get("youtube_channel"):
             return False
-        metadata = _extract_youtube_metadata(fm["source"])
+        metadata = _extract_youtube_metadata(primary)
         if metadata is None:
             return False
         if metadata.get("channel"):
@@ -476,7 +480,7 @@ def _enrich_entry(md_path: Path, *, overwrite: bool = False) -> bool:
     elif source_type == "web":
         if not overwrite and has_thumbnail and fm.get("og_site_name"):
             return False
-        metadata = _fetch_web_metadata(fm["source"])
+        metadata = _fetch_web_metadata(primary)
         if metadata is None:
             return False
         if metadata.get("site_name"):
@@ -953,6 +957,38 @@ def _fm_list(fm: dict[str, Any] | None, key: str) -> list[str]:
     if isinstance(val, str) and val.strip():
         return [item.strip() for item in val.split(",") if item.strip()]
     return []
+
+
+def _fm_sources(fm: dict[str, Any] | None) -> list[str]:
+    """Read one or more source URLs from frontmatter.
+
+    Prefers the ``sources`` list (current schema); falls back to the legacy
+    scalar ``source`` field so entries created before the migration still
+    resolve. Returns an empty list when neither is present.
+    """
+    sources = _fm_list(fm, "sources")
+    if sources:
+        return sources
+    legacy = _fm_str(fm, "source")
+    return [legacy] if legacy else []
+
+
+# Separators seen where several URLs were crammed into one legacy ``source``
+# value: a comma, or " + " / " and " flanked by whitespace, or a newline.
+# The whitespace flanks keep us from splitting a path segment like ``/and/``.
+_SOURCE_SPLIT_RE = re.compile(r"\s*,\s*|\s+\+\s+|\s+and\s+|\n")
+
+
+def _split_source_value(value: str) -> list[str]:
+    """Split one legacy source value into individual URLs.
+
+    A single URL returns a one-element list; a value holding several URLs
+    (comma, ``+``, or ``and`` separated) is split into one entry per URL.
+    """
+    value = value.strip()
+    if value.count("http") <= 1:
+        return [value] if value else []
+    return [p.strip() for p in _SOURCE_SPLIT_RE.split(value) if p.strip()]
 
 
 _LIST_ITEM_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s")
@@ -1898,7 +1934,7 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
 
         entries.append({
             "title": title,
-            "source": _fm_str(fm, "source"),
+            "sources": _fm_sources(fm),
             "source_type": _fm_str(fm, "source_type"),
             "author": _fm_str(fm, "author"),
             "date": raw_date,
@@ -2124,7 +2160,7 @@ def cmd_backfill(args: argparse.Namespace) -> None:
     if args.all:
         for md_file in sorted(base_dir.glob("*/*analysis.md")):
             fm = _parse_frontmatter(md_file)
-            if fm and fm.get("source_type") in ("youtube", "web") and fm.get("source"):
+            if fm and fm.get("source_type") in ("youtube", "web") and _fm_sources(fm):
                 md_files.append(md_file)
     elif args.directory:
         target_dir = Path(args.directory)
@@ -2485,6 +2521,117 @@ def cmd_tags(args: argparse.Namespace) -> None:
         print(f"{count:>4}\t{tag}")
 
 
+# A top-level frontmatter key naming a source: ``source``, ``source_alt``,
+# ``companion_source`` etc. ``source_type`` and the ``sources`` list target are
+# excluded by the caller so they are not folded into themselves.
+_SOURCE_KEY_RE = re.compile(r"^([a-z_]*source[a-z_]*)[ \t]*:[ \t]*(.*)$")
+
+
+def _migrated_frontmatter(fm_block: str) -> str:
+    """Return the frontmatter block with all source metadata consolidated into a
+    single ``sources:`` list, one URL per item.
+
+    Folds the legacy scalar ``source:`` line, any bespoke secondary key such as
+    ``source_alt`` or ``companion_source``, and an existing block-style
+    ``sources:`` list, splitting any value that crammed several URLs into one.
+    URLs are de-duplicated in first-seen order. Returns the block unchanged when
+    no source metadata is present. ``source_type`` is never folded.
+    """
+    lines = fm_block.split("\n")
+    insert_at: int | None = None
+    drop: set[int] = set()
+    urls: list[str] = []
+
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if re.match(r"^sources:[ \t]*$", line):
+            if insert_at is None:
+                insert_at = i
+            drop.add(i)
+            j = i + 1
+            while j < len(lines) and re.match(r"^[ \t]+-[ \t]+", lines[j]):
+                item = _unquote_yaml_scalar(re.sub(r"^[ \t]+-[ \t]+", "", lines[j]).strip())
+                urls.extend(_split_source_value(item))
+                drop.add(j)
+                j += 1
+            i = j
+            continue
+        m = _SOURCE_KEY_RE.match(line)
+        if m and m.group(1) not in ("source_type", "sources"):
+            if insert_at is None:
+                insert_at = i
+            drop.add(i)
+            urls.extend(_split_source_value(_unquote_yaml_scalar(m.group(2).strip())))
+        i += 1
+
+    if insert_at is None or not urls:
+        return fm_block
+
+    seen: set[str] = set()
+    unique = [u for u in urls if not (u in seen or seen.add(u))]
+    block = ["sources:"] + [f'  - "{u}"' for u in unique]
+
+    kept = [l for k, l in enumerate(lines) if k not in drop]
+    insert_idx = sum(1 for k in range(insert_at) if k not in drop)
+    return "\n".join(kept[:insert_idx] + block + kept[insert_idx:])
+
+
+def cmd_migrate_sources(args: argparse.Namespace) -> None:
+    """Normalise source metadata to the ``sources:`` list and relabel the body
+    ``**Source**:`` line to ``**Sources**:``.
+
+    Migrates the legacy scalar ``source:`` field, folds bespoke secondary keys
+    (``source_alt``, ``companion_source``, ...) into the list, and splits any
+    value that crammed several URLs into one. Idempotent: a file already in
+    canonical form produces no change and is skipped. Operates on raw text so
+    all other frontmatter, quoting, and formatting are preserved.
+    """
+    base_dir = Path(args.base_dir) if args.base_dir else detect_base_dir()
+    if not base_dir.is_dir():
+        print(f"Error: Base directory not found: {base_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    md_files = sorted(base_dir.glob("*/*analysis.md"))
+    if not md_files:
+        print(f"No analysis markdown files found under {base_dir}", file=sys.stderr)
+        return
+
+    # ``**Source**:`` will not match an already-relabelled ``**Sources**:`` line,
+    # so the body rewrite is safe to re-run.
+    body_re = re.compile(r"^\*\*Source\*\*:", re.MULTILINE)
+
+    migrated = 0
+    skipped = 0
+    for md_file in md_files:
+        text = md_file.read_text(encoding="utf-8")
+        if not text.startswith("---"):
+            skipped += 1
+            continue
+        end = text.find("\n---", 3)
+        if end == -1:
+            skipped += 1
+            continue
+        prefix, fm_block, rest = text[:4], text[4:end], text[end:]
+
+        new_fm = _migrated_frontmatter(fm_block)
+        new_rest = body_re.sub("**Sources**:", rest)
+
+        if new_fm == fm_block and new_rest == rest:
+            skipped += 1
+            continue
+
+        if args.dry_run:
+            print(f"[dry-run] would migrate: {md_file.parent.name}/{md_file.name}")
+        else:
+            md_file.write_text(prefix + new_fm + new_rest, encoding="utf-8")
+        migrated += 1
+
+    verb = "Would migrate" if args.dry_run else "Migrated"
+    print(f"{verb} {migrated} file(s); skipped {skipped} "
+          "(already canonical or no frontmatter).")
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -2541,6 +2688,14 @@ def main() -> None:
     p_index = sub.add_parser("index", help="Regenerate the wisdom library index.html")
     p_index.add_argument("base_dir", nargs="?", default=None, help="Wisdom base directory (default: auto-detect)")
 
+    # migrate-sources
+    p_migrate = sub.add_parser("migrate-sources",
+                               help="Migrate legacy scalar source: to the sources: list")
+    p_migrate.add_argument("base_dir", nargs="?", default=None,
+                           help="Wisdom base directory (default: auto-detect)")
+    p_migrate.add_argument("--dry-run", action="store_true",
+                           help="Report what would change without writing")
+
     # backfill
     p_backfill = sub.add_parser("backfill", help="Backfill YouTube metadata and thumbnails")
     p_backfill.add_argument("directory", nargs="?", default=None, help="Specific entry directory to backfill")
@@ -2584,6 +2739,7 @@ def main() -> None:
         "pdf": cmd_pdf,
         "regenerate-pdfs": cmd_regenerate_pdfs,
         "index": cmd_index,
+        "migrate-sources": cmd_migrate_sources,
         "backfill": cmd_backfill,
         "search": cmd_search,
         "related": cmd_related,

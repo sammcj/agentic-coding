@@ -91,8 +91,9 @@ Format the analysis using this structure:
 ```markdown
 ---
 title: "[Title]"
-source: "[YouTube URL, web URL, or file path]"
-source_type: [youtube|web|text]
+sources:                                       # one or more; each URL on its own bullet line
+  - "[YouTube URL, web URL, or file path]"
+source_type: [youtube|web|text]                # type of the primary (first) source
 author: "[Author, speaker, or channel name]"
 content_date: [YYYY-MM-DD]                    # Optional: only if the content's publication date is known
 description: "[1-3 sentence summary suitable for sharing on Slack. Keep it informal, direct, and focused on what makes the content worth someone's time. Include the core concept and why it matters.]"
@@ -105,7 +106,7 @@ thumbnail: "thumbnail.jpg"                     # Auto-set if downloaded; "false"
 
 # Analysis: [Title]
 
-**Source**: [YouTube URL, web URL, or file path]
+**Sources**: [source URL; for more than one, list each on its own bullet line below]
 
 **Content Date**: [YYYY-MM-DD]
 
@@ -261,7 +262,7 @@ If timestamps are needed:
 
 ### scripts/
 
-- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, metadata backfill, library indexing, full-text search, related-entry lookup, and tag management. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `backfill`, `search`, `related`, `tags`.
+- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, metadata backfill, library indexing, full-text search, related-entry lookup, and tag management. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `migrate-sources`, `backfill`, `search`, `related`, `tags`.
 
 ### Querying the corpus
 

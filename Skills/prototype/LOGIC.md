@@ -34,7 +34,7 @@ The right shape depends on the question:
 - **A small set of pure functions** over a plain data type. Good when there's no implicit current state - just transformations.
 - **A class or module with a clear method surface** when the logic genuinely owns ongoing internal state.
 
-Pick whichever shape best fits the question being asked, *not* whichever is easiest to wire to a TUI. Keep it pure: no I/O, no terminal code, no `console.log` for control flow. The TUI imports it and calls into it; nothing flows the other direction.
+Pick whichever shape best fits the question being asked, *not* whichever is easiest to wire to a TUI. Keep it pure: no I/O, no terminal code, no printing for control flow. The TUI imports it and calls into it; nothing flows the other direction.
 
 This is what makes the prototype useful past its own lifetime. When the question's been answered, the validated reducer / machine / function set can be lifted into the real module - the TUI shell gets deleted.
 
@@ -58,7 +58,7 @@ The whole frame should fit on one screen.
 
 ### 5. Make it runnable in one command
 
-Add a script to the project's existing task runner (`package.json` scripts, `Makefile`, `justfile`, `pyproject.toml`). The user should run `pnpm run <prototype-name>` or equivalent - never need to remember a path.
+Add a script to the project's existing task runner (`Makefile`, `justfile`, `pyproject.toml`, `Cargo.toml`, `package.json` scripts). The user should run `make <prototype-name>` or whatever the project's equivalent is - never need to remember a path.
 
 If the host project has no task runner, just put the command at the top of the prototype's README.
 
@@ -75,5 +75,5 @@ When the prototype has done its job, the answer to the question is the only thin
 - **Don't add tests.** A prototype that needs tests is no longer a prototype.
 - **Don't wire it to the real database.** Use an in-memory store unless the question is specifically about persistence.
 - **Don't generalise.** No "what if we wanted to support X later." The prototype answers one question.
-- **Don't blur the logic and the TUI together.** If the reducer / state machine references `console.log`, prompts, or terminal escape codes, it's no longer portable. Keep the TUI as a thin shell over a pure module.
+- **Don't blur the logic and the TUI together.** If the reducer / state machine prints, prompts, or emits terminal escape codes, it's no longer portable. Keep the TUI as a thin shell over a pure module.
 - **Don't ship the TUI shell into production.** The shell is optimised for being driven by hand from a terminal. The logic module behind it is the bit worth keeping.

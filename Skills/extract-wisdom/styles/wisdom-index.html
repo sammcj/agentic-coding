@@ -1172,6 +1172,12 @@
       return path.split("/").map(encodeURIComponent).join("/");
     }
 
+    function hostnameOf(url) {
+      // Strip the leading www. so multi-source labels read cleanly.
+      try { return new URL(url).hostname.replace(/^www\./, ""); }
+      catch (e) { return ""; }
+    }
+
     /* ---- Tag chips ----
        Layout: divider | "Tags" label | tag-chip-list (clipped horizontally
        when collapsed, wraps when expanded) | More toggle | Clear button.
@@ -1496,10 +1502,15 @@
         metaHtml += '<p class="viewer-meta-description">' + escapeHtml(entry.description) + '</p>';
       }
       var metaItems = [];
-      if (entry.source) {
-        var sourceLabel = entry.youtube_channel || entry.og_site_name || entry.source;
-        metaItems.push('<span>Source: <a href="' + escapeHtml(entry.source) + '" target="_blank" rel="noopener">'
-          + escapeHtml(sourceLabel) + '</a></span>');
+      var sources = entry.sources || [];
+      if (sources.length) {
+        var links = sources.map(function (url) {
+          // One source keeps the friendly channel/site label; multiple sources
+          // fall back to the hostname so each link stays distinguishable.
+          var label = (sources.length === 1 && (entry.youtube_channel || entry.og_site_name)) || hostnameOf(url) || url;
+          return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + escapeHtml(label) + '</a>';
+        }).join(', ');
+        metaItems.push('<span>' + (sources.length === 1 ? 'Source' : 'Sources') + ': ' + links + '</span>');
       }
       if (entry.content_date) metaItems.push('<span>Published: ' + escapeHtml(entry.content_date) + '</span>');
       if (entry.date) metaItems.push('<span>Analysed: ' + escapeHtml(entry.date) + '</span>');

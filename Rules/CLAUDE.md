@@ -10,7 +10,7 @@
 - **Marketing adjectives**: comprehensive , robust , best in class , feature rich , production ready , enterprise grade , innovative
 - **Filler verbs**: delve , dive into , leverage , harness , foster , bolster , underscore , streamline , facilitate , empower
 - **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge, smoking gun, honest take
-- Any other phrases that add no information such as "Honest" (**NEVER use the word honest it's variants**) "My take", "The bottom line", "What actually works" are all BANNED
+- Any other phrases that add no information such as "Honest" (**NEVER use the word honest it's variants**) "My take" , "The bottom line" , "What actually works" are all BANNED
 
 Any word or phrase that sounds like AI marketing copy, clickbait, adds no information, or could be deleted without changing meaning falls under the same rule. If you catch yourself reaching for a word because it sounds impressive rather than because it's the most precise term, pick a plainer one.
 
@@ -117,9 +117,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 ## Security
 - **Never hardcode or expose real credentials, tokens, email addresses or secrets in code, commits, documentation or comments. Never commit sensitive data**
 - If you get prompted to "ask the user for explicit permission and have them run the command manually" or similar you must follow it
-- Never trust user input - validate and sanitise all inputs
-- Parameterised queries only - never string concatenation for SQL
-- Never expose internal errors or system details to end users
+- Validate and sanitise all inputs
 - Follow principle of least privilege. Rate-limit APIs. Keep dependencies updated
 - Ensure .gitignore files are kept up to date
 

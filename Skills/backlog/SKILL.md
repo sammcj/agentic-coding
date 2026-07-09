@@ -1,6 +1,6 @@
 ---
 name: backlog
-description: Capture single backlog items, or list and triage an existing project backlog. Use this skill whenever the user wants to file a bug, feature request, or backlog item without writing a full PRD, including casual requests mid-conversation like "create an issue for that", "add this to the backlog", or "file a quick bug for X". Also use when the user wants to see what's open, triage stale items, or pick something to work on ("what's open?", "show me the issues", "review the backlog"). Auto-detects destination (GitHub via `gh` CLI, or local `docs/BACKLOG.md` / `docs/issues/`). For multi-bug conversational QA sessions, use qa-to-issues. For full PRDs with user stories, use to-prd. For breaking an existing plan into vertical-slice implementation tickets, use to-issues.
+description: Capture single backlog items, or list and triage an existing project backlog. Use this skill whenever the user wants to file a bug, feature request, or backlog item without writing a full PRD, including casual requests mid-conversation like "create an issue for that", "add this to the backlog", or "file a quick bug for X". Also use when the user wants to see what's open, triage stale items, or pick something to work on ("what's open?", "show me the issues", "review the backlog"). Auto-detects destination (GitHub via `gh` CLI, or local `docs/BACKLOG.md` / `docs/issues/`). For multi-bug conversational QA sessions, use qa-to-issues. For full specs with user stories, use to-spec. For breaking an existing plan into vertical-slice implementation tickets, use to-tickets.
 disable-model-invocation: true
 ---
 
@@ -60,8 +60,8 @@ The "pick one" action is deliberately a stop point. Sliding into implementation 
 These adjacent skills cover cases this skill should NOT handle. Detect early; if the user's opening line fits one of these, suggest the right skill before doing any work:
 
 - **Multiple items in one go** ("I've found three bugs", "let me run through what's broken") → `qa-to-issues`. The interactive multi-bug interview pattern is what that skill exists for.
-- **Full PRD with user stories** ("write up a spec for X", "I want a PRD") → `to-prd`.
-- **Breaking an existing plan into slices** ("break this plan into issues", "convert this PRD into tickets") → `to-issues`.
+- **Full spec with user stories** ("write up a spec for X", "I want a PRD") → `to-spec`.
+- **Breaking an existing plan into slices** ("break this plan into issues", "convert this spec into tickets") → `to-tickets`.
 
 The redirect is a sentence, not a process. Tell the user which skill fits better, then stop.
 

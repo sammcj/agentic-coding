@@ -89,6 +89,8 @@ Now propose specific fixes for each identified issue.
 - Monitoring or logging to add
 - Edge cases to validate
 
+**Use a sub-agent** as a sounding board to provide critical feedback on your proposed solutions and verification plan.
+
 **Output:** A summary of findings (key defects and root cause), a prioritised list of proposed fixes with rationale, and a verification plan for confirming the fixes work.
 
 ## Important Guidelines
