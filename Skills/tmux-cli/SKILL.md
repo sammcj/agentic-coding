@@ -1,6 +1,6 @@
 ---
 name: tmux-cli
-description: CLI utility to help when running ongoing interactive CLI sessions or using tmux to communicate with other CLI Agents; use when you are asked to connect to remote machines via ssh or need to use interactive CLI tools that require ongoing input.
+description: CLI utility to help when running ongoing interactive CLI sessions or using tmux to communicate with other CLI Agents. Use when you are asked to ssh to remote machines, or need to use interactive CLI tools that require ongoing input.
 ---
 
 # tmux-cli
