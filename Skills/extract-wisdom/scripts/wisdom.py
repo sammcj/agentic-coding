@@ -26,6 +26,9 @@ Subcommands:
     regenerate-pdfs [base_dir] [--stamp] [--css F]
                                     Re-render every wisdom analysis PDF (no date stamp by default)
     index [base_dir]                Regenerate the wisdom library index.html
+    epub [base_dir] [--output F] [--title T] [--descriptions] [--kindle] [--open]
+                                    Bind the whole corpus into a single .epub
+                                    (grouped by year; --kindle also emits .azw3)
     backfill [dir] [--all] [--force] Backfill metadata and thumbnails
 """
 
@@ -50,8 +53,10 @@ import time
 import tempfile
 import urllib.error
 import urllib.request
+import uuid
+import zipfile
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -81,6 +86,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
 CSS_FILE = SKILL_DIR / "styles" / "wisdom-pdf.css"
 TEMPLATE_FILE = SKILL_DIR / "styles" / "wisdom-pdf.html5"
+EPUB_CSS_FILE = SKILL_DIR / "styles" / "wisdom-epub.css"
 
 # Index generation settings.
 _INDEX_SCHEMA_VERSION = 7
@@ -1192,14 +1198,23 @@ def _apply_graphviz_theme(code: str) -> str:
 _PAGE_WIDTH_PT = 493.0
 
 
-def _render_graphviz(code: str) -> bytes | None:
-    """Render a Graphviz DOT string to SVG bytes. Returns None if unavailable."""
+def _render_graphviz(code: str, *, fmt: str = "svg", dpi: int | None = None) -> bytes | None:
+    """Render a Graphviz DOT string. Returns image bytes, or None if unavailable.
+
+    ``fmt`` selects the output ("svg" for the PDF path, "png" for ePub where
+    Kindle's SVG support is unreliable). ``dpi`` (raster only) is injected as a
+    graph attribute so PNG output is sharp on high-density e-reader screens.
+    """
     try:
         import graphviz  # type: ignore[import-untyped]
     except ImportError:
         return None
+    if dpi is not None:
+        m = re.search(r"((?:di)?graph\s+\w*\s*\{)", code)
+        if m:
+            code = code[:m.end()] + f"\n    graph [dpi={dpi}];\n" + code[m.end():]
     try:
-        return graphviz.Source(code).pipe(format="svg")
+        return graphviz.Source(code).pipe(format=fmt)
     except Exception:
         return None
 
@@ -1284,6 +1299,16 @@ def _render_mermaid(code: str) -> tuple[bytes, str] | None:
     return None
 
 
+def _png_dimensions(data: bytes) -> tuple[int, int] | None:
+    """Parse width and height (px) from a PNG's IHDR chunk."""
+    import struct
+
+    if len(data) < 24 or data[:8] != b"\x89PNG\r\n\x1a\n":
+        return None
+    w, h = struct.unpack(">II", data[16:24])
+    return w, h
+
+
 def _jpeg_dimensions(data: bytes) -> tuple[int, int] | None:
     """Parse width and height from JPEG SOF marker."""
     import struct
@@ -1323,11 +1348,18 @@ def _image_to_img_tag(data: bytes, mime: str, max_width_pct: int = 95) -> str:
     )
 
 
-def _render_diagrams(html_body: str) -> tuple[str, dict[str, int]]:
+# DPI for rasterised (ePub) graphviz output. 200 keeps labels sharp on
+# high-density e-reader screens (the Kindle Oasis is 300 ppi).
+_GRAPHVIZ_RASTER_DPI = 200
+
+
+def _render_diagrams(html_body: str, *, raster: bool = False) -> tuple[str, dict[str, int]]:
     """Find diagram code blocks in HTML and replace them with rendered images.
 
     Returns (modified_html, fallback_counts) where fallback_counts maps
     diagram language names to the number of blocks that failed to render.
+    With ``raster=True`` (ePub), graphviz diagrams render to PNG rather than
+    SVG, which Kindle's format conversion handles reliably.
     """
     fallbacks: dict[str, int] = {}
 
@@ -1336,11 +1368,20 @@ def _render_diagrams(html_body: str) -> tuple[str, dict[str, int]]:
         code = html_mod.unescape(match.group(2))
 
         if lang in ("graphviz", "dot"):
-            svg = _render_graphviz(_apply_graphviz_theme(code))
-            if svg:
-                dims = _svg_dimensions(svg)
-                pct = _size_pct(dims[0]) if dims else 70
-                return _image_to_img_tag(svg, "image/svg+xml", pct)
+            themed = _apply_graphviz_theme(code)
+            if raster:
+                png = _render_graphviz(themed, fmt="png", dpi=_GRAPHVIZ_RASTER_DPI)
+                if png:
+                    dims = _png_dimensions(png)
+                    # px -> pt at the render DPI (72 pt per inch).
+                    pct = _size_pct(dims[0] * 72 / _GRAPHVIZ_RASTER_DPI) if dims else 70
+                    return _image_to_img_tag(png, "image/png", pct)
+            else:
+                svg = _render_graphviz(themed)
+                if svg:
+                    dims = _svg_dimensions(svg)
+                    pct = _size_pct(dims[0]) if dims else 70
+                    return _image_to_img_tag(svg, "image/svg+xml", pct)
         elif lang == "mermaid":
             result = _render_mermaid(_apply_mermaid_theme(code))
             if result:
@@ -1383,6 +1424,23 @@ def _import_pdf_deps() -> tuple[Any, Any]:
     return md_lib, HTML
 
 
+def _md_to_content_html(
+    md_text: str, md_lib: Any, *, raster: bool = False,
+) -> tuple[str, dict[str, int]]:
+    """Convert analysis markdown to a rendered HTML body.
+
+    Strips frontmatter, normalises list indentation, converts to HTML via
+    python-markdown, then renders diagram code blocks to embedded images.
+    Shared by the PDF and ePub renderers. ``raster=True`` (ePub) renders
+    graphviz diagrams to PNG instead of SVG for Kindle compatibility.
+    Returns (html_body, diagram_fallback_counts).
+    """
+    md_text = _strip_frontmatter(md_text)
+    md_text = _normalise_list_markdown(md_text)
+    html_body = md_lib.markdown(md_text, extensions=MD_EXTENSIONS)
+    return _render_diagrams(html_body, raster=raster)
+
+
 def _render_pdf_file(
     input_file: Path,
     output_file: Path,
@@ -1399,10 +1457,7 @@ def _render_pdf_file(
     _enrich_entry(input_file)
 
     md_text = input_file.read_text(encoding="utf-8")
-    md_text = _strip_frontmatter(md_text)
-    md_text = _normalise_list_markdown(md_text)
-    html_body = md_lib.markdown(md_text, extensions=MD_EXTENSIONS)
-    html_body, diagram_fallbacks = _render_diagrams(html_body)
+    html_body, diagram_fallbacks = _md_to_content_html(md_text, md_lib)
 
     if TEMPLATE_FILE.is_file():
         template = TEMPLATE_FILE.read_text(encoding="utf-8")
@@ -1880,27 +1935,17 @@ def _build_fts_index(
 # Index generation
 # ---------------------------------------------------------------------------
 
-def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
-    """Regenerate the index.html in the wisdom base directory.
+def _collect_entries(base_dir: Path, *, reverse: bool = True) -> list[dict[str, Any]]:
+    """Walk the wisdom corpus and build one metadata record per analysis entry.
 
-    Walks all subdirectories, parses frontmatter from analysis markdown
-    files, computes reading time, and writes a self-contained HTML index.
-    Controlled by the EXTRACT_WISDOM_CREATE_INDEX environment variable
-    (defaults to "true"). Pass force=True to bypass the env var check.
+    Parses frontmatter, computes word count and reading time, normalises short
+    dates and tags, and resolves thumbnail presentation. Shared by index
+    generation and ePub export so both operate on an identical entry set.
+    Entries without frontmatter are skipped. Directories are date-prefixed, so
+    ``reverse=True`` yields newest-first.
     """
-    if not force:
-        env_val = os.environ.get(_INDEX_ENV_VAR, "true").lower()
-        if env_val in ("false", "0", "no"):
-            return
-
-    if not base_dir.is_dir():
-        return
-
-    if not _INDEX_TEMPLATE.is_file():
-        return
-
     entries: list[dict[str, Any]] = []
-    for md_file in sorted(base_dir.glob("*/*analysis.md"), reverse=True):
+    for md_file in sorted(base_dir.glob("*/*analysis.md"), reverse=reverse):
         fm = _parse_frontmatter(md_file)
         if not fm:
             continue
@@ -1958,7 +2003,29 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
             ),
             "body": body,
         })
+    return entries
 
+
+def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
+    """Regenerate the index.html in the wisdom base directory.
+
+    Walks all subdirectories, parses frontmatter from analysis markdown
+    files, computes reading time, and writes a self-contained HTML index.
+    Controlled by the EXTRACT_WISDOM_CREATE_INDEX environment variable
+    (defaults to "true"). Pass force=True to bypass the env var check.
+    """
+    if not force:
+        env_val = os.environ.get(_INDEX_ENV_VAR, "true").lower()
+        if env_val in ("false", "0", "no"):
+            return
+
+    if not base_dir.is_dir():
+        return
+
+    if not _INDEX_TEMPLATE.is_file():
+        return
+
+    entries = _collect_entries(base_dir, reverse=True)
     if not entries:
         return
 
@@ -2053,11 +2120,575 @@ def _regenerate_index(base_dir: Path, *, force: bool = False) -> None:
     except OSError as exc:
         print(f"Warning: Could not write index: {exc}", file=sys.stderr)
 
+    # Optionally rebuild the corpus ebook (off by default; see _maybe_build_epub).
+    _maybe_build_epub(base_dir)
+
 
 def cmd_index(args: argparse.Namespace) -> None:
     """Regenerate the wisdom library index.html."""
     base_dir = Path(args.base_dir) if args.base_dir else detect_base_dir()
     _regenerate_index(base_dir, force=True)
+
+
+# ---------------------------------------------------------------------------
+# ePub export - bind the whole corpus into a single ebook
+# ---------------------------------------------------------------------------
+#
+# An ePub is a ZIP of XHTML content documents, a shared stylesheet, images,
+# and two navigation documents (nav.xhtml for EPUB3 readers, toc.ncx for older
+# EPUB2 ones). Each wisdom entry becomes one chapter; the navigation documents
+# plus a readable index chapter provide the generated table of contents.
+
+_EPUB_ENV_VAR = "EXTRACT_WISDOM_CREATE_EPUB"
+_EPUB_FILENAME = "Wisdom-Library.epub"
+
+# Cover dimensions (px). 2:3 aspect matches common e-reader covers.
+_EPUB_COVER_W = 1400
+_EPUB_COVER_H = 2100
+
+_EPUB_CONTAINER_XML = (
+    '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<container version="1.0" '
+    'xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n'
+    '  <rootfiles>\n'
+    '    <rootfile full-path="OEBPS/content.opf" '
+    'media-type="application/oebps-package+xml"/>\n'
+    '  </rootfiles>\n'
+    '</container>\n'
+)
+
+_XHTML_OPEN = (
+    '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<!DOCTYPE html>\n'
+    '<html xmlns="http://www.w3.org/1999/xhtml" '
+    'xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en" lang="en">\n'
+)
+
+
+def _xhtml_document(title: str, body_html: str, *, body_class: str = "") -> str:
+    """Wrap a rendered body in a minimal, well-formed XHTML5 document."""
+    cls = f' class="{body_class}"' if body_class else ""
+    return (
+        _XHTML_OPEN
+        + "<head>\n"
+        + f"  <title>{html_mod.escape(title)}</title>\n"
+        + '  <meta charset="utf-8"/>\n'
+        + '  <link rel="stylesheet" type="text/css" href="style.css"/>\n'
+        + "</head>\n"
+        + f"<body{cls}>\n{body_html}\n</body>\n</html>\n"
+    )
+
+
+def _wellformed_body(body_html: str) -> str:
+    """Return body_html unchanged if it parses as well-formed XML, else a safe
+    fallback.
+
+    ePub content documents must be valid XHTML. python-markdown emits XHTML
+    (self-closed void elements), but raw HTML in a source file could slip in
+    malformed markup. Rather than fail the whole book, a bad chapter degrades
+    to an escaped code block so the build still completes.
+    """
+    import xml.etree.ElementTree as ET
+    try:
+        ET.fromstring(f"<div>{body_html}</div>")
+        return body_html
+    except ET.ParseError:
+        return f"<pre>{html_mod.escape(body_html)}</pre>"
+
+
+def _epub_chapter_name(idx: int) -> str:
+    return f"chap-{idx:04d}.xhtml"
+
+
+def _epub_part_name(year: str) -> str:
+    return f"part-{year.lower()}.xhtml"
+
+
+def _group_by_year(
+    entries: list[dict[str, Any]],
+) -> list[tuple[str, list[tuple[int, dict[str, Any]]]]]:
+    """Group entries into contiguous year blocks, preserving order.
+
+    Entries arrive newest-first, so years are already contiguous. Each group is
+    ``(year_label, [(chapter_number, entry), ...])`` where chapter_number is the
+    entry's 1-based position in the flat list (its ``chap-NNNN`` file). Entries
+    without a parseable year fall under "Undated".
+    """
+    groups: list[tuple[str, list[tuple[int, dict[str, Any]]]]] = []
+    for idx, e in enumerate(entries, 1):
+        date = str(e.get("date") or "")
+        year = date[:4] if re.fullmatch(r"\d{4}", date[:4]) else "Undated"
+        if not groups or groups[-1][0] != year:
+            groups.append((year, []))
+        groups[-1][1].append((idx, e))
+    return groups
+
+
+def _epub_part_body(year: str, count: int) -> str:
+    """Build a year part-divider page."""
+    plural = "entry" if count == 1 else "entries"
+    return (
+        '<section class="part-divider">\n'
+        f'<h1 class="part-title">{html_mod.escape(year)}</h1>\n'
+        f'<p class="part-sub">{count} {plural}</p>\n'
+        "</section>\n"
+    )
+
+
+def _hex_to_rgb(colour: str) -> tuple[int, int, int]:
+    c = colour.lstrip("#")
+    return (int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16))
+
+
+def _load_cover_font(size: int) -> Any:
+    """Load a sans-serif TrueType font at ``size``, trying common system paths
+    and falling back to Pillow's default (scaled where supported)."""
+    from PIL import ImageFont
+    candidates = [
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+        "/System/Library/Fonts/Helvetica.ttc",
+        "/System/Library/Fonts/HelveticaNeue.ttc",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "DejaVuSans.ttf",
+    ]
+    for path in candidates:
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    try:
+        return ImageFont.load_default(size)
+    except TypeError:  # Pillow < 10.1 has no size parameter
+        return ImageFont.load_default()
+
+
+def _wrap_text(text: str, font: Any, max_width: float, draw: Any) -> list[str]:
+    """Greedily wrap ``text`` to lines no wider than ``max_width``."""
+    lines: list[str] = []
+    current = ""
+    for word in text.split():
+        trial = f"{current} {word}".strip()
+        if not current or draw.textlength(trial, font=font) <= max_width:
+            current = trial
+        else:
+            lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines
+
+
+def _generate_cover_png(title: str, subtitle: str) -> bytes | None:
+    """Render a gradient cover with the title on a translucent panel.
+
+    Fully offline: the gradient palette is chosen from a hash of the title
+    (same scheme as index placeholders) and the text uses a system font.
+    Returns PNG bytes, or None if Pillow is unavailable or rendering fails.
+    """
+    try:
+        import io
+
+        from PIL import Image, ImageDraw
+    except ImportError:
+        return None
+    try:
+        w, h = _EPUB_COVER_W, _EPUB_COVER_H
+        digest = int(hashlib.md5(title.encode()).hexdigest(), 16)  # noqa: S324
+        c1, c2 = _PLACEHOLDER_PALETTES[digest % len(_PLACEHOLDER_PALETTES)]
+        top, bot = _hex_to_rgb(c1), _hex_to_rgb(c2)
+
+        # Vertical gradient: build a 1px column then stretch to full width.
+        grad = Image.new("RGB", (1, h))
+        for y in range(h):
+            t = y / (h - 1)
+            grad.putpixel((0, y), tuple(
+                round(top[k] + (bot[k] - top[k]) * t) for k in range(3)
+            ))
+        img = grad.resize((w, h)).convert("RGBA")
+
+        # Translucent dark panel keeps text legible on any palette.
+        margin = int(w * 0.09)
+        panel_top, panel_bot = int(h * 0.30), int(h * 0.70)
+        overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        od = ImageDraw.Draw(overlay)
+        box = [margin, panel_top, w - margin, panel_bot]
+        try:
+            od.rounded_rectangle(box, radius=int(w * 0.03), fill=(20, 20, 19, 140))
+        except AttributeError:
+            od.rectangle(box, fill=(20, 20, 19, 140))
+        img = Image.alpha_composite(img, overlay).convert("RGB")
+
+        draw = ImageDraw.Draw(img)
+        title_font = _load_cover_font(int(w * 0.11))
+        sub_font = _load_cover_font(int(w * 0.045))
+        text_w = w - 2 * margin - int(w * 0.06)
+        lines = _wrap_text(title, title_font, text_w, draw)
+
+        line_h = int(w * 0.14)
+        block_h = line_h * len(lines)
+        y = panel_top + ((panel_bot - panel_top) - block_h) // 2
+        ink = (250, 249, 245)
+        for line in lines:
+            lw = draw.textlength(line, font=title_font)
+            draw.text(((w - lw) / 2, y), line, font=title_font, fill=ink)
+            y += line_h
+        if subtitle:
+            sw = draw.textlength(subtitle, font=sub_font)
+            draw.text(((w - sw) / 2, panel_bot - int(w * 0.10)), subtitle,
+                      font=sub_font, fill=(230, 228, 220))
+
+        buf = io.BytesIO()
+        img.save(buf, "PNG", optimize=True)
+        return buf.getvalue()
+    except Exception as exc:
+        print(f"Warning: cover generation failed: {exc}", file=sys.stderr)
+        return None
+
+
+def _epub_index_body(
+    title: str, groups: list[tuple[str, list[tuple[int, dict[str, Any]]]]],
+    gen_date: str, *, include_descriptions: bool = False,
+) -> str:
+    """Build the readable index chapter, grouped by year.
+
+    Each entry shows its title link, a metadata line, and tags under a year
+    heading. The description preview is omitted by default (more entries per
+    page); pass include_descriptions=True to add it.
+    """
+    total = sum(len(chapters) for _, chapters in groups)
+    parts = [
+        f"<h1>{html_mod.escape(title)}</h1>",
+        f'<p class="index-sub">{total} entries · generated {gen_date}</p>',
+    ]
+    for year, chapters in groups:
+        parts.append(f'<h2 class="index-year">{html_mod.escape(year)}</h2>')
+        parts.append('<ol class="entry-list">')
+        for idx, e in chapters:
+            href = _epub_chapter_name(idx)
+            meta_bits = [e.get("date", ""), e.get("author", ""), e.get("source_type", "")]
+            if e.get("reading_time"):
+                meta_bits.append(f"{e['reading_time']} min read")
+            meta = " · ".join(html_mod.escape(b) for b in meta_bits if b)
+            parts.append('<li class="entry">')
+            parts.append(f'<a class="entry-title" href="{href}">{html_mod.escape(e["title"])}</a>')
+            if meta:
+                parts.append(f'<p class="entry-meta">{meta}</p>')
+            if include_descriptions and e.get("description"):
+                parts.append(f'<p class="entry-desc">{html_mod.escape(e["description"])}</p>')
+            if e.get("tags"):
+                tags = " · ".join(html_mod.escape(t) for t in e["tags"])
+                parts.append(f'<p class="entry-tags">{tags}</p>')
+            parts.append("</li>")
+        parts.append("</ol>")
+    return "\n".join(parts)
+
+
+def _epub_nav_xhtml(
+    groups: list[tuple[str, list[tuple[int, dict[str, Any]]]]], *, has_cover: bool,
+) -> str:
+    """Build the EPUB3 navigation document: a nested (year -> chapters) ToC plus
+    a landmarks nav so Kindle's Go-To menu and start-reading location work."""
+    toc_items = ['<li><a href="index.xhtml">Wisdom Library</a></li>']
+    for year, chapters in groups:
+        subs = "".join(
+            f'<li><a href="{_epub_chapter_name(i)}">{html_mod.escape(e["title"])}</a></li>'
+            for i, e in chapters
+        )
+        toc_items.append(
+            f'<li><a href="{_epub_part_name(year)}">{html_mod.escape(year)}</a>'
+            f"<ol>{subs}</ol></li>"
+        )
+    toc = (
+        '<nav epub:type="toc" id="toc">\n'
+        "<h1>Contents</h1>\n"
+        "<ol>\n" + "\n".join(toc_items) + "\n</ol>\n"
+        "</nav>\n"
+    )
+
+    landmarks_items = []
+    if has_cover:
+        landmarks_items.append('<li><a epub:type="cover" href="cover.xhtml">Cover</a></li>')
+    landmarks_items.append('<li><a epub:type="toc" href="index.xhtml">Contents</a></li>')
+    landmarks_items.append('<li><a epub:type="bodymatter" href="index.xhtml">Start Reading</a></li>')
+    landmarks = (
+        '<nav epub:type="landmarks" id="landmarks" hidden="hidden">\n'
+        "<h2>Guide</h2>\n"
+        "<ol>\n" + "\n".join(landmarks_items) + "\n</ol>\n"
+        "</nav>\n"
+    )
+    return _xhtml_document("Contents", toc + landmarks)
+
+
+def _epub_ncx(
+    title: str, uid: str, groups: list[tuple[str, list[tuple[int, dict[str, Any]]]]],
+) -> str:
+    """Build the EPUB2 NCX navigation document (fallback for older readers).
+
+    Mirrors the nested nav.xhtml: a year navPoint wraps its chapter navPoints.
+    playOrder runs sequentially through the whole tree in reading order.
+    """
+    def label(text: str) -> str:
+        return f"<navLabel><text>{html_mod.escape(text)}</text></navLabel>"
+
+    order = 1
+    points = [
+        f'<navPoint id="nav-index" playOrder="{order}">{label("Wisdom Library")}'
+        f'<content src="index.xhtml"/></navPoint>'
+    ]
+    for gi, (year, chapters) in enumerate(groups):
+        order += 1
+        part_order = order
+        child_xml: list[str] = []
+        for i, e in chapters:
+            order += 1
+            child_xml.append(
+                f'<navPoint id="nav-{i}" playOrder="{order}">{label(e["title"])}'
+                f'<content src="{_epub_chapter_name(i)}"/></navPoint>'
+            )
+        points.append(
+            f'<navPoint id="part-{gi}" playOrder="{part_order}">{label(year)}'
+            f'<content src="{_epub_part_name(year)}"/>{"".join(child_xml)}</navPoint>'
+        )
+    return (
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        '<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">\n'
+        "<head>\n"
+        f'<meta name="dtb:uid" content="urn:uuid:{uid}"/>\n'
+        '<meta name="dtb:depth" content="2"/>\n'
+        '<meta name="dtb:totalPageCount" content="0"/>\n'
+        '<meta name="dtb:maxPageNumber" content="0"/>\n'
+        "</head>\n"
+        f"<docTitle><text>{html_mod.escape(title)}</text></docTitle>\n"
+        "<navMap>\n" + "\n".join(points) + "\n</navMap>\n"
+        "</ncx>\n"
+    )
+
+
+def _epub_opf(
+    title: str, uid: str, date_str: str, modified: str,
+    groups: list[tuple[str, list[tuple[int, dict[str, Any]]]]], *, has_cover: bool,
+) -> str:
+    """Build the OPF package document (metadata, manifest, spine, and guide)."""
+    manifest = [
+        '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>',
+        '<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>',
+        '<item id="css" href="style.css" media-type="text/css"/>',
+        '<item id="index" href="index.xhtml" media-type="application/xhtml+xml"/>',
+    ]
+    spine: list[str] = []
+    guide: list[str] = []
+    if has_cover:
+        manifest.append(
+            '<item id="cover-image" href="cover.png" media-type="image/png" '
+            'properties="cover-image"/>'
+        )
+        manifest.append('<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>')
+        spine.append('<itemref idref="cover"/>')
+        guide.append('<reference type="cover" title="Cover" href="cover.xhtml"/>')
+    spine.append('<itemref idref="index"/>')
+    for gi, (year, chapters) in enumerate(groups):
+        part_id = f"part-{gi}"
+        manifest.append(
+            f'<item id="{part_id}" href="{_epub_part_name(year)}" '
+            'media-type="application/xhtml+xml"/>'
+        )
+        spine.append(f'<itemref idref="{part_id}"/>')
+        for i, _ in chapters:
+            manifest.append(
+                f'<item id="chap-{i:04d}" href="{_epub_chapter_name(i)}" '
+                'media-type="application/xhtml+xml"/>'
+            )
+            spine.append(f'<itemref idref="chap-{i:04d}"/>')
+    # Legacy guide references help older Kindle firmware open at the contents.
+    guide.append('<reference type="toc" title="Contents" href="index.xhtml"/>')
+    guide.append('<reference type="text" title="Start" href="index.xhtml"/>')
+    cover_meta = '\n    <meta name="cover" content="cover-image"/>' if has_cover else ""
+    return (
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        '<package xmlns="http://www.idpf.org/2007/opf" version="3.0" '
+        'unique-identifier="book-id" xml:lang="en">\n'
+        '  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">\n'
+        f'    <dc:identifier id="book-id">urn:uuid:{uid}</dc:identifier>\n'
+        f"    <dc:title>{html_mod.escape(title)}</dc:title>\n"
+        "    <dc:language>en-AU</dc:language>\n"
+        "    <dc:creator>Extract Wisdom</dc:creator>\n"
+        f"    <dc:date>{date_str}</dc:date>\n"
+        f'    <meta property="dcterms:modified">{modified}</meta>{cover_meta}\n'
+        "  </metadata>\n"
+        "  <manifest>\n    " + "\n    ".join(manifest) + "\n  </manifest>\n"
+        '  <spine toc="ncx">\n    ' + "\n    ".join(spine) + "\n  </spine>\n"
+        "  <guide>\n    " + "\n    ".join(guide) + "\n  </guide>\n"
+        "</package>\n"
+    )
+
+
+def _build_epub(
+    base_dir: Path, entries: list[dict[str, Any]], output_file: Path,
+    title: str, md_lib: Any, *, include_descriptions: bool = False,
+) -> dict[str, int]:
+    """Assemble the whole corpus into a single .epub. Returns diagram fallbacks."""
+    fallbacks: dict[str, int] = {}
+    chapter_docs: list[str] = []
+    for e in entries:
+        # raster=True renders graphviz to PNG (Kindle-safe) instead of SVG.
+        body_html, fb = _md_to_content_html(e.get("body", ""), md_lib, raster=True)
+        for lang, count in fb.items():
+            fallbacks[lang] = fallbacks.get(lang, 0) + count
+        chapter_docs.append(_xhtml_document(e["title"], _wellformed_body(body_html)))
+
+    groups = _group_by_year(entries)
+
+    tz = _local_tz()
+    date_str = datetime.now(tz=tz).date().isoformat()
+    modified = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # Deterministic id keyed to the library location so rebuilds keep it stable.
+    uid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"extract-wisdom:{base_dir}:{title}"))
+
+    cover_png = _generate_cover_png(title, f"{len(entries)} entries · {date_str}")
+    has_cover = cover_png is not None
+
+    css_text = EPUB_CSS_FILE.read_text(encoding="utf-8") if EPUB_CSS_FILE.is_file() else ""
+    index_doc = _xhtml_document(
+        title, _epub_index_body(title, groups, date_str, include_descriptions=include_descriptions),
+    )
+    nav_doc = _epub_nav_xhtml(groups, has_cover=has_cover)
+    ncx = _epub_ncx(title, uid, groups)
+    opf = _epub_opf(title, uid, date_str, modified, groups, has_cover=has_cover)
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    deflate = zipfile.ZIP_DEFLATED
+    with zipfile.ZipFile(output_file, "w") as zf:
+        # mimetype MUST be the first entry and stored uncompressed (ePub spec).
+        zf.writestr("mimetype", "application/epub+zip", compress_type=zipfile.ZIP_STORED)
+        zf.writestr("META-INF/container.xml", _EPUB_CONTAINER_XML, compress_type=deflate)
+        zf.writestr("OEBPS/content.opf", opf, compress_type=deflate)
+        zf.writestr("OEBPS/nav.xhtml", nav_doc, compress_type=deflate)
+        zf.writestr("OEBPS/toc.ncx", ncx, compress_type=deflate)
+        zf.writestr("OEBPS/style.css", css_text, compress_type=deflate)
+        if has_cover:
+            zf.writestr("OEBPS/cover.png", cover_png, compress_type=deflate)
+            zf.writestr(
+                "OEBPS/cover.xhtml",
+                _xhtml_document("Cover", '<img class="cover-img" src="cover.png" alt="Cover"/>', body_class="cover"),
+                compress_type=deflate,
+            )
+        zf.writestr("OEBPS/index.xhtml", index_doc, compress_type=deflate)
+        for year, chapters in groups:
+            zf.writestr(
+                f"OEBPS/{_epub_part_name(year)}",
+                _xhtml_document(year, _epub_part_body(year, len(chapters))),
+                compress_type=deflate,
+            )
+        for idx, doc in enumerate(chapter_docs, 1):
+            zf.writestr(f"OEBPS/{_epub_chapter_name(idx)}", doc, compress_type=deflate)
+
+    return fallbacks
+
+
+def _maybe_build_epub(base_dir: Path) -> None:
+    """Rebuild the corpus ePub after an index refresh when opted in.
+
+    Off by default: the build re-renders every chapter's diagrams, which is
+    only fast enough for an automatic run when the corpus has no network-bound
+    (mermaid) diagrams. Enable with EXTRACT_WISDOM_CREATE_EPUB=true.
+    """
+    if os.environ.get(_EPUB_ENV_VAR, "false").lower() not in ("true", "1", "yes"):
+        return
+    try:
+        import markdown as md_lib  # type: ignore[import-untyped]  # ty: ignore[unresolved-import]
+    except ImportError:
+        return
+    entries = _collect_entries(base_dir, reverse=True)
+    if not entries:
+        return
+    try:
+        _build_epub(base_dir, entries, base_dir / _EPUB_FILENAME, "Wisdom Library", md_lib)
+    except Exception as exc:
+        print(f"Warning: ePub generation failed: {exc}", file=sys.stderr)
+
+
+def _find_ebook_convert() -> str | None:
+    """Locate calibre's ebook-convert: PATH first, then the macOS app bundle."""
+    exe = shutil.which("ebook-convert")
+    if exe:
+        return exe
+    mac_bundled = "/Applications/calibre.app/Contents/MacOS/ebook-convert"
+    if _is_mac() and os.access(mac_bundled, os.X_OK):
+        return mac_bundled
+    return None
+
+
+def _convert_to_azw3(epub_path: Path, azw3_path: Path) -> bool:
+    """Convert an ePub to native Kindle AZW3 via calibre. Returns success.
+
+    AZW3 (Kindle Format 8) is the practical native format modern Kindles read;
+    MOBI is deprecated by Amazon and KFX needs Kindle Previewer. Prints an
+    install hint and returns False when calibre is unavailable.
+    """
+    exe = _find_ebook_convert()
+    if not exe:
+        print(
+            "MISSING_DEPS: calibre ebook-convert (for --kindle AZW3 output)\n"
+            "INSTALL: https://calibre-ebook.com/download (or `brew install --cask calibre`)\n"
+            "ACTION: the .epub is complete and can be sent to a Kindle via Send to Kindle, "
+            "which converts it server-side.",
+            file=sys.stderr,
+        )
+        return False
+    result = subprocess.run(
+        [exe, str(epub_path), str(azw3_path)], capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        tail = (result.stderr or result.stdout or "")[-500:]
+        print(f"AZW3 conversion failed (exit {result.returncode}): {tail}", file=sys.stderr)
+        return False
+    return True
+
+
+def cmd_epub(args: argparse.Namespace) -> None:
+    """Bind the whole wisdom corpus into a single .epub ebook."""
+    base_dir = Path(args.base_dir) if args.base_dir else detect_base_dir()
+    if not base_dir.is_dir():
+        print(f"Error: wisdom base directory not found: {base_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        import markdown as md_lib  # type: ignore[import-untyped]  # ty: ignore[unresolved-import]
+    except ImportError:
+        print(
+            "MISSING_DEPS: markdown\n"
+            "INSTALL: run this script via `uv run` so the declared dependency is provided.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+    entries = _collect_entries(base_dir, reverse=True)
+    if not entries:
+        print(f"No analysis entries found under {base_dir}", file=sys.stderr)
+        return
+
+    output_file = Path(args.output) if args.output else base_dir / _EPUB_FILENAME
+    title = args.title or "Wisdom Library"
+
+    fallbacks = _build_epub(
+        base_dir, entries, output_file, title, md_lib,
+        include_descriptions=args.include_descriptions,
+    )
+
+    print(f"EPUB_PATH: {output_file}")
+    print(f"CHAPTERS: {len(entries)}")
+    _print_diagram_fallbacks(fallbacks)
+
+    open_target = output_file
+    if args.kindle:
+        azw3_path = output_file.with_suffix(".azw3")
+        if _convert_to_azw3(output_file, azw3_path):
+            print(f"AZW3_PATH: {azw3_path}")
+            open_target = azw3_path
+
+    if args.open_after:
+        _open_file(open_target)
 
 
 # ---------------------------------------------------------------------------
@@ -2688,6 +3319,17 @@ def main() -> None:
     p_index = sub.add_parser("index", help="Regenerate the wisdom library index.html")
     p_index.add_argument("base_dir", nargs="?", default=None, help="Wisdom base directory (default: auto-detect)")
 
+    # epub
+    p_epub = sub.add_parser("epub", help="Bind the whole corpus into a single .epub ebook")
+    p_epub.add_argument("base_dir", nargs="?", default=None, help="Wisdom base directory (default: auto-detect)")
+    p_epub.add_argument("--output", default=None, help=f"Output path (default: <base_dir>/{_EPUB_FILENAME})")
+    p_epub.add_argument("--title", default=None, help="Book title (default: 'Wisdom Library')")
+    p_epub.add_argument("--descriptions", action="store_true", dest="include_descriptions",
+                        help="Include the description preview paragraph under each index entry")
+    p_epub.add_argument("--kindle", action="store_true",
+                        help="Also emit a native Kindle .azw3 via calibre (if installed)")
+    p_epub.add_argument("--open", action="store_true", dest="open_after", help="Open the ebook after building")
+
     # migrate-sources
     p_migrate = sub.add_parser("migrate-sources",
                                help="Migrate legacy scalar source: to the sources: list")
@@ -2739,6 +3381,7 @@ def main() -> None:
         "pdf": cmd_pdf,
         "regenerate-pdfs": cmd_regenerate_pdfs,
         "index": cmd_index,
+        "epub": cmd_epub,
         "migrate-sources": cmd_migrate_sources,
         "backfill": cmd_backfill,
         "search": cmd_search,

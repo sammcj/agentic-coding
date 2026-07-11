@@ -1,0 +1,321 @@
+/*
+ * Extract Wisdom -- ePub Stylesheet (Amber)
+ * Used by wisdom.py epub subcommand.
+ *
+ * Reflow-friendly counterpart to wisdom-pdf.css: no @page rules, relative
+ * units throughout (the reader controls the base font size), and no fixed
+ * positioning. Same warm amber palette and serif/sans pairing.
+ */
+
+:root {
+  --colour-text: #141413;
+  --colour-muted: #6b6560;
+  --colour-accent: #d97757;
+  --colour-accent-light: #fdf0e8;
+  --colour-border: #e8e6dc;
+  --colour-bg-code: #f5f3ed;
+  --colour-bg-quote: #faf9f5;
+  --colour-quote-bar: #d97757;
+}
+
+/* ── Base typography ────────────────────────────────────── */
+
+body {
+  font-family: "MonoLisa Text", "Atkinson Hyperlegible", "Georgia", "Times New Roman", "Palatino", serif;
+  color: var(--colour-text);
+  line-height: 1.45;
+  margin: 0 5%;
+  padding: 0;
+}
+
+/* ── Headings ───────────────────────────────────────────── */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  color: var(--colour-text);
+  line-height: 1.25;
+  margin: 1.4em 0 0.5em;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+h1 {
+  font-size: 1.7em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 0.4em;
+  margin-bottom: 0.6em;
+  padding-bottom: 0.35em;
+  border-bottom: 3px solid var(--colour-accent);
+}
+
+/* Metadata lines (Sources, Content Date, Analysis Date) after the h1 */
+h1 + p,
+h1 + p + p,
+h1 + p + p + p {
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-size: 0.85em;
+  color: var(--colour-muted);
+  margin: 0.15em 0;
+  line-height: 1.4;
+}
+
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: var(--colour-accent);
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid var(--colour-border);
+}
+
+h3 {
+  font-size: 1.15em;
+  font-weight: 600;
+}
+
+h4 {
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--colour-muted);
+}
+
+/* ── Paragraphs and inline ──────────────────────────────── */
+
+p {
+  margin: 0.6em 0;
+}
+
+strong { font-weight: 700; }
+em { font-style: italic; }
+
+a {
+  color: var(--colour-accent);
+  text-decoration: none;
+}
+
+/* ── Lists ──────────────────────────────────────────────── */
+
+ul, ol {
+  margin: 0.5em 0;
+  padding-left: 1.4em;
+}
+
+ul { list-style-type: disc; }
+ol { list-style-type: decimal; }
+
+li { margin-bottom: 0.3em; }
+
+li > ul, li > ol {
+  margin-top: 0.2em;
+  margin-bottom: 0.1em;
+}
+
+li > ul { list-style-type: circle; }
+
+li > ul > li {
+  font-size: 0.95em;
+  color: #4a4540;
+}
+
+/* ── Blockquotes (notable quotes) ───────────────────────── */
+
+blockquote {
+  margin: 1.2em 0;
+  padding: 0.7em 1.1em;
+  border-left: 4px solid var(--colour-quote-bar);
+  background: var(--colour-bg-quote);
+  font-size: 1.05em;
+  color: #3d3530;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+blockquote p { margin: 0.3em 0; }
+
+blockquote + p {
+  font-size: 0.9em;
+  color: var(--colour-muted);
+  margin-top: 0.3em;
+}
+
+/* ── Code ───────────────────────────────────────────────── */
+
+code {
+  font-family: "MonoLisa Code", "TX-02", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace;
+  font-size: 0.88em;
+  background: var(--colour-bg-code);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+pre {
+  background: var(--colour-bg-code);
+  border: 1px solid var(--colour-border);
+  border-radius: 5px;
+  padding: 0.8em 1em;
+  margin: 1em 0;
+  font-size: 0.85em;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* ── Tables ─────────────────────────────────────────────── */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.92em;
+}
+
+thead {
+  background: var(--colour-accent);
+  color: #fff;
+}
+
+th {
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-weight: 600;
+  padding: 0.5em 0.7em;
+  text-align: left;
+}
+
+td {
+  padding: 0.45em 0.7em;
+  border-bottom: 1px solid var(--colour-border);
+}
+
+tbody tr:nth-child(even) { background: #faf9f5; }
+
+/* ── Horizontal rules ───────────────────────────────────── */
+
+hr {
+  border: none;
+  border-top: 1px solid var(--colour-border);
+  margin: 1.8em 0;
+}
+
+/* ── Images and rendered diagrams ───────────────────────── */
+
+img {
+  max-width: 100%;
+  height: auto;
+  margin: 1em auto;
+  display: block;
+}
+
+img.diagram {
+  margin: 1.5em auto;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+pre.diagram-fallback {
+  background: #f0f4f8;
+  border: 1px solid var(--colour-border);
+  border-left: 4px solid var(--colour-accent);
+  border-radius: 5px;
+  padding: 0.8em 1em;
+  margin: 1em 0;
+}
+
+/* ── Cover page ─────────────────────────────────────────── */
+
+body.cover {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+body.cover img {
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0 auto;
+}
+
+/* ── Year part-divider pages ────────────────────────────── */
+
+.part-divider {
+  text-align: center;
+  margin-top: 30%;
+}
+
+.part-title {
+  font-size: 3em;
+  font-weight: 700;
+  border: none;
+  color: var(--colour-accent);
+}
+
+.part-sub {
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-size: 0.9em;
+  color: var(--colour-muted);
+}
+
+/* ── Index / contents chapter ───────────────────────────── */
+
+.index-sub {
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-size: 0.9em;
+  color: var(--colour-muted);
+  margin-top: -0.3em;
+}
+
+h2.index-year {
+  font-size: 1.5em;
+  color: var(--colour-text);
+  border-bottom: 2px solid var(--colour-accent);
+  margin-top: 1.4em;
+}
+
+ol.entry-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 1em 0;
+}
+
+li.entry {
+  margin-bottom: 0.55em;
+  padding-bottom: 0.45em;
+  border-bottom: 1px solid var(--colour-border);
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+a.entry-title {
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--colour-accent);
+}
+
+p.entry-meta {
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-size: 0.8em;
+  color: var(--colour-muted);
+  margin: 0.15em 0;
+}
+
+p.entry-desc {
+  margin: 0.2em 0;
+  font-size: 0.95em;
+}
+
+p.entry-tags {
+  font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-size: 0.78em;
+  color: var(--colour-accent);
+  margin: 0.15em 0 0;
+}

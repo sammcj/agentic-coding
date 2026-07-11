@@ -262,7 +262,7 @@ If timestamps are needed:
 
 ### scripts/
 
-- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, metadata backfill, library indexing, full-text search, related-entry lookup, and tag management. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `migrate-sources`, `backfill`, `search`, `related`, `tags`.
+- `wisdom.py`: Single Python script (PEP 723) handling transcript download, markdown formatting, PDF rendering, ePub export, metadata backfill, library indexing, full-text search, related-entry lookup, and tag management. Run via `uv run`. Subcommands: `transcript`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `epub`, `migrate-sources`, `backfill`, `search`, `related`, `tags`.
 
 ### Querying the corpus
 
@@ -282,6 +282,10 @@ uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py tags --merge "agents,ai-agents" age
 ```
 
 Pass `--json` to `search`, `related`, or `tags` for parseable output. `pdf` and `index` regenerate both the database and the cache, and emit `TAG_SPRAWL_WARNINGS` to stderr when near-duplicate tags are detected.
+
+### Building an ebook (optional)
+
+If the user requests the wisdom also be rendered as an ebook read in `references/build-ebook.md`.
 
 ### Backfill Metadata (Manual Only)
 
@@ -303,6 +307,7 @@ uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py backfill --all --force
 - `wisdom-pdf.css`: CSS stylesheet for PDF rendering. Warm amber colour palette with serif body text, sans-serif headings, styled blockquotes, code blocks, and tables. Customisable or replaceable via `--css` flag.
 - `wisdom-pdf.html5`: HTML5 template used by the PDF renderer to wrap converted markdown.
 - `wisdom-index.html`: HTML template for the wisdom library index page. Self-contained with embedded CSS and JS. Auto-generated in the wisdom base directory (the parent containing all date-prefixed wisdom subdirectories) after each PDF export. Uses fuse.js (CDN) for fuzzy search with simple substring fallback when offline.
+- `wisdom-epub.css`: CSS stylesheet for optional ePub rendering.
 
 ---
 
