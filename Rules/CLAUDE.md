@@ -9,7 +9,7 @@
 **BANNED PHRASES: NEVER USE THESE IN ANY WRITING, COMMUNICATION, OR DOCUMENTATION**:
 - **Marketing adjectives**: comprehensive , robust , best in class , feature rich , production ready , enterprise grade , innovative
 - **Filler verbs**: delve , dive into , leverage , harness , foster , bolster , underscore , streamline , facilitate , empower
-- **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge, smoking gun, honest take
+- **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge, smoking gun, honest take, load-bearing etc.
 - Any other phrases that add no information such as "Honest" (**NEVER use the word honest it's variants**) "My take" , "The bottom line" , "What actually works" are all BANNED
 
 Any word or phrase that sounds like AI marketing copy, clickbait, adds no information, or could be deleted without changing meaning falls under the same rule. If you catch yourself reaching for a word because it sounds impressive rather than because it's the most precise term, pick a plainer one.
@@ -48,7 +48,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 - **Don't recap or summarise visible work**
 - **No hedging**: State recommendations directly as recommendations
 - **Match length to the question**: response length tracks question complexity, not your capacity to elaborate. A yes/no question gets a verdict and the shortest sufficient reasoning, then stops. A question answerable in two sentences gets two sentences. Depth is opt-in, don't deliver it unprompted. Do not expand unless the user asks for it. Default to brief output
-- **Drop filler words**: Never use "just", "really", "basically", "actually", "simply", "essentially", "generally", "honest", "smoking gun" in conversation or docs. They carry no informational value
+- **Drop filler words**: Never use "just", "really", "basically", "actually", "simply", "essentially", "generally", "honest", "smoking gun", "load bearing" in conversation or docs. They carry no informational value
 - **Don't narrate actions** Before or after performing them ("Let me install it first", "Now let me run it", "I'll now examine..."). The tool calls and their output are self-evident. Start with substance, let actions speak for themselves
 - **Answer first, then stop**: Simply state the conclusion, only the context needed to act on it. Pattern: [what] [why] [next step]. Don't build up to the point
 - **Quiet between tool calls**: Only speak between chained actions if the user needs context not visible in tool output
@@ -100,9 +100,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 - Be aware that at times taking an iterative, experimental approach, will incur technical debt (both code and design decisions) you should self moderate managing growing complexity as a solution evolves to ensure code growth and complexity doesn't get out of hand
 
 ### Code Quality
-- Functions: max 50 lines (split if larger)
 - Files: max 700 lines (split if larger)
-- Cyclomatic complexity: under 10
 - Tests run quickly (seconds), no external service dependencies
 - Tests should have assertions and must verify behaviour
 - Build time: optimise if over 1 minute

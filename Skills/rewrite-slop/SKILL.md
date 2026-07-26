@@ -61,7 +61,7 @@ The defining tells of Claude 4.x output. These rarely appear in genuine human pr
 - Parenthetical hedging asides: "(or, more precisely, ...)", "(and, increasingly, ...)"
 - Progress-update meta-narration in long-form: "Let me mark X as complete", "Now I'll examine"
 - False intimacy openers preceding the obvious: "Here's the thing:", "Let's be honest:", "The truth is"
-- Claude metaphor tics: "smoking gun" (Claude reaches for this to dramatise findings or evidence)
+- Claude metaphor tics: "smoking gun" (Claude reaches for this to dramatise findings or evidence), "load-bearing" / "load bearing"
 
 ### Tier 2: Claude self-describing vocabulary
 
@@ -202,6 +202,7 @@ Generate verification questions about your rewrite. Answer each by inspecting th
 - Are there any "Despite [positive], [subject] faces challenges" pivots?
 - Did I leave any inline-bold-header bullets (`**X:** description`)?
 - Are there any "Let me", "I'll", "Happy to", "Let me know if", "I hope this helps", "Perfect!", "Excellent!" remaining?
+- Are there any metaphor tics left ("smoking gun", "load-bearing")? Replace with what the thing does.
 - Did I leave any title-case headings? Any `---` thematic break before a heading? Any emoji in expository content?
 - Does the rewrite assume frictionless rationality, universal cooperation, or unearned emotional resonance ("communities will enthusiastically adopt", "deeply resonates with")?
 - Does any sentence claim significance, legacy, or a "broader trend" that is not demonstrated by a fact in the same paragraph?
