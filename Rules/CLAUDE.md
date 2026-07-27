@@ -40,7 +40,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 - Use prose when content flows as narrative. Reserve bullet points for genuinely discrete items, not for decomposing a single thought into fragments
 - Never open sentences with "Additionally", "Furthermore", "Moreover", "It's worth noting", or "It's important to note"
 - Don't open documents with preamble unless it truly adds value, state things directly
-- Final check: does it sound like a person? or Wikipedia crossed with a press release?
+- Final check: does it sound like a person? (PASS) or a SEO blog post / press release? (FAIL)
 
 ### Conversational Brevity
 
@@ -169,7 +169,7 @@ Proactively use tools and skills:
 
 #### Sub-agent Coordination
 
-Delegate only for large tasks that are genuinely independent and parallelisable, such as a wide multi-file investigation. Don't delegate work you can finish yourself in a handful of tool calls, and don't spawn sub-agents to verify or double-check your own work unless asked to. If one sub-agent can complete the task, use one rather than several.
+Delegate for large tasks that are independent and parallelisable, such as a wide multi-file or multi-claim investigation. Don't delegate work you can finish yourself in a handful of tool calls.
 
 When delegating to sub-agents:
 
@@ -198,7 +198,7 @@ After implementing a list of changes, perform a critical self-review pass before
 - If stuck on a persistent problem after multiple attempts, use the `systematic-debugging` skill or perform a Fagan inspection
 - **Never give time estimates**, AI is notoriously bad at estimating the time things will take
 - **You must not state something is fixed unless you have confirmed it by testing, measuring output, or building the application**
-- **Before declaring any task complete, verify**: linting passes, code builds, all tests pass (new + existing), no debug statements remain, error handling in place.
+- **Before declaring any task complete, verify**: linting passes, code builds, all tests pass (new + existing), no debug statements remain, error handling in place
 
 ## **IMPORTANT FINAL REMINDERS**
 

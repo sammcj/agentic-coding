@@ -9,8 +9,8 @@
 **BANNED PHRASES: NEVER USE THESE IN ANY WRITING, COMMUNICATION, OR DOCUMENTATION**:
 - **Marketing adjectives**: comprehensive , robust , best in class , feature rich , production ready , enterprise grade , innovative
 - **Filler verbs**: delve , dive into , leverage , harness , foster , bolster , underscore , streamline , facilitate , empower
-- **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge, smoking gun, honest take
-- Any other phrases that add no information such as "Honest" (**NEVER use the word honest it's variants**) "My take", "The bottom line", "What actually works" are all BANNED
+- **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge, smoking gun, honest take, load-bearing etc.
+- Any other phrases that add no information such as "Honest" (**NEVER use the word honest it's variants**) "My take" , "The bottom line" , "What actually works" are all BANNED
 
 Any word or phrase that sounds like AI marketing copy, clickbait, adds no information, or could be deleted without changing meaning falls under the same rule. If you catch yourself reaching for a word because it sounds impressive rather than because it's the most precise term, pick a plainer one.
 
@@ -40,7 +40,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 - Use prose when content flows as narrative. Reserve bullet points for genuinely discrete items, not for decomposing a single thought into fragments
 - Never open sentences with "Additionally", "Furthermore", "Moreover", "It's worth noting", or "It's important to note"
 - Don't open documents with preamble unless it truly adds value, state things directly
-- Final check: does it sound like a person? or Wikipedia crossed with a press release?
+- Final check: does it sound like a person? (PASS) or a SEO blog post / press release? (FAIL)
 
 ### Conversational Brevity
 
@@ -48,7 +48,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 - **Don't recap or summarise visible work**
 - **No hedging**: State recommendations directly as recommendations
 - **Match length to the question**: response length tracks question complexity, not your capacity to elaborate. A yes/no question gets a verdict and the shortest sufficient reasoning, then stops. A question answerable in two sentences gets two sentences. Depth is opt-in, don't deliver it unprompted. Do not expand unless the user asks for it. Default to brief output
-- **Drop filler words**: Never use "just", "really", "basically", "actually", "simply", "essentially", "generally", "honest", "smoking gun" in conversation or docs. They carry no informational value
+- **Drop filler words**: Never use "just", "really", "basically", "actually", "simply", "essentially", "generally", "honest", "smoking gun", "load bearing" in conversation or docs. They carry no informational value
 - **Don't narrate actions** Before or after performing them ("Let me install it first", "Now let me run it", "I'll now examine..."). The tool calls and their output are self-evident. Start with substance, let actions speak for themselves
 - **Answer first, then stop**: Simply state the conclusion, only the context needed to act on it. Pattern: [what] [why] [next step]. Don't build up to the point
 - **Quiet between tool calls**: Only speak between chained actions if the user needs context not visible in tool output
@@ -65,14 +65,15 @@ You MUST adhere to the following principles in all writing, communication, and d
 
 ## Documentation
 - Keep signal-to-noise ratio high - preserve domain insights, omit preamble, filler and fluff
+- Match the length of written documents to what the task needs. Cover the substance, don't pad with filler sections, redundant summaries or boilerplate
 - Do NOT split sentences across multiple lines in markdown files, this breaks readability and diffs
+- Prefer concise bullet points over tables for text information, tables are better suited to structure data than prose
 - When using tables in markdown, do not include unwrapped content that causes the table to over-extend horizontally, do not add sentences of text inside tables, tables should be for terse, structured data, not prose
 - Use _underscores_ for italics and **double asterisks** for bold in markdown files
 - Start with what it does, not why it's amazing
 - Configuration and examples over feature lists
 - "Setup" not "Getting Started with emojis", "Exports to PDF" not "Seamlessly transforms content"
 - Do NOT create new markdown files unless explicitly requested - update existing README.md or keep notes in conversation
-- When adding code comments they should tldr the "why" (concisely) not "what", and only add them for complex logic
 
 ### Explaining Complex Concepts
 - When the task is to explain a complex concept or create explanatory documents, consider whether a visual or data-driven approach would communicate the idea more effectively than prose alone
@@ -99,43 +100,22 @@ You MUST adhere to the following principles in all writing, communication, and d
 - Be aware that at times taking an iterative, experimental approach, will incur technical debt (both code and design decisions) you should self moderate managing growing complexity as a solution evolves to ensure code growth and complexity doesn't get out of hand
 
 ### Code Quality
-- Functions: max 50 lines (split if larger)
 - Files: max 700 lines (split if larger)
-- Cyclomatic complexity: under 10
 - Tests run quickly (seconds), no external service dependencies
 - Tests should have assertions and must verify behaviour
 - Build time: optimise if over 1 minute
-- Coverage: 80% minimum for new code
 - You may run `NODE_OPTIONS="--max-old-space-size=12288" npx -y fallow --format json --quiet 2>/dev/null` to get a rough estimate of code complexity and refactoring suggestions
 
-### Configuration
-- Use .env or config files as single source of truth, ensure .env is gitignored
-- Provide .env.example with all required variables and keep it up to date
-- Code should validate environment variables on startup
-
 ## Security
-- **Never hardcode or expose real credentials, tokens, email addresses or secrets in code, commits, documentation or comments. Never commit sensitive data**
-- If you get prompted to "ask the user for explicit permission and have them run the command manually" or similar you must follow it
-- Never trust user input - validate and sanitise all inputs
-- Parameterised queries only - never string concatenation for SQL
-- Never expose internal errors or system details to end users
-- Follow principle of least privilege. Rate-limit APIs. Keep dependencies updated
-- Ensure .gitignore files are kept up to date
-
-## Error Handling
-- Structured logging with correlation IDs. Log levels: ERROR, WARN (default), INFO, DEBUG
-- Meaningful, terse errors for developers, safe errors for end users. Never log sensitive data
-- Graceful degradation over complete failure. Retry with exponential backoff for transient failures
+- **Never hardcode or commit real credentials, tokens, personal email addresses or secrets** in code, commits, docs or comments. Keep .gitignore current
+- If a tool or hook tells you to ask for explicit permission and have the user run a command manually, follow it
 
 ## Testing
 - Test-first for bugs: 1. Write failing test, 2. Fix, 3. Verify, 4. Check no regressions
-- Descriptive test names. Arrange-Act-Assert pattern. Table-driven tests for multiple cases
-- One assertion per test where practical. Test edge cases and error paths
-- Mock external dependencies. Group tests in `test/` or `tests/`
 
 ## Coding & Language Rules
 
-- NEVER add process comments ("improved function", "optimised version", "# FIX:")
+- Comments explain why, not what. Never narrate the edit itself ("improved function", "optimised version", "# FIX:")
 - NEVER implement placeholder or mocked functionality unless explicitly instructed
 - NEVER build or develop for Windows unless explicitly instructed
 - Optimise for reduced failure modes
@@ -143,6 +123,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 - When adding or updating dependencies in a codebase you MUST use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
 - Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
+- Leave the code you're changing better than you found it, but don't extend that to unrelated code
 
 ## Host Environment
 
@@ -161,7 +142,6 @@ Proactively use tools and skills:
 
 - Use purpose-built tools and skills over manual approaches
 - Use tools and skills to search documentation before making assumptions - don't guess
-- Delegate to sub-agents in parallel where possible, instruct them to return only key information
 
 #### Tasks Tool
 - Aggressively create tasks (`TaskCreate`) to track work with TODOs, **if you have more than one thing to do: create and track tasks**
@@ -178,8 +158,15 @@ Proactively use tools and skills:
 - Use tasks tool to track planning and work in progress. When working from a dev plan, keep tasks and plan in sync
 - When creating or updating CLAUDE.md or AGENTS.md files you MUST use the `authoring-claude-md` skill first
 - DO NOT include line numbers when referencing files in CLAUDE.md or documentation
+- When asking multi-choice questions, always allow the user to provide annotations to their answers
 
 #### Sub-agent Coordination
+
+Delegate for large tasks that are independent and parallelisable, such as a wide multi-file or multi-claim investigation. Don't delegate work you can finish yourself in a handful of tool calls.
+
+When delegating to sub-agents:
+
+- Instruct them to return only key information
 - **Named** (standard) sub-agents have their own context window - good for parallel research, inspection, or separate features
 - Define clear boundaries per agent. Specify which files each agent owns
 - Include "you are one of several agents" in instructions
@@ -200,12 +187,10 @@ After implementing a list of changes, perform a critical self-review pass before
 
 ## Supplementary Rules
 
-- Edit only what's necessary - make precise, minimal changes unless instructed otherwise
 - Implement requirements in full or discuss with the user why you can't - don't defer work
 - If stuck on a persistent problem after multiple attempts, use the `systematic-debugging` skill or perform a Fagan inspection
 - **Never give time estimates**, AI is notoriously bad at estimating the time things will take
 - **You must not state something is fixed unless you have confirmed it by testing, measuring output, or building the application**
-- **Before declaring any task complete, verify**: linting passes, code builds, all tests pass (new + existing), no debug statements remain, error handling in place.
 
 ## **IMPORTANT FINAL REMINDERS**
 
