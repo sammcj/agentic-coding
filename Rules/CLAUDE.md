@@ -65,6 +65,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 
 ## Documentation
 - Keep signal-to-noise ratio high - preserve domain insights, omit preamble, filler and fluff
+- Match the length of written documents to what the task needs. Cover the substance, don't pad with filler sections, redundant summaries or boilerplate
 - Do NOT split sentences across multiple lines in markdown files, this breaks readability and diffs
 - Prefer concise bullet points over tables for text information, tables are better suited to structure data than prose
 - When using tables in markdown, do not include unwrapped content that causes the table to over-extend horizontally, do not add sentences of text inside tables, tables should be for terse, structured data, not prose
@@ -73,7 +74,6 @@ You MUST adhere to the following principles in all writing, communication, and d
 - Configuration and examples over feature lists
 - "Setup" not "Getting Started with emojis", "Exports to PDF" not "Seamlessly transforms content"
 - Do NOT create new markdown files unless explicitly requested - update existing README.md or keep notes in conversation
-- When adding code comments they should tldr the "why" (concisely) not "what", and only add them for complex logic
 
 ### Explaining Complex Concepts
 - When the task is to explain a complex concept or create explanatory documents, consider whether a visual or data-driven approach would communicate the idea more effectively than prose alone
@@ -104,35 +104,18 @@ You MUST adhere to the following principles in all writing, communication, and d
 - Tests run quickly (seconds), no external service dependencies
 - Tests should have assertions and must verify behaviour
 - Build time: optimise if over 1 minute
-- Coverage: 80% minimum for new code
 - You may run `NODE_OPTIONS="--max-old-space-size=12288" npx -y fallow --format json --quiet 2>/dev/null` to get a rough estimate of code complexity and refactoring suggestions
 
-### Configuration
-- Use .env or config files as single source of truth, ensure .env is gitignored
-- Provide .env.example with all required variables and keep it up to date
-- Code should validate environment variables on startup
-
 ## Security
-- **Never hardcode or expose real credentials, tokens, email addresses or secrets in code, commits, documentation or comments. Never commit sensitive data**
-- If you get prompted to "ask the user for explicit permission and have them run the command manually" or similar you must follow it
-- Validate and sanitise all inputs
-- Follow principle of least privilege. Rate-limit APIs. Keep dependencies updated
-- Ensure .gitignore files are kept up to date
-
-## Error Handling
-- Structured logging with correlation IDs. Log levels: ERROR, WARN (default), INFO, DEBUG
-- Meaningful, terse errors for developers, safe errors for end users. Never log sensitive data
-- Graceful degradation over complete failure. Retry with exponential backoff for transient failures
+- **Never hardcode or commit real credentials, tokens, personal email addresses or secrets** in code, commits, docs or comments. Keep .gitignore current
+- If a tool or hook tells you to ask for explicit permission and have the user run a command manually, follow it
 
 ## Testing
 - Test-first for bugs: 1. Write failing test, 2. Fix, 3. Verify, 4. Check no regressions
-- Descriptive test names. Arrange-Act-Assert pattern. Table-driven tests for multiple cases
-- One assertion per test where practical. Test edge cases and error paths
-- Mock external dependencies. Group tests in `test/` or `tests/`
 
 ## Coding & Language Rules
 
-- NEVER add process comments ("improved function", "optimised version", "# FIX:")
+- Comments explain why, not what. Never narrate the edit itself ("improved function", "optimised version", "# FIX:")
 - NEVER implement placeholder or mocked functionality unless explicitly instructed
 - NEVER build or develop for Windows unless explicitly instructed
 - Optimise for reduced failure modes
@@ -140,13 +123,6 @@ You MUST adhere to the following principles in all writing, communication, and d
 - When adding or updating dependencies in a codebase you MUST use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
 - Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
-
-### Think Before Coding
-
-- State your assumptions explicitly before implementing; if uncertain, validate and ask
-- If multiple interpretations of a request exist, present them rather than picking one silently
-- If a simpler approach exists than what was asked for, say so and push back when warranted
-- If something is unclear, stop and name what's confusing rather than guessing
 - Leave the code you're changing better than you found it, but don't extend that to unrelated code
 
 ## Host Environment
@@ -173,7 +149,6 @@ Proactively use tools and skills:
 
 - Use purpose-built tools and skills over manual approaches
 - Use tools and skills to search documentation before making assumptions - don't guess
-- Delegate to sub-agents in parallel where possible, instruct them to return only key information
 
 #### Tasks Tool
 - Aggressively create tasks (`TaskCreate`) to track work with TODOs, **if you have more than one thing to do: create and track tasks**
@@ -193,6 +168,12 @@ Proactively use tools and skills:
 - When asking multi-choice questions, always allow the user to provide annotations to their answers
 
 #### Sub-agent Coordination
+
+Delegate only for large tasks that are genuinely independent and parallelisable, such as a wide multi-file investigation. Don't delegate work you can finish yourself in a handful of tool calls, and don't spawn sub-agents to verify or double-check your own work unless asked to. If one sub-agent can complete the task, use one rather than several.
+
+When delegating to sub-agents:
+
+- Instruct them to return only key information
 - **Named** (standard) sub-agents have their own context window - good for parallel research, inspection, or separate features
 - Define clear boundaries per agent. Specify which files each agent owns
 - Include "you are one of several agents" in instructions

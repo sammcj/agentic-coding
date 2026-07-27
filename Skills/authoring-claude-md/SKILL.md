@@ -114,6 +114,18 @@ Rules load every session (or when matching files are opened). For task-specific 
 - Kitchen sink entries: not every gotcha belongs here. Ask "Is this relevant across most coding sessions?" If no, it belongs in code comments or specific docs.
 - Formatting over-emphasis: don't bold the start of every sentence or bullet, reserve emphasis for warnings that truly warrant it.
 
+## Conflict Audit
+
+Before adding a line, check it against what else is already loaded: the user-level `~/.claude/CLAUDE.md`, sibling rule files, and any skill covering the same ground. Instructions that clash ("leave documentation as appropriate" next to "never add comments") make the agent resolve the contradiction before it can start work, and it won't resolve it the same way every session.
+
+Keep each topic in one place:
+
+- Already stated elsewhere: leave it there rather than restating it
+- Narrower than an existing rule: write it as an exception that names what it overrides ("repo-wide we run Prettier; `/legacy` keeps its existing formatting")
+- Genuinely at odds with a user-level or global rule: raise it with the user instead of silently overriding
+
+Path-scoped rules refine the root CLAUDE.md for the files they match; they shouldn't reverse it.
+
 ## Linking to Existing Documentation
 
 Point to existing docs rather than duplicating content. Provide context about when to read them:

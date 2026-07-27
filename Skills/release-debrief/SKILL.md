@@ -7,6 +7,8 @@ description: >-
 allowed-tools: >-
   Read Write Edit Grep Glob
   WebFetch(domain:claude.com)
+  WebFetch(domain:code.claude.com)
+  WebFetch(domain:platform.claude.com)
   WebFetch(domain:opencode.ai)
   WebFetch(domain:github.com)
   WebFetch(domain:raw.githubusercontent.com)
@@ -16,7 +18,7 @@ allowed-tools: >-
   Bash(open *)
 metadata:
   author: 'Sam McLeod (adapted from Arjen Schwarz)'
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 # Release Notes Catch-Up
@@ -42,7 +44,7 @@ Tool selection: match the tool from the user's prompt against the aliases above.
 
 2. **Read state.** Load the tool's output file. Parse `last_seen_version` from the frontmatter. If the file is missing, empty, or has no frontmatter version, treat as a first run: summarise the **last 3 releases** per the profile's version scheme, without prompting.
 
-3. **Fetch the current changelog.** Use `WebFetch` or `ctx_fetch_and_index` against the profile's **Primary** source. Pull **Supporting** sources only when you need context for an entry (config schema comparison, API doc linking, editorial summary for colour).
+3. **Fetch the current changelog.** Use `WebFetch` or `ctx_fetch_and_index` against the profile's **Primary** source. Pull **Supporting** sources only when you need context for an entry (config schema comparison, API doc linking, editorial summary for colour). When the profile lists **Conditional** sources, test each condition against the delta once you have it and fetch the ones that hold - those carry buckets of their own.
 
 4. **Identify the delta.** Keep entries newer than the stored version, up to the latest release. Compare versions using the scheme in the profile:
    - `semver` - parse major.minor.patch and compare numerically per component.
