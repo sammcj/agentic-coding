@@ -26,7 +26,7 @@ IMPORTANT: Avoid signal dilution, context collapse, quality degradation and degr
 
 Perform analysis on the content, extracting:
 
-#### 1. Key Insights & Takeaways
+#### 1. Key Insights
 
 - Identify the main ideas, core concepts, and central arguments
 - Extract fundamental learnings and important revelations
@@ -68,6 +68,16 @@ Do this in a separate step, only after you've added the content from the source.
 - Identify any gaps, contradictions, or areas for further exploration (if applicable, keep this concise)
 - Note any implications for the field, industry, or audience
 
+#### 6. One-Minute Read
+
+Compress the analysis into a section the reader finishes in a minute.
+
+- Open with a 1-2 sentence plain-language explanation of the core concept, then 4-8 bullets, scaled to how much the source carries rather than to a fixed count
+- Budget 200 words or fewer for the whole section including the opener, roughly a minute at technical reading speed
+- Each bullet states the claim and why it matters, and holds up on its own for a reader who never scrolls further. State the claim here rather than pointing ahead to where it is explained
+- Every top-level entry in Key Insights maps to one of these bullets. Merge related insights into a single bullet where they share a through-line, so every claim survives the compression
+- When the source carries more than the budget holds, the budget wins: merge further and raise the altitude of each claim rather than dropping a topic or running long
+
 ### Step 3: Write Analysis to Markdown File
 
 Determine the output directory:
@@ -85,6 +95,8 @@ uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py tags
 ```
 
 Choose 3-7 tags that describe the content's themes. Prefer reusing tags already in the corpus over inventing new ones; only add a new tag when no existing tag fits. Tag style: lowercase, hyphenated, prefer singular over plural (`agent` over `agents`), and pick one canonical form for abbreviations (`rlhf` or `reinforcement-learning`, not both).
+
+Draft every other section first, then compose the One-Minute Read from the finished Key Insights and place it at the top when assembling the file.
 
 Format the analysis using this structure:
 
@@ -112,19 +124,18 @@ thumbnail: "thumbnail.jpg"                     # Auto-set if downloaded; "false"
 
 **Analysis Date**: AUTO
 
+## One-Minute Read
+
+[Explain It Like I'm 18: A simple 1-2 sentence explanation of the core concept in a way an 18 year old could understand]
+
+- [Claim 1, and why it matters]
+- [Claim 2, and why it matters]
+- [Claim 3, and why it matters]
+- etc..
+
 ## Summary
 
-[Brief 2-3 sentence overview of the main topic and purpose]
-
-### Simplified Explanation
-
-[Explain It Like I'm 18: A simple 1-2 sentence explanation of the core concept in a way a 18 year old could understand]
-
-### Key Takeaways
-
-- [Concise takeaway 1]
-- [Concise takeaway 2]
-- [Concise takeaway 3]
+[2-3 sentences on the source itself: what kind of content this is, its scope, and the author's aim]
 
 ## Key Insights
 
@@ -177,6 +188,12 @@ Context: [Brief context if needed]
 _Wisdom Extraction: [Current date in YYYY-MM-DD]_
 ```
 
+Keep the section roles distinct so the reader's minute buys four different things:
+- One-Minute Read: the compressed claims, standing alone
+- Summary: what kind of source this is, its scope and the author's aim
+- Key Insights: the full set of claims, each with the mechanism or evidence behind it
+- Structured Breakdown: the walk-through, section by section
+
 **Date fields:**
 - `content_date` and **Content Date** are optional, only include them if you can determine when the content was originally published from the source material.
 - Do NOT write the `date` frontmatter field. The script stamps it automatically during PDF export.
@@ -193,6 +210,7 @@ Create tasks to track the following (mechanical checks first, then content quali
 - [ ] No American English spelling - check and fix (e.g. judgment->judgement, practicing->practising, organize->organise)
 - [ ] No em-dashes, double-dashes, smart quotes, or non-standard typography
 - [ ] Proper markdown formatting
+- [ ] One-Minute Read is within 200 words and every top-level Key Insight maps to one of its bullets (merged bullets are fine)
 - [ ] Accuracy & faithfulness to the original content
 - [ ] Completeness
 - [ ] Concise, clear content with no fluff or marketing speak that maintains a high signal-to-noise ratio with no filler content
@@ -222,11 +240,12 @@ After PDF export, regenerate the wisdom library index to include the new entry:
 uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py index
 ```
 
-### Step 6: Provide A Short Summary For Sharing
+### Step 6: Surface The One-Minute Read And Sharing Blurb
 
-Output the frontmatter `description` field as a plain text message suitable for sharing the source on Slack.
-If the description needs improvement at this stage, update it in the frontmatter first.
-Format: plain text, no markdown formatting, no bullet points.
+Output both of these to the conversation, in this order:
+
+1. The `## One-Minute Read` section, verbatim from the analysis file, so the user gets the fast read without opening anything.
+2. The frontmatter `description` field as a plain text message suitable for sharing the source on Slack. If it needs improvement at this stage, update the frontmatter first. Plain text, no markdown formatting, no bullet points.
 
 Then stop unless further instructions are given.
 
