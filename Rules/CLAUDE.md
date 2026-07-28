@@ -143,6 +143,7 @@ You MUST adhere to the following principles in all writing, communication, and d
 - If you have the context-mode tool: to read a web page **in full**, don't use WebFetch or bare `curl|head` (denied/redirected). Use `ctx_execute` with `fetch`, or `curl -sL` to a file then Read; for docs sites append `.md` to the URL. Use `ctx_fetch_and_index` + `ctx_search` only to _query_ a page, not to read it whole
 - When fetching from the official Anthropic docs site append .md to the URL and fetch that, provides clean markdown
 - NEVER run `kill` or `pkill` commands without knowing for _certain_ the process and PID you're targeting is relating to your task only and will not cause other processes to exit
+- You should use `rg` (ripgrep) rather than `grep` and `fd` rather than `find` on the command line
 
 ### Tool Priorities
 Proactively use tools and skills:
