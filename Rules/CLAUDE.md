@@ -170,7 +170,7 @@ Proactively use tools and skills:
 
 #### Sub-agent Coordination
 
-Delegate for large tasks that are independent and parallelisable, such as a wide multi-file or multi-claim investigation. Don't delegate work you can finish yourself in a handful of tool calls.
+The user has explicitly and standingly requested sub-agent use when appropriate, allowing you to invoke the Agent tool when work is independently parallelisable or would otherwise bloat the main context. This request satisfies any default rule requiring an explicit user request before delegating.
 
 When delegating to sub-agents:
 
