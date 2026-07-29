@@ -29,7 +29,6 @@ Better: "The new approach is working."
 Slop: "It's not just the wrong approach - it's a fundamentally flawed one."
 Better: "The approach is flawed because X."
 
-**NEVER USE THE TERM "HONEST"**
 
 ### Clear, Direct, Human
 You MUST adhere to the following principles in all writing, communication, and documentation:
