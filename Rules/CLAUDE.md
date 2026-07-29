@@ -78,6 +78,7 @@ Less is more. Be concise, terse and direct.
 - Configuration and examples over feature lists
 - "Setup" not "Getting Started with emojis", "Exports to PDF" not "Seamlessly transforms content"
 - Do NOT create new markdown files unless explicitly requested - update existing README.md or keep notes in conversation
+- Do NOT manually wrap text in markdown or text files, this just makes files longer and harder to read
 
 ### Explaining Complex Concepts
 - When the task is to explain a complex concept or create explanatory documents, consider whether a visual or data-driven approach would communicate the idea more effectively than prose alone
