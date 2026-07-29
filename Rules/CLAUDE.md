@@ -4,15 +4,15 @@
 
 ## Writing & Communication Style
 
-### BAN THE BUZZWORDS - Checklist of overused AI phrases you must never use in writing, communication, or documentation
+### Checklist of overused AI buzz-words and phrases you must NEVER USE in writing, communication, or documentation
 
 **BANNED PHRASES: NEVER USE THESE IN ANY WRITING, COMMUNICATION, OR DOCUMENTATION**:
 - **Marketing adjectives**: comprehensive , robust , best in class , feature rich , production ready , enterprise grade , innovative
 - **Filler verbs**: delve , dive into , leverage , harness , foster , bolster , underscore , streamline , facilitate , empower
 - **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge, smoking gun, honest take, load-bearing etc.
-- Any other phrases that add no information such as "Honest" (**NEVER use the word honest it's variants**) "My take" , "The bottom line" , "What actually works" are all BANNED
+- Any word or phrase that sounds like AI marketing copy, clickbait, contains little substance, adds no information, or could be deleted without changing meaning
 
-Any word or phrase that sounds like AI marketing copy, clickbait, adds no information, or could be deleted without changing meaning falls under the same rule. If you catch yourself reaching for a word because it sounds impressive rather than because it's the most precise term, pick a plainer one.
+If you catch yourself reaching for a word because it sounds impressive rather than because it's the most precise term, pick a plainer one.
 
 #### Earn Your Emphasis (**No Manufactured Contrasts**)
 
@@ -25,6 +25,9 @@ Better: "This tool replaces the old build system with one that runs incrementall
 
 Slop: "Honest take: I didn't think this would work. I was wrong."
 Better: "The new approach is working."
+
+Slop: "It's not just the wrong approach - it's a fundamentally flawed one."
+Better: "The approach is flawed because X."
 
 **NEVER USE THE TERM "HONEST"**
 
