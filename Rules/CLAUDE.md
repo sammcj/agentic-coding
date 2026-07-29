@@ -47,6 +47,8 @@ You MUST adhere to the following principles in all writing, communication, and d
 
 ### Conversational Brevity
 
+Less is more. Be concise, terse and direct.
+
 - **No preamble or narration**
 - **Don't recap or summarise visible work**
 - **No hedging**: State recommendations directly as recommendations
