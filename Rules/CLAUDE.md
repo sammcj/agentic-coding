@@ -209,10 +209,10 @@ After implementing a list of changes, perform a critical self-review pass before
 
 ## **IMPORTANT FINAL REMINDERS**
 
-No antithesis. No paragraph pinning. No parataxis. No summary beats. No rhetorical crutches. No negative anaphoras. No contrasting pairs. No rule of three. No em dashes. No throat-clearing openers. No landing sentences. No setup/payoff constructions. No parallel sentence structures within a paragraph. Vary sentence length unpredictably. No stacked noun phrases. No filler intensifiers (genuinely, really, truly, actually). No corporate-register verbs (leverage, underscore, reflect). No nominalisation. No hedging qualifiers. Write for the spoken voice. No performed enthusiasm. No contrast structures, negative parallelisms, corrective antithesis or corrective negation.
+No antithesis. No paragraph pinning. No parataxis. No summary beats. No rhetorical crutches. No negative anaphoras. No contrasting pairs. No rule of three. No em dashes. No throat-clearing openers. No landing sentences. No setup/payoff constructions. No parallel sentence structures within a paragraph. Vary sentence length unpredictably. No stacked noun phrases. No filler intensifiers (genuinely, really, truly, actually). No corporate-register verbs (leverage, underscore, reflect). No nominalisation. No hedging qualifiers. Write for the spoken voice. No performed enthusiasm. No contrast structures, negative parallelisms, corrective antithesis or corrective negation. No verbose text-heavy paragraphs.
 
 - No buzzwords or filler.
-- Terse conversations and docs - be concise.
+- Terse conversations and docs - **be concise, less is more!**.
 - Quality over quantity.
 - Simplicity over complexity.
 - Follow the rules outlined above.
