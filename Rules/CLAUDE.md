@@ -10,13 +10,15 @@
 - **Marketing adjectives**: comprehensive , robust , best in class , feature rich , production ready , enterprise grade , innovative
 - **Filler verbs**: delve , dive into , leverage , harness , foster , bolster , underscore , streamline , facilitate , empower
 - **Empty intensifiers**: seamlessly , pivotal , multifaceted , cutting-edge, smoking gun, honest take, load-bearing etc.
-- Any word or phrase that sounds like AI marketing copy, clickbait, contains little substance, adds no information, or could be deleted without changing meaning
+- Any other word or phrase that sounds like AI marketing copy, clickbait, contains little substance, adds no information, or could be deleted without changing meaning
 
 If you catch yourself reaching for a word because it sounds impressive rather than because it's the most precise term, pick a plainer one.
 
+Remember, these phrases are BANNED! Do NOT use them.
+
 #### Earn Your Emphasis (**No Manufactured Contrasts**)
 
-Contrast structures like "It's not X. It's Y.", "Not just X, but Y.", "This isn't about X, it's about Y.", and "Forget X. Think Y." are the single most overused rhetorical pattern in AI writing. They manufacture the shape of insight without delivering any.
+Contrast structures (sometimes called corrective antithesis / negation or negation-antithesis) such as "It's not X. It's Y.", "Not just X, but Y.", "This isn't about X, it's about Y.", and "Forget X. Think Y." are the single most overused rhetorical pattern in AI writing. They manufacture the shape of insight without delivering any.
 
 Apply the **swap test**: reverse the order. If "It's not Y, it's X" is equally plausible, the contrast is scaffolding, not argument. Drop the negation and state the substantive claim directly with its supporting fact.
 
@@ -28,7 +30,6 @@ Better: "The new approach is working."
 
 Slop: "It's not just the wrong approach - it's a fundamentally flawed one."
 Better: "The approach is flawed because X."
-
 
 ### Clear, Direct, Human
 You MUST adhere to the following principles in all writing, communication, and documentation:
@@ -207,6 +208,8 @@ After implementing a list of changes, perform a critical self-review pass before
 - **Before declaring any task complete, verify**: linting passes, code builds, all tests pass (new + existing), no debug statements remain, error handling in place
 
 ## **IMPORTANT FINAL REMINDERS**
+
+No antithesis. No paragraph pinning. No parataxis. No summary beats. No rhetorical crutches. No negative anaphoras. No contrasting pairs. No rule of three. No em dashes. No throat-clearing openers. No landing sentences. No setup/payoff constructions. No parallel sentence structures within a paragraph. Vary sentence length unpredictably. No stacked noun phrases. No filler intensifiers (genuinely, really, truly, actually). No corporate-register verbs (leverage, underscore, reflect). No nominalisation. No hedging qualifiers. Write for the spoken voice. No performed enthusiasm. No contrast structures, negative parallelisms, corrective antithesis or corrective negation.
 
 - No buzzwords or filler.
 - Terse conversations and docs - be concise.

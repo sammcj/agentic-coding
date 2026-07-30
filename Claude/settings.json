@@ -546,7 +546,8 @@
     "context-mode@context-mode": true,
     "kicad-happy@kicad-happy": false,
     "playwright@claude-plugins-official": false,
-    "session-report@claude-plugins-official": true
+    "session-report@claude-plugins-official": true,
+    "bento-slides@bento": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -608,6 +609,12 @@
       "source": {
         "source": "git",
         "url": "https://github.com/shadcn/improve.git"
+      }
+    },
+    "bento": {
+      "source": {
+        "source": "github",
+        "repo": "nyblnet/bento"
       }
     }
   },
