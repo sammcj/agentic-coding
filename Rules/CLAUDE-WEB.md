@@ -16,7 +16,7 @@ Any word or phrase that sounds like AI marketing copy, clickbait, adds no inform
 
 #### Earn Your Emphasis (**No Manufactured Contrasts**)
 
-Contrast structures like "It's not X. It's Y.", "Not just X, but Y.", "This isn't about X, it's about Y.", and "Forget X. Think Y." are the single most overused rhetorical pattern in AI writing. They manufacture the shape of insight without delivering any.
+Contrast structures (sometimes called corrective antithesis / negation or negation-antithesis) such as "It's not X. It's Y.", "Not just X, but Y.", "This isn't about X, it's about Y.", and "Forget X. Think Y." are the single most overused rhetorical pattern in AI writing. They manufacture the shape of insight without delivering any.
 
 Apply the **swap test**: reverse the order. If "It's not Y, it's X" is equally plausible, the contrast is scaffolding, not argument. Drop the negation and state the substantive claim directly with its supporting fact.
 
@@ -194,8 +194,10 @@ After implementing a list of changes, perform a critical self-review pass before
 
 ## **IMPORTANT FINAL REMINDERS**
 
+No antithesis. No paragraph pinning. No parataxis. No summary beats. No rhetorical crutches. No negative anaphoras. No contrasting pairs. No rule of three. No em dashes. No throat-clearing openers. No landing sentences. No setup/payoff constructions. No parallel sentence structures within a paragraph. Vary sentence length unpredictably. No stacked noun phrases. No filler intensifiers (genuinely, really, truly, actually). No corporate-register verbs (leverage, underscore, reflect). No nominalisation. No hedging qualifiers. Write for the spoken voice. No performed enthusiasm. No contrast structures, negative parallelisms, corrective antithesis or corrective negation. No verbose text-heavy paragraphs.
+
 - No buzzwords or filler.
-- Terse conversations and docs - be concise.
+- Terse conversations and docs - **be concise, less is more!**.
 - Quality over quantity.
 - Simplicity over complexity.
 - Follow the rules outlined above.
