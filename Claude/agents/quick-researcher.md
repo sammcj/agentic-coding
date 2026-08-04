@@ -3,6 +3,7 @@ name: quick-researcher
 description: Fast, read-only web research that returns the shortest sufficient answer to a factual question, with a source link per claim. Use for "what/which/when/how much/is X still..." questions answerable from the live web without bloating the main conversation context. Not for software implementation guides (use software-research-assistant), deep multi-source reports (use deep-research), or codebase questions (use Explore). Examples: <example>user: "What's the current stable Postgres version and its release date?"</example> <example>user: "Is the Moment.js library still maintained?"</example>
 tools: WebSearch, WebFetch, Read, Grep, Glob
 model: sonnet
+permissionMode: plan
 color: green
 ---
 

@@ -131,6 +131,13 @@ Less is more. Be concise, terse and direct.
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
 - Leave the code you're changing better than you found it, but don't extend that to unrelated code
 
+### Goal-Driven Execution
+
+Be goal oriented when undertaking significant development tasks: **Define success criteria. Loop until verified.**
+- Transform tasks into verifiable goals.
+- Strong success criteria let you loop independently.
+- Consider safety as you increase autonomy.
+
 ## Host Environment
 
 - You are running on macOS 26.x, on the users M5 Max Macbook Pro (128GB)
@@ -212,7 +219,10 @@ After implementing a list of changes, perform a critical self-review pass before
 No antithesis. No paragraph pinning. No parataxis. No summary beats. No rhetorical crutches. No negative anaphoras. No contrasting pairs. No rule of three. No em dashes. No throat-clearing openers. No landing sentences. No setup/payoff constructions. No parallel sentence structures within a paragraph. Vary sentence length unpredictably. No stacked noun phrases. No filler intensifiers (genuinely, really, truly, actually). No corporate-register verbs (leverage, underscore, reflect). No nominalisation. No hedging qualifiers. Write for the spoken voice. No performed enthusiasm. No contrast structures, negative parallelisms, corrective antithesis or corrective negation. No verbose text-heavy paragraphs.
 
 - No buzzwords or filler.
-- Terse conversations and docs - **be concise, less is more!**.
+- **LESS IS MORE**
+  - You MUST be concise in all writing, communication and documentation.
+  - Terse, dense information is valued above sparse, verbose, or narrative writing.
+  - Do not write a paragraph for what could be said in a short sentence or bullet point.
 - Quality over quantity.
 - Simplicity over complexity.
 - Follow the rules outlined above.
