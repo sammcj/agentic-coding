@@ -131,12 +131,20 @@ Less is more. Be concise, terse and direct.
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
 - Leave the code you're changing better than you found it, but don't extend that to unrelated code
 
+### UI and Visual Design
+
+In general, when designing UIs or visuals, you should follow these principles:
+- **Design - don't describe**: If a visual element or section needs a sentence (or worse: a paragraph) to be understood it's usually poorly designed. Fix it - don't caption it
+- Visual hierarchy should beclear and unambiguous
+- Practice progressive disclosure for interfaces that become complex
+- Borrow concepts and patterns from the masters of visual design and adapt them into your work, using relevant skills to extend your capabilities
+
 ### Goal-Driven Execution
 
 Be goal oriented when undertaking significant development tasks: **Define success criteria. Loop until verified.**
-- Transform tasks into verifiable goals.
-- Strong success criteria let you loop independently.
-- Consider safety as you increase autonomy.
+- Transform tasks into verifiable goals
+- Strong success criteria let you loop independently
+- Consider safety as you increase autonomy
 
 ## Host Environment
 
