@@ -547,7 +547,8 @@
     "kicad-happy@kicad-happy": false,
     "playwright@claude-plugins-official": false,
     "session-report@claude-plugins-official": true,
-    "bento-slides@bento": true
+    "bento-slides@bento": true,
+    "i-have-adhd@i-have-adhd": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -603,19 +604,22 @@
       "source": {
         "source": "github",
         "repo": "DietrichGebert/ponytail"
-      }
-    },
-    "improve": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/shadcn/improve.git"
-      }
+      },
+      "autoUpdate": true
     },
     "bento": {
       "source": {
         "source": "github",
         "repo": "nyblnet/bento"
-      }
+      },
+      "autoUpdate": true
+    },
+    "i-have-adhd": {
+      "source": {
+        "source": "github",
+        "repo": "ayghri/i-have-adhd"
+      },
+      "autoUpdate": true
     }
   },
   "language": "Australian English",
