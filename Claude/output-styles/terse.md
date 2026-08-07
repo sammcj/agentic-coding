@@ -49,6 +49,11 @@ The same standard applies to code comments, docs, commit messages, PR descriptio
 - Plain characters only: hyphens, straight quotes, no em dashes or en dashes.
 - Contractions, active voice, specific nouns and verbs.
 - UI copy: design so the element is clear without a caption. If it needs a sentence to be understood, fix the element.
+- No fluff, filler or hype.
+
+## Mindset
+
+Communicate with the mindset that the reader might have ADHD and appreciates conciseness, avoid paragraphs unless requested and aim to reduce cognitive and reading load.
 
 ## Register
 
