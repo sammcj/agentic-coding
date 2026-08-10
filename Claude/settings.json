@@ -542,13 +542,13 @@
     "yaml-lsp@zircote-lsp": true,
     "html-slides@html-slides": false,
     "ralph-loop@claude-plugins-official": false,
-    "safety-net@cc-marketplace": true,
     "context-mode@context-mode": true,
     "kicad-happy@kicad-happy": false,
     "playwright@claude-plugins-official": false,
     "session-report@claude-plugins-official": true,
     "bento-slides@bento": true,
-    "i-have-adhd@i-have-adhd": true
+    "i-have-adhd@i-have-adhd": true,
+    "cc-safety-net@cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {

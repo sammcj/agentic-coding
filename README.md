@@ -2,6 +2,7 @@
 
 - [Coding Agent Rules, Skills and Templates](#coding-agent-rules-skills-and-templates)
 - [Tips For Agentic Coding](#tips-for-agentic-coding)
+  - [Recommended 3rd Party Plugins and Tools](#recommended-3rd-party-plugins-and-tools)
   - [Getting High Quality Outcomes \& Context Engineering](#getting-high-quality-outcomes--context-engineering)
   - [Subscription vs Consumption Based Providers](#subscription-vs-consumption-based-providers)
 - [Links](#links)
@@ -32,13 +33,21 @@ Most skills and rules are reasonably portable between agentic coding tools.
   - Read my [best practices and common pitfalls when writing and reviewing agent skills](https://smcleod.net/2026/07/writing-and-reviewing-agent-skills-common-pitfalls/).
   - If Claude gets stuck on a complex issue, get it to stop and perform a systematic debug of the issue using the systematic-debugging skill.
 - Setup your permissions (in settings.json) to pre-approve/deny/ask commands and file paths that Claude may want to use.
-  - Always enable sandboxing for agent commands, ideally run your whole agent in a sandbox when it is practical to do so.
+- Always enable sandboxing for agent commands, ideally run your whole agent in a sandbox when it is practical to do so.
 - Encourage Claude to use sub-agents to parallelise work and keep context lean where it is safe to do so.
 - Using voice to text with a tool like [Handy](https://handy.computer/) to dictate work to Claude Code is incredibly useful, often with voice you capture intent that you'd otherwise edit out.
 - Create shell aliases for the various claude CLI commands you use, e.g. `alias cc='claude --continue`, `alias ccr='claude --resume` etc.
 - Add your context usage, and limits consumption to the statusline.
 - Only add rules (CLAUDE.md / AGENTS.md) for behaviour that is different from standard for the agent/model, keep them concise and review with an aim to reduce over time.Only enable the rules you actually want to use**
 - Don't waste time with low end models for planning or coding, the higher error rates, lower quality code and the rework they often incur does not pay off (at least with current generation models).
+
+### Recommended 3rd Party Plugins and Tools
+
+- [cc-safety-net](https://ccsafetynet.com/) (hooks that try to catch some destructive commands).
+- [context-mode](https://github.com/mksglu/context-mode) which significantly reduces context usage.
+- [Graphify](https://github.com/Graphify-Labs/graphify) can be useful for creating graphs of code and LLM wikis providing them with semantic search and context.
+
+Note: I do _not_ recommend using MCP tools like Github's where the agent is more than capable of using the gh cli or API directly, they tend to just waste tokens and bloat the context.
 
 ---
 
