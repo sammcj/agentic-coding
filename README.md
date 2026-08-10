@@ -1,161 +1,68 @@
 # Sam's Agentic Coding Rules, Templates and Examples
 
-- [Sam's Agentic Coding Rules, Templates and Examples](#sams-agentic-coding-rules-templates-and-examples)
-  - [Coding Agent Rules, Skills and Templates](#coding-agent-rules-skills-and-templates)
-  - [Patterns / Workflows](#patterns--workflows)
-  - [MCP Servers (Agent Tools)](#mcp-servers-agent-tools)
-  - [Tips For Agentic Coding](#tips-for-agentic-coding)
-  - [Links](#links)
-  - [License](#license)
+- [Coding Agent Rules, Skills and Templates](#coding-agent-rules-skills-and-templates)
+- [Tips For Agentic Coding](#tips-for-agentic-coding)
+  - [Getting High Quality Outcomes \& Context Engineering](#getting-high-quality-outcomes--context-engineering)
+  - [Subscription vs Consumption Based Providers](#subscription-vs-consumption-based-providers)
+- [Links](#links)
+- [License](#license)
 
-A collection of coding rules, templates, MCP servers and examples for working with Agentic Coding tools
+My Agent Skills, Agent Rules for Agentic Coding.
 
 ## Coding Agent Rules, Skills and Templates
 
 The repository is organised with tool-agnostic content at the root level:
 
+- [Agent Skills](./Skills/) - Composable skills that extend agent capabilities
+- [Custom Agents](./Claude/agents/) - Custom defined agents (use sparingly).
 - [Agent Rules](./Rules/) - Agent instruction files
   - [Rules/CLAUDE.md](./Rules/CLAUDE.md) is usually the most up to date and comprehensive
-  - [Rules/AGENTS.md](./Rules/AGENTS.md) is more generalised for use with other agentic coding tools.
-- [Agent Skills](./Skills/) - Reusable skills that extend agent capabilities
 - [Agent Commands](./Claude/commands/) - (Prompt templates)
-- [Hooks](./Claude/hooks/) - Hooks that can be used when specific lifecycle events occur (e.g. after writing to a file)
-- [Custom Agents](./Claude/agents/) - Custom defined agents.
-- [Claude Code Statusline](./Claude/statusline-command.sh) - Custom statusline for Claude Code that shows usage and context information.
 - [Claude Local Marketplace](./Claude/plugins/local-marketplace/) - My local marketplace (plugins) for Claude Code, including LSP definitions.
 
-Note: Most rules and skills are portable between agentic coding tools. The exception being Claude _Skills_, which I'm yet to see other tools support - but have no doubt they will as they're one of the most powerful and useful agentic coding concepts.
+Most skills and rules are reasonably portable between agentic coding tools.
 
 ![Setup -> Plan -> Act -> Review & Iterate Diagram](setup-plan-act-iterate.svg)
-
-### Agentic Coding Tools - Not All Created Equal
-
-**I _highly_ recommend Claude Code as the best agentic coding tools.**
-
-In my experience Claude Code _far_ outperforms the many other tools I've worked with over the past 3+ years including: Copilot Agent, Gemini CLI, Codex, Cursor, Kiro, Windsurf, Augment Code, AntiGravity, Aider and many, many others.
-
-The next best thing to Claude Code? I think that's probably [OpenCode](https://opencode.ai/) or [Cline](https://cline.bot).
-
-- Claude Code offers the fastest agentic coding experience that leads to the highest quality outputs, it's often a trend setter when it comes to new features and provides the best value for money if you can pair it with the Claude Max 5 or Max 20 subscription ($100-200 USD / month) which is far better value for money than what you would have to spend with consumption based pricing (~$2000-$3000USD+GST/mo).
-- OpenCode and Cline are the best options for using with self-hosted and alternative models, they're also Open Source.
-
-When setup correctly you can do fantastic work using Claude Code, Cline or OpenCode, but beware of other tools especially those such as Cursor or Kiro that have flashy marketing and offer low monthly subscription costs on paper - they tend to be severely limited in terms of their real capabilities and any tool offering sub $100USD/month plan is going to be heavily rate limited.
-
-I have a table where I'm trying to keep track of coding agent tools here: https://smcleod.net/agentic-coding-tools/
-
-## Patterns / Workflows
-
-I've shared (somewhat out of date) overview of workflow (Setup -> Plan -> Act -> Review & Iterate) in a blog post [here (smcleod.net)](https://smcleod.net/2025/04/my-plan-document-act-review-flow-for-agentic-software-development/).
-
-The TLDR is that this is a lightweight approach of having coding agents help me design a documented plan with the goal, context, requirements / constraints and a phased checklist of tasks to complete and have them update the plan as they work through the tasks in each phase.
-
-Note: I've tried full blown '_Spec Driven Development_' but find it can be overkill for small-medium size projects where it can lead to over-engineering and significant documentation debt.
-
-## MCP Servers (Agent Tools)
-
-For 99% of my work I only use a single MCP server: [MCP DevTools](https://github.com/sammcj/mcp-devtools)
-
-I wrote it to provide the most common tooling I use with Agentic Coding.
-
-- Always have tools available to the agent that allow it to:
-  - Search the web (if the agentic coding tool doesn't have this built in like Claude Code does).
-  - Efficiently retrieve web page content as markdown (likewise here).
-  - Lookup package documentation.
-  - Perform correct math calculations.
-- Be mindful of how many tokens each MCP server adds to your context window (`/context` in Claude Code), some tools abuse their descriptions and pollute the context window - for example Github's official MCP server alone uses ¼ of the entire context window of Claude Sonnet 4.5.
-- If the tool or knowledge you want to give an agent access to already as an easy to use CLI tool I'd recommend simply instructing your agent to use the CLI tool when it needs to rather than providing a full blown MCP server for it.
 
 ---
 
 ## Tips For Agentic Coding
 
-### Claude Code
-
-- Use plan mode to plan tasks for Claude to work from before diving into making changes.
 - Lean into [skills](https://github.com/sammcj/agentic-coding/tree/main/Skills), dynamical context acquisition is very powerful.
-- Encourage Claude to use sub-agents where it makes sense to do so.
-- Create a [command](https://github.com/sammcj/agentic-coding/blob/main/Claude/commands/self-review.md) (prompt template) that prompts Claude to perform a critical self review and to fix any issues it may find, use this after it completes work.
-- Adding a rule to remind Claude to pipe the output of potentially noisy shell commands to null can help reduce token usage.
-- Adding your context usage, and limits consumption (if you're on a plan) to the statusline is useful.
-- Using voice to text with a tool like [Handy](https://handy.computer/) to dictate work to Claude Code is super useful, sometimes with voice you capture intent that you'd otherwise edit out.
-- If Claude gets stuck on a complex issue, get it to stop and perform a systematic debug of the issue.
-- Setup your permissions (in settings.json) to pre-approve/deny/ask commands and file paths that Claude may want to use. If you're not sure of the syntax the docs are OK but you can also ask Claude for the correct way to write them.
-- Use Anthropic's official [PPTX](https://github.com/anthropics/skills/tree/main/skills/pptx)/[DOCX](https://github.com/anthropics/skills/tree/main/skills/docx) skills to create documents.
-- Use the [Excalidraw MCP](https://github.com/excalidraw/excalidraw-mcp) to create diagrams.
-- Create shell aliases for the various claude CLI commands you use, e.g. `alias cc='claude --continue`, `alias ccd='claude --continue --dangerously-skip-permissions` , `alias ccr='claude --resume` etc.
-
-### Writing Rules
-
-- **Only enable the rules you actually want to use**
-  - Think about the signal to noise ratio of your rules (and context in general), _how much information could you be told at once and remember?_
-  - If you have a lot of rules that are not relevant to the current task, then you're just adding noise and misleading the prediction engine, while increasing the token count.
-  - Do not blindly import and enable all my (or anyone else's) rules!
-- **Be clear, concise and specific in your rules. Avoid ambiguity**
-- **Get AI to help you write or improve rules**
-- **Use emphasis** (e.g. `**bold**`, `*italic*`, `__underline__`) to highlight important parts of your rules.
-- As well as global rules, **consider adding project specific rules** such as `.clinerules`, `CLAUDE.md` or similar that relate to repository specific behaviour (e.g. "To build the application, you must run `make build` etc.)
-  - I have an _example_ of what these might look like in [Cline/Rules/adhoc/_repo-specific-rules.md](./Cline/Rules/adhoc/_repo-specific-rules.md).
-- **Rules are often transferable between agentic coding tools**
-  - While I write a lot of my rules in Cline, for 95% of them there's no reason they can't be used with other Agentic Coding tools such as Claude Code etc. without modification.
-- **Using pseudo-XML for your rules can help LLM adherence**
-  - LLMs are trained on a lot of structured data (such as XML), see [this blog post](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags) for more information.
-  - On several occasions I have been given feedback that after simply changing rules XML like structure - the LLM closer adheres to them.
-
-If you spend a long time on a difficult problem with a coding agent and you finally crack it - get it to:
-1. Summarise the fix
-2. Why previous attempts did not work
-3. What led them down the wrong paths initially
-4. Get them to write a concise, clear rule (prompt) that could be used in the future (or added to your global rules if it's a common issue) to prevent the issue from happening again or at least aid with debugging.
-
-Example:
-> You fixed it! That's taken a long time to fix. Can you please respond with details on:
-  > 1. What the fix was
-  > 2. Why it wasn't picked up earlier
-  > 3. What information could I have provided to AI coding agents in the future - not just for this project but also other projects in general?
-> With those in mind I would like you also like you to create a 1 to 3 sentence prompt I can provide to future AI coding agents that would help them avoid having similar issues in the future.
+  - Read my [best practices and common pitfalls when writing and reviewing agent skills](https://smcleod.net/2026/07/writing-and-reviewing-agent-skills-common-pitfalls/).
+  - If Claude gets stuck on a complex issue, get it to stop and perform a systematic debug of the issue using the systematic-debugging skill.
+- Setup your permissions (in settings.json) to pre-approve/deny/ask commands and file paths that Claude may want to use.
+  - Always enable sandboxing for agent commands, ideally run your whole agent in a sandbox when it is practical to do so.
+- Encourage Claude to use sub-agents to parallelise work and keep context lean where it is safe to do so.
+- Using voice to text with a tool like [Handy](https://handy.computer/) to dictate work to Claude Code is incredibly useful, often with voice you capture intent that you'd otherwise edit out.
+- Create shell aliases for the various claude CLI commands you use, e.g. `alias cc='claude --continue`, `alias ccr='claude --resume` etc.
+- Add your context usage, and limits consumption to the statusline.
+- Only add rules (CLAUDE.md / AGENTS.md) for behaviour that is different from standard for the agent/model, keep them concise and review with an aim to reduce over time.Only enable the rules you actually want to use**
+- Don't waste time with low end models for planning or coding, the higher error rates, lower quality code and the rework they often incur does not pay off (at least with current generation models).
 
 ---
 
-### Getting High Quality Outcomes
+### Getting High Quality Outcomes & Context Engineering
 
-- Treat an agent like you would someone who just joined your team, don't assume they know anything about your codebase or intended outcomes. Unless the task is very simple and self explanatory - a single sentence is probably not going to be enough for a prompt. GIGO.
-- Manage the context window usage effectively (see other notes here on this).
 - Start with a plan - break down large or complex tasks into a checklist of items to complete, have the agent follow and mark off items has it completes them.
-- Make use of tools (MCP servers), they extend and enhance LLMs with access to up to date information, new capabilities and integrations.
-- Always have tools available to the agent that allow it to search the web, lookup package documentation, efficiently retrieve web page content as markdown.
-- Spend the time to craft global and project scoped agent rules (guidelines).
-
----
-
-### Context Window & Token Usage
-
+- Relentlessly start fresh sessions, aim to keep the context under 200k - 300k max.
+  - When you want to refresh the conversation ask the agent to document where it is up to and what's left to do (if you don't already have a dev plan with a checklist of tasks) and provide the document when starting a fresh session.
+- GIGO - Garbage In, Garbage Out. This aligns with the research that shows LLMs output correlates with the education level and quality of the input.
+- Make the system self-improving: If you spend a long time on a difficult problem with a coding agent and you finally crack it - get it to: 1. Summarise the fix 2. Why previous attempts did not work 3. What led them down the wrong paths initially 4. Suggest how to improve the agentic coding experience to prevent this in the future.
 - Understand that LLMs are stateless, this means that every time you send a message the entire context is sent back for re-processing.
 - Don't fall into the trap of thinking the solution is just around the corner when you've dug yourself into a hole troubleshooting, get the agent to document the problem, what it's tried to fix it so far and possible next things to try, then start a fresh session and provide the document.
-- Ideally try to keep the models context window usage under 75%, the higher the usage the slower and dumber the model becomes along with increased cost.
-- When you want to refresh the conversation ask the agent to document where it is up to and what's left to do (if you don't already have a dev plan with a checklist of tasks) and provide the document when starting a fresh session.
 - Use checkpoints to roll back to previous points in the conversation or code changes when you've gone down the wrong path or want to explore a different approach.
-- Ensure you enable prompt caching, some agentic coding tools will do this automatically, others like Cline with some providers may require you to enable it in settings. Prompt caching can reduce the cost of agentic coding by 75-90%.
-- Practice good code hygiene, keep files from getting too long as if the agent has to read or write the entire file it will be slower, costly and more at risk of errors, a good rule of thumb is a maximum of 700 lines.
 - Only use multimodal operations (images / screenshots as used by browser tools etc..) to a minimum - only when truly needed or where cost is not an issue as they use a lot of tokens.
 - Add files and directories you never want the agent to read to the agent's ignore file (e.g. `.clineignore` or claude.json's access rules).
 - Don't pipe data into LLMs and be wary of code with hardcoded data (XML, SVGs, i18n translations) inline. LLMs are designed to perform predictions (e.g. writing text / code and answering questions) effectively, they're not designed to parse large amounts of data at low cost - that's what software is for.
-- Don't waste time with low end models for planning or coding, the higher error rates, lower quality code and the rework they often incur does not pay off (at least with current generation models).
-- Whenever you find the agent performing actions that seem to consume a disproportionate amount of tokens - ask yourself if there is an agent rule that might need to be added, or if there's a MCP tool that could perform this kind of task more efficiently.
-- Avoid using Claude Opus - it's 5x the price for 1.5x the smarts.
-
-#### Subscription vs Consumption Based Providers
-
-- A Claude Max 5 subscription will cost you $100 USD / month and get you over $2000+ equivalent worth of raw LLM API token usage.
-- Be wary of subscription based AI coding tools like Cursor or Windsurf - they often provide you reduced versions of models with smaller context windows, artificially slowed response times and fallback to lower end models. Read the fine print especially if it seems too cheap to be true.
-- All subscription based agentic coding tools serve their models from the US. This is fine for most things, but occasionally you might work with a client that requires all inference to be performed within Australia.
-- Some consumption based offerings like Github Copilot have very low rate limits if you use the service with anything other than their client. With Github Copilot's SDK you can use your entire months paid limits of Claude Sonnet access in just two days.
 
 ---
 
-### Agent Rules
+### Subscription vs Consumption Based Providers
 
-- Create both global (all projects) and project scoped agent rules to guide the agent as to how it should behave, what it's values are, if there are any specific build, lint or test commands it should be aware of, where to find additional information etc...
-- Writing your rules in XML style tags (`<Golang_Rules`>...`</Golang_Rules>`) can significantly improve adherence.
+- A Claude Max 5 subscription will cost you $100 USD / month and get you over $1500+ equivalent worth of raw LLM API token usage, Max 20 gets you $2000-$5000~ worth.
+- Be wary of second tier subscription based AI coding tools, especially if they're built around an IDE like Cursor or Windsurf - they often provide you reduced versions of models with smaller context windows, artificially slowed response times and fallback to lower end models. Read the fine print especially if it seems too cheap to be true.
+- Some consumption based offerings like Github Copilot have very low rate limits if you use the service with anything other than their client. With Github Copilot's SDK you can use your entire months paid limits of Claude Sonnet access in just two days.
 
 ---
 
