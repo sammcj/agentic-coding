@@ -4,6 +4,16 @@ Complete reference of keybinding actions available in Ghostty.
 
 **Format:** `keybind = trigger=action` or `keybind = trigger=action:parameter`
 
+## Contents
+
+- Meta Actions; Terminal Output Actions; Terminal Control Actions
+- Clipboard Actions; Font Actions; Selection Actions; Scrolling Actions
+- Navigation Actions; Search Actions; File Export Actions
+- Window Actions; Tab Actions; Title Actions; Split Actions; Window Management Actions
+- Inspector & Development Actions; Configuration Actions; Closing Actions; Application Actions; Testing Actions
+- Key Table & Sequence Actions
+- Default Keybindings; Keybinding Tips
+
 ---
 
 ## Meta Actions
@@ -12,11 +22,6 @@ Complete reference of keybinding actions available in Ghostty.
 |----------|--------------------------------------------------------------------------|
 | `ignore` | Prevents key processing by Ghostty and terminal (OS may still handle it) |
 | `unbind` | Removes previously defined keybinding                                    |
-
-```
-keybind = ctrl+c=ignore          # Disable ctrl+c in Ghostty
-keybind = ctrl+shift+c=unbind    # Remove default copy binding
-```
 
 ---
 
@@ -324,7 +329,6 @@ keybind = ctrl+shift+w=close_tab
 **Reversible actions for undo/redo:** new/close window, tab, split
 
 ```
-keybind = global:super+backquote=toggle_quick_terminal
 keybind = super+h=toggle_visibility
 keybind = super+q=quit
 ```

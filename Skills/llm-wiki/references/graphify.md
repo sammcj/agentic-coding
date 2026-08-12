@@ -37,7 +37,7 @@ Read `graphify-out/GRAPH_REPORT.md`, in particular the god nodes (the most-conne
 /graphify path/to/source-folder
 ```
 
-The god nodes and communities show where the substance sits, so you ingest the high-signal sources deliberately instead of compiling everything. This is a planning aid for Ingest; the actual ingest still lands each chosen source in `raw/` and compiles it per SKILL.md.
+The god nodes and communities show where the substance sits, so you ingest the high-signal sources deliberately instead of compiling everything. This is a planning aid for Ingest; the actual ingest still lands each chosen source in `raw/` and compiles it per `references/ingest.md`.
 
 **Cross-document questions.** Once a graph exists, `graphify query` traverses it for broad, connection-heavy questions ("what links X to Y across the whole corpus"):
 

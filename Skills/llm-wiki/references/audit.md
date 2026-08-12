@@ -11,6 +11,8 @@ How to check that a wiki article's claims are actually supported by the `raw/` s
 
 It is not automatic and not part of every ingest. Auditing reads every cited source in full, so reserve it for the articles that matter.
 
+**Picking the target.** Audit `current` articles. Skip `status: stale` and `type: archive` pages unless the user names one - both are point-in-time by design, so a drifted claim in them is expected rather than a finding.
+
 ## Claim extraction
 
 1. Read the target article. List the claims that carry provenance: the headline assertions in Overview and the body sections, every inline quote, and anything a Sources or Raw line is meant to back. Skip generic framing and common knowledge. A labelled edge in a concept map is a claim too - the relationship it asserts between two nodes; list every edge and treat it like any other claim.
@@ -52,7 +54,7 @@ Do not rewrite the article. A failed claim is a finding for the user, who direct
 - Supersede the article if a source has moved on (the supersession flow in SKILL.md).
 - Accept a `partial` and add the missing qualifier inline.
 
-Append the one-line audit entry to `wiki/log.md` (format in SKILL.md). If the user wants the audit kept, crystallise it as a `type: archive` page citing the audited article, the same way a query answer is crystallised.
+Append the one-line audit entry to `wiki/log.md` (format in SKILL.md). If the user wants the audit kept, crystallise it as a `type: archive` page citing the audited article (`references/archive.md`).
 
 ## Why categorical verdicts, not scores
 

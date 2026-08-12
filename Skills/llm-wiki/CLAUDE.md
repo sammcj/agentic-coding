@@ -1,6 +1,6 @@
 # Working on the llm-wiki skill
 
-This repo is both a distributable Agent Skill. That dual role explains things pure skill-authoring guidance would flag: `README.md`, `LICENSE`, `CHANGELOG.md`, and `examples/` are intentional and stay. Don't strip them as "skill clutter".
+This repo is both a public project and a distributable Agent Skill. That dual role explains things pure skill-authoring guidance would flag: `README.md`, `LICENSE`, `CHANGELOG.md`, and `examples/` are intentional and stay. Don't strip them as "skill clutter".
 
 ## Update the changelog
 
@@ -10,7 +10,7 @@ When you change what the skill does or how it is used, append one line to `CHANG
 
 The file format is defined in three coupled places. Change a detail in one, update all three in the same pass:
 
-- `SKILL.md` - the spec and workflow (source of truth)
+- `SKILL.md` plus the procedure references it gates - `references/ingest.md`, `references/init.md`, `references/archive.md`, `references/okf.md` - together hold the spec and workflow (source of truth). SKILL.md keeps the always-loaded rules and the routing list; each reference holds one operation's procedure. Changing a rule means changing it wherever it actually lives, not restating it in SKILL.md.
 - `references/templates/*.md` - the fill-in templates (authoritative for exact format)
 - `examples/` - a self-consistent sample vault that must conform to the spec
 
@@ -24,7 +24,7 @@ The skill deliberately excludes embeddings and vector search, a knowledge-graph 
 
 ## Editing SKILL.md
 
-- Keep it lean (aim under ~4k tokens); move detailed protocol into `references/` and point to it, as the bulk-ingest protocol does.
+- Keep it lean: it holds the always-loaded rules, the scenario-routing list, and each operation's must-read gate. Every procedure belongs in `references/`, as Ingest, Lint, Audit and Critique do. The gate is the validator's worst-case load rating (SKILL.md plus the largest single reference) staying at Good or better - never let a change push it to OK.
 - The skill `name` must match the directory name (`llm-wiki`); the spec validator enforces this.
 - Validate after changes with the skill-creator-primer `validate_skill.py`. Its sibling `quick_validate.py` wrongly rejects valid Claude Code frontmatter extensions, so trust the spec validator.
 

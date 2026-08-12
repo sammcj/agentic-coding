@@ -4,13 +4,13 @@ How to compile a transcript, chat log, long article, or interview into the wiki 
 
 ## When to use this
 
-Reach for it when one compile pass could lose detail: meeting and call transcripts, chat and Slack logs, long articles and threads, interview or research notes. Skip it for short, clean, single-claim sources (a release note, a definition, a one-page post); the normal Compile in SKILL.md already handles those, and the extra discipline is overhead there.
+Reach for it when one compile pass could lose detail: meeting and call transcripts, chat and Slack logs, long articles and threads, interview or research notes. Skip it for short, clean, single-claim sources (a release note, a definition, a one-page post); the normal Compile in `references/ingest.md` already handles those, and the extra discipline is overhead there.
 
 ## The steps
 
 1. **Extract atoms before prose.** Read the source once and pull the durable items into a flat list first: decisions, commitments, claims, numbers, named entities, open questions, action items. Note where each came from. Only then write the article from that list. The atom list is the checklist that catches what writing-from-memory drops. An open question the source raises but does not answer, and the wiki cannot either, belongs in `wiki/gaps.md` as a `question` entry rather than buried in article prose where it is forgotten (`references/gaps.md`).
 
-2. **Right-size the unit.** Do not force a sprawling source into one page. A meeting that covered three decisions across two topics becomes the articles those decisions belong to (merge or new, per SKILL.md), not a single "meeting notes" dump. One raw file can legitimately feed several wiki articles.
+2. **Right-size the unit.** Do not force a sprawling source into one page. A meeting that covered three decisions across two topics becomes the articles those decisions belong to (merge or new, per `references/ingest.md`), not a single "meeting notes" dump. One raw file can legitimately feed several wiki articles.
 
 3. **Preserve exact terms, numbers, and epistemic status.** Keep the source's own terminology, figures, and hedging. "We will probably move to Postgres in Q3" is not "the team decided to move to Postgres." Do not harden a maybe into a decision, round away a load-bearing number, or flatten a disagreement into consensus. Distil the wording; preserve the meaning and the certainty.
 
@@ -26,7 +26,7 @@ Reach for it when one compile pass could lose detail: meeting and call transcrip
 
 ## Keep the raw file faithful
 
-The raw file is the safety net you anchor back to, so do not over-clean it. Strip only secrets and PII (per SKILL.md); leave speaker labels, timestamps, and structure intact. In a transcript those are signal: they tell you who committed to what and when.
+The raw file is the safety net you anchor back to, so do not over-clean it. Strip only secrets and PII (per `references/ingest.md`); leave speaker labels, timestamps, and structure intact. In a transcript those are signal: they tell you who committed to what and when.
 
 ## In bulk ingest
 

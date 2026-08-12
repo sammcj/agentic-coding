@@ -56,7 +56,7 @@ To critique every article in a topic, or several sources together, dispatch one 
 
 Nothing, by default - like Audit, it is a report. With the user's go-ahead it may:
 
-- **Crystallise** the analysis as a `type: archive` page citing the critiqued article or source, the same way a query answer is crystallised (see Query in SKILL.md). Useful when the critique is itself a durable conclusion worth keeping.
+- **Crystallise** the analysis as a `type: archive` page citing the critiqued article or source, the same way a query answer is crystallised (`references/archive.md`). Useful when the critique is itself a durable conclusion worth keeping.
 - **Open a gap.** A flagged unstated assumption or an unanswered question the critique surfaced can become a `question` entry in `wiki/gaps.md`, if evidence backs recording it (`references/gaps.md`).
 - **Inform an Ingest edit.** If the critique was run on a source mid-ingest, its findings may change how the article is written - attributing a contested claim to its source rather than asserting it, or noting the conflict inline with an evidence chain. The user directs that; Critique itself only reports.
 
