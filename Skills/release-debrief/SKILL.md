@@ -68,7 +68,7 @@ Tool selection: match the tool from the user's prompt against the aliases above.
 
    Confirm in one line: `Updated resources/outputs/<tool>.md to <version>.` If the run fails or the user aborts before the summary is delivered, leave the file alone.
 
-7. **Open the output file.** After a successful write, run `open </absolute/path/to/resources/outputs/<tool>.md>` so the user can read the summary in their default markdown viewer.
+7. **Output the full file path.** After a successful write: "Debrief saved to: /absolute/path/to/resources/outputs/<tool>.md "
 
 ## Storage File Format
 

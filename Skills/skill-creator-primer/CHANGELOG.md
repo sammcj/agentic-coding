@@ -2,6 +2,10 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-08-13
+
+- `validate_skill.py`: raised the finding-list cap from 5 to 20 (`BLOB_LIST_MAX`, applies to blobs and long code fences). At 5, a skill with 25 long fences showed 5 and hid the rest behind "+20 more" - the agent reading the report is the one fixing the findings, so the list has to be long enough to act on. Truncation kept as a catch on pathological files.
+
 ## 2026-08-12
 
 Loop-engineering pass - sharpened fuzzy loop exits into checkable criteria:

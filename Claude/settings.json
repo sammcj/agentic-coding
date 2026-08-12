@@ -466,7 +466,7 @@
       "Read(~/Library/Safari/**)",
       "Read(//etc/ssl/**)"
     ],
-    "defaultMode": "acceptEdits",
+    "defaultMode": "auto",
     "additionalDirectories": [
       "../docs/",
       "/Users/samm/git",

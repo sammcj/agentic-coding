@@ -240,7 +240,10 @@ _HEADING = re.compile(r"^#{1,6}\s")
 # 80-95 band flagged mostly dense-but-earned units, unambiguous waffle started
 # past ~100. Reported as compression targets, never gated - see above.
 BLOB_WORDS = 100
-BLOB_LIST_MAX = 5  # keep the report line readable; the count still shows the rest
+# The agent reading this report is the one fixing the findings, so the list has
+# to be long enough to act on; 20 clears every real skill measured while still
+# capping a pathological file's output.
+BLOB_LIST_MAX = 20
 
 # The load rating deliberately trusts references (only the largest one counts),
 # so this is the counterweight: a blob or two in references is normal
