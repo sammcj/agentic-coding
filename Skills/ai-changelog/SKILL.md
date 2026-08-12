@@ -38,7 +38,7 @@ Set up a changelog system AI agents maintain during development. Two shapes, cho
 
 7. **Apply the scheme reference**: follow the build-integration recipe from the chosen reference file. Add targets to the existing build system, or create a minimal Makefile if none exists. _Skip in Dated mode - there is no build integration._
 
-8. **Update CLAUDE.md** with the snippet from the chosen scheme reference. Insert into the project's development workflow section, or create one. In Dated mode this is the only mechanism that keeps the changelog current, so make sure the snippet lands.
+8. **Update CLAUDE.md** with the snippet from the chosen scheme reference. Insert into the project's development workflow section, or create one. In Dated mode this is the only mechanism that keeps the changelog current, so make sure the snippet lands. Add "Squash changes within the same day/version (do not add changes to changes)."
 
 9. **Verify**:
    - CalVer: `uv run scripts/version.py version` should print today's CalVer; then `uv run scripts/version.py stamp --dry-run` previews the stamp

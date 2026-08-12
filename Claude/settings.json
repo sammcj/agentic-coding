@@ -548,7 +548,8 @@
     "session-report@claude-plugins-official": true,
     "bento-slides@bento": true,
     "i-have-adhd@i-have-adhd": true,
-    "cc-safety-net@cc-marketplace": true
+    "cc-safety-net@cc-marketplace": true,
+    "caveman@caveman": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -620,6 +621,12 @@
         "repo": "ayghri/i-have-adhd"
       },
       "autoUpdate": true
+    },
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      }
     }
   },
   "language": "Australian English",
