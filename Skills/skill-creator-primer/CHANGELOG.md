@@ -2,6 +2,27 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-08-12
+
+Loop-engineering pass - sharpened fuzzy loop exits into checkable criteria:
+
+- Description checklist: pass/fail verdict per item, exit on all-pass, re-check the set after any edit (replaces "until it follows best practices").
+- Trigger evals (`references/trigger-evals.md`): stated the script's pass bar (fires in at least half of runs) and a stop condition - full-run all-pass, or report residual failures after two rounds.
+- Self-Review gained step 12: re-run the validator if any step after 4 changed the skill, closing the gate for the edit path (step 11 covered new skills only).
+- Task-tracking guidance (both spots + template step 1): each task phrased with its completion criterion.
+
+Anti-verbosity defences: recent models (Opus/Sonnet 5) author skills as narrative prose and "be concise" instructions decay mid-session, so enforcement moved from prose into deterministic tooling and process. Designed via adversarial persona sub-agent reviews; anti-patterns drawn from real rejected PRs.
+
+- `validate_skill.py` gates the token budget by exit code: Poor fails, OK warns, judged on worst-case load (SKILL.md + largest single reference - what one branch firing costs) rather than corpus total, so progressive disclosure isn't penalised; the OK/Poor message names the driving file and its cure.
+- Report output is sectioned to route the reading agent's attention: FACTS (over-long description, over-budget load, SKILL.md blobs - always-loaded, fix) / SIGNALS (reference blobs, code fences over 10 lines - branch-loaded, judge earned detail vs waffle; 3+ reference blobs warn) / INFO (prose %, blob definition).
+- Blob detection: a blob is any text unit of 100+ words, form-invariant across paragraphs, list items, quotes and table rows so reshaping can't dodge it; listed with file:line, word count and opening quote. Threshold calibrated on real skills (80-95w flagged mostly dense-but-earned units). Stdlib-only `--report-only` mode.
+- Reference discovery gained a bare-basename fallback ("see api-design.md" with references/ implied) - swift-development had 9.8k tokens invisible to the old counter.
+- New PostToolUse hook in primer frontmatter (`hook_report_skill_tokens.py`): re-injects the report after any edit to a skill's Markdown (SKILL.md or a reference under a directory holding one; housekeeping files excluded) - the mechanical replacement for a human nudging "cut the word count". Hook command uses an explicit `$HOME` path; `${CLAUDE_SKILL_DIR}` expands empty in current Claude Code.
+- Failure Modes gained "Buried instructions" (logic in paragraphs or oversized list items, incl. frontmatter/schema description fields; cure: new "Structure over prose" tip + example pair) and "Fossilised diff" (body narrating its own history: ticket IDs, amendment notes, superseded mechanisms; cure: state current behaviour, provenance lives here and in git). Duplication widened to restating a cited source; leading-words rule warns against coined vocabulary. "Structure over prose" allows telegraphic fragments for gotchas, checklists and fact lists (not where they'd blur a concept, sequence, or steering nuance) - from a caveman-style review. All inline - no anti-patterns reference, so review naming never depends on a routing decision.
+- Self-Review step 4: conditional fresh-context compression pass at OK/Poor rating (~75%/~60% word target; converts prose to steps, deletes provenance and justification riders; verified against an extracted rule checklist); token delta stated in change summaries. Prefers a `compression-editor` agent when the environment defines one (created today at `~/.claude/agents/compression-editor.md`, outside this repo).
+- New `assets/skill-template.md`: creation drafts inside its structure, denying the narrative prior a blank page.
+- The primer's own prose compressed and restructured (compression-editor review rounds plus a formatting pass): dense paragraphs and the Failure Modes table converted to bullets, decorative bold stripped (kept run-in tip names, critical directives, must-read pointers), checklist item 3 tightened to the load-decision rule, upstream-validators deduplicated, "Claude" -> "the agent" per the portability rule. Kept repetition that does steering work. Declined relocating the frontmatter extensions to a reference - nearly every creation flow needs it inline. Ends at worst-case load 9354 [OK], zero blobs, 31% paragraph prose.
+
 ## 2026-07-06
 
 - Restructured SKILL.md layout (content unchanged): entry-point router up top, sections reordered into principles -> decide -> author -> verify clusters, Skill Writing Tips grouped by content/structure/steering, and the three validator fragments merged into one "Validating a Skill" section. Strays: title-cased "Prefer One Skill Over Many", fixed a doubled quote in the `allowed-tools` example.

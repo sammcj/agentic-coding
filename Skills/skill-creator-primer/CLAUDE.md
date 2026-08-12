@@ -13,3 +13,4 @@
 After making any change to this skill (SKILL.md, references, scripts, evals etc.): You MUST update `CHANGELOG.md`:
 - Add a concise TLDR of the change(s) in a bullet point(s) under today's date heading (`## YYYY-MM-DD`, newest first), creating the heading if it doesn't exist. No versioning is required.
 - Update the `version` metadata in `SKILL.md` to the current date (YYYY-MM-DD) to reflect the change.
+- Squash changes within the same day (do not add changes to changes).
