@@ -8,6 +8,18 @@
 - Any pointers to ./references/*.md must have clear instructions as to when the consuming agent MUST read them (e.g. the scenario when they apply).
 - You do NOT need to add items that were changes to other items within the same date (e.g. if you add "added skill description ..." you don't need to also add "improved skill scription ..." if you did so on the same date)
 
+## Tests for the bundled scripts
+
+`tests/` holds stdlib `unittest` tests for the scripts in `scripts/`. They are development tooling for this repo - the skill never invokes them, and they stay out of `SKILL.md` so they cost the consuming agent nothing.
+
+After changing any Python under `scripts/`, before you report the work done:
+
+- Run them: `uv run --with pyyaml python3 -m unittest discover -s tests`. All must pass.
+- Add a test for the behaviour you changed, and update the tests an intentional change invalidates. A changed threshold or report string with no test touched means the coverage was thin, not that the change was safe.
+- Assert on behaviour an agent reading the report depends on (exit codes, which section a finding lands in, what the rating gates), not on incidental wording.
+- Verify a new test actually fails without the fix. A test that passes against the old code is measuring nothing.
+- Keep them runnable with plain `python3`: stdlib only, and skip rather than fail when PyYAML is absent, matching the `--report-only` path's constraint.
+
 ## Update CHANGELOG.md after changes
 
 After making any change to this skill (SKILL.md, references, scripts, evals etc.): You MUST update `CHANGELOG.md`:

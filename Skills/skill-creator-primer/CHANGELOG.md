@@ -4,6 +4,13 @@
 
 ## 2026-08-13
 
+- New `tests/test_validate_skill.py`: 41 stdlib `unittest` cases over `validate_skill.py` (prose percentage, blob and fence detection, reference discovery incl. `resources/`, declared budgets, exit codes, lint). Verified to fail when the bugs they cover are reintroduced. `CLAUDE.md` gained a Tests section requiring they be run and extended after any `scripts/` change.
+- `validate_skill.py`: paragraph-prose percentage now attributes words per unit rather than per line, and counts a paragraph as prose only past `PROSE_UNIT_MIN = 40` words. A standalone sentence carries one instruction - structurally a bullet without the marker - so a skill of one-line directives read as ~98% prose when it needed no work (grill-me and handoff went 98% -> 0%, graphify 70% -> 30%). The percentage now discriminates instead of flagging everything.
+- New `metadata.token-budget: <int>` frontmatter escape hatch for a deliberately branchy skill: honoured only with a trailing `#` comment justifying the ceiling, in which case the load passes with the budget noted and no cure advice; past it, or undefended, the normal bands apply. Read by regex so the stdlib-only `--report-only` path keeps working. The primer declares 11000.
+- Corrected the blob-detection comment that claimed reshaping could not dodge the check: it is form-invariant per unit, but splitting one unit into several smaller ones does clear the threshold.
+- `validate_skill.py`: the OK/Poor cure line now routes to SIGNALS when a reference drives the rating, and stays in FACTS only when SKILL.md does - FACTS is labelled always-loaded cost, so a branch-loaded finding did not belong there.
+- `validate_skill.py`: corpus line counted references only while the total included SKILL.md (off by one); now counts every file and says so. Dropped entirely when there is one reference, where line 1 already names every file counted.
+- Worst-case load reworded as a lower bound on one branch firing (a branch chaining several references costs more), in SKILL.md and the `_budget` docstring.
 - `validate_skill.py`: raised the finding-list cap from 5 to 20 (`BLOB_LIST_MAX`, applies to blobs and long code fences). At 5, a skill with 25 long fences showed 5 and hid the rest behind "+20 more" - the agent reading the report is the one fixing the findings, so the list has to be long enough to act on. Truncation kept as a catch on pathological files.
 
 ## 2026-08-12

@@ -171,12 +171,13 @@ def token_rating(tokens: int) -> str:
     return "Poor"
 
 
-def _budget(skill_dir: Path, use_tiktoken: bool = False) -> tuple[list[str], str, str]:
+def _budget(skill_dir: Path, use_tiktoken: bool = False) -> tuple[list[str], str, str, bool, bool]:
     """Token-budget estimate across a skill's referenced Markdown.
 
-    Returns (report lines, rating label, advice). The rating judges the
-    worst-case load - SKILL.md plus the largest single reference, which is what
-    one branch firing costs - not the corpus total, which would penalise
+    Returns (report lines, rating label, advice, driver_is_main). The rating
+    judges the worst-case load - SKILL.md plus the largest single reference,
+    a lower bound on what one branch firing costs (a branch chaining several
+    references costs more) - not the corpus total, which would penalise
     progressive disclosure (many small branch-gated references are the cure). The rating doubles as the verbosity gate: main()
     downgrades "OK" to a warning and "Poor" to a hard error, so the budget is
     enforced by exit code rather than by the agent's discipline. advice names
@@ -201,16 +202,33 @@ def _budget(skill_dir: Path, use_tiktoken: bool = False) -> tuple[list[str], str
         rating = token_rating(load)
         lines = [
             f"Tokens: worst-case load {load} [{rating}] = SKILL.md {main} + largest reference {big_rel} {big_tokens}",
-            f"  corpus total {total} across {len(refs)} referenced .md file(s) ({method})",
         ]
+        # With one reference the line above already names every file counted, so
+        # a corpus line would only restate it. The count includes SKILL.md.
+        if len(refs) > 1:
+            lines.append(
+                f"  corpus total {total} across {len(refs) + 1} .md file(s), SKILL.md included ({method})"
+            )
         driver_is_main = main >= big_tokens
     else:
         load = main
         rating = token_rating(load)
         lines = [f"Tokens: SKILL.md {main} [{rating}], no referenced .md files ({method})"]
         driver_is_main = True
+    budget, justified = declared_token_budget(skill_md.read_text(encoding="utf-8-sig", errors="ignore"))
+    within_budget = budget is not None and justified and load <= budget
+    if within_budget:
+        lines[0] += f" - within the declared budget {budget}"
+    elif budget is not None and not justified:
+        lines.append(
+            f"  Declared token-budget {budget} ignored: add a trailing `#` comment "
+            "justifying the ceiling, or the normal bands apply"
+        )
+    elif budget is not None:
+        lines.append(f"  Over the declared budget {budget} - raise it with a reason, or cut to fit")
+
     advice = ""
-    if rating in ("OK", "Poor"):
+    if rating in ("OK", "Poor") and not within_budget:
         cure = (
             "move branch-only content out of SKILL.md into references/ and delete no-op lines"
             if driver_is_main
@@ -218,7 +236,7 @@ def _budget(skill_dir: Path, use_tiktoken: bool = False) -> tuple[list[str], str
         )
         bound = "(>12k)" if rating == "Poor" else "(9k-12k; aim for Good, <9k)"
         advice = f"Worst-case load rating is {rating} {bound}: {cure}"
-    return lines, rating, advice
+    return lines, rating, advice, driver_is_main, within_budget
 
 
 # Structure measurement: how much of the body is paragraph prose vs structured
@@ -227,11 +245,12 @@ def _budget(skill_dir: Path, use_tiktoken: bool = False) -> tuple[list[str], str
 # differ in how much conceptual prose they need. Surfacing the measurement lets
 # the reviewing agent judge; the hard gate stays on total tokens above.
 #
-# Blob detection is form-invariant: the unit is any contiguous run of non-fence
-# body text, and each list marker, table row, and blockquote line starts a new
-# unit. Moving words between a paragraph, a bullet, a quote, or a table cell
-# never changes the count - only deleting words does - so the report can't be
-# satisfied by reshaping prose into an exempt container.
+# Blob detection is form-invariant per unit: the unit is any contiguous run of
+# non-fence body text, and each list marker, table row, and blockquote line
+# starts a new unit. Moving a whole unit between a paragraph, a bullet, a quote,
+# or a table cell never changes its size, so no container is an exempt hiding
+# place. Splitting one unit into several smaller ones does clear the threshold -
+# that is a real limit, not a dodge the check catches.
 _LIST_MARKER = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
 _HEADING = re.compile(r"^#{1,6}\s")
 
@@ -257,6 +276,37 @@ REF_BLOB_WARN = 3
 # signal, not a fact: a long example or template can be legitimate.
 CODE_FENCE_LINES = 10
 
+# A standalone sentence or two carries one instruction - structurally a bullet
+# without the marker - so counting it as prose makes a skill of one-line
+# directives read as ~96% prose when it needs no work at all. Only a longer run
+# is the wall of prose the percentage exists to surface.
+PROSE_UNIT_MIN = 40
+
+# Escape hatch for a deliberately branchy skill whose branch test keeps nearly
+# everything inline (the primer itself is the case it exists for). Declared as
+# `metadata.token-budget: <int>` in SKILL.md frontmatter and honoured only when
+# a trailing `#` comment justifies the ceiling - an undefended number is how a
+# budget becomes a way to dodge the compression pass rather than a considered
+# trade. Matched by regex so the stdlib-only --report-only path keeps working.
+_TOKEN_BUDGET_RE = re.compile(
+    r"^[ \t]+token-budget:[ \t]*(\d+)[ \t]*(#[^\n]*)?$", re.MULTILINE
+)
+
+
+def declared_token_budget(skill_md_text: str) -> tuple[int | None, bool]:
+    """Read `metadata.token-budget` from SKILL.md frontmatter.
+
+    Returns (budget, justified). budget is None when unset; justified is False
+    when the declaration carries no trailing comment, in which case callers
+    apply the normal bands and say why."""
+    match = _FRONTMATTER_RE.match(skill_md_text)
+    if match is None:
+        return None, False
+    found = _TOKEN_BUDGET_RE.search(match.group(1))
+    if found is None:
+        return None, False
+    return int(found.group(1)), bool(found.group(2) and found.group(2)[1:].strip())
+
 
 def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
     """Scan a skill's referenced Markdown for prose shape. Returns
@@ -281,9 +331,16 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
         unit_open = ""  # first words of the unit, for the report quote
 
         def close() -> None:
-            nonlocal unit
+            """Bank the accumulated unit. Words are attributed per unit, not per
+            line, so a wrapped list item lands wholly in structure and a short
+            standalone sentence is not mistaken for a wall of prose."""
+            nonlocal unit, para_words, struct_words
             if unit:
                 units.append((unit, str(rel), unit_line, unit_open))
+                if unit_is_para and unit >= PROSE_UNIT_MIN:
+                    para_words += unit
+                else:
+                    struct_words += unit
             unit = 0
 
         fence_start = fence_lines = 0
@@ -315,19 +372,15 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
             elif _LIST_MARKER.match(line):
                 close()
                 unit, unit_line, unit_is_para, unit_open = words, lineno, False, stripped
-                struct_words += words
             elif stripped.startswith("|") or stripped.startswith(">"):
                 close()
                 unit, unit_line, unit_is_para, unit_open = words, lineno, False, stripped
-                struct_words += words
                 close()  # one unit per row/quote line
             else:
+                # a wrapped continuation belongs to its list item, not to prose
                 if unit == 0:
                     unit_line, unit_is_para, unit_open = lineno, True, stripped
                 unit += words
-                # a wrapped continuation belongs to its list item, not to prose
-                para_words += words if unit_is_para else 0
-                struct_words += 0 if unit_is_para else words
         close()
         if fence is not None and fence_lines > CODE_FENCE_LINES:
             # unterminated fence: still report it rather than losing it silently
@@ -351,22 +404,26 @@ def _listing(group: list, unit: str) -> list[str]:
     return out
 
 
-def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str, str]:
+def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str, str, bool]:
     """Sectioned report that routes the reading agent's attention: FACTS are
     always-loaded costs to fix, SIGNALS are branch-loaded findings to judge,
     INFO is context. Returns (text, rating, advice); main() enforces the
     rating by exit code (Poor fails, OK warns)."""
-    budget_lines, rating, advice = _budget(skill_dir, use_tiktoken)
+    budget_lines, rating, advice, driver_is_main, within_budget = _budget(skill_dir, use_tiktoken)
     pct, skill_blobs, ref_blobs, long_code = _structure(skill_dir)
 
     facts: list[str] = []
-    if advice:
+    # A reference driving the rating is a branch-loaded cost, so its cure belongs
+    # under SIGNALS - FACTS is labelled always-loaded.
+    if advice and driver_is_main:
         facts.append(f"  {advice}")
     if skill_blobs:
         facts.append(f"  Blobs in SKILL.md ({len(skill_blobs)} text units of {BLOB_WORDS}+ words):")
         facts.extend(_listing(skill_blobs, "w"))
 
     signals: list[str] = []
+    if advice and not driver_is_main:
+        signals.append(f"  {advice}")
     if ref_blobs:
         signals.append(f"  Blobs in references ({len(ref_blobs)} text units of {BLOB_WORDS}+ words):")
         signals.extend(_listing(ref_blobs, "w"))
@@ -399,7 +456,7 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
         )
     if not facts and not signals:
         out.append("  No blobs or oversized code blocks found.")
-    return "\n".join(out), rating, advice
+    return "\n".join(out), rating, advice, within_budget
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -546,18 +603,19 @@ def main() -> None:
         print(f"Error: no SKILL.md in {skill_dir}")
         sys.exit(1)
 
-    report_text, rating, advice = build_report(skill_dir, use_tiktoken=args.tiktoken)
+    report_text, rating, advice, within_budget = build_report(skill_dir, use_tiktoken=args.tiktoken)
 
     if args.report_only:
         print(report_text)
-        sys.exit(1 if rating == "Poor" else 0)
+        sys.exit(1 if rating == "Poor" and not within_budget else 0)
 
     errors, warnings = lint(skill_dir)
 
     # Token-budget gate on the worst-case load (see _budget): "Poor" fails the
-    # build; "OK" warns via the report's FACTS section. Ratings and cures live
-    # in the primer's "Validating a Skill" and "Failure Modes" sections.
-    if rating == "Poor":
+    # build; "OK" warns via the report's FACTS section. A justified
+    # metadata.token-budget the load fits inside clears both. Ratings and cures
+    # live in the primer's "Validating a Skill" and "Failure Modes" sections.
+    if rating == "Poor" and not within_budget:
         errors.append(advice)
 
     for warning in warnings:
@@ -570,7 +628,7 @@ def main() -> None:
             print(f"  - {error}")
         sys.exit(1)
 
-    clean = not warnings and rating in ("Great", "Good")
+    clean = not warnings and (rating in ("Great", "Good") or within_budget)
     print("Skill is valid!" if clean else "Skill is valid (with warnings).")
 
 
