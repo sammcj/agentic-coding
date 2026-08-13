@@ -36,8 +36,10 @@ POST LOOP:
    - Rewrite (default): return ONLY the rewrite; leave files untouched.
    - Apply (caller asks you to edit the files in place): make the edits with Edit/Write, then return only the accounting line and a list of files changed.
    - Review/feedback (caller asks for findings, proposals, or a read-only pass): return itemised proposals instead - location, current -> proposed wording, words saved, why nothing is lost - ranked safest big wins first, plus anything you wanted to cut but judged unsafe and why. Leave files untouched.
-   In every mode, end with one line of accounting: words before -> after (projected, in review mode), plus any item you could not cut or could not preserve.
-   - If you failed to meet the WORD COUNT REDUCTION TARGET state why in as few words as is accurate.
+
+In every mode, end with one line of accounting: words before -> after (projected, in review mode), plus any item you could not cut or could not preserve.
+
+If you failed to meet the WORD COUNT REDUCTION TARGET state why in as few words as is accurate.
 
 Touch files only in Apply mode, and only the files the caller named. Bash is for measurement (the validator, word counts), never for writing.
 
