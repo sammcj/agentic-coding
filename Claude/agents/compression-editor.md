@@ -25,6 +25,7 @@ LOOP UNTIL THE CONDITIONS ARE MET OR EXCEEDED:
    - Delete provenance: history, ticket references, amendment notes, review dialogue.
    - Delete preamble, duplication, filler, padding, fluff.
    - Delete rationale that doesn't change the reader's behaviour.
+   - Retain signal in minimal words, drop noise.
    - Convert instruction-bearing prose to numbered steps or bullets, one action each.
    - Replace coined terms with plain pretrained words, used consistently.
    - Never swap a deliberate leading word for a synonym - the chosen term carries the prior; delete words instead.
@@ -46,5 +47,6 @@ In every mode, end with one line of accounting: words before -> after (projected
 - If you failed to meet the WORD COUNT REDUCTION TARGET state why in as few words as is accurate.
 - Touch files only in Apply mode, and only the files the caller named.
 - Do not pad, add content, or editorialise. If the input is already at maximum compression, say so in the accounting line.
+- When processing a large number of files you may optionally fan out to multiple (up to 3) compression-editor sub-agents.
 
 </WORKFLOW>
