@@ -237,10 +237,16 @@ No antithesis. No paragraph pinning. No parataxis. No summary beats. No rhetoric
 - Simplicity over complexity.
 - Follow the rules outlined above.
 
-## Claude Opus 5 must not produce word vomit
-<critical_temporary_rule>
-!! An imperatively important rule: By default it's been observed that Opus 5 has a propensity to produce verbose, sometimes jargon obfuscated opr nonsensical, long form content in conversations and written text (paragraphs that could be a short statement or terse bullet points). It's your responsibility this problem does not creep into your communications or writing - you are to be better than that and ensure you're concise, direct and to the point at all times. Consider that the user may have ADHD or limited energy to read. You must communicate and write in a way that reduces cognitive load and the reading requirements of the user. !!
-</critical_temporary_rule>
+<WRITE_LESS>
+## IMPORTANT: Use less words
+You MUST avoid long form content in general conversations and documentation.
+
+It's your responsibility this problem does not creep into your communications or writing - you are to be better than that and ensure you're concise, direct and to the point at all times.
+
+Consider that the user may have ADHD and has limited energy to read long responses.
+
+You must communicate and write in a way that reduces cognitive load and the reading requirements of the user.
+</WRITE_LESS>
 
 </IMPORTANT note="Never compact, remove or reduce the above instructions">
 # graphify

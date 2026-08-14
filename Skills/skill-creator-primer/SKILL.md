@@ -306,10 +306,12 @@ These are Claude Code-specific fields not covered by the Agent Skills spec. Only
 Validate against the official Agent Skills specification with the bundled `scripts/validate_skill.py` (resolve it from this skill's `scripts/` directory). It does not run automatically - invoke it against a skill when you want a check or a measurement:
 
 ```bash
-uv run <skill-creator-primer>/scripts/validate_skill.py <skill-dir>
+uv run <skill-creator-primer>/scripts/validate_skill.py <skill-dir> [<skill-dir> ...]
 ```
 
 Pass a real path, not `.` (skills-ref matches the directory's basename against the skill name, and `.` resolves to an empty basename).
+
+Several skills can be passed at once: each report is headed by its path, with a pass count at the end. The exit code fails if any skill fails.
 
 On a valid skill it also prints a token-budget estimate and rating alongside the spec checks. It counts only the Markdown that SKILL.md actually references (transitively), so a stray unreferenced file does not inflate the figure. The count uses a chars/4.12 heuristic calibrated against tiktoken; add `--tiktoken` (run via `uv run --with tiktoken`) to count with the real tokeniser instead.
 

@@ -104,6 +104,33 @@ actor DataCache {
 6. **Don't assume async means background** - explicitly move work to background if needed
 7. **Avoid excessive context switching** - group operations within same isolation domain
 
+### AppKit Gotchas
+
+**Menu-bar app windows open behind everything / hide on click-away.** Two separate causes, usually hit together:
+
+- `.accessory` activation policy means the app is never brought forward when a window opens.
+- SwiftUI's `Settings` scene is an `NSPanel`, which in an accessory app defaults to `hidesOnDeactivate = true`.
+
+Fix both: switch to `.regular` while the window is open, clear `hidesOnDeactivate`, then revert on `NSWindow.willCloseNotification`.
+
+```swift
+NSApp.setActivationPolicy(.regular)
+NSApp.activate()
+openSettings()
+DispatchQueue.main.async {          // window does not exist until SwiftUI opens it
+    guard let w = NSApp.windows.first(where: {
+        $0.identifier?.rawValue.hasPrefix("com_apple_SwiftUI_Settings") == true }) else { return }
+    w.hidesOnDeactivate = false
+    w.makeKeyAndOrderFront(nil)
+    w.orderFrontRegardless()
+}
+// On willCloseNotification: NSApp.setActivationPolicy(.accessory)
+```
+
+Cost: a Dock icon while the window is open. `SettingsLink` cannot do this - it has no action hook, so use `@Environment(\.openSettings)`.
+
+**`JSONEncoder.dateEncodingStrategy = .iso8601` truncates to whole seconds.** Silently breaks any sub-second timing logic. Use `.custom` with `ISO8601DateFormatter` + `.withFractionalSeconds`.
+
 ### API Design Quick Reference
 
 #### Naming Conventions

@@ -35,6 +35,10 @@ https://code.claude.com/docs/en/skills#frontmatter-reference
 On a valid skill it also prints a token-budget estimate across the Markdown that
 SKILL.md references (transitively), using the chars/N heuristic below; pass
 --tiktoken to count with the real tokeniser instead.
+
+Several skill directories can be passed at once. Validation is serial: the work
+is GIL-bound regex over small files (~200ms for a 60-skill corpus), and a thread
+pool measured 50% slower.
 """
 
 import argparse
@@ -151,16 +155,21 @@ def estimate_tokens(text: str) -> int:
     return round(len(text) / CHARS_PER_TOKEN)
 
 
-def tiktoken_tokens(text: str) -> int:
-    """Count tokens exactly with tiktoken's o200k_base BPE. Needs the tiktoken
-    package; exits with a hint when it is missing."""
+def _tiktoken_encoding():
+    """The o200k_base encoder, or exit with the install hint. tiktoken caches
+    the encoder, so repeat calls are free."""
     try:
         import tiktoken  # pyright: ignore[reportMissingImports]  # opt-in: uv run --with tiktoken
     except ModuleNotFoundError:
         print("Error: tiktoken not installed. Run it with the package available:")
         print(f"  uv run --with tiktoken {sys.argv[0]} <skill_directory> --tiktoken")
         sys.exit(1)
-    return len(tiktoken.get_encoding(TIKTOKEN_ENCODING).encode(text))
+    return tiktoken.get_encoding(TIKTOKEN_ENCODING)
+
+
+def tiktoken_tokens(text: str) -> int:
+    """Count tokens exactly with tiktoken's o200k_base BPE."""
+    return len(_tiktoken_encoding().encode(text))
 
 
 def token_rating(tokens: int) -> str:
@@ -510,12 +519,18 @@ def _load_skills_ref():
     return validator, find_skill_md
 
 
-def lint(skill_dir: Path) -> tuple[list[str], list[str]]:
-    """Return (errors, warnings) for a skill directory."""
+def _require_yaml() -> None:
+    """Exit with the run-via-uv hint when PyYAML is absent."""
     if yaml is None:
         print("Error: dependencies not found. Run this script with uv:")
         print(f"  uv run {sys.argv[0]} <skill_directory>")
         sys.exit(1)
+
+
+def lint(skill_dir: Path) -> tuple[list[str], list[str]]:
+    """Return (errors, warnings) for a skill directory."""
+    _require_yaml()
+    assert yaml is not None  # narrowed by the check above
 
     skill_dir = Path(skill_dir)
 
@@ -575,11 +590,49 @@ def lint(skill_dir: Path) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
+def validate_one(
+    skill_dir: Path, use_tiktoken: bool = False, report_only: bool = False
+) -> tuple[list[str], bool]:
+    """Validate one skill; return (output lines, passed). Returns rather than
+    exiting, so one unusable path fails only itself in a batch."""
+    skill_dir = Path(skill_dir)
+    if not skill_dir.is_dir():
+        return [f"Error: directory does not exist: {skill_dir}"], False
+    if not (skill_dir / "SKILL.md").is_file():
+        return [f"Error: no SKILL.md in {skill_dir}"], False
+
+    report_text, rating, advice, within_budget = build_report(skill_dir, use_tiktoken=use_tiktoken)
+    # Token-budget gate on the worst-case load (see _budget): "Poor" fails the
+    # build; "OK" warns via the report's FACTS section. A justified
+    # metadata.token-budget the load fits inside clears both. Ratings and cures
+    # live in the primer's "Validating a Skill" and "Failure Modes" sections.
+    over_budget = rating == "Poor" and not within_budget
+
+    if report_only:
+        return [report_text], not over_budget
+
+    errors, warnings = lint(skill_dir)
+    if over_budget:
+        errors.append(advice)
+
+    out = [f"Warning: {warning}" for warning in warnings]
+    out.append(report_text)
+    if errors:
+        out.append(f"Validation failed ({len(errors)} error(s)):")
+        out.extend(f"  - {error}" for error in errors)
+        return out, False
+
+    clean = not warnings and (rating in ("Great", "Good") or within_budget)
+    out.append("Skill is valid!" if clean else "Skill is valid (with warnings).")
+    return out, True
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Validate a skill against the Agent Skills spec and report its token budget."
+        description="Validate one or more skills against the Agent Skills spec "
+        "and report their token budgets."
     )
-    parser.add_argument("skill_directory")
+    parser.add_argument("skill_directory", nargs="+", help="skill directories to validate")
     parser.add_argument(
         "--tiktoken",
         action="store_true",
@@ -594,42 +647,32 @@ def main() -> None:
         "post-edit hook)",
     )
     args = parser.parse_args()
+    skill_dirs = [Path(d) for d in args.skill_directory]
 
-    skill_dir = Path(args.skill_directory)
-    if not skill_dir.is_dir():
-        print(f"Error: directory does not exist: {skill_dir}")
-        sys.exit(1)
-    if not (skill_dir / "SKILL.md").is_file():
-        print(f"Error: no SKILL.md in {skill_dir}")
-        sys.exit(1)
+    # Resolve optional dependencies before the first report prints, so a missing
+    # one fails immediately instead of part-way through a batch.
+    if args.tiktoken:
+        _tiktoken_encoding()
+    if not args.report_only:
+        _require_yaml()
+        _load_skills_ref()
 
-    report_text, rating, advice, within_budget = build_report(skill_dir, use_tiktoken=args.tiktoken)
+    failures = 0
+    multi = len(skill_dirs) > 1
+    for skill_dir in skill_dirs:
+        lines, ok = validate_one(
+            skill_dir, use_tiktoken=args.tiktoken, report_only=args.report_only
+        )
+        if multi:
+            print(f"=== {skill_dir} ===")
+        print("\n".join(lines))
+        if multi:
+            print()
+        failures += not ok
 
-    if args.report_only:
-        print(report_text)
-        sys.exit(1 if rating == "Poor" and not within_budget else 0)
-
-    errors, warnings = lint(skill_dir)
-
-    # Token-budget gate on the worst-case load (see _budget): "Poor" fails the
-    # build; "OK" warns via the report's FACTS section. A justified
-    # metadata.token-budget the load fits inside clears both. Ratings and cures
-    # live in the primer's "Validating a Skill" and "Failure Modes" sections.
-    if rating == "Poor" and not within_budget:
-        errors.append(advice)
-
-    for warning in warnings:
-        print(f"Warning: {warning}")
-
-    print(report_text)
-    if errors:
-        print(f"Validation failed ({len(errors)} error(s)):")
-        for error in errors:
-            print(f"  - {error}")
-        sys.exit(1)
-
-    clean = not warnings and (rating in ("Great", "Good") or within_budget)
-    print("Skill is valid!" if clean else "Skill is valid (with warnings).")
+    if multi:
+        print(f"{len(skill_dirs) - failures}/{len(skill_dirs)} skill(s) passed")
+    sys.exit(1 if failures else 0)
 
 
 if __name__ == "__main__":

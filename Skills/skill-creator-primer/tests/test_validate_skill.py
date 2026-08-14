@@ -290,6 +290,55 @@ class ExitCodeTests(unittest.TestCase):
             self.assertIn("no SKILL.md", result.stdout + result.stderr)
 
 
+class MultiSkillRunTests(unittest.TestCase):
+    """Multiple skills per invocation: every skill must be reported, in argument
+    order, and one bad path must not cost the others their report."""
+
+    def run_validator(self, *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(SCRIPTS / "validate_skill.py"), "--report-only", *args],
+            capture_output=True, text=True,
+        )
+
+    def test_every_skill_is_reported_in_argument_order(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dirs = [
+                build_skill(Path(tmp), f"# T\n\n{words(50 * n)}\n", name=f"skill{n}")
+                for n in range(1, 6)
+            ]
+            result = self.run_validator(*(str(d) for d in dirs))
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            positions = [result.stdout.index(f"=== {d} ===") for d in dirs]
+            self.assertEqual(positions, sorted(positions))
+            self.assertIn("5/5 skill(s) passed", result.stdout)
+
+    def test_one_failure_fails_the_run_without_hiding_the_rest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            good = build_skill(Path(tmp), f"# T\n\n{words(50)}\n", name="good")
+            bad = build_skill(Path(tmp), f"# T\n\n{words(20000)}\n", name="bad")
+            result = self.run_validator(str(good), str(bad))
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("1/2 skill(s) passed", result.stdout)
+            self.assertIn("[Great]", result.stdout)
+            self.assertIn("[Poor]", result.stdout)
+
+    def test_unusable_path_fails_only_itself(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            good = build_skill(Path(tmp), f"# T\n\n{words(50)}\n", name="good")
+            result = self.run_validator(str(Path(tmp) / "nope"), str(good))
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("does not exist", result.stdout)
+            self.assertIn("1/2 skill(s) passed", result.stdout)
+
+    def test_single_skill_output_has_no_header(self):
+        """The post-edit hook parses the bare report; a header would be new noise."""
+        with tempfile.TemporaryDirectory() as tmp:
+            skill = build_skill(Path(tmp), f"# T\n\n{words(50)}\n")
+            out = self.run_validator(str(skill)).stdout
+            self.assertNotIn("===", out)
+            self.assertNotIn("skill(s) passed", out)
+
+
 class LintTests(unittest.TestCase):
     """Spec checks need PyYAML; skip rather than fail where it is absent."""
 
