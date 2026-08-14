@@ -537,9 +537,9 @@
     "rust-analyzer-lsp@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
-    "tofu-lsp@local-marketplace": true,
+    "tofu-lsp@local-marketplace": false,
     "typescript-lsp@claude-plugins-official": true,
-    "yaml-lsp@zircote-lsp": true,
+    "yaml-lsp@zircote-lsp": false,
     "html-slides@html-slides": false,
     "ralph-loop@claude-plugins-official": false,
     "context-mode@context-mode": true,
@@ -549,7 +549,7 @@
     "bento-slides@bento": true,
     "i-have-adhd@i-have-adhd": true,
     "cc-safety-net@cc-marketplace": true,
-    "caveman@caveman": true
+    "caveman@caveman": false
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {

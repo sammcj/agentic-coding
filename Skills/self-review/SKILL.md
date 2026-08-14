@@ -1,5 +1,6 @@
 ---
-description: Critically self-review your changes and fix what you find, delegating when the change is large
+name: self-review
+description: Use to critically self-review your changes, or when you want to delegate the review to a sub-agent.
 argument-hint: "[optional focus or extra context]"
 ---
 
