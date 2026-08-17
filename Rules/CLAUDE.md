@@ -86,6 +86,7 @@ Prosody to avoid: paragraph pinning, parataxis, summary beats, negative anaphora
 - Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
 - Leave the code you're changing better than you found it, but don't extend that to unrelated code
+- When requested to raise a PR, the PRs description should be a tight TLDR style, not a detailed narrative of your work, get the point across in a few bullet points or words
 
 ### UI and Visual Design
 
@@ -120,6 +121,8 @@ Be goal oriented when undertaking significant development tasks: **Define succes
 - If you have the context-mode tool: to read a web page **in full**, don't use WebFetch or bare `curl|head` (denied/redirected). Use `ctx_execute` with `fetch`, or `curl -sL` to a file then Read; for docs sites append `.md` to the URL. Use `ctx_fetch_and_index` + `ctx_search` only to _query_ a page, not to read it whole
 - When fetching from the official Anthropic docs site append .md to the URL and fetch that, provides clean markdown
 - NEVER run `kill` or `pkill` commands without knowing for _certain_ the process and PID you're targeting is relating to your task only and will not cause other processes to exit
+- Stopping a service or process you started: capture its PID at launch (`SRV=$!`) and `kill "$SRV"`. Never `killall`/`pkill`/`kill $(pgrep -f ...)` by process name - name matching hits unrelated processes (browsers, editors, other agents)
+- For long-running services, prefer Bash `run_in_background` so the harness owns the process lifecycle and no `kill` is needed
 - You should use `rg` (ripgrep) rather than `grep` and `fd` rather than `find` on the command line
 
 ### Tool Priorities
