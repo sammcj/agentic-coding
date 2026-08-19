@@ -2,7 +2,9 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-08-17
+  version: 2026-08-20
+  skill-lint:
+    max-load-tokens: 10000 # primer skill accepted as being larger
 hooks:
   PostToolUse:
     - matcher: "Edit|Write"
@@ -314,15 +316,13 @@ Several skills can be passed at once: each report is headed by its path, with a 
 
 On a valid skill it also prints a token-budget estimate and rating alongside the spec checks. It counts only the Markdown that SKILL.md actually references (transitively), so a stray unreferenced file does not inflate the figure. The count uses a chars/4.12 heuristic calibrated against tiktoken; add `--tiktoken` (run via `uv run --with tiktoken`) to count with the real tokeniser instead.
 
-| Rating | Tokens |
-| ------ | ------ |
-| Great  | 1k-5k  |
-| Good   | 5k-9k  |
-| OK     | 9k-12k |
-| Poor   | 12k+   |
+- Great: 1k-5k tokens
+- Good: 5k-9k tokens
+- OK: 9k-12k tokens
+- Poor: 12k+ tokens
 
 - The rating judges the worst-case load (SKILL.md + largest single reference - a lower bound on one branch firing; a branch chaining several references costs more), not the corpus total, so progressive disclosure isn't penalised. Enforced by exit code - Poor fails, OK warns, the message naming the driving file.
-- A skill whose branch test genuinely keeps nearly everything inline can declare `metadata.token-budget: <int>` in its frontmatter, with a trailing `#` comment justifying the ceiling. Loads within it pass with the budget noted and no cure advice; past it the normal bands apply. An undeclared comment voids the budget - the justification is the point, so reach for this only after the deletion test has already run.
+- A skill whose branch test genuinely keeps nearly everything inline can declare `metadata.skill-lint.max-load-tokens: <int>` in its frontmatter, with a trailing `#` comment justifying the ceiling. It caps the worst-case load (SKILL.md plus the largest reference), not SKILL.md alone. Loads within it pass with the ceiling noted and no cure advice; past it the normal bands apply. An undeclared comment voids the ceiling - the justification is the point, so reach for this only after the deletion test has already run.
 - Findings are FACTS (over-long description, over-budget load, blobs in SKILL.md: always-loaded cost, fix them) or SIGNALS (large references, blobs or 10+ line code fences within them: branch-loaded, judge waffle against earned detail). Three or more reference blobs draw a warning - the load rating trusts references to stay tight.
 - A blob is any text unit of 100+ words, any shape (paragraph, list item, quote, table row): prose long enough to bury instructions (see "Buried instructions" in Failure Modes). The blob list feeds the compression pass in the Self-Review Protocol.
 - While this primer is active, a PostToolUse hook re-runs the report (`--report-only`, stdlib-only) after every SKILL.md edit, keeping the budget in view across the session.
@@ -354,7 +354,7 @@ When a skill spans 3+ references, fan the per-file read-only passes out to paral
 After creating or updating a skill, you **MUST** always perform a critical self-review using the primer. **Create and complete tasks / TODOs for each of the following**:
 
 1. Check for duplicated information across SKILL.md and reference files
-2. Remove low-value prose and filler. Apply the **deletion test**: cut the passage; if the agent's behaviour wouldn't change, it's a no-op - leave it deleted (see "Failure Modes").
+2. Remove low-value prose and filler. Apply the **deletion test**: cut the passage; if the agent's behaviour wouldn't change, it's a no-op - leave it deleted (see "Failure Modes"). For a contrast pair ("not X, it's Y"), apply the **swap test**: if reversing it reads as well, the contrast carries nothing - state the claim directly.
 3. Thin the language - make important information prominent while reducing word count.
 4. Run the validator (see "Validating a Skill"); at an OK or Poor rating, run a compression pass:
    - Extract a checklist of every rule, step, and gotcha from the current draft.

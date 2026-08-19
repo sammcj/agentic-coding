@@ -38,7 +38,7 @@ Set up a changelog system AI agents maintain during development. Two shapes, cho
 
 7. **Apply the scheme reference**: follow the build-integration recipe from the chosen reference file. Add targets to the existing build system, or create a minimal Makefile if none exists. _Skip in Dated mode - there is no build integration._
 
-8. **Update CLAUDE.md** with the snippet from the chosen scheme reference. Insert into the project's development workflow section, or create one. In Dated mode this is the only mechanism that keeps the changelog current, so make sure the snippet lands. Add "Squash changes within the same day/version (do not add changes to changes)."
+8. **Update CLAUDE.md** with the snippet from the chosen scheme reference. Insert into the project's development workflow section, or create one. In Dated mode this is the only mechanism that keeps the changelog current, so make sure the snippet lands. Add "Squash changes within the same day/version (do not add changes to changes)." Keep the snippet's what-to-log and entry-length rules intact - they are what stops agents logging trivia and writing paragraphs for simple changes.
 
 9. **Verify**:
    - CalVer: `uv run scripts/version.py version` should print today's CalVer; then `uv run scripts/version.py stamp --dry-run` previews the stamp
@@ -47,17 +47,17 @@ Set up a changelog system AI agents maintain during development. Two shapes, cho
 
 ## Project detection
 
-| Indicator | Config files to stamp | Build integration |
-|---|---|---|
-| `Makefile` | depends on project | Add make targets |
-| `Justfile` | depends on project | Add just recipes |
-| `package.json` | `package.json` | Add npm scripts or Makefile |
-| `Cargo.toml` | `Cargo.toml` | Makefile wrapper |
-| `pyproject.toml` | `pyproject.toml` | Makefile wrapper |
-| `go.mod` | `VERSION` (if present) or none | Makefile wrapper |
-| `VERSION` file | `VERSION` | Makefile wrapper |
-| None (code project) | none | Create minimal Makefile |
-| None (non-code project) | none | Dated mode - no script, no Makefile |
+Indicator, then what to stamp and how to integrate:
+
+- `Makefile` - stamp whatever config files the project has; add make targets
+- `Justfile` - same config files; add just recipes
+- `package.json` - stamp `package.json`; add npm scripts, or a Makefile
+- `Cargo.toml` - stamp `Cargo.toml`; Makefile wrapper
+- `pyproject.toml` - stamp `pyproject.toml`; Makefile wrapper
+- `go.mod` - stamp `VERSION` if present, otherwise nothing; Makefile wrapper
+- `VERSION` file - stamp `VERSION`; Makefile wrapper
+- No build system, code project - nothing to stamp; create a minimal Makefile
+- No build system, non-code project - Dated mode: no script, no Makefile
 
 ## How the script works
 
@@ -76,6 +76,7 @@ Run via `uv run scripts/version.py stamp` or `python3 scripts/version.py stamp` 
 - **Never overwrite existing changelog history.** If a CHANGELOG.md exists with content, merge the `[Unreleased]` structure into it rather than replacing the file.
 - **Empty Unreleased section**: stamping is a no-op if `[Unreleased]` has no content. This prevents empty version entries.
 - **`fetch-depth: 0` in CI for CalVer**: CalVer uses `git rev-list --count HEAD`. Shallow clones produce wrong commit counts.
+- **A changelog is not a commit log.** Two rules keep it useful, and both must appear in the HTML comment and the CLAUDE.md snippet: log only reader-visible changes (git history covers the rest), and keep entries to one line unless the change is genuinely complex. Without them agents log formatting tweaks and write paragraphs for one-line fixes.
 - **The HTML comment is the agent's instruction source.** The `<!-- AI agents: ... -->` comment in CHANGELOG.md tells future agents how to write entries. Don't omit it.
 - **Known Bugs stays pinned.** The stamp script preserves `## Known Bugs` above `## [Unreleased]`. If you add it, agents should maintain it there.
 - **SemVer + auto-CalVer = silent footgun.** If a Makefile in a SemVer project calls `python3 scripts/version.py stamp` without `--version`, the script auto-computes CalVer and writes that into the changelog. The recipes in `references/semver.md` always pass `--version`; preserve that contract in any custom integration.

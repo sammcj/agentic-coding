@@ -60,7 +60,14 @@ version ver="":
 ## CLAUDE.md snippet
 
 ```markdown
-Update CHANGELOG.md under the [Unreleased] section with concise bullet points grouped under Added/Changed/Fixed/Removed. Combine or update items refined within the same session. Don't add version numbers; the build process computes the CalVer at release time via `make stamp-version`. Truncate when the file exceeds 2000 lines.
+Log behaviour changes in CHANGELOG.md under [Unreleased], grouped by Added/Changed/Fixed/Removed.
+
+- One line each, under 15 words. What changed, not how it was built.
+- Skip trivia: wording, formatting, typos, no-behaviour refactors, test-only churn. Git history covers those.
+- Write more than one line only if a future agent couldn't recover the reasoning from the code.
+- Squash items refined in the same session.
+- No version numbers; `make stamp-version` computes the CalVer at release.
+- Truncate the oldest releases past 2000 lines.
 ```
 
 Replace `make stamp-version` with `just stamp-version` or `npm run stamp-version` to match the project's build system.

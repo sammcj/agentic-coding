@@ -1,6 +1,6 @@
 ---
 name: rewrite-slop
-description: Rewrites text containing AI slop to make it more human-like. Use when explicitly asked to rewrite AI-generated text, or with phrasings like "de-slop", "humanise this", "make it sound less like AI", or "remove the AI tells".
+description: Use when explicitly asked to rewrite AI-generated text so it reads as human, or with phrasings like "de-slop", "humanise this", "make it sound less like AI", or "remove the AI tells".
 ---
 
 # rewrite-slop
@@ -9,9 +9,16 @@ You rewrite AI-flavoured text into prose that reads like a tired human journalis
 
 This is editing, not authoring. You add no new information. You change no facts, names, numbers, dates, citations, or claims. You preserve quoted speech, code blocks, and direct citations exactly as they appear in the input.
 
----
-
 ## Phase 0: Triage technical artefacts
+
+Run the checker first. It applies the mechanical fixes below and prints the rest:
+
+`python3 scripts/check_output.py --write <file>` (script path is relative to this skill's directory)
+
+- Silent fixes are safe. Re-read every dash and phrase swap it prints: it cannot see quoted speech, and an em dash replaced by a comma can leave a splice.
+- It skips fenced and inline code, and only reports anything needing judgement.
+
+The script catches the low-hanging fruit and nothing more. It is an indicator, not a review: read the full text yourself against every list below, whatever the script reported and whether or not it could run.
 
 Scan the input and remove the following. These are pure AI markers with no legitimate content meaning. No judgement required, no replacement needed beyond removing them or, where they are URL parameters, stripping the parameter.
 
@@ -20,11 +27,22 @@ Scan the input and remove the following. These are pure AI markers with no legit
 - JSON tails: `({"attribution":{"attributableIndex":"X-Y"}})`
 - Placeholder tokens: `[Your Name]`, `INSERT_SOURCE_URL_30`, `2025-XX-XX`, `[Describe the specific section]`, any other unfilled bracket placeholder
 - Decorative unicode: mathematical bold (`𝗯𝗼𝗹𝗱`), italic (`𝘪𝘵𝘢𝘭𝘪𝘤`), arrows used as bullets (`→`), multiplication signs in prose (`x` rendered as `×`)
-- Em dashes (`—`) and en dashes (`–`): replace with comma, period, colon, parentheses, or hyphen as the sentence requires. Zero tolerance: not one is acceptable in the output.
+- Em dashes (`—`) and en dashes (`–`): replace with comma, period, parentheses, or hyphen as the sentence requires. Where the dash joins two independent clauses, prefer a period or comma; a colon there manufactures the mid-sentence colon splice flagged in Tier 3. Zero tolerance: not one dash is acceptable in the output.
 - Smart quotes (`" "`, `' '`): replace with straight quotes (`"`, `'`). Zero tolerance.
 - Double-dash sequences (`--`) used as em-dash substitutes: same treatment as em dashes.
 
----
+Round brackets, single hyphens, colons introducing a list or example, and ordinary punctuation are all fine. Only the smart or decorative forms above are removed.
+
+Then apply these substitutions wherever they appear in the input's own prose. Never inside quoted speech, code blocks, identifiers, or direct citations: those pass through exactly as written even when they contain the phrases below. Each preserves meaning; all but the last are swaps in place.
+
+- "in order to" becomes "to"
+- "due to the fact that" becomes "because"
+- "in the event that" becomes "if"
+- "at this point in time" becomes "now"
+- "utilise" / "utilize" becomes "use"
+- "numerous" becomes "many"
+- "prior to" becomes "before"
+- "It is important to note that" is deleted along with its leading capital, and the following clause becomes the sentence
 
 ## Phase 1: Classify
 
@@ -37,14 +55,12 @@ Set context for the rewrite.
 
 Voice resource rubric:
 
-- Code, systems, infrastructure, APIs, engineering practice → `resources/technologist.md`
-- Academic paper or thesis → `resources/researcher.md`
-- Empirical findings, methods, data → `resources/scientist.md`
-- Review or critique of a work → `resources/critic.md`
-- Brief to decision-makers → `resources/policy-analyst.md`
-- Fiction → `resources/novelist.md`
-
----
+- Code, systems, infrastructure, APIs, engineering practice -> `resources/technologist.md`
+- Academic paper or thesis -> `resources/researcher.md`
+- Empirical findings, methods, data -> `resources/scientist.md`
+- Review or critique of a work -> `resources/critic.md`
+- Brief to decision-makers -> `resources/policy-analyst.md`
+- Fiction -> `resources/novelist.md`
 
 ## Phase 2: Detect
 
@@ -75,18 +91,30 @@ These words appear in genuine human writing too. Flag when they are doing decora
 
 These appear in Claude output too, sometimes at lower density than GPT, but still slop.
 
-**Marketing adjectives and abstract intensifiers**: vibrant, robust, comprehensive, pivotal, multifaceted, profound, crucial, vital, meticulous, valuable, enduring, groundbreaking, intricate, renowned, seamless, cutting-edge.
+**Puffery, marketing adjectives and abstract intensifiers**: vibrant, robust, comprehensive, pivotal, multifaceted, profound, crucial, vital, meticulous, valuable, enduring, groundbreaking, intricate, renowned, seamless, cutting-edge.
 
 **Filler verbs as substitutes for "is" and "has"**: serves as, stands as, marks (verb), represents, boasts, features, offers. The simpler verb is almost always correct.
 
-**Filler verbs (action without information)**: delve, dive into, leverage, harness, foster, fostering, bolster, underscore, streamline, facilitate, empower, garner, showcase, emphasise, enhance, highlight, align with, exemplify, unlock (figurative), navigate (figurative), utilise (use "use").
+**Filler verbs (action without information)**: delve, dive into, leverage, harness, foster, fostering, bolster, underscore, streamline, facilitate, empower, garner, showcase, emphasise, enhance, highlight, align with, exemplify, unlock (figurative), navigate (figurative).
 
 **Vague abstract nouns**: landscape (figurative), tapestry, testament, interplay, paradigm.
+
+**Abstract metaphor nouns**: locus, vantage, nexus, primitive, surface, bedrock, scaffolding, modality, north star, flywheel, plus these with their plain replacements:
+
+- substrate becomes base
+- "wedge in" becomes add
+- vector becomes way
+- gold-plating becomes "more than the job needs"
+- ratchet becomes the mechanism's real name
+- evacuate becomes "move out"
+- endgame becomes "the last phase"
+
+Flag only where the word is metaphor and a plainer one fits. Terms of art stay: embedding vector, attack vector, cryptographic primitive, API surface.
 
 **Sentence-initial filler**: Additionally, Furthermore, Moreover, Notably, Consequently, Accordingly, In light of this, With this in mind, Building on this, That said, Having said that, It is important to note, It is worth mentioning, It should be noted that, It goes without saying.
 
 **Rhetorical structures**:
-- **Negation-antithesis** (also called corrective antithesis; reported as the single most overused AI rhetorical pattern in slop-forensics trigram analysis): "It's not X. It's Y.", "Not just X, but Y.", "It's not just X, it's Y.", "This isn't about X, it's about Y.", "Forget X. Think Y.", "The question isn't X, it's Y.", "X is dead. Long live Y." Apply the **swap test**: reverse the order to "It's not Y, it's X." If both directions are equally plausible, the contrast is decorative scaffolding, not argument. Flag for rewrite by dropping the negation and stating the substantive claim directly with its supporting fact.
+- **Negation-antithesis**, the most overused AI pattern: "It's not X. It's Y.", "Not just X, but Y.", "This isn't about X, it's about Y.", "Forget X. Think Y.", "The question isn't X, it's Y.", "X is dead. Long live Y." **Swap test**: reverse to "It's not Y, it's X." If both read equally well, the contrast is decorative. Drop the negation, state the claim with its supporting fact.
 - Decorative rule-of-three lists: "fast, efficient, and reliable"; "think bigger, act bolder, move faster"
 - Snappy triads of unearned profundity: "Something shifted." "Everything changed." "But here's the thing."
 - Mid-sentence rhetorical questions answered immediately: "The solution? It's simpler than you think."
@@ -98,9 +126,20 @@ These appear in Claude output too, sometimes at lower density than GPT, but stil
 
 **Participial-phrase tails**: sentences ending with an "-ing" clause that adds nothing the reader could not infer. "...creating a lively community within its borders." "...facilitating the movement of passengers and goods." "...contributing to the socio-economic development of the region."
 
-**Comma splice with participial phrase** (reported at 2 to 5x human rate in AI output): "The system processes the data, revealing key insights."
+**Comma splice with participial phrase**, several times more frequent in AI output than human: "The system processes the data, revealing key insights."
 
-**Hedging modals where confident assertion fits** (AI uses these at elevated frequency where humans would assert): may, might, could, suggest, indicate, appear, seem.
+**Syntax tells**, each making the reader trace more steps or hold more in their head:
+
+- Nominalisation: a verb turned into a noun propped up by a weak verb. "performed an analysis of" becomes "analysed"; "the implementation of X" becomes "implemented X".
+- Stacked noun phrases: three or more nouns modifying each other ("context window budget allocation strategy"). Break them with a preposition or a verb.
+- Landing sentences: a short declarative closing a paragraph to perform profundity ("That is the whole trick.", "The rest is detail."). Cut it, or fold its content into the sentence before.
+- Negative anaphora: consecutive sentences opening with the same negation ("Not a X. Not a Y."). Keep one and state the positive claim.
+- In-paragraph parallelism: consecutive sentences sharing a shape. Vary one.
+- Forward references and long pronoun chains: "as we'll see below", or a pronoun three sentences from its noun. Name the thing where it is used.
+
+**Dense sentences the reader has to re-read**: stacked subordinate clauses carrying more than one idea. Split by cutting, never by padding. Drop the clause carrying no information and let the rest stand; do not restate the subject to manufacture a second sentence. A split that adds words has failed, so if every clause earns its place, leave the sentence alone.
+
+**Hedging modals where confident assertion fits**: may, might, could, suggest, indicate, appear, seem. Stacked hedges collapse to the single one carrying the real uncertainty: "could potentially possibly be argued that it might" becomes "may".
 
 **Sourcing problems**:
 - Weasel attribution without naming the source: "experts argue", "researchers have noted", "observers have cited", "industry reports suggest", "critics contend", "studies show", "research suggests"
@@ -108,13 +147,26 @@ These appear in Claude output too, sometimes at lower density than GPT, but stil
 - Knowledge-cutoff disclaimers: "As of my last knowledge update", "While specific details are limited"
 - Speculation after disclaiming ignorance: "While specific details about X are not extensively documented... the region likely supports..."
 
-**Fabricated significance**: "marks a pivotal moment", "represents a significant shift", "reflects the enduring legacy", "shaping the evolving landscape of", "stands as a testament to", "indelible mark", "deeply rooted", "key turning point".
+**Puffery, fabricated significance**: "marks a pivotal moment", "represents a significant shift", "reflects the enduring legacy", "shaping the evolving landscape of", "stands as a testament to", "indelible mark", "deeply rooted", "key turning point".
 
-**Notability framing without evidence**: "profiled in", "featured in", "active social media presence", "widely recognised".
+**Puffery, notability framing without evidence**: "profiled in", "featured in", "active social media presence", "widely recognised".
 
-**Promotional register in non-marketing prose**: "nestled in the heart of", "boasts a vibrant", "diverse array", "stunning natural beauty", "groundbreaking contributions".
+**Puffery, promotional register in non-marketing prose**: "nestled in the heart of", "boasts a vibrant", "diverse array", "stunning natural beauty", "groundbreaking contributions".
 
 **Awkward generic analogies**: "Every chord is a puzzle piece that finally clicks into a song." Plausible but generic.
+
+**Sentences that name a feeling instead of a mechanism**: "the database stays close at hand", "SQL you can read", "types that follow your schema". **Generic-docs test**: if the sentence could appear unchanged in another document on the same topic, it says nothing here. Flag it, then fix from the input alone:
+
+- input states the mechanism elsewhere: restate with that fact ("`.toSQL()` returns the string sent to the database")
+- it does not: cut the sentence, even at the cost of length
+- never supply a mechanism, number, or behaviour the input lacks, however true you believe it
+
+**Colon as mid-sentence connector**.
+
+- Stays: a colon introducing a list, an example, or a clause explaining the first ("One problem remains: the cache is stale")
+- Flagged: a colon joining two clauses with no such relation, usually comparison framing ("If you're coming from traditional automation: instead of registering event handlers, you describe conditions"). Rewrite without the framing.
+
+**False ranges**: "from X to Y" where X and Y are not endpoints on any scale ("from databases to deployment pipelines"). List the items directly.
 
 **Elegant variation**: synonym cycling for the same noun across a passage (constraints / confines / restrictions / limitations / obstacles).
 
@@ -124,7 +176,7 @@ These appear in Claude output too, sometimes at lower density than GPT, but stil
 
 Most of these come from the consumer claude.ai system prompt (which mandates "bullet points should be at least 1-2 sentences long", "bold key facts for scannability", "sentence-case headers", "high-level summary first"). Heavy in claude.ai output, lighter in API-direct output.
 
-- `**Inline header:** description` bullet pattern
+- Bold-header bullets whose label restates the line ("**Performance:** Performance improved by..."). Restatement is the test, not the punctuation: a label followed by new detail stays ("**Performance:** p99 dropped 40ms").
 - Long descriptive bullets (1-2+ sentences each, where terse bullets would do)
 - Bold noun phrases mid-sentence: "the **key tradeoff** is..."
 - BLUF / TL;DR front-loading: first sentence summarises the entire answer, then expansion follows
@@ -150,24 +202,23 @@ Some patterns are commonly mistaken for AI tells but appear in genuine human wri
 
 Em dashes, en dashes, and smart quotes are NOT exceptions to this. They are always removed regardless of context or apparent intent.
 
----
-
 ## Phase 3: Rewrite
 
-Work from the positive style brief below plus the flagged spans from Phase 2. Do not re-scan the prohibition rubric during this phase; you have the spans already. The detection rubric is for detection. The rewrite works from positive targets only.
+Work from the positive style brief below plus the flagged spans from Phase 2. Do not re-scan the detection rubric here; you have the spans already, and re-reading the prohibitions primes the patterns you are removing.
 
 ### Positive style brief
 
 - Write like a tired journalist filing copy on deadline. Specific nouns, specific verbs.
-- Concrete details over abstractions. A real date, a real name, a real number, a real place beats "significant growth".
+- Concrete details over abstractions. Semantic density: every sentence carries a claim the reader could check. A real date, a real name, a real number, a real place beats "significant growth".
 - Use "is" and "has" when those are the right verbs. "Gallery 825 is LAAA's exhibition space" beats "Gallery 825 serves as LAAA's exhibition space".
 - Vary sentence length deliberately. Mix short with long. A three-word sentence after three long ones lands.
 - State opinions when the evidence supports them. Take a position rather than presenting false balance.
 - Cite specific people, dates, and numbers. If the source cannot be named, cut the claim or rephrase as observation rather than authority.
 - Use straight quotes (`'` and `"`) and standard punctuation. No em dashes, no en dashes, no smart quotes, no decorative unicode.
 - Sentence-case headings.
-- Express information as flowing prose. Reserve bullet lists for genuinely discrete items. Avoid the `**Header:** description` bullet pattern.
-- Match the original's meaning, length (within ~10%), and structure. Paragraphs stay paragraphs. Sections stay sections. Genuine lists stay lists.
+- Express information as flowing prose. Reserve bullet lists for genuinely discrete items. Avoid bold-header bullets whose label merely restates the line; a bold lead-in followed by new detail is fine and stays.
+- Match the original's meaning and structure. Paragraphs stay paragraphs, sections stay sections, genuine lists stay lists. Change the structure only where the structure is itself the slop: bold-header bullets in flowing prose, a `---` break before every heading, emoji in headers.
+- Length moves one way only. The rewrite is never longer than the input, and normally within ~10% under it. Removing slop and empty sentences may take it further under, which is correct. Never add words to compensate.
 - Where the original front-loads a TL;DR/BLUF that the original author did not deliberately choose (i.e. it is sysprompt-driven scannability rather than authorial intent), restructure so the answer unfolds naturally.
 - Repetition is natural. Reuse a noun rather than cycle through synonyms. "Constraints" stays "constraints" across the passage.
 
@@ -177,21 +228,23 @@ If Phase 1 selected a voice resource, source it now and let it tune the brief. T
 
 ### How to work the spans
 
-For each flagged span, replace it with prose that fits the brief. Do not simply delete unless the span adds nothing. Where a sycophancy opener can be removed entirely without harming the prose ("You're absolutely right" before a substantive answer), remove it. Where filler like "additionally" can be removed without restructuring, remove it. Where a participial-phrase tail adds nothing, delete it and end the sentence on the prior clause.
+Replace each flagged span with prose that fits the brief. Delete rather than replace only where the span adds nothing:
 
-If the input contains very few flagged spans relative to its length, return it largely unchanged. The skill is conservative. Over-rewriting clean text is a failure mode.
+- sycophancy openers ("You're absolutely right" before a substantive answer)
+- sentence-initial filler ("additionally")
+- participial-phrase tails: delete and end the sentence on the prior clause
 
----
+Sentences containing no flagged span pass through unchanged. Be conservative: over-rewriting clean text is the main failure mode. If the input has few flagged spans for its length, return it largely unchanged. If it has none (a code listing, a table of facts, dense reference material), return it unchanged.
 
 ## Phase 4: Verify
 
 **Always run this phase**
 
-Single-pass rewriting reliably leaves some patterns it was instructed to remove; the verify pass exists to catch them.
+Single-pass rewriting leaves patterns it was instructed to remove. This pass catches them.
 
-Create a task for each of the following items. Mark tasks complete after verification.
+`python3 scripts/check_output.py <rewrite> --against <original>` answers the dash, smart-quote, opener, unnamed-source, chat-residue, sycophancy, metaphor-tic, heading, emoji, length and code-block questions below. Its silence is not a pass: it reads for patterns, not sense, so answer every question below against the full text yourself.
 
-Generate verification questions about your rewrite. Answer each by inspecting the rewritten text. For any "yes" on a defect question, fix it before returning the output.
+Create a task per question below. Answer each by inspecting the rewritten text, fix any "yes", then mark the task complete.
 
 - Are there any em dashes (`—`), en dashes (`–`), or `--` sequences? Any smart quotes (`" "` or `' '`)?
 - Does any sentence start with Additionally, Furthermore, Moreover, Notably, Consequently, In conclusion, Overall, In summary, It is important to note?
@@ -200,30 +253,22 @@ Generate verification questions about your rewrite. Answer each by inspecting th
 - Are there any unnamed authorities ("experts argue", "studies show", "observers have cited", "research suggests") I left in?
 - Did I leave any sentence ending with an "-ing" clause that adds no information?
 - Are there any "Despite [positive], [subject] faces challenges" pivots?
-- Did I leave any inline-bold-header bullets (`**X:** description`)?
+- Did I leave any bold-header bullets whose label restates the line that follows (`**X:** X did...`)? A label followed by new detail stays.
 - Are there any "Let me", "I'll", "Happy to", "Let me know if", "I hope this helps", "Perfect!", "Excellent!" remaining?
 - Are there any metaphor tics left ("smoking gun", "load-bearing")? Replace with what the thing does.
+- Are there abstract metaphor nouns left (substrate, vector, nexus, primitive, bedrock, scaffolding, north star, flywheel) used as metaphor where a plainer word fits? Literal terms of art stay: embedding vector, attack vector, cryptographic primitive, API surface.
+- Could any sentence appear unchanged in another document on the same topic? If so it says nothing here. Restate it using a fact the input already gives, or cut it. Do not invent the fact.
+- Is any colon joining two clauses where the second neither explains nor specifies the first?
+- Are there "from X to Y" ranges where X and Y are not on a shared scale?
 - Did I leave any title-case headings? Any `---` thematic break before a heading? Any emoji in expository content?
 - Does the rewrite assume frictionless rationality, universal cooperation, or unearned emotional resonance ("communities will enthusiastically adopt", "deeply resonates with")?
 - Does any sentence claim significance, legacy, or a "broader trend" that is not demonstrated by a fact in the same paragraph?
 - Did I introduce any fact, name, number, date, claim, or example not in the original and I cannot verify as true?
 - Did I rewrite any quoted speech, code block, or direct citation that should have passed through unchanged?
 - Is it too verbose? Could the same story, meaning, detail and intent be conveyed in fewer words?
+- Is the rewrite longer than the input? It should never be. If a sentence split added words, undo it.
 - Does any pair of sentences contradict each other?
-
----
 
 ## Output
 
 Return only the rewritten text. No preamble, no notes, no change log, no meta-commentary.
-
----
-
-## Gotchas
-
-- Quoted speech, code blocks, citations, and direct quotes pass through unchanged. The detector flags AI-shaped prose, not all unfamiliar text.
-- The detection rubric exists for Phase 2 only. The rewriter (Phase 3) works from the positive style brief plus flagged spans. Re-reading the prohibition list during Phase 3 primes the very patterns the rewrite is removing.
-- Length match within ~10%. Don't pad to look thorough; don't compress to look terse.
-- If the input has nothing to rewrite (a code listing, a table of facts, dense reference material), return it unchanged.
-- Do not rewrite the input's structure unless the structure itself is the slop (e.g. inline-bold-header bullets in flowing prose, a `---` thematic break before every heading, emoji in headers).
-- Voice resources tune register and vocabulary; they do not override em-dash, smart-quote, or factual-fidelity rules.

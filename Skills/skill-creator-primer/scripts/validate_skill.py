@@ -251,14 +251,16 @@ def _budget(skill_dir: Path, use_tiktoken: bool = False) -> tuple[list[str], str
     budget, justified = declared_token_budget(skill_md.read_text(encoding="utf-8-sig", errors="ignore"))
     within_budget = budget is not None and justified and load <= budget
     if within_budget:
-        lines[0] += f" - within the declared budget {budget}"
+        lines[0] += f" - within the declared max-load-tokens {budget}"
     elif budget is not None and not justified:
         lines.append(
-            f"  Declared token-budget {budget} ignored: add a trailing `#` comment "
+            f"  Declared max-load-tokens {budget} ignored: add a trailing `#` comment "
             "justifying the ceiling, or the normal bands apply"
         )
     elif budget is not None:
-        lines.append(f"  Over the declared budget {budget} - raise it with a reason, or cut to fit")
+        lines.append(
+            f"  Over the declared max-load-tokens {budget} - raise it with a reason, or cut to fit"
+        )
 
     advice = ""
     if rating in ("OK", "Poor") and not within_budget:
@@ -317,25 +319,38 @@ PROSE_UNIT_MIN = 40
 
 # Escape hatch for a deliberately branchy skill whose branch test keeps nearly
 # everything inline (the primer itself is the case it exists for). Declared as
-# `metadata.token-budget: <int>` in SKILL.md frontmatter and honoured only when
-# a trailing `#` comment justifies the ceiling - an undefended number is how a
-# budget becomes a way to dodge the compression pass rather than a considered
-# trade. Matched by regex so the stdlib-only --report-only path keeps working.
-_TOKEN_BUDGET_RE = re.compile(
-    r"^[ \t]+token-budget:[ \t]*(\d+)[ \t]*(#[^\n]*)?$", re.MULTILINE
+# `metadata.skill-lint.max-load-tokens: <int>` in SKILL.md frontmatter and
+# honoured only when a trailing `#` comment justifies the ceiling - an undefended
+# number is how a ceiling becomes a way to dodge the compression pass rather than
+# a considered trade.
+#
+# Parsed by regex, not PyYAML, so the stdlib-only --report-only path the post-edit
+# hook runs keeps working. The nesting is matched rather than assumed: the key is
+# only honoured under a `skill-lint:` parent, so a same-named key belonging to
+# another tool is ignored instead of silently raising this skill's ceiling.
+_SKILL_LINT_BLOCK_RE = re.compile(
+    r"^(?P<indent>[ \t]*)skill-lint:[ \t]*(?:#[^\n]*)?\n"
+    r"(?P<body>(?:(?P=indent)[ \t]+[^\n]*\n?|[ \t]*\n)*)",
+    re.MULTILINE,
+)
+_MAX_LOAD_TOKENS_RE = re.compile(
+    r"^[ \t]+max-load-tokens:[ \t]*(\d+)[ \t]*(#[^\n]*)?$", re.MULTILINE
 )
 
 
 def declared_token_budget(skill_md_text: str) -> tuple[int | None, bool]:
-    """Read `metadata.token-budget` from SKILL.md frontmatter.
+    """Read `metadata.skill-lint.max-load-tokens` from SKILL.md frontmatter.
 
-    Returns (budget, justified). budget is None when unset; justified is False
+    Returns (ceiling, justified). ceiling is None when unset; justified is False
     when the declaration carries no trailing comment, in which case callers
     apply the normal bands and say why."""
     match = _FRONTMATTER_RE.match(skill_md_text)
     if match is None:
         return None, False
-    found = _TOKEN_BUDGET_RE.search(match.group(1))
+    block = _SKILL_LINT_BLOCK_RE.search(match.group(1))
+    if block is None:
+        return None, False
+    found = _MAX_LOAD_TOKENS_RE.search(block.group("body"))
     if found is None:
         return None, False
     return int(found.group(1)), bool(found.group(2) and found.group(2)[1:].strip())
@@ -426,6 +441,118 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
     return pct, skill_blobs, ref_blobs, sorted(long_code, reverse=True)
 
 
+# Lexical no-ops: words and shapes that spend always-loaded tokens without
+# changing what the agent does, so they fail the primer's deletion test on
+# sight. Kept in the script rather than SKILL.md for two reasons: a banned-word
+# list is dead weight in an always-loaded file, and naming unwanted behaviour in
+# prose primes it (the primer's own pink-elephant rule).
+#
+# Detection only, never gated: a skill may legitimately say "robust error
+# handling", and precision matters more than recall for a finding an agent has
+# to read. Terms with a common literal technical sense (critical, reflect,
+# powerful) are deliberately absent.
+_FILLER_RULES: list[tuple[str, re.Pattern]] = [
+    (
+        "opener",
+        re.compile(
+            r"(?:^|(?<=[.!?]\s))\s*(?:Additionally|Furthermore|Moreover|Notably|Importantly"
+            r"|Consequently|Accordingly|Overall|That said|In conclusion|In summary"
+            r"|It is important to note|It is worth noting|It should be noted)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "puffery",
+        re.compile(
+            r"\b(?:comprehensive|robust|seamless(?:ly)?|pivotal|multifaceted|cutting[- ]edge"
+            r"|best[- ]in[- ]class|feature[- ]rich|production[- ]ready|enterprise[- ]grade"
+            r"|groundbreaking|innovative|smoking gun|load[- ]bearing|honest take)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "filler-verb",
+        re.compile(
+            # "harness" only in its verb-with-object shape: a test harness or an
+            # eval harness is the literal noun, and skills name those constantly
+            r"\b(?:delv(?:e|ing)|dive into|leverag(?:e|ing)|harness(?:ing)? the|foster(?:ing)?"
+            r"|bolster(?:ing)?|underscor(?:e|ing)|streamlin(?:e|ing)|facilitat(?:e|ing)"
+            r"|empower(?:ing)?|showcas(?:e|ing)|garner(?:ing)?)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "negation-antithesis",
+        re.compile(
+            r"\bnot (?:just|only|merely|simply)\b[^.\n]{1,60}?\bbut\b"
+            r"|\b(?:it'?s|it is|this is|that'?s) not\b[^.\n]{1,60}?[,.]\s*(?:it'?s|it is)\b"
+            r"|\bthe question is(?:n'?t| not)\b[^.\n]{1,60}?[,.]\s*it'?s\b",
+            re.IGNORECASE,
+        ),
+    ),
+]
+
+# Findings are grouped one line per distinct term, not one per occurrence: the
+# agent fixes a word everywhere at once, so ten hits on "comprehensive" is one
+# action, not ten. These cap the grouped lines and the locations shown per line.
+FILLER_LIST_MAX = 10
+FILLER_LOCATIONS_MAX = 6
+
+_INLINE_CODE = re.compile(r"`[^`\n]*`")
+
+
+def _filler(skill_dir: Path) -> list[tuple[str, str, int, str]]:
+    """Scan referenced Markdown for lexical no-ops. Returns
+    (category, relative path, 1-based line, matched text), in file order.
+    Fenced blocks, inline code, and frontmatter are skipped."""
+    found: list[tuple[str, str, int, str]] = []
+    skill_root = Path(skill_dir).resolve()
+    for path in referenced_md_files(skill_dir):
+        text = path.read_text(encoding="utf-8-sig", errors="ignore")
+        match = _FRONTMATTER_RE.match(text)
+        body = text[match.end():] if match else text
+        first_line = (text[: match.end()].count("\n") + 1) if match else 1
+        rel = path.relative_to(skill_root) if path.is_relative_to(skill_root) else path
+        fence: str | None = None
+        for lineno, line in enumerate(body.splitlines(), start=first_line):
+            stripped = line.strip()
+            if fence is not None:
+                if _fence_close(stripped, fence):
+                    fence = None
+                continue
+            if (opened := _fence_open(stripped)) is not None:
+                fence = opened
+                continue
+            # blank the inline code rather than dropping it, so offsets and
+            # sentence boundaries either side of a span stay intact
+            scan = _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), stripped)
+            for category, pattern in _FILLER_RULES:
+                for hit in pattern.finditer(scan):
+                    found.append((category, str(rel), lineno, hit.group(0).strip()))
+    return found
+
+
+def _filler_listing(group: list[tuple[str, str, int, str]]) -> list[str]:
+    """One line per distinct term, most frequent first:
+    '[category] "term" x3 - SKILL.md:12, references/a.md:3'."""
+    terms: dict[tuple[str, str], list[str]] = {}
+    for category, path, lineno, hit in group:
+        key = (category, " ".join(hit.split()[:8]).lower())
+        terms.setdefault(key, []).append(f"{path}:{lineno}")
+    ordered = sorted(terms.items(), key=lambda kv: (-len(kv[1]), kv[0]))
+    out = []
+    for (category, term), hits in ordered[:FILLER_LIST_MAX]:
+        spots = list(dict.fromkeys(hits))  # two hits on one line are one place to look
+        shown = ", ".join(spots[:FILLER_LOCATIONS_MAX])
+        if len(spots) > FILLER_LOCATIONS_MAX:
+            shown += f", +{len(spots) - FILLER_LOCATIONS_MAX} more"
+        count = f" x{len(hits)}" if len(hits) > 1 else ""
+        out.append(f'    [{category}] "{term}"{count} - {shown}')
+    if len(ordered) > FILLER_LIST_MAX:
+        out.append(f"    ... +{len(ordered) - FILLER_LIST_MAX} more terms")
+    return out
+
+
 def _listing(group: list, unit: str) -> list[str]:
     """Indented finding lines: 'path:line (Nw) "opening words..."'."""
     out = [
@@ -444,6 +571,7 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
     rating by exit code (Poor fails, OK warns)."""
     budget_lines, rating, advice, driver_is_main, within_budget = _budget(skill_dir, use_tiktoken)
     pct, skill_blobs, ref_blobs, long_code = _structure(skill_dir)
+    filler = _filler(skill_dir)
 
     facts: list[str] = []
     # A reference driving the rating is a branch-loaded cost, so its cure belongs
@@ -471,6 +599,11 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
             "inline scripts belong in scripts/, templates in assets/:"
         )
         signals.extend(_listing(long_code, " lines"))
+    if filler:
+        signals.append(
+            f"  Lexical no-ops ({len(filler)}) - cut the word or state the claim plainly:"
+        )
+        signals.extend(_filler_listing(filler))
 
     out = list(budget_lines)
     if facts:
@@ -488,7 +621,7 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
             "list item, quote, table row); shrink by deleting words, not by reshaping."
         )
     if not facts and not signals:
-        out.append("  No blobs or oversized code blocks found.")
+        out.append("  No blobs, oversized code blocks, or lexical no-ops found.")
     return "\n".join(out), rating, advice, within_budget
 
 
@@ -615,7 +748,7 @@ def validate_one(
     report_text, rating, advice, within_budget = build_report(skill_dir, use_tiktoken=use_tiktoken)
     # Token-budget gate on the worst-case load (see _budget): "Poor" fails the
     # build; "OK" warns via the report's FACTS section. A justified
-    # metadata.token-budget the load fits inside clears both. Ratings and cures
+    # metadata.skill-lint.max-load-tokens the load fits inside clears both. Ratings and cures
     # live in the primer's "Validating a Skill" and "Failure Modes" sections.
     over_budget = rating == "Poor" and not within_budget
 

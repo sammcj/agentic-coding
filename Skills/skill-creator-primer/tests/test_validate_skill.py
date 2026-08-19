@@ -105,6 +105,102 @@ class BlobDetectionTests(unittest.TestCase):
         self.assertEqual(len(long_code), 1)
 
 
+class FillerDetectionTests(unittest.TestCase):
+    """Lexical no-ops are a SIGNAL, so precision matters more than recall: a
+    false hit costs a reviewing agent's attention on prose that is already fine."""
+
+    def filler(self, body: str):
+        with tempfile.TemporaryDirectory() as tmp:
+            return vs._filler(build_skill(Path(tmp), body))
+
+    def categories(self, body: str) -> list[str]:
+        return [category for category, _, _, _ in self.filler(body)]
+
+    def test_sentence_initial_filler_is_flagged(self):
+        self.assertEqual(
+            self.categories("# T\n\nRun the build. Additionally, check the logs.\n"),
+            ["opener"],
+        )
+
+    def test_opener_word_mid_sentence_is_not_flagged(self):
+        """'Overall' inside a clause is ordinary English, not a filler opener."""
+        self.assertEqual(self.categories("# T\n\nReport the overall token count.\n"), [])
+
+    def test_puffery_adjective_is_flagged(self):
+        self.assertEqual(self.categories("# T\n\nWrite a comprehensive report.\n"), ["puffery"])
+
+    def test_filler_verb_is_flagged(self):
+        self.assertEqual(self.categories("# T\n\nLeverage the cache for speed.\n"), ["filler-verb"])
+
+    def test_noun_sense_of_a_filler_verb_is_not_flagged(self):
+        """Skills name a test or eval harness constantly; only the verb is slop."""
+        self.assertEqual(self.categories("# T\n\nRun it against the eval harness.\n"), [])
+        self.assertEqual(self.categories("# T\n\nHarness the power of caching.\n"), ["filler-verb"])
+
+    def test_negation_antithesis_is_flagged(self):
+        self.assertEqual(
+            self.categories("# T\n\nIt's not a linter, it's a budget check.\n"),
+            ["negation-antithesis"],
+        )
+
+    def test_plain_negation_is_not_antithesis(self):
+        """'X, not Y' states the claim already; only the two-clause reversal is slop."""
+        self.assertEqual(self.categories("# T\n\nGate on tokens, not on prose shape.\n"), [])
+
+    def test_fenced_code_is_skipped(self):
+        body = "# T\n\n```\nleverage = comprehensive_robust()\n```\n"
+        self.assertEqual(self.filler(body), [])
+
+    def test_inline_code_is_skipped(self):
+        """A flag or identifier named after a filler word is not prose."""
+        self.assertEqual(self.categories("# T\n\nPass `--comprehensive` to widen it.\n"), [])
+
+    def test_prose_either_side_of_inline_code_still_scans(self):
+        body = "# T\n\nRun `build.py` first. Additionally, check `logs`.\n"
+        self.assertEqual(self.categories(body), ["opener"])
+
+    def test_finding_carries_its_location(self):
+        category, path, lineno, hit = self.filler("# T\n\nDelve into the logs.\n")[0]
+        self.assertEqual((category, path, hit), ("filler-verb", "SKILL.md", "Delve"))
+        self.assertEqual(lineno, 8)
+
+    def test_clean_body_reports_nothing(self):
+        self.assertEqual(self.filler(f"# T\n\n{words(60)}\n"), [])
+
+    def test_filler_lands_in_signals_not_facts(self):
+        """Judgement call, never a gate: a skill may mean 'robust' literally."""
+        with tempfile.TemporaryDirectory() as tmp:
+            skill = build_skill(Path(tmp), "# T\n\nLeverage the comprehensive cache.\n")
+            text, rating, _, _ = vs.build_report(skill)
+        signals = text.split("SIGNALS")[1]
+        self.assertIn("Lexical no-ops (2)", signals)
+        self.assertNotIn("Lexical no-ops", text.split("SIGNALS")[0])
+        self.assertEqual(rating, "Great")
+
+    def test_listing_groups_one_line_per_term(self):
+        """The agent fixes a word everywhere at once, so repeats must not each
+        cost a line of report."""
+        group = [("puffery", "SKILL.md", n, "Robust") for n in range(4)]
+        out = vs._filler_listing(group)
+        self.assertEqual(len(out), 1)
+        self.assertIn('"robust" x4', out[0])
+        self.assertIn("SKILL.md:0", out[0])
+
+    def test_listing_dedupes_repeats_on_one_line(self):
+        group = [("puffery", "SKILL.md", 9, "robust")] * 2
+        self.assertEqual(vs._filler_listing(group)[0].count("SKILL.md:9"), 1)
+
+    def test_listing_caps_locations_per_term(self):
+        group = [("puffery", "SKILL.md", n, "robust") for n in range(vs.FILLER_LOCATIONS_MAX + 3)]
+        self.assertIn("+3 more", vs._filler_listing(group)[0])
+
+    def test_listing_truncates_past_the_term_cap(self):
+        group = [("puffery", "SKILL.md", n, f"term{n}") for n in range(vs.FILLER_LIST_MAX + 2)]
+        out = vs._filler_listing(group)
+        self.assertEqual(len(out), vs.FILLER_LIST_MAX + 1)
+        self.assertIn("+2 more terms", out[-1])
+
+
 class ListingTests(unittest.TestCase):
     def test_listing_truncates_past_the_cap(self):
         group = [(100, "SKILL.md", n, "opening words here") for n in range(vs.BLOB_LIST_MAX + 3)]
@@ -145,19 +241,51 @@ class DescriptionLengthTests(unittest.TestCase):
 
 
 class DeclaredBudgetTests(unittest.TestCase):
-    def test_budget_with_justifying_comment_is_read(self):
-        text = "---\nname: x\nmetadata:\n  token-budget: 11000 # branchy by design\n---\n"
+    """The ceiling is read by regex, not PyYAML, so the nesting it accepts and
+    rejects is behaviour the stdlib-only --report-only path depends on."""
+
+    def frontmatter(self, declaration: str, parent: str = "skill-lint") -> str:
+        return f"---\nname: x\nmetadata:\n  {parent}:\n    {declaration}\n---\n"
+
+    def test_ceiling_with_justifying_comment_is_read(self):
+        text = self.frontmatter("max-load-tokens: 11000 # branchy by design")
         self.assertEqual(vs.declared_token_budget(text), (11000, True))
 
-    def test_budget_without_comment_is_unjustified(self):
-        text = "---\nname: x\nmetadata:\n  token-budget: 11000\n---\n"
-        self.assertEqual(vs.declared_token_budget(text), (11000, False))
+    def test_ceiling_without_comment_is_unjustified(self):
+        self.assertEqual(
+            vs.declared_token_budget(self.frontmatter("max-load-tokens: 11000")), (11000, False)
+        )
 
     def test_empty_comment_does_not_justify(self):
-        text = "---\nname: x\nmetadata:\n  token-budget: 11000 #\n---\n"
-        self.assertEqual(vs.declared_token_budget(text), (11000, False))
+        self.assertEqual(
+            vs.declared_token_budget(self.frontmatter("max-load-tokens: 11000 #")), (11000, False)
+        )
 
-    def test_absent_budget(self):
+    def test_key_under_another_parent_is_ignored(self):
+        """metadata is a free-form bag: another tool's same-named key must not
+        silently raise this skill's ceiling."""
+        text = self.frontmatter("max-load-tokens: 11000 # someone else's", parent="other-tool")
+        self.assertEqual(vs.declared_token_budget(text), (None, False))
+
+    def test_unnested_key_is_ignored(self):
+        text = "---\nname: x\nmetadata:\n  max-load-tokens: 11000 # flat\n---\n"
+        self.assertEqual(vs.declared_token_budget(text), (None, False))
+
+    def test_sibling_keys_after_the_block_do_not_leak_in(self):
+        text = (
+            "---\nname: x\nmetadata:\n  skill-lint:\n    unrelated: 1\n"
+            "  version: 2026-01-01\n  max-load-tokens: 11000 # outside the block\n---\n"
+        )
+        self.assertEqual(vs.declared_token_budget(text), (None, False))
+
+    def test_ceiling_found_among_sibling_metadata_keys(self):
+        text = (
+            "---\nname: x\nmetadata:\n  version: 2026-01-01\n"
+            "  skill-lint:\n    max-load-tokens: 11000 # branchy by design\n---\n"
+        )
+        self.assertEqual(vs.declared_token_budget(text), (11000, True))
+
+    def test_absent_ceiling(self):
         self.assertEqual(vs.declared_token_budget("---\nname: x\n---\n"), (None, False))
 
     def test_no_frontmatter(self):
@@ -202,27 +330,27 @@ class BudgetReportTests(unittest.TestCase):
         self.assertIn("big.md", advice)
 
     def test_justified_budget_suppresses_advice(self):
-        meta = "metadata:\n  token-budget: 99000 # deliberately branchy\n"
+        meta = "metadata:\n  skill-lint:\n    max-load-tokens: 99000 # deliberately branchy\n"
         lines, rating, advice, _, within = self.report(20000, metadata=meta)
         self.assertEqual(rating, "Poor")
         self.assertTrue(within)
         self.assertEqual(advice, "")
-        self.assertIn("within the declared budget 99000", lines[0])
+        self.assertIn("within the declared max-load-tokens 99000", lines[0])
 
     def test_unjustified_budget_is_ignored(self):
-        meta = "metadata:\n  token-budget: 99000\n"
+        meta = "metadata:\n  skill-lint:\n    max-load-tokens: 99000\n"
         lines, _, advice, _, within = self.report(20000, metadata=meta)
         self.assertFalse(within)
         self.assertNotEqual(advice, "")
         self.assertTrue(any("ignored" in line for line in lines))
 
     def test_load_over_declared_budget_applies_normal_bands(self):
-        meta = "metadata:\n  token-budget: 5000 # too low for this body\n"
+        meta = "metadata:\n  skill-lint:\n    max-load-tokens: 5000 # too low for this body\n"
         lines, rating, advice, _, within = self.report(20000, metadata=meta)
         self.assertEqual(rating, "Poor")
         self.assertFalse(within)
         self.assertNotEqual(advice, "")
-        self.assertTrue(any("Over the declared budget" in line for line in lines))
+        self.assertTrue(any("Over the declared max-load-tokens" in line for line in lines))
 
     def test_corpus_line_counts_skill_md(self):
         lines, *_ = self.report(50, ref_tokens=200)
@@ -303,12 +431,12 @@ class ExitCodeTests(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
 
     def test_justified_budget_clears_the_exit_gate(self):
-        meta = "metadata:\n  token-budget: 99000 # deliberately branchy\n"
+        meta = "metadata:\n  skill-lint:\n    max-load-tokens: 99000 # deliberately branchy\n"
         with tempfile.TemporaryDirectory() as tmp:
             skill_dir = build_skill(Path(tmp), f"# T\n\n{words(20000)}\n", metadata=meta)
             result = self.run_validator(skill_dir, "--report-only")
             self.assertEqual(result.returncode, 0, result.stdout)
-            self.assertIn("within the declared budget", result.stdout)
+            self.assertIn("within the declared max-load-tokens", result.stdout)
 
     def test_missing_skill_md_errors(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -418,7 +546,7 @@ class RealSkillTests(unittest.TestCase):
         self.assertIn(rating, ("Great", "Good", "OK", "Poor"))
         self.assertTrue(
             rating in ("Great", "Good") or within_budget,
-            f"primer rates {rating} with no declared budget covering it",
+            f"primer rates {rating} with no declared max-load-tokens covering it",
         )
 
 

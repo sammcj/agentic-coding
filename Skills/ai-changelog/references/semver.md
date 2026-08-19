@@ -106,7 +106,14 @@ Use `npm run version:bump 0.2.0`.
 ## CLAUDE.md snippet
 
 ```markdown
-Update CHANGELOG.md under the [Unreleased] section with concise bullet points grouped under Added/Changed/Fixed/Removed. Combine or update items refined within the same session. Don't add version numbers; at release time use `make version V=X.Y.Z` to bump the canonical version source and freeze the changelog (or `make stamp-version` to freeze using the existing version). Truncate when the file exceeds 2000 lines.
+Log behaviour changes in CHANGELOG.md under [Unreleased], grouped by Added/Changed/Fixed/Removed.
+
+- One line each, under 15 words. What changed, not how it was built.
+- Skip trivia: wording, formatting, typos, no-behaviour refactors, test-only churn. Git history covers those.
+- Write more than one line only if a future agent couldn't recover the reasoning from the code.
+- Squash items refined in the same session.
+- No version numbers; release with `make version V=X.Y.Z` (or `make stamp-version` to freeze at the current version).
+- Truncate the oldest releases past 2000 lines.
 ```
 
 Replace `make` with `just`/`npm run` to match the project's build system.

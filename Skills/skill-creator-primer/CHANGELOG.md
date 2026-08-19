@@ -2,6 +2,13 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-08-20
+
+- `validate_skill.py` reports lexical no-ops under SIGNALS: sentence-initial filler, puffery adjectives, filler verbs, and negation-antithesis contrasts, skipping frontmatter, fenced blocks, and inline code. Detection only, never gated - a skill may mean "robust" literally. Findings group one line per distinct term (`[puffery] "comprehensive" x3 - path:line, ...`), capped at 10 terms and 6 locations, so a repeated word is one action rather than one report line per hit. The word list lives in the script, not `SKILL.md`: a banned-word list is dead weight in an always-loaded file and naming unwanted behaviour in prose primes it.
+- Self-review step 2 gains the **swap test** for contrast pairs alongside the deletion test.
+- `metadata.token-budget` becomes `metadata.skill-lint.max-load-tokens`: namespaced so another tool's key in the free-form `metadata` bag cannot collide, and named for what it caps (worst-case load, not SKILL.md alone, and not an allowance the agent spends at runtime). The nesting is matched, not assumed - the key is honoured only under a `skill-lint:` parent, still by regex so the stdlib-only `--report-only` path the post-edit hook runs keeps working. Report lines say "declared max-load-tokens".
+- Restored the primer's own ceiling at 10000 (was 11000). Worst-case load is 9720.
+
 ## 2026-08-17
 
 - Removed the description word-count anchors that authors were padding up to: checklist item 2 and `assets/skill-template.md` now say "1-2 sentences" and name the validator's bound as a ceiling. "Structure over prose" drops "around 20 words" for "a single short sentence".
