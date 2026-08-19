@@ -2,8 +2,7 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-08-13
-  token-budget: 11000 # The primer contains critically important content in it's SKILL.md.
+  version: 2026-08-17
 hooks:
   PostToolUse:
     - matcher: "Edit|Write"
@@ -102,7 +101,7 @@ The description is the single most important part of a skill to get right. It sh
 **Create a task per item below**, judge each pass/fail; done when all pass. Re-check the set after any edit - one fix can break another (an added clause can blow the word cap):
 
 1. **Be concise.** Skills are for agent consumption; agents need clear, high-signal triggers, not verbose prose.
-2. Aim for 30-55 words (no more than 65), about 1-2 sentences.
+2. **Keep it to 1-2 sentences.** The validator's word cap is a ceiling, never a target to fill.
 3. **Descriptions are solely for the agent deciding whether to load the skill.** No instructions for after activation, and no summary of the skill's content or inner workings - a workflow summary invites the agent to act on the summary and skip the skill's branches.
 4. Ensure the description is distinct. It must not be confusable with neighbouring skills - similar names, the same verb/object, or overlapping situational triggers. The co-active set varies per deployment, so distinctiveness comes from a tight, specific trigger; when the neighbours are enumerable, run "Check for Description Trigger Conflicts" below.
 5. Use imperative phrasing. Frame the description as an instruction to the agent: Use this skill when rather than This skill does. The agent is deciding whether to act, so tell it when to act.
@@ -175,7 +174,7 @@ Think of the agent exploring a path: a narrow bridge with cliffs needs guardrail
 
 ### Structuring the skill
 
-- **Structure over prose.** Write instructions as numbered steps or bullets, one action each, around 20 words; reserve paragraphs for concepts. The same applies to frontmatter, `argument-hint`, and JSON-schema description fields: a few precise words, not a paragraph. Telegraphic fragments (dropped articles, `error -> fix` pairs) are fine for gotchas, checklists, and fact lists; avoid fragments where they'd blur a concept, sequence, or steering nuance. See the second pair under "Examples".
+- **Structure over prose.** Write instructions as numbered steps or bullets, one action each, a single short sentence; reserve paragraphs for concepts. Prose buries the logic the agent has to act on. The same applies to frontmatter, `argument-hint`, and JSON-schema description fields: a few precise words, not a paragraph. Telegraphic fragments (dropped articles, `error -> fix` pairs) are fine for gotchas, checklists, and fact lists; avoid fragments where they'd blur a concept, sequence, or steering nuance. See the second pair under "Examples".
 - **Co-locate a concept's parts.** Keep a concept's definition, rules, and caveats under one heading rather than scattered, so reading one part brings its neighbours. The test: a skill should read like documentation written for the agent. This differs from duplication (one meaning repeated in two places); scattering fragments a single meaning across many.
 - **Build with sub-agents in mind.** Sub-agents parallelise independent work and keep bulky intermediate output out of the main conversation. Where steps could fan out (per-item passes, independent research questions, read-only sweeps), mark the hand-off: what each sub-agent needs and what it returns (a summary, verdict, or file path - not a raw dump). Suggest fan-out points rather than prescribing orchestration; the model running the skill may coordinate better than the one authoring it.
 - **Think through the setup.** Some skills need user-specific configuration (e.g. which Slack channel, which database, API keys). Pattern: on first run, check for a config file; if missing, ask the user and store their answers. This avoids hardcoding values that differ per user or environment.

@@ -26,8 +26,8 @@ deliberate adaptations for how skills are authored in practice:
    and downgrade unknown-field detection to a WARNING: documented extensions pass clean,
    newer/community fields don't block, and typos still surface as a visible warning.
 
-3. The primer's description word-count rule is enforced on top of the spec checks:
-   a warning outside the 30-55 aim, a hard error over 65.
+3. The primer's description length rule is enforced on top of the spec checks:
+   a warning over the 55-word ceiling, a hard error over 65.
 
 Field list verified against the official docs:
 https://code.claude.com/docs/en/skills#frontmatter-reference
@@ -57,10 +57,12 @@ except ModuleNotFoundError:
 _FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
 
 # Description word-count rule from the primer's Skill Description Checklist:
-# aim for 30-55 words, hard cap 65. Descriptions share the agent's always-loaded
+# soft ceiling 55 words, hard cap 65. Descriptions share the agent's always-loaded
 # token budget with every other skill, so length is policed mechanically here
-# rather than by eyeballing.
-DESCRIPTION_WORDS_MIN = 30
+# rather than by eyeballing. The bounds are ceilings only - a stated aim reads as
+# a quota and gets padded up to, so the messages never name a target. MIN is set
+# low enough to catch a description with no triggers in it, not to demand length.
+DESCRIPTION_WORDS_MIN = 15
 DESCRIPTION_WORDS_WARN = 55
 DESCRIPTION_WORDS_FAIL = 65
 
@@ -69,6 +71,28 @@ def description_word_count(description: str) -> int:
     """Count words as whitespace tokens containing at least one alphanumeric
     character, so markdown dashes and bare punctuation don't inflate the count."""
     return sum(1 for token in str(description).split() if any(c.isalnum() for c in token))
+
+
+def description_findings(description: str) -> tuple[list[str], list[str]]:
+    """Length findings for a description as (errors, warnings). Split out from
+    lint() so the wording is testable without skills-ref installed."""
+    words = description_word_count(description)
+    if words > DESCRIPTION_WORDS_FAIL:
+        return [
+            f"Description is {words} words; the checklist caps it at "
+            f"{DESCRIPTION_WORDS_FAIL} - cut a trigger branch rather than trimming to the cap"
+        ], []
+    if words > DESCRIPTION_WORDS_WARN:
+        return [], [
+            f"Description is {words} words; over the {DESCRIPTION_WORDS_WARN}-word ceiling "
+            f"(hard cap {DESCRIPTION_WORDS_FAIL}) - cut a trigger branch or synonym padding"
+        ]
+    if 0 < words < DESCRIPTION_WORDS_MIN:
+        return [], [
+            f"Description is {words} words - check each distinct branch has a trigger, "
+            "rather than padding the wording"
+        ]
+    return [], []
 
 # Token-budget estimate. The chars/N heuristic is a dependency-free stand-in for a
 # real tokeniser; N is calibrated against tiktoken's o200k_base BPE (a reproducible
@@ -570,22 +594,9 @@ def lint(skill_dir: Path) -> tuple[list[str], list[str]]:
     spec_metadata = {k: v for k, v in metadata.items() if k in spec_fields}
     errors = validator.validate_metadata(spec_metadata, skill_dir)
 
-    words = description_word_count(metadata.get("description") or "")
-    if words > DESCRIPTION_WORDS_FAIL:
-        errors.append(
-            f"Description is {words} words; the checklist caps it at "
-            f"{DESCRIPTION_WORDS_FAIL} (aim for {DESCRIPTION_WORDS_MIN}-{DESCRIPTION_WORDS_WARN})"
-        )
-    elif words > DESCRIPTION_WORDS_WARN:
-        warnings.append(
-            f"Description is {words} words; aim for {DESCRIPTION_WORDS_MIN}-{DESCRIPTION_WORDS_WARN} "
-            f"(hard cap {DESCRIPTION_WORDS_FAIL})"
-        )
-    elif 0 < words < DESCRIPTION_WORDS_MIN:
-        warnings.append(
-            f"Description is {words} words; aim for {DESCRIPTION_WORDS_MIN}-{DESCRIPTION_WORDS_WARN} - "
-            "very short descriptions risk under-triggering"
-        )
+    desc_errors, desc_warnings = description_findings(metadata.get("description") or "")
+    errors.extend(desc_errors)
+    warnings.extend(desc_warnings)
 
     return errors, warnings
 

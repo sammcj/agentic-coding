@@ -1,6 +1,8 @@
 # MiniMax H3 Prompt Guide
 
-MiniMax H3 is an omni-modal video model: it generates video and native stereo audio (dialogue, SFX, music) in a single pass, up to ~15s, 24fps. It was trained on prompts written in a specific labelled structure, so the field names (`integrated_multimodal_description:`, `overall_soundscape:`, ...), the shot markers, and the tag syntax are part of the prompt text you paste into the workflow's text-encode node. Free-form paragraphs work far worse than the structure below.
+MiniMax H3 is an omni-modal video model: it generates video and 32kHz stereo audio (dialogue, SFX, music) in a single pass, 4-15s at 24fps, 768p locally and up to 2K through the platform API. It was trained on prompts written in a specific labelled structure, so the field names (`integrated_multimodal_description:`, `overall_soundscape:`, ...), the shot markers, and the tag syntax are part of the prompt text you paste into the workflow's text-encode node. Free-form paragraphs work far worse than the structure below.
+
+A community format built on `[0s-2s]` timecode brackets with plain prose and no labelled fields circulates widely, and some people report good results from it, particularly for dialogue. It is not the grammar the model was trained on, and it discards the diegetic/non-diegetic split, speaker IDs and `<d>` tags. Treat it as a fallback to experiment with, not a starting point.
 
 ## Contents
 
@@ -12,6 +14,7 @@ Base modes (T2VA / I2VA / FL2VA / L2VA), whose grammar R2V also inherits:
 - [Alignment instruction line](#alignment-instruction-line) - includes how duration snapping sets `S.SS`
 - [integrated_multimodal_description](#integrated_multimodal_description)
 - [Shots and cuts](#shots-and-cuts)
+- [Pacing](#pacing)
 - [Camera motion](#camera-motion)
 - [Speakers, dialogue, singing](#speakers-dialogue-singing)
 - [On-screen text](#on-screen-text)
@@ -21,10 +24,11 @@ Base modes (T2VA / I2VA / FL2VA / L2VA), whose grammar R2V also inherits:
 
 R2V only:
 
-- [Reference mode](#reference-mode-r2v)
+- [Reference mode](#reference-mode-r2v) - includes [choosing reference images](#choosing-reference-images)
 
 Both:
 
+- [Beyond 15 seconds](#beyond-15-seconds)
 - [ComfyUI specifics](#comfyui-specifics)
 - [Worked examples](#worked-examples)
 - [Review checklist](#review-checklist)
@@ -111,6 +115,18 @@ Cut times are bounded by the snapped duration, so a cut at `00:08.000` in a 175-
 
 Cut verbs: `the camera cuts to`, `the shot cuts to`, `the shot transitions to`, `the shot changes to`, `the shot switches to`. Cross-dissolve, fade and wipe are available when the user asks for them. A cut should deliver new information (subject, space, state, viewpoint, time); if only the distance or angle shifts slightly, use camera motion instead of a cut.
 
+## Pacing
+
+Decide where the peaks and the rests fall before writing shots. A peak is a completed action, an entrance, a text reveal or a full reveal; a rest is a held detail, a readable text hold, or a final frame hold.
+
+- ~5s: one peak, then a stable close.
+- ~10s: one or two peaks, one or two braking moments.
+- ~15s: two or three peaks, two quiet moments.
+
+One main action per beat. Secondary elements enter slightly late rather than competing: the subject settles, then the text appears; the highlight sweeps, then the copy moves.
+
+Drive transitions off something actually in frame - an edge, a highlight, a part that opens or rotates, a matched silhouette, matched camera direction. White flashes, floating particles and generic light effects give the model nothing to align to. Do not open on an empty frame; the first second should already carry an action or an angle worth watching.
+
 ## Camera motion
 
 Write motion as natural English action inside the shot, never as labels appended to the sentence. Three dimensions: type, amplitude, speed. Omit amplitude and speed when they are medium/normal.
@@ -164,6 +180,17 @@ Any banner, sign, label, subtitle or neon text actually visible goes in English 
 ```text
 A red neon sign reading "营业中" glows above the doorway.
 ```
+
+Typography rules that survive the renderer:
+
+- One line at a time. No wrapping, no stacked title plus subtitle, no two text blocks in frame at once.
+- 3-5 words, under about 32 characters including spaces. Isolated one- or two-word labels read as feature tags, not design.
+- At most two colours in a shot.
+- Treat text as a composition element in the central visual zone, not a lower-third subtitle bar. It can sit against an edge, a surface or a highlight, and must never cover eyes, or the mouth during lip-sync.
+- Spell every line out verbatim in the prompt with its time window, entry order and colours. `leave space for copy` or `text beat sync` produces nothing.
+- Reveal a two-part line inside the same line: first half fades or slides in, second half follows, first half shifts about 10-15% of its width to make room.
+- One main typography event per shot. If text comes back garbled, cut the number of text moments rather than shrinking them, and keep one stable line in the final shot.
+- When a character is singing or speaking on screen, visible text must match the performed words exactly.
 
 ## overall_soundscape
 
@@ -325,11 +352,29 @@ overall_soundscape: The copied ambience layer from <Audio 1> continues throughou
 non_diegetic_music: <Audio 2> is directly reused as the complete audience-only score.
 ```
 
+### Choosing reference images
+
+- Give each reference one narrow job and state it: identity, scene and lighting, typography style, motion, camera, voice. A card carrying a person, a room and a text treatment at once bleeds all three into the output.
+- Feed standalone full-frame images. Grids, four-panel sheets, split screens, contact sheets and storyboard boards get reproduced as layout inside the video, and the closing shot is where that surfaces worst.
+- References anchor identity, not shot order. Three references are not three segments; the shot list decides order.
+- Where clean anchor images have been generated from a source photo, pass the anchors alone. Passing both puts two versions of the same subject in play.
+
+## Beyond 15 seconds
+
+H3 generates about 15s per pass, so anything longer is stitched from several generations.
+
+- Lock the full audio track first and treat it as the master. Per-segment native audio will not line up across a seam; align every clip to timestamps on that one track at assembly.
+- Split into 2-5s shots mapped to named beats or lyric timestamps, not to equal slices.
+- Continue a scene by feeding the previous segment's tail frame as the next segment's first frame (I2VA), or bracket a segment with FL2VA. For a hard cut, hold the same reference cards, wardrobe and lighting, and carry either camera direction or a match-cut element across.
+- Repeat the same style header verbatim at the top of every segment prompt - grain, colour direction, light direction - then grade and grain the assembly to hide batch differences.
+- Cut on the beat grid and on lyric pauses or breaths. Never cut mid-vowel unless the next shot is an extreme close-up holding the mouth shape.
+- Carry typography momentum across the seam: text exits on an accent, the next text enters on the following one.
+
 ## ComfyUI specifics
 
 - **Resolution**: native canvas is a 768px short edge, capped at 768x1344, rounded to a multiple of 32. The Resolution Selector node computes width/height from aspect ratio, megapixels and multiple; keep multiple at `32`, and use about `1.0` megapixels at 16:9 (~1344x768) for full quality.
-- **Duration**: snaps to the 17-frames-per-block grid, `17k + 5` frames at 24fps, ceiling about 15s. See [Alignment instruction line](#alignment-instruction-line) for how the snapped frame count drives `S.SS` and every cut time.
-- **Reference limits (R2V)**: up to 9 images, 3 videos (each may carry its own soundtrack), 3 standalone audio clips.
+- **Duration**: snaps to the 17-frames-per-block grid, `17k + 5` frames at 24fps, floor 4s and ceiling about 15s. See [Alignment instruction line](#alignment-instruction-line) for how the snapped frame count drives `S.SS` and every cut time.
+- **Reference limits (R2V)**: up to 9 images; up to 3 videos (each 2-15s, 15s total, each may carry its own soundtrack); up to 3 standalone audio clips (each 2-15s, 15s total). No more than 12 reference files across all types, so the per-type maximums cannot all be used at once.
 - **Tag order (R2V)**: `<Picture 1>`, `<Video 1>`, `<Audio 1>` follow connection order on the node - a prompt referring to `<Picture 2>` when only one image is connected has nothing to bind to.
 - **ref_image_size**: `match` downscales references to generation resolution for speed; `max` keeps up to a 2048px short edge for stronger identity fidelity, slower.
 - **Assign each reference a job.** Stating which reference drives identity, which drives style, which drives motion, camera or voice works substantially better than listing them.
@@ -401,6 +446,8 @@ Run over a draft prompt in this order:
 5. Camera motion written as in-sentence action with a type, and amplitude/speed only where meaningful.
 6. Speaker IDs in vocal-event order, stable across shots, identity established at first appearance; `<d>` holds only the language tag plus verbatim words.
 7. Voiceovers use the exact phrase and the lips-closed clause; cross-cut lines carry `<scenetrans>` plus a continuity phrase; truncated speech carries `<cutoff>`.
-8. On-screen text quoted verbatim in double quotes.
+8. On-screen text quoted verbatim in double quotes, one line in frame at a time, positioned as composition rather than subtitle, with its time window and colours stated.
 9. Soundscape and score fields obey the diegetic/non-diegetic split, no duplication, `N/A` used correctly.
-10. R2V only: six sections; every label defined before use; task-type prefix matches the actual roles; one `retention_analysis` line per separately defined label, with a valid marker and no `(Sx)`; description reaches the detail level rather than summarising the plot.
+10. Peaks and rests match the duration, one main action per beat, transitions driven by in-frame elements.
+11. Stitched pieces only: one master audio, cuts on the beat grid and clear of vowels, style header repeated verbatim per segment, tail frame carried into the next segment's first frame.
+12. R2V only: six sections; every label defined before use; task-type prefix matches the actual roles; one `retention_analysis` line per separately defined label, with a valid marker and no `(Sx)`; description reaches the detail level rather than summarising the plot.

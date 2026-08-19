@@ -1,6 +1,6 @@
 ---
 name: <kebab-case-name>
-description: <30-55 words. When to load this skill: user intent + trigger phrases. No workflow summary, no implementation detail.>
+description: <1-2 very short sentences. When to load this skill: user intent + trigger phrases. No workflow summary, no implementation detail.>
 metadata:
   version: <YYYY-MM-DD>
 ---

@@ -1,0 +1,178 @@
+# MiniMax Music 3 Genre Idioms
+
+Per-genre caption vocabulary distilled from the 1,000 official reference captions in the MiniMax-AI/MiniMax-Music3 repo (`skills/music-caption-rewriter/templates/`). Slots into the caption skeleton in [minimax-music-3.md](minimax-music-3.md), and pairs with the routing rules in [Genre routing](minimax-music-3.md#genre-routing) for deciding which of these a brief belongs to. The Western pop families - general pop ballad, cinematic pop ballad, dance-pop/nu-disco/funk - are deliberately not covered.
+
+## Contents
+
+- [Metal & heavy rock](#metal--heavy-rock)
+- [Hip-hop, rap & trap](#hip-hop-rap--trap)
+- [Country & americana](#country--americana)
+- [Blues, soul & gospel](#blues-soul--gospel)
+- [Modern R&B & neo-soul](#modern-rb--neo-soul)
+- [Folk & roots](#folk--roots)
+- [Rock](#rock)
+- [East Asian pop (Mandopop, C-pop, Cantopop, J-pop, guofeng)](#east-asian-pop-mandopop-c-pop-cantopop-j-pop-guofeng)
+- [Jazz, swing & big band](#jazz-swing--big-band)
+- [Traditional vocal & stage (crooner, doo-wop, a cappella, musical theatre)](#traditional-vocal--stage-crooner-doo-wop-a-cappella-musical-theatre)
+- [Cinematic & orchestral score](#cinematic--orchestral-score)
+- [Club electronic (house, trance, techno, dubstep, festival EDM)](#club-electronic-house-trance-techno-dubstep-festival-edm)
+- [Electronic (coverage gaps)](#electronic-coverage-gaps)
+
+## Metal & heavy rock
+
+- BPM: 85-100 mid-tempo; 115-146 groove/melodeath; 154-194 fast metalcore and power metal. Keys nearly always minor; Eb and Bb minor dominate.
+- Guitar spine sentence: heavily distorted electric guitars as "the core harmonic driver", palm-muted chugging verses opening into sustained power chords in choruses, plus a presence clause (first bar to last). "Down-tuned" flags the heavier subgenres.
+- Bass gets one sentence in every template: locks tightly with the kick.
+- Vocals: controlled storytelling verses to full-throated belt choruses, rasp and fry named at phrase level. Melodeath splits clean vs harsh, growls kept dry and upfront. Gang vocals and unison doubles live in Harmony/Backing.
+- That verses-to-belt arc is the corpus default, so a brief that does not want it has to exclude it explicitly. Genre choice does most of the work: `Progressive Metal` and `Alternative Metal` carry polished, pitch-corrected vocal priors (the first from the Dream Theater lineage, the second from nu-metal). For an unproduced voice, reach for Noise Rock, Math Rock, Sludge Metal or Slowcore instead. Avoid No Wave: its prior is the James Chance skronk-funk lineage, and it pulls the whole arrangement toward punk-jazz regardless of what the other fields say.
+- Groove: half-time verse to full-force chorus, double-kick accents, stripped bridge or breakdown.
+- The secondary layer is the contrast: clean arpeggios or pads confined to intro/bridge/outro, receding in heavy sections.
+- Fusion via one dedicated melodic voice (a folk instrument carrying the intro theme and counter-melodies) rather than blended production.
+- FX: wall of sound, guitars hard-panned, reverse cymbal swells, feedback squeals, pinch harmonics.
+
+## Hip-hop, rap & trap
+
+- BPM: boom bap 90-92; lo-fi and jazz-rap 71-88; conscious 83-92; g-funk ~95; trap written either double-time 128-167 or half-time 85-100; dark trap 150-167; drill ~143; trap metal ~182. At high BPM the Groove field still declares the feel ("half-time trap beat structure").
+- Keys minor, Eb minor most common; majors appear in lo-fi and jazz-rap.
+- Name the flow precisely and give it a per-section arc: steady verse flow shifting chant-like and anthemic at the hook. One register per style: rapid-fire percussive (trap), spoken-word bordering monotone (dark trap), storytelling cadence riding the beat (drill, conscious).
+- Ad-libs belong in Harmony/Backing Vocals with placement: panned off-centre, call-and-response, multi-tracked hook stacks.
+- Sung hooks go to a second singer, and Vocal FX enforces the split: rap dry and close-mic'd, sung layers get reverb and delay.
+- The 808 gets a role and a lifecycle: harmonic and rhythmic anchor, sliding/distorted/growling, following the chord changes.
+- Hi-hat density is the energy dial: sparse verses, rolling triplet subdivisions with pitch variation at the hook. Snare on 2 and 4; drill moves it to beat 3.
+- Textures: vinyl crackle, tape hiss, turntable scratches, vocal chops, stutter edits.
+
+## Country & americana
+
+- Major keys dominate, often flat (Bb, Eb, Ab, F); minor for sombre americana and southern rock. BPM: ballads 74-103; mid-tempo storytelling 78-115; bluegrass 128-140; rockabilly and up-tempo country rock 171-194.
+- "Twang" is the marker word: "clean electric guitar with a slight twang" (brand names never appear). Train-beat written as relentless train-like momentum, straight eighths, snare on 2 and 4.
+- Pedal steel: secondary layer weaving slides and counter-lines between vocal phrases. Banjo: rolling arpeggios as the driver, rolls doubling as section transitions. Fiddle: double-stops and expressive slides. Mandolin: off-beat chop chords.
+- Vocals: warm gravelly baritone, conversational, lived-experience; bluegrass swaps to a clear tenor with a slight twang. Tight third-interval harmonies; slapback delay flags rockabilly.
+- Groove as progression: brushed kit verses to fuller snare and kick in choruses, energy added through hat and ride activity without changing tempo. Fills sit between vocal phrases (steel and guitar answering lines).
+- Production framed as an organic live room: warm mid-range, natural dynamics, minimal compression.
+
+## Blues, soul & gospel
+
+- Shuffle and 12/8 never appear in the BPM line - the Groove field carries the feel ("slow, shuffling 12/8 blues rhythm"). Corpus BPMs are sometimes double-time counts, so the groove field, not the number, defines the felt tempo.
+- Minor keys favoured even for jump blues. Intensity lift without tempo change is idiomatic ("pushing the tempo feel forward without changing the actual BPM").
+- Guitar written tone-first (clean-to-lightly-overdriven through heavily distorted) with role verbs (melodic anchor, harmonic backbone); slide licks as transitional fills between vocal phrases; guitar interacting closely with the vocal phrasing.
+- Horns: punchy stabs in verses, harmonised soaring lines in choruses, punctuation between vocal phrases. Organ is always "Hammond-style", sustained chords and swells filling the mid-range.
+- Vocals: gravelly baritone or gravel-textured tenor, behind-the-beat phrasing, melisma and dynamic swells, fry and slight growls. Gospel reads as choir call-and-response plus belts, not "preacher" wording.
+- Mirror verse restraint and chorus release in both Vocal Style and Groove.
+
+## Modern R&B & neo-soul
+
+Shares the older family's verse-restraint-to-chorus-release arc and its melisma placement; the differences below are what separates it from [Blues, soul & gospel](#blues-soul--gospel).
+
+- BPM: contemporary R&B clusters 76-97 with ballad outliers at 58-74; neo-soul 59-111; alternative R&B 77-95. Keys split near evenly, so do not default to minor. Most frequent are G minor, Bb major, C minor, Ab major, Bb minor.
+- The BPM line counts the programmed grid, not the felt groove, and cards at 128-162 still read slow - a 162 BPM neo-soul ballad has a "laid-back drum kit ... steady, relaxed pulse", a 154 BPM melodic hip-hop card adds "rapid, rolling hi-hat patterns ... without increasing the overall tempo". Only a handful name half-time outright, so state the felt tempo in the Groove field when it matters.
+- Keys spine opens Primary in half the family: "A warm, Rhodes-style electric piano serves as the harmonic backbone, playing sustained chords and gentle arpeggios from the Intro through to the Outro." Voicings are "jazzy, extended chords with a soft attack", arpeggios in verses moving to "fuller, block chords" in choruses. The role word is harmonic backbone, anchor or core, always with an intro-to-outro presence clause.
+- Drum programming splits by subgenre: contemporary R&B writes "programmed drum machine pattern" or "minimal electronic drum pattern" in nearly every card; neo-soul writes a live-sounding or brushed kit and never a drum machine. "Laid-back" is the placement word rather than "behind the beat". Ghost notes and rimshot belong to the live-kit end only. Snare or "snare/clap hybrid" on beats 2 and 4.
+- Bass sits in Secondary with an explicit entry point: "A deep, rounded sub-bass synth enters shortly after the intro, locking in with the kick drum". Trap-routed cards use "a deep, gliding 808-style sub-bass"; neo-soul swaps in "a warm, round-toned electric bass" walking or syncopated, upright on jazz ballads. Fretless never appears - "round-toned" is the corpus word for that character.
+- Timbre vocabulary is narrow: smooth and breathy dominate, with tenor, soprano and baritone naming register. Rasp is mostly neo-soul. Falsetto is written in `Vocal Style`, never in the timbre field.
+- `Vocal Style` defaults to a two-stage arc: "restrained, conversational delivery in the verses" or "almost whispered intimacy" opening into a soaring projection at the choruses. Melisma and "fluid runs" get placed explicitly, "particularly at the end of phrases". Falsetto is written as "falsetto flips" or "falsetto transitions in the higher registers". Rap or spoken cadence only on hip-hop-routed cards.
+- Harmony is self-layered rather than a separate part: "Multi-tracked self-harmonies appear prominently in the choruses and the bridge, creating a lush, choral texture", "stacked in thirds and fifths". Nearly nine in ten cards are a solo singer harmonising with themselves. Ad-libs float above the melody or fill instrumental breaks.
+- `Vocal FX` is plate reverb plus delay in almost every card - "a moderate amount of plate reverb and a subtle delay to create spatial depth, particularly on the sustained notes", with "delay throws accentuate the ends of phrases". Doubling widens choruses and hooks only. Unlike the older soul family, this one states pitch treatment openly: "subtle pitch correction ... for a polished, modern sheen", or Auto-Tune "used as a stylistic effect rather than for correction". Neo-soul cards carry no pitch language at all, which is the lever for an unprocessed voice here.
+- Textures: "Reverse reverb swells act as transitional markers leading into the choruses" is near-universal, with risers behind it, and "vinyl crackle and subtle tape hiss textures ... layered underneath the mix" on lo-fi and alternative cards. Vocal chops appear percussively in a quarter of the family. Field recordings are rare - themed sound design (water, rain) does that job.
+- `Sonics` is three clauses: "a wide, immersive soundstage", a frequency response clause naming warm rounded lows and airy highs with "the mid-range remains clean to highlight the vocals", then a dynamic clause moving compressed intimate verses to an open, reverberant chorus.
+- Default arc to override explicitly: opens sparse, ethereal or introspective, verses hold it, choruses swell, the bridge strips back, and the outro resolves into a lingering fade. `Application Scenarios` defaults to late night with rain, city lights and neon.
+
+## Folk & roots
+
+- BPM often reads double-time against felt tempo (a 158 BPM "fragile ballad"); slow ballads also use true-slow values.
+- Guitar spec is string type + technique + structural role: steel-string fingerstyle weaving bass, chords and fills; when drumless, attribute the pulse to the picking pattern.
+- Room sound lives in Sonics & Production: organic and uncompressed, natural attack and decay, intimate room tone.
+- Vocals: hushed confessional almost-spoken delivery building to open-throated; self-layered closely voiced harmonies; dry up-close presence with minimal processing.
+- Regional grooves by name: Celtic bodhran escalating to full kit; reggae one-drop, off-beat skank, walking bass.
+- Arc in three beats: open sparse, thicken mid-song, strip back for the outro.
+
+## Rock
+
+- Verse/chorus dynamics written as a tone change on one guitar: clean finger-picked verses switching to heavily distorted power chords in choruses.
+- Doubled guitars panned hard left and right; verses open and breathable, choruses tightly compressed.
+- Vocals shift register per section (baritone to gritty strained tenor), fry and grit at phrase ends.
+- Industrial: hybrid drum kit (acoustic samples with electronic processing), metallic impacts, mechanical grinding, tape-stop transitions.
+- Textures: feedback squeals, string bends, delay throws, noise risers, reverse cymbal swells.
+
+## East Asian pop (Mandopop, C-pop, Cantopop, J-pop, guofeng)
+
+- BPM: ballad and heritage cards sit 62-90 (median 72) with a power-ballad tail at 120-146; hip-hop and trap fusion 80-107; funk, nu-disco and city pop 90-122; dance-pop and EDM 120-143, where 130 alone accounts for a dozen cards; J-pop anisong and hyperpop 171-182. Cantopop shows up at 70, 130 and 140 for ballad, synth-pop disco and power ballad.
+- Keys: Bb major is the house default, then Eb major, A minor, C minor. Ballads skew major; electronic and dance split evenly. Both guofeng cards are minor.
+- The modern/heritage split is visible in fixed vocabulary. Modern: "wide, expansive soundstage", "the frequency response is bright and crisp", "the dynamic aesthetic is heavily compressed", with four-on-the-floor, sidechain, saw-wave and vocal chops common. Heritage: "wide, cinematic soundstage with a polished, high-fidelity finish", "the frequency spectrum is balanced", "dynamic range is carefully managed", expanding "from intimate verses to fully compressed choruses". Saw-wave, sidechain and vocal chops appear in none of the 72 ballad cards.
+- Piano spine (heritage): grand piano in two thirds of cards, "serves as the harmonic backbone, playing arpeggiated figures in the verses and shifting to fuller block chords in the choruses", present throughout.
+- Synth spine (modern): "A bright, saw-wave synthesizer lead carries the main melodic hook, present from the Intro", partnered in Secondary by "A deep, side-chained sub-bass synth ... locking tightly with the kick drum" and pads that "swell in the background during the pre-chorus".
+- Secondary elsewhere: ballads bring "A lush string ensemble (violins, violas, cellos) enters subtly during the first pre-chorus, swelling" into chorus counter-lines, and the entry is pre-chorus or first verse, never the intro. Acoustic ballads run finger-picked guitar as backbone intro to outro. Pop-rock ballads use "a clean electric guitar with a chorus effect" in verses "switching to a distorted, overdriven tone during the choruses". Funk and nu-disco run "a funky, clean-tone electric guitar playing syncopated chord stabs" from the first bar.
+- Traditional instruments split by role: erhu and dizi carry structure, named in Primary - erhu "carries the primary melodic counterpoint, entering in the Intro" with "expressive slides and vibrato", dizi "serves as the primary melodic voice in the intro and interludes". Guzheng and pipa stay decorative in Secondary or Embellishments, doing glissandos and "ornamental flourishes" confined to "the intro and instrumental breaks". Almost nothing puts a traditional instrument in the groove.
+- Naming is hedged or glossed rather than bare: "A traditional plucked string instrument, resembling a Guzheng", "A Guzheng (Chinese zither)", "A synthesized flute (Dizi-style)". The word pentatonic appears in none of the 147 cards.
+- Vocals open `Singer A (Female).` then "The vocalist possesses a clear ...". Ballads extend with "a slightly breathy quality in the lower register that transitions into a powerful ...". `Vocal Style` is one arc sentence: restrained storytelling delivery evolving "into a soaring, emotive belt with sustained notes" at the choruses. Vibrato is named in most ballads and few modern cards; rap is the reverse.
+- Harmony base sentence across both families: "multi-tracked self-harmonies appear prominently in the choruses, creating a lush choral texture that supports the lead melody". Ballads add "often arranged in thirds"; modern adds ad-libs and call-and-response layered through the second half. Duets are rare.
+- `Vocal FX`: ballads take "a tasteful amount of plate reverb" plus "a subtle delay is applied to phrase endings". Modern swaps in pitch correction "for a sleek, modern pop" sheen. Audible auto-tune is rare.
+- Defaults to override explicitly: no card modulates or key-changes and none has an a cappella section. Ballads open "The track begins without percussion, relying on the piano's rhythm", take a brushed kit at the first verse and a full kit with snare on 2 and 4 by the first chorus; half-time exists only in the modern family. Transitions default to risers, white noise sweeps and reverse cymbal swells into each chorus for modern, while ballads keep the cymbal swells and use atmospheric pads, wind chimes or bells in place of noise sweeps. `Application Scenarios` defaults to TV drama and OST for ballads, city and neon montage for modern.
+
+## Jazz, swing & big band
+
+- BPM: 56-87 ballads; 107-146 for the bulk of swing and big band; a second cluster at 167-214 for fast numbers. Bb is the key on nearly half the cards, then C, F, G and Eb. Major edges out minor everywhere, ballads included.
+- The BPM figure is a straight count when the caption also says "fast-paced" or "brisk". At 200-214, and for lounge at 143 or smooth jazz at 171, it is a double-time count against the felt swing - one card reads "bpm is 200" over "a slow, swinging jazz ballad rhythm". Read the Groove field, not the number.
+- `Groove & Foundation Progression` carries the swing declaration - "establishes a classic swing groove immediately", "a fast-paced swing feel". No card uses shuffle, swung or triplet.
+- Kit: brushes on the snare through verses, then "the drummer switches to sticks" with ride emphasis and "snare accents on beats 2 and 4" for choruses. Ride keeps time on almost every big band and swing card; ballads stay on brushes end to end, written as a continuous "shhh". Rim click appears in one card of the family, so ask for it by name.
+- Bass is upright and walking, and it sits in Secondary: a walking line that "anchors the harmony and drives the swing feel" start to finish. The one exception simplifies "to long, sustained roots during the heavier chorus sections".
+- Horns are trumpets, trombones and a sax section - Primary on big band cards, Secondary elsewhere. Verbs are "punchy stabs", "soaring countermelodies", "unified fanfares", "background swells", "lush background pads behind the vocals". They enter on the intro fanfare or "forcefully at the first chorus", thin under verses, return at full intensity for the climax. Shout chorus and soli never appear, so ask for them by description.
+- Piano anchors harmony wherever horns do not: "rhythmic comping" plus "melodic fills", extended voicings, arpeggios in ballad intros thickening to rhythmic chords as the arrangement builds. Guitar appears as "a clean electric guitar" playing jazz voicings; nylon-string is bossa nova only.
+- Solos live in `Embellishments` or Secondary and go to saxophone first, then piano, occasionally clarinet or clean electric guitar. They fill the instrumental break as a textural shift before the sparse arrangement returns.
+- Vocals are crooning, conversational and storytelling, with "phrasing" the load-bearing noun. Timbre words are smooth, resonant, warm, breathy, smoky, velvet, with register named as baritone or mezzo-soprano. Several cards say the delivery "sits comfortably behind the beat". Scat is confined to intros and bridges. Default cast is one singer, more often female.
+- `Harmony/Backing Vocals` splits by subgenre: big band and swing default to close-voiced multi-part backing entering at the choruses, sometimes a mixed choir for the final chorus and outro. Ballads default to "No distinct backing vocals or harmony layers are present", so harmony on a jazz ballad has to be asked for.
+- `Sonics` runs soundstage, then frequency response, then dynamic aesthetic. Every card is warm, natural and live-ensemble, favouring "room ambience" over processing, with soundstage intimate for ballads and wide for big band. `Vocal FX` is plate reverb with light compression and subtle delay, and "No extreme effects are used".
+- Era is set through `Application Scenarios & Imagery` rather than the mix - "a dimly lit jazz club" on a third of cards, plus film noir and 1940s references. Default arc to override: sparse verse, full chorus, instrumental break, biggest final refrain, with cymbal swells and brass crescendos marking every transition.
+
+## Traditional vocal & stage (crooner, doo-wop, a cappella, musical theatre)
+
+- BPM: 62-95 crooner, vocal jazz and orchestral ballads; 107-133 big band swing and cabaret; musical theatre 58-78 for ballads, 109-125 mid-tempo, 140-167 up-tempo. Doo-wop 76-79, a cappella 75-85. Keys are flat and major by default, Eb leading, then Bb and Ab; minor is a quarter of the family and concentrated in Eb minor for theatre conflict ballads and G minor for cabaret jazz.
+- Crooner spine: "deep, resonant baritone with a velvety, smooth texture" and "precise diction characteristic of classic crooners". Strings are "the harmonic bedrock" playing "sweeping legato lines from the Intro through the Outro", swelling in choruses and receding in verses. Intimacy is a mix decision - lead centred and close inside a wide stereo orchestra, with instruments dropping out entirely under the quietest vocal moments.
+- Traditional pop groove is a brushed kit plus walking upright bass at a gentle swing feel, steady start to finish, lifted in choruses by cymbal work and a firmer snare. The load-bearing clause is subordination: "without overpowering the lead" recurs across the family.
+- Doo-wop never writes 12/8 or triplet feel. Groove carries a brushed kit with "a soft kick on beats 1 and 3 and a snare brush sweep on 2 and 4"; finger snaps go in Embellishments; the walking bass sits in Secondary. The genre identity lives in `Harmony/Backing Vocals` - a male ensemble alternating rhythmic doo-wop syllables in intro and outro with sustained chordal pads, close thirds and sixths, call-and-response, plate reverb and "a subtle slapback delay ... to enhance the retro stylistic character".
+- A cappella Primary is near-fixed: "The human voice serves as the sole instrument", extended to "fulfilling all melodic, harmonic, and rhythmic roles", with vocal bass supplying the low end and beatboxing driving the rhythm. Secondary is stacked parts doing instrument jobs - deep voices as the "bass guitar" function, mid and high voices simulating keyboard pads and string textures - entering progressively and stripping for the outro. Half the a cappella templates permit a synth cheat in Secondary (sub-bass under the vocal bass, pads filling spectral gaps), so state whether you want one. "Mouth trumpet" appears nowhere.
+- A cappella Groove is absence plus substitute: "There is no traditional percussion; instead, the rhythmic drive is generated entirely by the percussive articulation of the vocal lines". Without beatbox, the pulse comes from phrasing and chord duration for "a floating, timeless feel rather than a strict beat", and the build is explicitly non-percussive, rising "through the increasing density of vocal layers rather than drum patterns".
+- Musical theatre delivery is narrative first: legato storytelling verses into "a powerful, belted style in the choruses", with Sprechgesang and spoken-sung conversational verses named at phrase level. Openings routinely carry no drums - "relying on the piano's rhythm" or "a free-flowing, rubato feel driven solely by the piano" - locking into a full kit at the first chorus.
+- The climactic lift is density and compression rather than modulation: "intimate, dry verses to heavily compressed, wall-of-sound choruses", brass fanfare stabs at the first chorus, timpani rolls and cymbal swells marking transitions. Only one template in the family mentions a key change, so a modulation has to be asked for outright.
+- Multi-singer rosters are common: `Singer A (Male) and Singer B (Female)` with a timbre sentence each and a stated division of labour ("Singer A anchors the narrative verses, while Singer B enters to add harmonic contrast"). Duets are call-and-response with overlapping harmonies; a conflict duet gets sustained dissonance between the two. A choir is a separate roster entity (`Ensemble B (Mixed Choir)`) in nearly half the family, always with a named entry point.
+- Harmony is block and close with intervals named: "tight, block-chord harmonies", "parallel thirds and sixths", "close-voiced clusters, creating a lush, organ-like texture". The stack thins deliberately for a bridge feature before swelling to a wall-of-sound final chorus.
+- FX stay restrained: plate reverb on the lead, hall reverb for choir, delay on nominated phrases only. Several templates state the negative outright - "No noticeable pitch correction or distortion effects are present; the processing focuses on spatial enhancement" - and no template here uses autotune or vocoder. Room character is named by venue ("a large theater space", "cathedral-like acoustic space"), with vintage warmth as "analog-inspired frequency response", mid-range focus, high-end roll-off and tape saturation.
+- Default arc to override explicitly: quiet intimate opening, accumulating harmonic layers, peak at the bridge or final chorus, then a return to the start - "resolving into a peaceful, reflective state that mirrors the opening mood". Almost every template in the family ends where it began.
+
+## Cinematic & orchestral score
+
+- BPM: 62-90 covers over half the family and holds the ballads, spoken-word and sacred/ambient cards; 100-107 for anthems and marches; 111-128 for driving epic and folk fusion. Major and minor split near evenly, but flats dominate - Bb and Eb account for 25 of the 41 stated keys, with D minor and Eb minor the common dark choices.
+- Nothing in this family is instrumental. Every template names a performer in `Vocal Gender & Timbre`: `Singer A (Male)`, a mixed SATB choir, or a spoken narrator. A purely instrumental score has no worked example here and has to be stated explicitly.
+- Absence is written as the denial plus what covers the job, joined by a semicolon: "No distinct backing vocals are present; the focus remains entirely on the solo lead vocal line"; "There is no percussive groove or rhythmic foundation; the tempo is driven entirely by the rubato phrasing of the piano and the expressive bowing of the strings". Never blank, never "none".
+- Choir-as-texture belongs in `Harmony/Backing Vocals` while `Vocal Gender & Timbre` holds the lead. It enters at the pre-chorus or first chorus on "long, sustained vowel pads" or wordless "Ah", thickens to four-part SATB block chords at the peak, then thins for the outro. "Wall of sound" is the recurring label for peak density.
+- Vocal FX runs one clause per voice. Lead: long-decay hall reverb throughout, subtle delay on sustained notes and phrase endings, more compression as the orchestration thickens. Choir: stereo widening, longer tail, compression or saturation to make it "monolithic". Spoken narration inverts it - short-decay room reverb, light compression, so diction survives.
+- Strings are the default Primary: "A full string section serves as the harmonic backbone", sustained low-register pads or "sweeping legato lines" in intro and verses, shifting to "rhythmic, staccato ostinatos" in high-energy sections. Ostinato is the load-bearing word for the build. Tremolo and divisi never appear.
+- Brass sits in Secondary with its entry bar named - "subtly in the pre-chorus" or at the first build - then "fanfare-like motifs" in the chorus, written as "(French horns, trumpets, trombones)". Brass takes Primary only on march and patriotic cards, present "from the opening fanfare through to the final cadence".
+- Groove is a timeline of entries rather than a kit description: sparse timpani rolls and soft cymbal swells, then taiko-style drums or a marching kick-and-snare from the first verse, then crashes, tom fills and snare rolls at the chorus, stripping back for the outro. Timpani appears in three quarters of the family, taiko in a third.
+- Percussion-free templates name what supplies the pulse instead - rubato phrasing of the solo strings, the piano's rhythm, vocal phrasing, or "the slow attack/release envelopes of the synthesizer pads".
+- The climax is built in three fields at once: `Global Emotional Progression` states the swell to a "triumphant climax", `Groove` adds percussion density and crashes at the chorus, `Embellishments` places risers, reverse cymbal swells and impact hits immediately before it, with sub-bass drops on the downbeats.
+- Default arc across the whole family: solemn or mournful open, layered build to a triumphant peak, then recession to quiet resolution, most closing on the word "lingering". A hard stop, a cold ending, or energy held flat to the last bar has to be stated to override it.
+- `Application Scenarios` runs use cases then imagery - film trailers, game cutscenes, documentary montages, ceremonies and parades, against vast landscapes and ancient battlegrounds. `Sonics` is fixed at three moves: soundstage ("exceptionally wide and deep", "cathedral-like"), frequency response (percussion and basses against bright cymbals and upper strings), then dynamics travelling from "breathable and intimate" to "heavily compressed" at the climax. Synth pad beds and synthesised sub-bass reinforcement are standard; the word "hybrid" never appears.
+
+## Club electronic (house, trance, techno, dubstep, festival EDM)
+
+- BPM by subgenre: deep house 100; progressive house 122-136 (128 and 133 most common); big room 128; trance and vocal trance 128-140; EDM crossovers with C-pop, Cantopop and Mandopop 130-136; hardstyle 136-150; industrial techno 146; melodic dubstep and future bass both 171; happy hardcore 182. Keys split near evenly. Progressive house and vocal trance skew major (Bb major most often); minor concentrates in the East Asian crossovers, big room, deep house and hard dance.
+- The drop is written four times over, once per field, and a brief has to override all four or the default returns. `Global Emotional Progression` runs tension, build, euphoric release, stripped breakdown, "a final, intensified climax", atmospheric fade. `Groove` strips verses "to just the kick and subtle hi-hats" and drops "unleash a full-force drum kit". `Sonics` shifts "from airy and reverberant in the verses to heavily compressed" and wall-of-sound dense at the drop. `Embellishments` places risers into it and impacts on its downbeat.
+- Kick: "a classic four-on-the-floor kick drum pattern" in nearly every card, and only ever in `Groove & Foundation Progression`. Melodic dubstep and future bass swap it for "a half-time drum pattern characteristic of the genre"; industrial techno writes "a punchy, distorted kick drum on every beat".
+- Hats and claps: clap or clap/snare on beats 2 and 4. Verses run closed hats on a steady sixteenth or eighth pulse; choruses and drops add off-beat open hats, crashes and shakers. Snare rolls plus "rising white noise sweeps" mark the pre-chorus.
+- Sidechain compression appears in most of the family and moves between fields: Secondary as "a deep, side-chained sub-bass synth ... locking tightly with the kick drum", `Sonics` as a "pumping" dynamic aesthetic, `Groove`, `Embellishments`, and `Vocal FX` where the vocal itself ducks against the kick.
+- Bass by subgenre: sub-bass is the default, side-chained, entering at the first verse or first drop. Progressive house and trance take "a deep, rolling sub-bass"; hard dance a distorted rolling bassline; future bass adds "a distorted mid-bass growl" in drops only; eurodance uses a pulsating arpeggiated synth bass; hardstyle collapses bass into the kick, which then supplies "both the bassline pulse and the percussive drive".
+- Primary lead is a saw derivative: "a bright, saw-wave lead synthesizer carries the main melodic hook", or supersaw, entering "fully in the first chorus" or "forcefully at the first drop". Plucked synth arpeggios carry intros and verses. Every card has a pad - "a warm, evolving pad synth provides the continuous harmonic bed from the intro through to the outro" - receding in the drops.
+- `Embellishments` is the transition field and barely varies: white noise sweeps and risers before every drop, reverse cymbal swells, impact hits, downlifters and sub-drops at section starts, granular and spacey noise beds under breakdowns.
+- Vocals are a pop topline rather than a genre voice: intimate or "almost whispered" verses to a "soaring, anthemic belt" in choruses. `Harmony/Backing Vocals` carries self-harmony stacked in thirds and fifths to a choral texture, and is where chopped vocals live in drops, "rhythmically sequenced to function as melodic hooks". `Vocal FX` defaults to hall or plate reverb with delay throws, "subtle pitch correction" for a modern pop sheen, filter sweeps through build-ups, then slicing, stuttering and gating in the drops. No card uses a vocoder.
+- No template here is fully instrumental. Absence is a flat negation in the affected field only ("No distinct harmony or backing vocal layers are present") with the other vocal fields still filled. Industrial techno is spoken-word over the intro and instrumental after.
+- Drop, build-up and breakdown are the section vocabulary, and none is a supported lyric tag. Map drop to `[Chorus]` when sung and `[Instrumental]` when not, build-up to `[Pre-Chorus]`, breakdown to `[Bridge]`. The captions treat "the choruses and drops" as one energy state, so a sung chorus distinct from an instrumental drop has to be stated.
+- Defaults to override explicitly: the fade-out ending (only industrial techno cuts, "without variation until the abrupt end"), the mid-track breakdown that resets the arc, the organic contrast layer in Secondary (acoustic piano confined to intro, verse or breakdown in a third of cards), and the `Application Scenarios` staples of festival main stage, late-night driving and workout.
+
+## Electronic (coverage gaps)
+
+- The corpus contains no glitch hop, jungle, drum and bass, trip-hop, breakbeat, IDM or UK garage. Those genre names alone carry little training signal, so the caption must describe the machinery: for jungle, a chopped and resequenced breakbeat at 160-175 BPM over half-time sub-bass; for glitch hop, a 105-115 BPM swung groove with stutter-edited, bit-crushed hits.
+- Closest represented styles to borrow language from: downtempo (half-time hip-hop-influenced beat, swung hats), dark ambient/slowcore, melodic dubstep, future bass.
+- Programmed drums as lifecycle prose per element: what enters when ("soft, thudding kick and a distant, wet snare" entering after the first verse).
+- Dark ambient: forbid development explicitly - the groove does not accelerate; elements gain distortion and volume instead.
+- Drops follow the four-field pattern in [Club electronic](#club-electronic-house-trance-techno-dubstep-festival-edm), with stutter edits added to the transition list.
+- Sound design goes in Primary/Secondary: slowly evolving pads that darken in timbre, granular textures, mid-bass growl scoped to the drop sections.

@@ -117,6 +117,33 @@ class ListingTests(unittest.TestCase):
         self.assertEqual(len(vs._listing(group, "w")), vs.BLOB_LIST_MAX)
 
 
+class DescriptionLengthTests(unittest.TestCase):
+    """The bounds are ceilings. A message naming a target range reads as a quota
+    and gets padded up to, so no finding may state a length to aim for."""
+
+    def test_over_cap_is_an_error(self):
+        errors, warnings = vs.description_findings(words(vs.DESCRIPTION_WORDS_FAIL + 1))
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(warnings, [])
+
+    def test_over_ceiling_is_a_warning(self):
+        errors, warnings = vs.description_findings(words(vs.DESCRIPTION_WORDS_WARN + 1))
+        self.assertEqual(errors, [])
+        self.assertEqual(len(warnings), 1)
+
+    def test_a_short_two_sentence_description_is_clean(self):
+        # 20 words is a realistic tight description; warning here would be an
+        # instruction to pad, which is what the floor was lowered to stop.
+        self.assertEqual(vs.description_findings(words(20)), ([], []))
+
+    def test_no_finding_names_a_length_to_aim_for(self):
+        for count in (5, vs.DESCRIPTION_WORDS_WARN + 1, vs.DESCRIPTION_WORDS_FAIL + 1):
+            errors, warnings = vs.description_findings(words(count))
+            for message in errors + warnings:
+                self.assertNotIn("aim for", message.lower())
+                self.assertNotRegex(message, r"\d+\s*-\s*\d+ words|\d+-\d+\b(?! words)")
+
+
 class DeclaredBudgetTests(unittest.TestCase):
     def test_budget_with_justifying_comment_is_read(self):
         text = "---\nname: x\nmetadata:\n  token-budget: 11000 # branchy by design\n---\n"

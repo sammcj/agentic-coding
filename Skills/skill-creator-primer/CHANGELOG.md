@@ -2,6 +2,11 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-08-17
+
+- Removed the description word-count anchors that authors were padding up to: checklist item 2 and `assets/skill-template.md` now say "1-2 sentences" and name the validator's bound as a ceiling. "Structure over prose" drops "around 20 words" for "a single short sentence".
+- `validate_skill.py`: `DESCRIPTION_WORDS_MIN` 30 -> 15 (the old floor warned on any tight description, instructing authors to pad), and all three length findings name only the cap and the cure - no target range, since the printed number came back on every run regardless of the doc text. Length findings split into `description_findings()`, covered by `DescriptionLengthTests`.
+
 ## 2026-08-13
 
 - `validate_skill.py` takes multiple skill directories in one invocation, each report headed by its path with a pass count at the end; single-skill output is unchanged, so the post-edit hook is unaffected. A missing path or `SKILL.md` fails only that skill, and optional dependencies (PyYAML, skills-ref, tiktoken) are resolved before the first report prints. Serial by measurement: the work is GIL-bound regex, so a 4-thread pool ran 50% slower over all 64 installed skills (276ms vs 184ms) and a process pool broke even at best.
