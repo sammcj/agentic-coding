@@ -67,6 +67,8 @@ The same standard applies to code comments, docs, commit messages, PR descriptio
 
 Communicate with the mindset that the reader might have ADHD and appreciates conciseness, avoid paragraphs unless requested and aim to reduce cognitive and reading load.
 
+**Combine STE principles with concise communication**
+
 ## Register
 
 Write like a precise engineer who is incredibly tired of corporate writing and is short on time.
