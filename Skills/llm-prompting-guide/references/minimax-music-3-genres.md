@@ -1,20 +1,23 @@
 # MiniMax Music 3 Genre Idioms
 
-Per-genre caption vocabulary distilled from the 1,000 official reference captions in the MiniMax-AI/MiniMax-Music3 repo (`skills/music-caption-rewriter/templates/`). Slots into the caption skeleton in [minimax-music-3.md](minimax-music-3.md), and pairs with the routing rules in [Genre routing](minimax-music-3.md#genre-routing) for deciding which of these a brief belongs to. The Western pop families - general pop ballad, cinematic pop ballad, dance-pop/nu-disco/funk - are deliberately not covered.
+Per-genre caption vocabulary selectively distilled from the 1,000 official reference captions in the MiniMax-AI/MiniMax-Music3 repo (`skills/music-caption-rewriter/templates/`). Slots into the caption skeleton in [minimax-music-3.md](minimax-music-3.md), and pairs with the routing rules in [Genre routing](minimax-music-3.md#genre-routing) for deciding which of these a brief belongs to. The Western pop families - general pop ballad, cinematic pop ballad, dance-pop/nu-disco/funk - are deliberately not covered.
+
+This file covers styles the example references contain - it does not mean that it is complete or that the model is limited to these exact genres so if you _have_ to go outside them that is probably ok. For whether a given term exists at all, what each tempo band selects, and what to write in place of an absent style name, read [minimax-music-3-corpus.md](minimax-music-3-corpus.md) first.
 
 ## Contents
 
-- [Metal & heavy rock](#metal--heavy-rock)
-- [Hip-hop, rap & trap](#hip-hop-rap--trap)
-- [Country & americana](#country--americana)
-- [Blues, soul & gospel](#blues-soul--gospel)
-- [Modern R&B & neo-soul](#modern-rb--neo-soul)
-- [Folk & roots](#folk--roots)
+- [Contents](#contents)
+- [Metal \& heavy rock](#metal--heavy-rock)
+- [Hip-hop, rap \& trap](#hip-hop-rap--trap)
+- [Country \& americana](#country--americana)
+- [Blues, soul \& gospel](#blues-soul--gospel)
+- [Modern R\&B \& neo-soul](#modern-rb--neo-soul)
+- [Folk \& roots](#folk--roots)
 - [Rock](#rock)
 - [East Asian pop (Mandopop, C-pop, Cantopop, J-pop, guofeng)](#east-asian-pop-mandopop-c-pop-cantopop-j-pop-guofeng)
-- [Jazz, swing & big band](#jazz-swing--big-band)
-- [Traditional vocal & stage (crooner, doo-wop, a cappella, musical theatre)](#traditional-vocal--stage-crooner-doo-wop-a-cappella-musical-theatre)
-- [Cinematic & orchestral score](#cinematic--orchestral-score)
+- [Jazz, swing \& big band](#jazz-swing--big-band)
+- [Traditional vocal \& stage (crooner, doo-wop, a cappella, musical theatre)](#traditional-vocal--stage-crooner-doo-wop-a-cappella-musical-theatre)
+- [Cinematic \& orchestral score](#cinematic--orchestral-score)
 - [Club electronic (house, trance, techno, dubstep, festival EDM)](#club-electronic-house-trance-techno-dubstep-festival-edm)
 - [Electronic (coverage gaps)](#electronic-coverage-gaps)
 
@@ -24,7 +27,8 @@ Per-genre caption vocabulary distilled from the 1,000 official reference caption
 - Guitar spine sentence: heavily distorted electric guitars as "the core harmonic driver", palm-muted chugging verses opening into sustained power chords in choruses, plus a presence clause (first bar to last). "Down-tuned" flags the heavier subgenres.
 - Bass gets one sentence in every template: locks tightly with the kick.
 - Vocals: controlled storytelling verses to full-throated belt choruses, rasp and fry named at phrase level. Melodeath splits clean vs harsh, growls kept dry and upfront. Gang vocals and unison doubles live in Harmony/Backing.
-- That verses-to-belt arc is the corpus default, so a brief that does not want it has to exclude it explicitly. Genre choice does most of the work: `Progressive Metal` and `Alternative Metal` carry polished, pitch-corrected vocal priors (the first from the Dream Theater lineage, the second from nu-metal). For an unproduced voice, reach for Noise Rock, Math Rock, Sludge Metal or Slowcore instead. Avoid No Wave: its prior is the James Chance skronk-funk lineage, and it pulls the whole arrangement toward punk-jazz regardless of what the other fields say.
+- That verses-to-belt arc is the corpus default, so a brief that does not want it has to exclude it explicitly. Genre choice does most of the work. `Alternative Metal` has 19 cards behind it and every one is nu-metal, polished and pitch-corrected. `Progressive Metal` has none, and comes back polished anyway because the caption routes on whatever else it says.
+- The unproduced-voice alternatives - Noise Rock, Math Rock, Sludge Metal, Slowcore - have no corpus cards either (Slowcore has one). They work by withholding the radio prior rather than by supplying a sound, so the arrangement and vocal fields have to carry the whole result. No Wave behaves differently in practice and pulls the arrangement toward punk-jazz regardless of the other fields, which is an observed behaviour rather than anything the corpus contains.
 - Groove: half-time verse to full-force chorus, double-kick accents, stripped bridge or breakdown.
 - The secondary layer is the contrast: clean arpeggios or pads confined to intro/bridge/outro, receding in heavy sections.
 - Fusion via one dedicated melodic voice (a folk instrument carrying the intro theme and counter-melodies) rather than blended production.
@@ -43,7 +47,7 @@ Per-genre caption vocabulary distilled from the 1,000 official reference caption
 
 ## Country & americana
 
-- Major keys dominate, often flat (Bb, Eb, Ab, F); minor for sombre americana and southern rock. BPM: ballads 74-103; mid-tempo storytelling 78-115; bluegrass 128-140; rockabilly and up-tempo country rock 171-194.
+- Major keys dominate, four in five cards, led by Bb, G, Eb and E; minor is reserved for sombre americana and southern rock. BPM: 74 is the family floor, ballads 74-103; mid-tempo storytelling 78-115; bluegrass 128-140; rockabilly and up-tempo country rock 171-194.
 - "Twang" is the marker word: "clean electric guitar with a slight twang" (brand names never appear). Train-beat written as relentless train-like momentum, straight eighths, snare on 2 and 4.
 - Pedal steel: secondary layer weaving slides and counter-lines between vocal phrases. Banjo: rolling arpeggios as the driver, rolls doubling as section transitions. Fiddle: double-stops and expressive slides. Mandolin: off-beat chop chords.
 - Vocals: warm gravelly baritone, conversational, lived-experience; bluegrass swaps to a clear tenor with a slight twang. Tight third-interval harmonies; slapback delay flags rockabilly.
@@ -53,7 +57,7 @@ Per-genre caption vocabulary distilled from the 1,000 official reference caption
 ## Blues, soul & gospel
 
 - Shuffle and 12/8 never appear in the BPM line - the Groove field carries the feel ("slow, shuffling 12/8 blues rhythm"). Corpus BPMs are sometimes double-time counts, so the groove field, not the number, defines the felt tempo.
-- Minor keys favoured even for jump blues. Intensity lift without tempo change is idiomatic ("pushing the tempo feel forward without changing the actual BPM").
+- Minor keys favoured even for jump blues, at roughly seven cards in ten, with G minor and C minor well ahead of the rest. Intensity lift without tempo change is idiomatic ("pushing the tempo feel forward without changing the actual BPM").
 - Guitar written tone-first (clean-to-lightly-overdriven through heavily distorted) with role verbs (melodic anchor, harmonic backbone); slide licks as transitional fills between vocal phrases; guitar interacting closely with the vocal phrasing.
 - Horns: punchy stabs in verses, harmonised soaring lines in choruses, punctuation between vocal phrases. Organ is always "Hammond-style", sustained chords and swells filling the mid-range.
 - Vocals: gravelly baritone or gravel-textured tenor, behind-the-beat phrasing, melisma and dynamic swells, fry and slight growls. Gospel reads as choir call-and-response plus belts, not "preacher" wording.
@@ -78,6 +82,7 @@ Shares the older family's verse-restraint-to-chorus-release arc and its melisma 
 
 ## Folk & roots
 
+- The most major-key family in the corpus at roughly six cards in seven, with Bb major well ahead of C, Eb and G. A minor-key folk brief is already unusual here.
 - BPM often reads double-time against felt tempo (a 158 BPM "fragile ballad"); slow ballads also use true-slow values.
 - Guitar spec is string type + technique + structural role: steel-string fingerstyle weaving bass, chords and fills; when drumless, attribute the pulse to the picking pattern.
 - Room sound lives in Sonics & Production: organic and uncompressed, natural attack and decay, intimate room tone.
@@ -87,11 +92,18 @@ Shares the older family's verse-restraint-to-chorus-release arc and its melisma 
 
 ## Rock
 
-- Verse/chorus dynamics written as a tone change on one guitar: clean finger-picked verses switching to heavily distorted power chords in choruses.
-- Doubled guitars panned hard left and right; verses open and breathable, choruses tightly compressed.
-- Vocals shift register per section (baritone to gritty strained tenor), fry and grit at phrase ends.
+Rock in this corpus means four neighbourhoods and nothing else: mainstream Pop Rock and Alternative Rock, Arena Rock, Blues Rock and its southern variant, and a J-Rock/anime cluster labelled Symphonic Rock. The progressive, psychedelic and art-rock traditions have no cards at all - see [minimax-music-3-corpus.md](minimax-music-3-corpus.md) for what to write instead.
+
+- Pop and alternative rock (75 cards, 57-182 BPM, median 100) is only a third minor, against 88% for metal. Eb and Bb major are the common keys, so a minor key here is already a departure. Arena Rock (18 cards) clusters 74-90 and leans Eb minor.
+- Guitar spine: "distorted electric guitars serve as the core harmonic and melodic drivers", clean or arpeggiated "in the intro and verses" and present through the choruses. Verse/chorus dynamics are written as a tone change on one instrument rather than by adding instruments.
+- Doubled guitars panned hard left and right; verses open and breathable, choruses tightly compressed into "a wall of sound".
+- Bass is one sentence, near-universally "a bass guitar underpins the harmony, locking tightly with the kick drum". A bass line that plays against the kick is rare and has to be stated.
+- Groove is a stock frame: "the rhythm section is anchored by a full drum kit", verses on hats or a restrained pattern, snare on beats 2 and 4, kick doubling under choruses.
+- Blues Rock is the corpus's slow-guitar territory and the strongest gravity well for any unhurried rock brief: 40 cards, 56-176 BPM, 87% minor, with G minor and C minor dominant. Its spine is "a clean electric guitar with a slight overdrive serves as the harmonic backbone" plus slide guitar fills between vocal phrases. Southern Rock (9 cards) is all minor, mostly D minor at 77-90.
+- Symphonic Rock (8 cards) is J-Rock, anime and C-Pop rock, not the Western symphonic tradition. Choosing it imports that idiom whole.
+- Vocals shift register per section (baritone to gritty strained tenor), fry and grit at phrase ends. The family default is "the performance begins with a controlled delivery" evolving "into a powerful belting technique" at the chorus, and it is present in blues rock as strongly as in pop rock. Overriding it takes a stated counter-movement.
 - Industrial: hybrid drum kit (acoustic samples with electronic processing), metallic impacts, mechanical grinding, tape-stop transitions.
-- Textures: feedback squeals, string bends, delay throws, noise risers, reverse cymbal swells.
+- Textures: feedback squeals, string bends, delay throws, noise risers, reverse cymbal swells. Wah, reverse guitar and spring reverb exist in single figures, so name the technique and what it does rather than relying on the effect name.
 
 ## East Asian pop (Mandopop, C-pop, Cantopop, J-pop, guofeng)
 

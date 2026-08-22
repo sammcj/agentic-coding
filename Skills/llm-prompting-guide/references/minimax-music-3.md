@@ -4,13 +4,16 @@ MiniMax Music 3 generates a complete song (up to ~5 minutes, 32kHz stereo) from 
 
 ## Contents
 
+- [Contents](#contents)
 - [The two inputs](#the-two-inputs)
+- [Pre-flight check](#pre-flight-check)
 - [Caption skeleton](#caption-skeleton)
 - [Field lengths](#field-lengths)
 - [Global Metadata](#global-metadata)
 - [Vocal Details](#vocal-details)
 - [Arrangement](#arrangement)
 - [Lyrics input](#lyrics-input)
+- [Duration is a ceiling](#duration-is-a-ceiling)
 - [Genre routing](#genre-routing)
 - [Priors and how to override them](#priors-and-how-to-override-them)
 - [Corpus craft patterns](#corpus-craft-patterns)
@@ -19,16 +22,36 @@ MiniMax Music 3 generates a complete song (up to ~5 minutes, 32kHz stereo) from 
 - [Resolving conflicts](#resolving-conflicts)
 - [ComfyUI specifics](#comfyui-specifics)
 - [Worked example](#worked-example)
+- [Think carefully about how your lyrics will match the music](#think-carefully-about-how-your-lyrics-will-match-the-music)
 - [Review checklist](#review-checklist)
+- [Delegating parallel songwriting to sub-agents](#delegating-parallel-songwriting-to-sub-agents)
+- [Iteratively improving or varying a song](#iteratively-improving-or-varying-a-song)
 
 ## The two inputs
 
 | Input | Carries | Never carries |
-|-|-|-|
+| - | - | - |
 | Caption | Style, tempo, key, emotional arc, production, vocal identity, instrument timeline | Lyric lines or paraphrases of them, song title, bracket tags |
 | Lyrics | Sung words plus `[Section]` tags | Style or production instructions |
 
 The split is strict: structure comes from the lyric tags, sound comes from the caption. Bracket tags appear nowhere in the caption; the caption names sections in prose ("the second chorus", "the bridge").
+
+## Pre-flight check
+
+The model knows the styles in its 1,000 published training captions. A genre term or production phrase that appears nowhere in them carries no signal, and the encoder falls back on whatever neighbourhood the rest of the caption points at. Run this before writing, not after a take comes back wrong.
+
+1. Check every genre term destined for `Basic Attributes` against the corpus, and every distinctive production phrase you plan to lean on.
+2. Check what the chosen BPM implies. Tempo selects a style neighbourhood on its own, so a slow guitar brief lands in blues rock and a 128 BPM brief lands in dance.
+3. For anything the corpus does not contain, describe the machinery instead of naming it, and expect the Arrangement fields to carry more weight than usual.
+
+```sh
+git clone --depth 1 https://github.com/MiniMax-AI/MiniMax-Music3.git
+cd MiniMax-Music3/skills/music-caption-rewriter
+rg -icl '^Basic Attributes:.*<term>' templates | wc -l   # does it route
+rg -icl '<term>' templates | wc -l                        # has the model heard it described
+```
+
+Counts, tempo neighbourhoods, the zero-coverage list and the substitutes for absent styles are in [minimax-music-3-corpus.md](minimax-music-3-corpus.md). Known traps worth memorising: `Progressive` is house music in this corpus, `psychedelic` appears zero times, and `tape echo`, `mellotron`, `phaser` and `vocoder` are all absent.
 
 ## Caption skeleton
 
@@ -55,12 +78,14 @@ Embellishments, Textures & Spatial FX: ...
 
 `Instrument Lifecycle Description (Primary/Secondary Layering):` has no text of its own - it is a header for the `Primary:` and `Secondary:` lines beneath it.
 
+The three headings are optional; the eleven labels are what the encoder keys on. A supported alternative runs each group as a single paragraph with its labels inline and joins the three paragraphs with newlines. One field per line is easier to revise.
+
 ## Field lengths
 
 Typical ranges in the reference corpus; whole caption 420-720 words (corpus median ~570). Under-filling a field is what makes output generic.
 
 | Field | Words |
-|-|-|
+| - | - |
 | Basic Attributes | 13-18 (one line) |
 | Global Emotional Progression | 45-80 |
 | Application Scenarios & Imagery | 20-45 |
@@ -76,13 +101,15 @@ Typical ranges in the reference corpus; whole caption 420-720 words (corpus medi
 
 ## Global Metadata
 
+Prefer concrete musical changes over decorative prose. Default to approximately 250-450 English words unless the user requests another length.
+
 **Basic Attributes** - the one field with fixed phrasing. Exact BPM, key, scale, then genre and subgenres separated by ` / `:
 
 ```text
 Basic Attributes: bpm is 74. key is Bb, and scale is minor. Contemporary R&B / Alternative Soul.
 ```
 
-Give a concrete BPM and key even when the user did not name one - pick values idiomatic for the genre and keep the rest of the caption consistent with them (a 162 BPM trap groove described as half-time, a 74 BPM ballad with slow harmonic rhythm). Two or three genre terms locate the style; more than three blurs it.
+Give a BPM and key even when the user did not name one - pick values idiomatic for the genre and keep the rest of the caption consistent with them (a 162 BPM trap groove described as half-time, a 74 BPM ballad with slow harmonic rhythm). Two or three genre terms locate the style; more than three blurs it.
 
 **Global Emotional Progression** - how feeling moves from open to close, tied to what causes it (dynamic swell, arrangement thinning, a key lift). Name the beginning state, the change, and the ending state.
 
@@ -107,7 +134,7 @@ Vocal Gender & Timbre: Singer A (Female) and Singer B (Male). Singer A possesses
 
 **Vocal FX** - reverb type and size, delay, doubling, saturation, pitch treatment, filtering. State restraint explicitly when the style wants a raw voice.
 
-Instrumental track: state that the piece is instrumental in `Vocal Gender & Timbre` and name the instrument carrying the lead melody, then keep the remaining three vocal fields consistent with that. An explicit instrumental request stays instrumental - do not add a vocal line to fill the section.
+Instrumental track: write `Instrumental, no vocals.` in `Vocal Gender & Timbre`, name the instrument carrying the lead melodic role, then keep the remaining three vocal fields consistent with that. Keep these statements flat and short - enumerating every vocal type in order to negate it ("no sung, chanted, hummed or whispered delivery") stacks vocal tokens the encoder reads as evidence for a voice. The caption alone does not hold the line either; the lyrics box needs [tag-only structure](#lyrics-input). An explicit instrumental request stays instrumental - do not add a vocal line to fill the section.
 
 ## Arrangement
 
@@ -138,10 +165,42 @@ Streetlights blur across the windscreen
 [Outro]
 ```
 
-- Supported tags: `[Intro]`, `[Verse]`, `[Pre-Chorus]`, `[Chorus]`, `[Post-Chorus]`, `[Bridge]`, `[Instrumental]`, `[Solo]`, `[Outro]`.
-- `[Instrumental]` and `[Solo]` take no lyric lines - describe what plays there in the caption's Arrangement fields.
-- Match total lyric volume to `max_duration`; a full verse-chorus-bridge structure crammed into 60 seconds gets rushed or truncated.
+- Supported tags: `[intro]`, `[verse]`, `[pre-chorus]`, `[chorus]`, `[post-chorus]`, `[bridge]`, `[instrumental]`, `[solo]`, `[outro]`. Write them lowercase; case is not significant.
+- Every tag sits alone on its own line. Words never share a line with a tag.
+- `[instrumental]` and `[solo]` take no lyric lines - describe what plays there in the caption's Arrangement fields.
+- Never leave the lyrics input empty. A blank box is rejected outright by some frontends, and the model reads an unstructured one as licence to improvise syllables.
+- Match total lyric volume to `max_duration`, budgeting 12-16 sung words per 10 seconds. Structure sizing: 30 seconds or less takes one verse and one chorus; around 60 seconds takes verse / pre-chorus / chorus / verse / chorus; 120 seconds and over takes the full structure with a bridge and an outro.
 - When the user attaches a musical instruction to a tag ("[Bridge] - drums drop out"), move it into the matching part of the Arrangement description and leave the lyrics input clean.
+
+**An instrumental track still needs a populated lyrics input.** The box is the structure input, not only the words input. Left empty, the model has no section map and fills the space with improvised syllables that come back as singing in an invented language; the caption's vocal fields do not prevent this on their own. `[instrumental]` alone covers a short piece. Past roughly two minutes, write the whole structure as tag-only lines with no words beneath any of them, enough sections to span `max_duration`:
+
+```text
+[intro]
+[instrumental]
+[instrumental]
+[bridge]
+[instrumental]
+[solo]
+[outro]
+```
+
+Repeated `[instrumental]` tags are how a long instrumental gets its sections; `[bridge]` marks a breakdown or contrasting passage and `[solo]` a lead-instrument feature. Keep the tag count and order consistent with the entrances and exits in the caption's Arrangement fields - a caption tracing seven sections against two tags in the lyrics box is a conflict the model resolves by inventing material.
+
+Scale the tag count to the target length. A tag-only section renders at roughly 8-12 seconds, and the rate falls toward the low end as the tag count rises, so budget generously: seven tags returns around 90 seconds and twenty returns around three minutes. See [Duration is a ceiling](#duration-is-a-ceiling).
+
+There is no model-level instrumental flag. The caption half of the instruction is `Instrumental, no vocals.` in `Vocal Gender & Timbre` followed by the instrument carrying the lead melodic role; the tag-only lyrics input is the other half.
+
+## Duration is a ceiling
+
+`max_duration` caps the generation; it does not set the length. The autoregressive stage emits an end-of-audio token when it judges the piece finished, and that decision comes from the prompt. A 280-second request returning 84 seconds is the model ending early, not the setting failing.
+
+What actually sets length:
+
+- Tag count. Each section tag is a unit of time the model has to fill; a sung section runs longer than a tag-only one. Tag-only sections land around 8-12 seconds each, and the per-section rate compresses as the count rises rather than scaling linearly, so a long piece needs proportionally more tags than the arithmetic suggests.
+- Lyric volume within each section, at 12-16 sung words per 10 seconds.
+- Section timings named in the caption's emotional, groove and embellishment fields, which have to agree with the tag count. A caption describing a four-minute arc over seven empty tags gets resolved as a short piece.
+
+When output is short, add tags before touching anything else, then re-check that the Arrangement timeline still describes the same number of sections.
 
 ## Genre routing
 
@@ -164,7 +223,9 @@ Family boundaries that the corpus decides differently from ordinary usage:
 - Jazz/swing vs traditional vocal/stage: a dominant rhythm section or big-band language is jazz; a crooner without those cues is stage.
 - Modern R&B vs soul/blues/gospel: classic soul stays in the older family, and lo-fi R&B usually takes hip-hop as its secondary.
 
-Family size tracks how much training signal a genre term carries. Metal (78 cards), East Asian modern (75), pop/alternative rock (75), hip-hop (74) and East Asian heritage (72) are dense; club EDM, roots/traditional and general pop sit at 29 each. In a thin family, describe the machinery rather than trusting the genre name, as in [Electronic (coverage gaps)](minimax-music-3-genres.md#electronic-coverage-gaps).
+Family size tracks how much training signal a genre term carries. Metal (78 cards), East Asian modern (75), pop/alternative rock (75), hip-hop (74) and East Asian heritage (72) are dense; club EDM, roots/traditional and general pop sit at 29 each. In a thin family, describe the machinery rather than trusting the genre name.
+
+Routing only works on territory the corpus holds. Whole traditions are missing from it - progressive, psychedelic, art rock, post-rock, krautrock, the breakbeat lineage, free jazz - and a brief from one of those routes to whatever its tempo and instrumentation resemble instead. Check the term and its tempo band before routing: [minimax-music-3-corpus.md](minimax-music-3-corpus.md).
 
 ## Priors and how to override them
 
@@ -172,7 +233,9 @@ The caption format buys section-level control; it does not stop the model reachi
 
 No field binds the model absolutely. Section tags and caption fields are generative conditioning rather than symbolic instruction, so delivered tempo, key, instrumentation and structure can drift from what the caption states, and one caption at two seeds can differ on all four. Re-roll the seed before rewriting a field - a single off-target take is a sample. The same miss across several seeds is a prompt problem, and that is when the levers below apply.
 
-**Genre terms outweigh every prose field.** `Progressive Metal` carries a polished, pitch-corrected vocal; `Alternative Metal` carries nu-metal. Changing the genre line moves the result further than several rounds of vocal-field rewrites. Raw-vocal alternatives that carry no radio prior: Noise Rock, Math Rock, Sludge Metal, No Wave, Slowcore, Art Rock.
+**Genre terms outweigh every prose field.** `Progressive Metal` comes back polished and pitch-corrected; `Alternative Metal` carries nu-metal, which is what its 19 corpus cards contain. Changing the genre line moves the result further than several rounds of vocal-field rewrites.
+
+Terms split into two kinds, and the difference decides how you use them. A term with corpus cards behind it supplies a sound and its priors together, so `Alternative Metal` brings the nu-metal vocal whether or not you wanted it. A term with no cards at all - Noise Rock, Math Rock, Sludge Metal, Art Rock, No Wave, and Progressive Metal itself - summons no radio prior, which is the reason they work as escapes, but supplies no sound either. The result is decided entirely by the arrangement and vocal fields, and by whatever neighbourhood the BPM and instrumentation point at. Use an absent term to withhold a prior, never to specify a style, and check which kind you have before writing the line ([Pre-flight check](#pre-flight-check)).
 
 **Section tags carry performance priors, not just structure.** `[Chorus]` triggers the whole chorus apparatus - a volume lift, doubled vocals, hook-shaped phrasing - and `[Pre-Chorus]` implies a lift into something, with the same effect. Most briefs want exactly that. Where a brief wants nothing pop in the result, or a through-composed shape whose sections develop rather than return, dropping the tags removes the reflex at source: repeated `[Verse]` plus `[Instrumental]`, `[Bridge]` and `[Outro]`, with the caption naming sections in prose as "the first vocal section", "the second", and so on.
 
@@ -184,7 +247,7 @@ Removing the tag leaves the reflex in the words. A refrain that comes back uncha
 
 **Describe the recording chain, not the voice.** "One condenser several feet away, in the same room as the band, on the same take, with bleed into the drum mics, no comping and no overdubs" does more for rawness than any timbre adjective. The same move works for any organic genre: specify how it was captured and what was not fixed afterwards.
 
-**Individual production details are genre flags, and a stack of them outvotes the genre line.** Before writing a field, check [minimax-music-3-genres.md](minimax-music-3-genres.md) for what the detail signifies elsewhere - a caption can be dragged into a genre nobody asked for by four or five small choices that each looked neutral. Known offenders: slapback delay reads rockabilly; tambourine plus backbeat plus major key reads country; a male harmony below the lead reads country; root-and-fifth bass reads country; "drawl", "twang" or any regional accent word imports that whole idiom; brushed kit reads jazz; ride bell and rim clicks carrying the time reads jazz combo; hand percussion plus swung hats reads downtempo. Match the accumulated detail to the target or the genre terms will lose.
+**Individual production details are genre flags, and a stack of them outvotes the genre line.** Before writing a field, check the `minimax-music-3-genres.md` reference for what the detail signifies elsewhere - a caption can be dragged into a genre nobody asked for by four or five small choices that each looked neutral. Known offenders: slapback delay reads rockabilly; tambourine plus backbeat plus major key reads country; a male harmony below the lead reads country; root-and-fifth bass reads country; "drawl", "twang" or any regional accent word imports that whole idiom; brushed kit reads jazz; ride bell and rim clicks carrying the time reads jazz combo; hand percussion plus swung hats reads downtempo. Match the accumulated detail to the target or the genre terms will lose.
 
 **Application Scenarios is imagery, not plot.** Setting the scene with the same objects the lyrics use both breaks the no-paraphrase rule and doubles down on whatever genre that scenery belongs to. Describe the listening situation and the emotional register instead.
 
@@ -205,7 +268,9 @@ Recurring moves across the 1,000 official reference captions:
 - For organic genres, keep deliberate imperfection audible: amp hum, string noise, breath.
 - Lyric shape steers delivery. A short imperative alone on its line will be chanted; uneven line lengths and phrases that run past where a singer would breathe cannot be. A refrain that returns altered each time gets sung as development rather than as a hook.
 
-Per-genre tempo/key conventions and field vocabulary (metal, hip-hop/trap, country/americana, blues/soul, folk/roots, rock, electronic): read [minimax-music-3-genres.md](minimax-music-3-genres.md).
+Four of these patterns describe machinery the corpus does not contain. Odd metre appears in one caption of the 1,000, time signatures in two, and `imperfect` in four, so nothing in training supports them. They still work, because they spell out what the model should play rather than naming a style, and that is the only mode available for anything outside the corpus. Expect them to need restating across fields and to survive imperfectly.
+
+Per-genre tempo/key conventions and field vocabulary: read [minimax-music-3-genres.md](minimax-music-3-genres.md). Which terms exist at all, what each tempo band contains, and what to write instead of an absent style name: read [minimax-music-3-corpus.md](minimax-music-3-corpus.md).
 
 ## Series and album consistency
 
@@ -225,6 +290,12 @@ MiniMax publishes the 1,000 reference captions plus a caption-rewriting skill at
 - Its output contract targets 250-450 words - shorter than the 420-720 the template corpus itself uses. Prefer the corpus range for section-level control.
 - It also forbids inventing an exact BPM, key or vocal gender the brief did not supply, where this guide asks for concrete values. Same trade as the word count: a vague caption is harder to contradict, a concrete one gives more section-level control. Choose concrete values unless the user explicitly wants the model to decide.
 
+The reference Gradio app at https://huggingface.co/spaces/MiniMaxAI/MiniMax-Music3 (`app.py`) carries the shipped caption and lyric contracts in its system prompts. Constraints from it:
+
+- Caption and lyrics are tokenised into one prompt under a single token ceiling, so a long caption and a long lyric sheet compete for the same budget.
+- Generation caps at 9,000 latent frames, roughly 300 seconds, whatever duration is requested.
+- State what enters, exits, changes or intensifies for every section in the Arrangement fields, aligned one-to-one with the lyric section tags.
+
 ## Resolving conflicts
 
 Apply in this order when the user's brief, lyric tags and genre convention disagree:
@@ -239,7 +310,7 @@ A section-local instruction changes that section, never the global genre. When t
 ## ComfyUI specifics
 
 - **Workflow**: Template Library > Audio > MiniMax Music 3 Text to Music. Two text nodes (caption, lyrics) feed the text encoder; the DiT synthesises the latent; the audio VAE decodes to 32kHz stereo, saved by `SaveAudioAdvanced` to `ComfyUI/output/audio/`.
-- **max_duration**: seconds, template default 60, model ceiling ~300. Longer costs time and VRAM.
+- **max_duration**: seconds, template default 60, model ceiling ~300. It caps the output rather than setting it - see [Duration is a ceiling](#duration-is-a-ceiling). Longer costs time and VRAM.
 - **seed**: fixed seed reproduces the take; change it for a different performance of the same caption.
 - **tiled_decode**: on cuts VAE VRAM for long songs at a small risk of seams at tile boundaries; off on a high-VRAM GPU for best quality.
 - **Models**: `minimax_music3_dit_fp16.safetensors` (or the INT8 DiT for low VRAM) in `diffusion_models/`, `minimax_music3_text_encoder_pruned_int8_convrot.safetensors` in `text_encoders/`, `minimax_music3_dav.safetensors` in `vae/`.
@@ -301,8 +372,15 @@ So drive me somewhere new
 [Outro]
 ```
 
+## Think carefully about how your lyrics will match the music
+
+We want the pacing, rhythm, and emotional tone of the lyrics to complement the music. Consider where the singer will take their breaths and how lyrics will flow, and resonate with the musical arrangement.
+
+When referencing existing works created with minimax music 3 unless requested do not copy or reuse the exact same lines when asked to create completely new tracks - if the user asks you for more similar music they don't want want another version of the same song - they want another song the belongs on the same album.
+
 ## Review checklist
 
+0. You have consulted the appropriate references and examples in order to form the highest quality output.
 1. Three headings present, spelled exactly, in order, each on its own line.
 2. Eleven field labels present and spelled exactly, including the bare `Instrument Lifecycle Description (Primary/Secondary Layering):` header above `Primary:` and `Secondary:`.
 3. `Basic Attributes` follows the fixed phrasing with an exact BPM, key, scale and two or three genre terms. Each term names a style, not a modifier (`ballad`, `epic`, `dark`, `cinematic`, `modern`, `emotional`), and a fusion is ordered primary first.
@@ -311,6 +389,20 @@ So drive me somewhere new
 6. Every vocal field filled, including an explicit statement when harmonies or effects are absent.
 7. Arrangement fields read as a timeline with entrances, exits and changes tied to named sections.
 8. Groove field covers drums and bass development, not just a kit description.
-9. Lyric tags are the only structural instruction in the lyrics input, and lyric volume suits `max_duration`.
+9. Lyric tags are the only structural instruction in the lyrics input, and lyric volume suits `max_duration`. An instrumental track carries tag-only lines rather than an empty box, with enough sections to span the duration.
 10. Field lengths land in the ranges above; the whole caption reaches 420-720 words.
 11. When the brief rejects the mainstream rendering of a style, the genre terms and the section tags have been checked as sources of that default before any prose field is rewritten.
+12. Every genre term and distinctive production phrase has been checked against the corpus, and the BPM has been checked for the neighbourhood it selects. Anything absent is described as machinery rather than named ([Pre-flight check](#pre-flight-check)).
+
+## Delegating parallel songwriting to sub-agents
+
+If the user asks you to delegate or parallelise songwriting tasks, you can create sub-agents to do the work in parallel. Ask the user if they want to use the fable or opus model for the sub-agents.
+
+Task each of subagents in parallel with: 1) activating the llm prompting guide skill, 2) reading it's minimax music 3 prompting references, 3) reading this new document then finally 4) authoring a new artistic piece each faithful to the values and style outlined in the new document.
+Get each of the agents to write their context, minimax music 3 prompts and lyrics to a new file each. Then when they're done review their work and give me thoughts on it or do as otherwise instructed.
+
+## Iteratively improving or varying a song
+
+If the user works with your to provide feedback and improve a song, default operating mode unless otherwise requested:
+- For small tweaks and improvements update the caption / lyrics in place.
+- For larger changes create a new version of the caption or lyrics in the same file, and add a note about the feedback / problems with the previous version. This allows you to keep track of the changes and the evolution of the song.
