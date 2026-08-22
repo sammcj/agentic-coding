@@ -16,7 +16,7 @@ MiniMax Music 3 generates a complete song (up to ~5 minutes, 32kHz stereo) from 
 - [Duration is a ceiling](#duration-is-a-ceiling)
 - [Genre routing](#genre-routing)
 - [Priors and how to override them](#priors-and-how-to-override-them)
-- [Negative prompting](#negative-prompting)
+  - [Avoiding an auto-tuned vocal](#avoiding-an-auto-tuned-vocal)
 - [Corpus craft patterns](#corpus-craft-patterns)
 - [Series and album consistency](#series-and-album-consistency)
 - [Official template library](#official-template-library)
@@ -133,7 +133,7 @@ Vocal Gender & Timbre: Singer A (Female) and Singer B (Male). Singer A possesses
 
 **Harmony/Backing Vocals** - stacks, octave doubles, call-and-response, choir, gang vocals, and which sections they enter. `No distinct backing vocals or harmony layers are present` when the lead carries it alone - the field is never left blank.
 
-**Vocal FX** - reverb type and size, delay, doubling, saturation, pitch treatment, filtering. State restraint explicitly when the style wants a raw voice.
+**Vocal FX** - reverb type and size, delay, doubling, saturation, pitch treatment, filtering. State restraint explicitly when the style wants a raw voice; where the result keeps coming back auto-tuned, see [Avoiding an auto-tuned vocal](#avoiding-an-auto-tuned-vocal).
 
 Instrumental track: write `Instrumental, no vocals.` in `Vocal Gender & Timbre`, name the instrument carrying the lead melodic role, then keep the remaining three vocal fields consistent with that. Keep these statements flat and short - enumerating every vocal type in order to negate it ("no sung, chanted, hummed or whispered delivery") stacks vocal tokens the encoder reads as evidence for a voice. The caption alone does not hold the line either; the lyrics box needs [tag-only structure](#lyrics-input). An explicit instrumental request stays instrumental - do not add a vocal line to fill the section.
 
@@ -252,85 +252,18 @@ Removing the tag leaves the reflex in the words. A refrain that comes back uncha
 
 **Application Scenarios is imagery, not plot.** Setting the scene with the same objects the lyrics use both breaks the no-paraphrase rule and doubles down on whatever genre that scenery belongs to. Describe the listening situation and the emotional register instead.
 
-**Negation is unreliable, and naming evokes.** The encoder handles negation poorly, and an exclusion that names a genre ("no nu-metal bounce") can summon it. Convert most exclusions to positive statements of what does happen, keep two or three high-value ones, and never name the genre being avoided. Where the frontend offers a negative caption, that is the correct home for an exclusion: it names the thing plainly and steers away from it without the naming backfiring. See [Negative prompting](#negative-prompting).
+**Negation is unreliable, and naming evokes.** The encoder handles negation poorly, and an exclusion that names a genre ("no nu-metal bounce") can summon it. Convert most exclusions to positive statements of what does happen, keep two or three high-value ones, and never name the genre being avoided. Where the frontend offers a negative caption, that is the correct home for an exclusion: it names the thing plainly and steers away from it without the naming backfiring. See `./minimax-music-3-negative-prompting.md` for negative prompting if required.
 
-## Negative prompting
+### Avoiding an auto-tuned vocal
 
-Available where the frontend exposes it (a ComfyUI workflow with `negative_caption` and `negative_weight` inputs). Everything above still applies to the positive caption; this is an extra axis, not a replacement for writing the caption well.
+In order of force:
 
-**Where it acts.** In the autoregressive text encoder, the same stage the caption acts on, before any audio token is emitted. It can therefore move the composition itself - melody, structure, arrangement - not just the tone of the render. The DiT and VAE stage downstream only renders what that stage decided.
+- **Genre term.** 169 of the 1,000 cards name pitch correction, clustered in Mandopop, Contemporary R&B, Electronic Pop, C-Pop, Hip-Hop and Dance-Pop. Naming one imports it whatever the vocal fields say.
+- **Neighbouring cues.** Grid-locked phrasing, exactly aligned doubles, "precise pitching", "controlled", de-essing, a comped composite, sustains held at constant level, wide harmony stacks. Four of these tune the voice with the word never appearing.
+- **Positive detail**, in `Vocal Style` and `Vocal FX`. Notes approached from below, drift on long sustains, a phrase ending flat, one take kept whole, breath between phrases, a double mixed late so the takes never lock.
+- **Stated absence**, the exception to the negation rule since the corpus carries the phrasing and always pairs it with what survives: `There is no noticeable pitch correction or heavy processing, preserving the raw, human quality of the performance.` Bare `no autotune` or `without pitch correction` appear nowhere in it.
 
-**Mechanism.** The encoder already ran classifier-free guidance over a two-row batch: row 0 is the caption, row 1 was a null prompt with every caption and lyric token overwritten by `<|audio_cfg|>`. Guidance is `guided = negative + (positive - negative) * cfg_scale`. The negative caption substitutes real text into that previously-null row. The steering direction is `positive - negative`, so **anything the two captions share cancels and contributes nothing**. That one fact drives everything below.
-
-### Controls
-
-- `negative_caption` - free text, written as a caption.
-- `negative_weight` - 0.0 to 1.0, blending between the null row and the negative row. `0.0` disables it and generation is bit-identical to not using it. `1.0` replaces the null row outright and is the normal setting, the equivalent of a negative prompt in an image model rather than an extreme. Values between are a partial retreat toward having no negative.
-- Push strength is not set by `negative_weight`. It comes from `cfg_scale`, shared with the positive caption.
-
-### What it can and cannot do
-
-Steers away from genres, styles, instruments, production characteristics, arrangement habits and vocal treatments - anything the caption vocabulary expresses. Because it acts before token generation, it changes the composition.
-
-- It is not a filter or a ban list. Nothing is prohibited; the distribution is tilted.
-- It cannot override the positive caption. Asking for something in the caption that the negative rejects makes the two fight, with `cfg_scale` mediating. Contradicting your own caption wastes the mechanism.
-- It does not operate on lyrics. The negative is read as a caption, so it cannot suppress words or phrases in the sung text.
-- It has no effect at weight 0 or with empty text.
-
-### Writing one
-
-Write it as a caption in the same structured format as the positive, with attributes under the heading that owns them: a vocal treatment under `Vocal Details`, a genre on the `Basic Attributes` line. The encoder is a Qwen-based LLM trained on captions in that shape, and it reads the headings.
-
-Two strategies, trading precision against force:
-
-- **Mirrored** - copy the positive caption and change only the clause being negated. Everything identical cancels exactly, leaving a clean single-axis direction. Precise, but the resulting vector is small, so it needs a higher `cfg_scale` to be felt.
-- **Minimal** - a short caption in the same shape carrying only the offending attribute. Blunter direction, far more magnitude behind it.
-
-Between the two sits the useful default: write the version of the song you do not want, inverting only the fields that carry the failure mode and leaving the rest out. Each field you invert adds an axis to the vector, so four inverted fields aimed at one target beat eleven aimed at several.
-
-Hold bpm and key identical to the positive. They cancel exactly. A different bpm in the negative steers away from that tempo as well as from the genre, which is rarely what you meant.
-
-### Worked negative
-
-Positive caption: 92 BPM C# minor, Gothic / Math / Progressive / Black Metal. A flat emotional level that never climbs, a voice that drops further under the guitars as they thicken, returns delivered lower and quieter each time, an abrupt stop. A low clean male voice within a fifth, close to speech, one microphone in the room with the band and drum bleed on the vocal track. No strings, no pad, density in the final third coming from the existing guitars playing lower.
-
-Aimed at pop rock, nu-metal and generic smooth vocals:
-
-```text
-Global Metadata
-Basic Attributes: bpm is 92. key is C#, and scale is minor. Pop Rock / Alternative Rock / Nu-Metal.
-Global Emotional Progression: The piece opens with an atmospheric introduction that establishes mood before the song proper begins. Intensity and vocal volume climb steadily across the arrangement, each section larger than the one before it. The returning sections are the peaks, delivered higher and louder each time as the singer rises over the thickening guitars to meet them. The final section is the biggest in the piece, with the full arrangement and the vocal at its most powerful, and the song fades out.
-Vocal Gender & Timbre: Singer A (Male). A polished mid-range tenor, bright and open at the top, smooth and even throughout with no grain or roughness in it. A wide and flexible working range, projected out into the room and clearly performed rather than spoken.
-Vocal Style: The voice builds in volume from the first line to the last, opening restrained and ending belted at full power. Phrase endings are held and sustained across multiple beats, with melisma and vocal runs decorating the ends of lines. The returning sections are sung higher and stronger each time, doubled and stacked with harmony lines above the lead. Every line is sung.
-Vocal FX: A composite vocal comped from several takes and recorded separately from the band. Pitch corrected and heavily compressed to a constant level, de-essed and bright, with a long bright hall reverb and delay throws on the ends of lines. Doubles and harmony stacks are spread wide across the stereo field. No breath or lip noise is audible.
-Secondary: Synth pads and string arrangements arrive to lift the returning sections, widening the arrangement each time. Downtuned palm-muted guitars with scooped mids drive the heavy sections, and new elements are introduced at every section boundary to keep the arrangement escalating. The density in the final third comes from layers added on top rather than from the existing instruments.
-```
-
-Five fields, each inverting one decision:
-
-- `Global Emotional Progression` - the flat held level and abrupt stop against build-to-a-big-final-chorus-and-fade. The main anti-pop-rock axis.
-- `Vocal Gender & Timbre` and `Vocal Style` - narrow, dull and close to speech against bright, wide-range and belted with runs and stacked harmonies. The anti-smooth-vocal axis, and the heaviest here because two fields carry it.
-- `Vocal FX` - one microphone with room bleed and a short dark plate against comped, tuned, de-essed and drenched. Blocks the polished-record sound that pulls smooth vocals back in.
-- `Secondary` - the positive's stated absence of strings and pads against pads and strings arriving on cue, plus downtuned scooped-mid riffing for the nu-metal side.
-
-Note what is not there: no `Application Scenarios`, no `Sonics & Production Profile`, no `Groove`, no `Primary`, and no negation word anywhere.
-
-### What has no effect, or backfires
-
-- **Negation words backfire.** Write `Nu-Metal`, never `no nu-metal` / `avoid nu-metal` / `without nu-metal`. The slot already means "away from this", so a negated phrase steers away from the absence of the thing.
-- **Bare keyword lists are weak.** Against a long structured caption, `nu-metal, pop` makes the difference vector encode "not a prose caption" more than "not nu-metal".
-- **Markdown does nothing.** `clean_caption()` strips headers, bullets, bold and emphasis before tokenising.
-- **Text identical to the positive does nothing.** It cancels exactly. Only the differing clauses steer, which is the point of the mirrored strategy rather than a flaw.
-- **Overlong text is silently truncated** at the token length of the positive caption plus lyrics, keeping the front and discarding the rest, with a warning to the ComfyUI log. The budget is generous in practice.
-
-### Recipe
-
-1. Start minimal at weight 1.0 to confirm the effect is audible.
-2. Move to the field-by-field inversion above once you know what you are steering. A near-total inversion carries plenty of magnitude on its own, so leave `cfg_scale` at 1.7; a strictly mirrored negative changing one clause needs it raised to compensate for the smaller vector.
-3. If the result goes stiff or thin, drop the weight to 0.6-0.8 rather than lowering `cfg_scale`.
-4. If one failure mode survives, cut the fields that are not fighting it. A shorter negative concentrates the vector instead of spreading it across five axes.
-
-Implementation notes: the negative runs through the same `build_prompt(caption, "")` and `clean_caption()` path as the positive, so `<|x y|>` tags expand to `x is y` identically. The blend happens in embedding space and shares one `cfg_scale` with the positive, so it cannot push away from the negative harder than it pulls toward the caption. A three-branch variant with an independent weight would remove that ceiling.
+With a negative caption available, name the tuned vocal there instead.
 
 ## Corpus craft patterns
 
@@ -411,7 +344,7 @@ Vocal Details
 Vocal Gender & Timbre: Singer A (Female). A smoky alto with a grainy edge at the top of the register and a soft, almost spoken bottom end that reads as intimate rather than fragile.
 Vocal Style: Verses are conversational and behind the beat, with clipped phrase endings and audible breath. The chorus moves into a fuller chest projection with short melismatic turns at line ends, and the bridge sits at the top of the register where the grain becomes deliberate. The final chorus returns to a hushed delivery an octave down.
 Harmony/Backing Vocals: Self-layered thirds enter beneath the second half of each chorus, widening to a four-part stack in the bridge. A single low unison double shadows the verse lines from the second verse onward, mixed well under the lead.
-Vocal FX: A short plate reverb keeps the lead in a small room, with a quarter-note delay thrown only on the last word of each chorus. Light analogue saturation on the lead; harmonies are filtered and pushed wider without pitch correction artefacts.
+Vocal FX: A short plate reverb keeps the lead in a small room, with a quarter-note delay thrown only on the last word of each chorus. Light analogue saturation on the lead; harmonies are filtered and pushed wider. There is no noticeable pitch correction or heavy processing, preserving the raw, human quality of the performance.
 Arrangement
 Instrument Lifecycle Description (Primary/Secondary Layering):
 Primary: A warm electric piano carries the harmony from the first bar to the last, played with loose voicings and a slight swing in the left hand. A clean electric guitar joins from the first chorus, answering vocal phrases with muted single-note figures rather than chords.
@@ -475,6 +408,7 @@ When referencing existing works created with minimax music 3 unless requested do
 11. When the brief rejects the mainstream rendering of a style, the genre terms and the section tags have been checked as sources of that default before any prose field is rewritten.
 12. Every genre term and distinctive production phrase has been checked against the corpus, and the BPM has been checked for the neighbourhood it selects. Anything absent is described as machinery rather than named ([Pre-flight check](#pre-flight-check)).
 13. Any negative caption is written in the caption format, names what to steer away from without negation words, and does not contradict the positive caption ([Negative prompting](#negative-prompting)).
+14. For a raw voice, the genre term and the polish cues have been checked as sources of auto-tune ([Avoiding an auto-tuned vocal](#avoiding-an-auto-tuned-vocal)).
 
 ## Delegating parallel songwriting to sub-agents
 
@@ -488,3 +422,4 @@ Get each of the agents to write their context, minimax music 3 prompts and lyric
 If the user works with your to provide feedback and improve a song, default operating mode unless otherwise requested:
 - For small tweaks and improvements update the caption / lyrics in place.
 - For larger changes create a new version of the caption or lyrics in the same file, and add a note about the feedback / problems with the previous version. This allows you to keep track of the changes and the evolution of the song.
+- Do **not** add "just the parts the changed" when creating new versions of a song's caption or lyrics - you must add the entire caption and / or lyrics in full.
