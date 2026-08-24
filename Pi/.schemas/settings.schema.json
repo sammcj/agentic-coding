@@ -1,0 +1,284 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "pi settings.json",
+  "description": "Hand-derived from the Settings interface in settings-manager.d.ts of @earendil-works/pi-coding-agent 0.84.3. Regenerate after upgrading pi. All keys are optional; unknown keys are tolerated.",
+  "type": "object",
+  "additionalProperties": true,
+  "definitions": {
+    "thinkingLevel": {
+      "type": "string",
+      "enum": ["off", "minimal", "low", "medium", "high", "xhigh", "max"]
+    },
+    "packageSource": {
+      "description": "Package source for npm/git packages. String form loads all resources; object form filters which resources to load. autoload=false starts empty and only applies explicit resource patterns.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "required": ["source"],
+          "properties": {
+            "source": {
+              "type": "string"
+            },
+            "autoload": {
+              "type": "boolean"
+            },
+            "extensions": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "skills": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "prompts": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "themes": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path to this schema; ignored by pi."
+    },
+    "lastChangelogVersion": {
+      "type": "string"
+    },
+    "defaultProvider": {
+      "type": "string"
+    },
+    "defaultModel": {
+      "type": "string"
+    },
+    "defaultThinkingLevel": {
+      "$ref": "#/definitions/thinkingLevel"
+    },
+    "modelThinkingLevels": {
+      "type": "object",
+      "description": "Per-model thinking level overrides, keyed by provider/model id.",
+      "additionalProperties": {
+        "$ref": "#/definitions/thinkingLevel"
+      }
+    },
+    "transport": {
+      "type": "string",
+      "enum": ["sse", "websocket", "websocket-cached", "auto"]
+    },
+    "steeringMode": {
+      "type": "string",
+      "enum": ["all", "one-at-a-time"]
+    },
+    "followUpMode": {
+      "type": "string",
+      "enum": ["all", "one-at-a-time"]
+    },
+    "theme": {
+      "type": "string"
+    },
+    "compaction": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "reserveTokens": { "type": "number" },
+        "keepRecentTokens": { "type": "number" }
+      }
+    },
+    "branchSummary": {
+      "type": "object",
+      "properties": {
+        "reserveTokens": { "type": "number" },
+        "skipPrompt": { "type": "boolean" }
+      }
+    },
+    "retry": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "maxRetries": { "type": "number" },
+        "baseDelayMs": { "type": "number" },
+        "provider": {
+          "type": "object",
+          "properties": {
+            "timeoutMs": { "type": "number" },
+            "maxRetries": { "type": "number" },
+            "maxRetryDelayMs": { "type": "number" }
+          }
+        }
+      }
+    },
+    "hideThinkingBlock": {
+      "type": "boolean"
+    },
+    "showCacheMissNotices": {
+      "type": "boolean"
+    },
+    "externalEditor": {
+      "type": "string"
+    },
+    "shellPath": {
+      "type": "string"
+    },
+    "quietStartup": {
+      "type": "boolean"
+    },
+    "defaultProjectTrust": {
+      "type": "string",
+      "enum": ["ask", "always", "never"]
+    },
+    "shellCommandPrefix": {
+      "type": "string"
+    },
+    "npmCommand": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "collapseChangelog": {
+      "type": "boolean"
+    },
+    "enableInstallTelemetry": {
+      "type": "boolean"
+    },
+    "enableAnalytics": {
+      "type": "boolean"
+    },
+    "trackingId": {
+      "type": "string"
+    },
+    "packages": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/packageSource" }
+    },
+    "extensions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "skills": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "prompts": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "themes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "enableSkillCommands": {
+      "type": "boolean"
+    },
+    "terminal": {
+      "type": "object",
+      "properties": {
+        "showImages": { "type": "boolean" },
+        "imageWidthCells": { "type": "number" },
+        "clearOnShrink": { "type": "boolean" },
+        "showTerminalProgress": { "type": "boolean" }
+      }
+    },
+    "images": {
+      "type": "object",
+      "properties": {
+        "autoResize": { "type": "boolean" },
+        "blockImages": { "type": "boolean" }
+      }
+    },
+    "enabledModels": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "defaultTools": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "doubleEscapeAction": {
+      "type": "string",
+      "enum": ["fork", "tree", "none"]
+    },
+    "treeFilterMode": {
+      "type": "string",
+      "enum": ["default", "no-tools", "user-only", "labeled-only", "all"]
+    },
+    "thinkingBudgets": {
+      "type": "object",
+      "properties": {
+        "minimal": { "type": "number" },
+        "low": { "type": "number" },
+        "medium": { "type": "number" },
+        "high": { "type": "number" }
+      }
+    },
+    "editorPaddingX": {
+      "type": "number"
+    },
+    "outputPad": {
+      "enum": [0, 1]
+    },
+    "autocompleteMaxVisible": {
+      "type": "number"
+    },
+    "showHardwareCursor": {
+      "type": "boolean"
+    },
+    "markdown": {
+      "type": "object",
+      "properties": {
+        "codeBlockIndent": { "type": "string" },
+        "mermaid": {
+          "type": "string",
+          "enum": ["off", "final", "streaming"]
+        }
+      }
+    },
+    "warnings": {
+      "type": "object",
+      "properties": {
+        "anthropicExtraUsage": { "type": "boolean" }
+      }
+    },
+    "sessionDir": {
+      "type": "string"
+    },
+    "httpProxy": {
+      "type": "string"
+    },
+    "httpIdleTimeoutMs": {
+      "type": "number"
+    },
+    "websocketConnectTimeoutMs": {
+      "type": "number"
+    },
+    "tuiMode": {
+      "type": "string",
+      "enum": ["regular", "fullscreen"]
+    },
+    "fullscreenExitOutput": {
+      "type": "string",
+      "enum": ["transcript", "resume-hint"]
+    },
+    "fullscreenScrollbar": {
+      "type": "string",
+      "enum": ["hidden", "auto", "always"]
+    },
+    "disabled_packages": {
+      "type": "array",
+      "description": "Observed in settings.json but not in the Settings interface; package sources disabled via /packages.",
+      "items": { "type": "string" }
+    },
+    "ayu": {
+      "type": "object",
+      "description": "Observed in settings.json but not in the Settings interface; settings namespaced by the ayu extension.",
+      "additionalProperties": true
+    }
+  }
+}

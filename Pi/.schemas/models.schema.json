@@ -1,0 +1,1905 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "pi models.json",
+  "description": "Generated from ModelsConfigSchema in @earendil-works/pi-coding-agent 0.84.2. Regenerate after upgrading pi.",
+  "type": "object",
+  "required": [
+    "providers"
+  ],
+  "properties": {
+    "providers": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "baseUrl": {
+              "type": "string",
+              "minLength": 1
+            },
+            "apiKey": {
+              "type": "string",
+              "minLength": 1
+            },
+            "api": {
+              "type": "string",
+              "minLength": 1
+            },
+            "oauth": {
+              "type": "string",
+              "const": "radius"
+            },
+            "headers": {
+              "type": "object",
+              "patternProperties": {
+                "^.*$": {
+                  "type": "string"
+                }
+              }
+            },
+            "compat": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "supportsStore": {
+                      "type": "boolean"
+                    },
+                    "supportsDeveloperRole": {
+                      "type": "boolean"
+                    },
+                    "supportsReasoningEffort": {
+                      "type": "boolean"
+                    },
+                    "supportsUsageInStreaming": {
+                      "type": "boolean"
+                    },
+                    "maxTokensField": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "max_completion_tokens"
+                        },
+                        {
+                          "type": "string",
+                          "const": "max_tokens"
+                        }
+                      ]
+                    },
+                    "requiresToolResultName": {
+                      "type": "boolean"
+                    },
+                    "requiresAssistantAfterToolResult": {
+                      "type": "boolean"
+                    },
+                    "requiresThinkingAsText": {
+                      "type": "boolean"
+                    },
+                    "requiresReasoningContentOnAssistantMessages": {
+                      "type": "boolean"
+                    },
+                    "thinkingFormat": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "openai"
+                        },
+                        {
+                          "type": "string",
+                          "const": "openrouter"
+                        },
+                        {
+                          "type": "string",
+                          "const": "together"
+                        },
+                        {
+                          "type": "string",
+                          "const": "baseten"
+                        },
+                        {
+                          "type": "string",
+                          "const": "deepseek"
+                        },
+                        {
+                          "type": "string",
+                          "const": "zai"
+                        },
+                        {
+                          "type": "string",
+                          "const": "qwen"
+                        },
+                        {
+                          "type": "string",
+                          "const": "chat-template"
+                        },
+                        {
+                          "type": "string",
+                          "const": "qwen-chat-template"
+                        },
+                        {
+                          "type": "string",
+                          "const": "string-thinking"
+                        },
+                        {
+                          "type": "string",
+                          "const": "ant-ling"
+                        }
+                      ]
+                    },
+                    "chatTemplateKwargs": {
+                      "type": "object",
+                      "patternProperties": {
+                        "^.*$": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "required": [
+                                "$var"
+                              ],
+                              "properties": {
+                                "$var": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "const": "thinking.enabled"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "thinking.effort"
+                                    }
+                                  ]
+                                },
+                                "omitWhenOff": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "chatTemplateArgs": {
+                      "type": "object",
+                      "patternProperties": {
+                        "^.*$": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "required": [
+                                "$var"
+                              ],
+                              "properties": {
+                                "$var": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "const": "thinking.enabled"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "thinking.effort"
+                                    }
+                                  ]
+                                },
+                                "omitWhenOff": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "cacheControlFormat": {
+                      "type": "string",
+                      "const": "anthropic"
+                    },
+                    "openRouterRouting": {
+                      "type": "object",
+                      "properties": {
+                        "allow_fallbacks": {
+                          "type": "boolean"
+                        },
+                        "require_parameters": {
+                          "type": "boolean"
+                        },
+                        "data_collection": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "const": "deny"
+                            },
+                            {
+                              "type": "string",
+                              "const": "allow"
+                            }
+                          ]
+                        },
+                        "zdr": {
+                          "type": "boolean"
+                        },
+                        "enforce_distillable_text": {
+                          "type": "boolean"
+                        },
+                        "order": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "only": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "ignore": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "quantizations": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "sort": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "by": {
+                                  "type": "string"
+                                },
+                                "partition": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "max_price": {
+                          "type": "object",
+                          "properties": {
+                            "prompt": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            "completion": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            "image": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            "audio": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            "request": {
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "preferred_min_throughput": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "p50": {
+                                  "type": "number"
+                                },
+                                "p75": {
+                                  "type": "number"
+                                },
+                                "p90": {
+                                  "type": "number"
+                                },
+                                "p99": {
+                                  "type": "number"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "preferred_max_latency": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "p50": {
+                                  "type": "number"
+                                },
+                                "p75": {
+                                  "type": "number"
+                                },
+                                "p90": {
+                                  "type": "number"
+                                },
+                                "p99": {
+                                  "type": "number"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "vercelGatewayRouting": {
+                      "type": "object",
+                      "properties": {
+                        "only": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "order": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "supportsOpenAIGrammarTools": {
+                      "type": "boolean"
+                    },
+                    "supportsStrictMode": {
+                      "type": "boolean"
+                    },
+                    "sendSessionAffinityHeaders": {
+                      "type": "boolean"
+                    },
+                    "deferredToolsMode": {
+                      "type": "string",
+                      "const": "kimi"
+                    },
+                    "sessionAffinityFormat": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "openai"
+                        },
+                        {
+                          "type": "string",
+                          "const": "openai-nosession"
+                        },
+                        {
+                          "type": "string",
+                          "const": "openrouter"
+                        }
+                      ]
+                    },
+                    "supportsLongCacheRetention": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "supportsDeveloperRole": {
+                      "type": "boolean"
+                    },
+                    "sessionAffinityFormat": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "openai"
+                        },
+                        {
+                          "type": "string",
+                          "const": "openai-nosession"
+                        },
+                        {
+                          "type": "string",
+                          "const": "openrouter"
+                        }
+                      ]
+                    },
+                    "supportsLongCacheRetention": {
+                      "type": "boolean"
+                    },
+                    "supportsStrictMode": {
+                      "type": "boolean"
+                    },
+                    "supportsOpenAIGrammarTools": {
+                      "type": "boolean"
+                    },
+                    "supportsAdditionalTools": {
+                      "type": "boolean"
+                    },
+                    "supportsToolSearch": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "supportsEagerToolInputStreaming": {
+                      "type": "boolean"
+                    },
+                    "supportsLongCacheRetention": {
+                      "type": "boolean"
+                    },
+                    "sendSessionAffinityHeaders": {
+                      "type": "boolean"
+                    },
+                    "supportsCacheControlOnTools": {
+                      "type": "boolean"
+                    },
+                    "supportsTemperature": {
+                      "type": "boolean"
+                    },
+                    "forceAdaptiveThinking": {
+                      "type": "boolean"
+                    },
+                    "allowEmptySignature": {
+                      "type": "boolean"
+                    },
+                    "supportsStrictTools": {
+                      "type": "boolean"
+                    },
+                    "supportsToolReferences": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            },
+            "authHeader": {
+              "type": "boolean"
+            },
+            "models": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "api": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "reasoning": {
+                    "type": "boolean"
+                  },
+                  "thinkingLevelMap": {
+                    "type": "object",
+                    "properties": {
+                      "off": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minimal": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "low": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "medium": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "high": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "xhigh": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "max": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "input": {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "text"
+                        },
+                        {
+                          "type": "string",
+                          "const": "image"
+                        }
+                      ]
+                    }
+                  },
+                  "cost": {
+                    "type": "object",
+                    "required": [
+                      "input",
+                      "output",
+                      "cacheRead",
+                      "cacheWrite"
+                    ],
+                    "properties": {
+                      "input": {
+                        "type": "number"
+                      },
+                      "output": {
+                        "type": "number"
+                      },
+                      "cacheRead": {
+                        "type": "number"
+                      },
+                      "cacheWrite": {
+                        "type": "number"
+                      },
+                      "tiers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "inputTokensAbove",
+                            "input",
+                            "output",
+                            "cacheRead",
+                            "cacheWrite"
+                          ],
+                          "properties": {
+                            "inputTokensAbove": {
+                              "type": "number"
+                            },
+                            "input": {
+                              "type": "number"
+                            },
+                            "output": {
+                              "type": "number"
+                            },
+                            "cacheRead": {
+                              "type": "number"
+                            },
+                            "cacheWrite": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "contextWindow": {
+                    "type": "number"
+                  },
+                  "maxTokens": {
+                    "type": "number"
+                  },
+                  "samplingParams": {
+                    "type": "object",
+                    "patternProperties": {
+                      "^.*$": {}
+                    }
+                  },
+                  "headers": {
+                    "type": "object",
+                    "patternProperties": {
+                      "^.*$": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "compat": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "supportsStore": {
+                            "type": "boolean"
+                          },
+                          "supportsDeveloperRole": {
+                            "type": "boolean"
+                          },
+                          "supportsReasoningEffort": {
+                            "type": "boolean"
+                          },
+                          "supportsUsageInStreaming": {
+                            "type": "boolean"
+                          },
+                          "maxTokensField": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "const": "max_completion_tokens"
+                              },
+                              {
+                                "type": "string",
+                                "const": "max_tokens"
+                              }
+                            ]
+                          },
+                          "requiresToolResultName": {
+                            "type": "boolean"
+                          },
+                          "requiresAssistantAfterToolResult": {
+                            "type": "boolean"
+                          },
+                          "requiresThinkingAsText": {
+                            "type": "boolean"
+                          },
+                          "requiresReasoningContentOnAssistantMessages": {
+                            "type": "boolean"
+                          },
+                          "thinkingFormat": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "const": "openai"
+                              },
+                              {
+                                "type": "string",
+                                "const": "openrouter"
+                              },
+                              {
+                                "type": "string",
+                                "const": "together"
+                              },
+                              {
+                                "type": "string",
+                                "const": "baseten"
+                              },
+                              {
+                                "type": "string",
+                                "const": "deepseek"
+                              },
+                              {
+                                "type": "string",
+                                "const": "zai"
+                              },
+                              {
+                                "type": "string",
+                                "const": "qwen"
+                              },
+                              {
+                                "type": "string",
+                                "const": "chat-template"
+                              },
+                              {
+                                "type": "string",
+                                "const": "qwen-chat-template"
+                              },
+                              {
+                                "type": "string",
+                                "const": "string-thinking"
+                              },
+                              {
+                                "type": "string",
+                                "const": "ant-ling"
+                              }
+                            ]
+                          },
+                          "chatTemplateKwargs": {
+                            "type": "object",
+                            "patternProperties": {
+                              "^.*$": {
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "boolean"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "required": [
+                                      "$var"
+                                    ],
+                                    "properties": {
+                                      "$var": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "thinking.enabled"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "const": "thinking.effort"
+                                          }
+                                        ]
+                                      },
+                                      "omitWhenOff": {
+                                        "type": "boolean"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          "chatTemplateArgs": {
+                            "type": "object",
+                            "patternProperties": {
+                              "^.*$": {
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "boolean"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "required": [
+                                      "$var"
+                                    ],
+                                    "properties": {
+                                      "$var": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "thinking.enabled"
+                                          },
+                                          {
+                                            "type": "string",
+                                            "const": "thinking.effort"
+                                          }
+                                        ]
+                                      },
+                                      "omitWhenOff": {
+                                        "type": "boolean"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          "cacheControlFormat": {
+                            "type": "string",
+                            "const": "anthropic"
+                          },
+                          "openRouterRouting": {
+                            "type": "object",
+                            "properties": {
+                              "allow_fallbacks": {
+                                "type": "boolean"
+                              },
+                              "require_parameters": {
+                                "type": "boolean"
+                              },
+                              "data_collection": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "const": "deny"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "const": "allow"
+                                  }
+                                ]
+                              },
+                              "zdr": {
+                                "type": "boolean"
+                              },
+                              "enforce_distillable_text": {
+                                "type": "boolean"
+                              },
+                              "order": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "only": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "ignore": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "quantizations": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "sort": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "by": {
+                                        "type": "string"
+                                      },
+                                      "partition": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              "max_price": {
+                                "type": "object",
+                                "properties": {
+                                  "prompt": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  "completion": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  "image": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  "audio": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  "request": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "preferred_min_throughput": {
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "p50": {
+                                        "type": "number"
+                                      },
+                                      "p75": {
+                                        "type": "number"
+                                      },
+                                      "p90": {
+                                        "type": "number"
+                                      },
+                                      "p99": {
+                                        "type": "number"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              "preferred_max_latency": {
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "p50": {
+                                        "type": "number"
+                                      },
+                                      "p75": {
+                                        "type": "number"
+                                      },
+                                      "p90": {
+                                        "type": "number"
+                                      },
+                                      "p99": {
+                                        "type": "number"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          "vercelGatewayRouting": {
+                            "type": "object",
+                            "properties": {
+                              "only": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "order": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "supportsOpenAIGrammarTools": {
+                            "type": "boolean"
+                          },
+                          "supportsStrictMode": {
+                            "type": "boolean"
+                          },
+                          "sendSessionAffinityHeaders": {
+                            "type": "boolean"
+                          },
+                          "deferredToolsMode": {
+                            "type": "string",
+                            "const": "kimi"
+                          },
+                          "sessionAffinityFormat": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "const": "openai"
+                              },
+                              {
+                                "type": "string",
+                                "const": "openai-nosession"
+                              },
+                              {
+                                "type": "string",
+                                "const": "openrouter"
+                              }
+                            ]
+                          },
+                          "supportsLongCacheRetention": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "supportsDeveloperRole": {
+                            "type": "boolean"
+                          },
+                          "sessionAffinityFormat": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "const": "openai"
+                              },
+                              {
+                                "type": "string",
+                                "const": "openai-nosession"
+                              },
+                              {
+                                "type": "string",
+                                "const": "openrouter"
+                              }
+                            ]
+                          },
+                          "supportsLongCacheRetention": {
+                            "type": "boolean"
+                          },
+                          "supportsStrictMode": {
+                            "type": "boolean"
+                          },
+                          "supportsOpenAIGrammarTools": {
+                            "type": "boolean"
+                          },
+                          "supportsAdditionalTools": {
+                            "type": "boolean"
+                          },
+                          "supportsToolSearch": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "supportsEagerToolInputStreaming": {
+                            "type": "boolean"
+                          },
+                          "supportsLongCacheRetention": {
+                            "type": "boolean"
+                          },
+                          "sendSessionAffinityHeaders": {
+                            "type": "boolean"
+                          },
+                          "supportsCacheControlOnTools": {
+                            "type": "boolean"
+                          },
+                          "supportsTemperature": {
+                            "type": "boolean"
+                          },
+                          "forceAdaptiveThinking": {
+                            "type": "boolean"
+                          },
+                          "allowEmptySignature": {
+                            "type": "boolean"
+                          },
+                          "supportsStrictTools": {
+                            "type": "boolean"
+                          },
+                          "supportsToolReferences": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "modelOverrides": {
+              "type": "object",
+              "patternProperties": {
+                "^.*$": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "reasoning": {
+                      "type": "boolean"
+                    },
+                    "thinkingLevelMap": {
+                      "type": "object",
+                      "properties": {
+                        "off": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "minimal": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "low": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "medium": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "high": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "xhigh": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "max": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "input": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "const": "text"
+                          },
+                          {
+                            "type": "string",
+                            "const": "image"
+                          }
+                        ]
+                      }
+                    },
+                    "cost": {
+                      "type": "object",
+                      "properties": {
+                        "input": {
+                          "type": "number"
+                        },
+                        "output": {
+                          "type": "number"
+                        },
+                        "cacheRead": {
+                          "type": "number"
+                        },
+                        "cacheWrite": {
+                          "type": "number"
+                        },
+                        "tiers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "inputTokensAbove",
+                              "input",
+                              "output",
+                              "cacheRead",
+                              "cacheWrite"
+                            ],
+                            "properties": {
+                              "inputTokensAbove": {
+                                "type": "number"
+                              },
+                              "input": {
+                                "type": "number"
+                              },
+                              "output": {
+                                "type": "number"
+                              },
+                              "cacheRead": {
+                                "type": "number"
+                              },
+                              "cacheWrite": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "contextWindow": {
+                      "type": "number"
+                    },
+                    "maxTokens": {
+                      "type": "number"
+                    },
+                    "samplingParams": {
+                      "type": "object",
+                      "patternProperties": {
+                        "^.*$": {}
+                      }
+                    },
+                    "headers": {
+                      "type": "object",
+                      "patternProperties": {
+                        "^.*$": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "compat": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "supportsStore": {
+                              "type": "boolean"
+                            },
+                            "supportsDeveloperRole": {
+                              "type": "boolean"
+                            },
+                            "supportsReasoningEffort": {
+                              "type": "boolean"
+                            },
+                            "supportsUsageInStreaming": {
+                              "type": "boolean"
+                            },
+                            "maxTokensField": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "max_completion_tokens"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "max_tokens"
+                                }
+                              ]
+                            },
+                            "requiresToolResultName": {
+                              "type": "boolean"
+                            },
+                            "requiresAssistantAfterToolResult": {
+                              "type": "boolean"
+                            },
+                            "requiresThinkingAsText": {
+                              "type": "boolean"
+                            },
+                            "requiresReasoningContentOnAssistantMessages": {
+                              "type": "boolean"
+                            },
+                            "thinkingFormat": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "openai"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "openrouter"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "together"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "baseten"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "deepseek"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "zai"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "qwen"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "chat-template"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "qwen-chat-template"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "string-thinking"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "ant-ling"
+                                }
+                              ]
+                            },
+                            "chatTemplateKwargs": {
+                              "type": "object",
+                              "patternProperties": {
+                                "^.*$": {
+                                  "anyOf": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "boolean"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "object",
+                                      "required": [
+                                        "$var"
+                                      ],
+                                      "properties": {
+                                        "$var": {
+                                          "anyOf": [
+                                            {
+                                              "type": "string",
+                                              "const": "thinking.enabled"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "thinking.effort"
+                                            }
+                                          ]
+                                        },
+                                        "omitWhenOff": {
+                                          "type": "boolean"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "chatTemplateArgs": {
+                              "type": "object",
+                              "patternProperties": {
+                                "^.*$": {
+                                  "anyOf": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "boolean"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "object",
+                                      "required": [
+                                        "$var"
+                                      ],
+                                      "properties": {
+                                        "$var": {
+                                          "anyOf": [
+                                            {
+                                              "type": "string",
+                                              "const": "thinking.enabled"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "thinking.effort"
+                                            }
+                                          ]
+                                        },
+                                        "omitWhenOff": {
+                                          "type": "boolean"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "cacheControlFormat": {
+                              "type": "string",
+                              "const": "anthropic"
+                            },
+                            "openRouterRouting": {
+                              "type": "object",
+                              "properties": {
+                                "allow_fallbacks": {
+                                  "type": "boolean"
+                                },
+                                "require_parameters": {
+                                  "type": "boolean"
+                                },
+                                "data_collection": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "const": "deny"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "allow"
+                                    }
+                                  ]
+                                },
+                                "zdr": {
+                                  "type": "boolean"
+                                },
+                                "enforce_distillable_text": {
+                                  "type": "boolean"
+                                },
+                                "order": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "only": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "ignore": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "quantizations": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "sort": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "by": {
+                                          "type": "string"
+                                        },
+                                        "partition": {
+                                          "anyOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "max_price": {
+                                  "type": "object",
+                                  "properties": {
+                                    "prompt": {
+                                      "anyOf": [
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "completion": {
+                                      "anyOf": [
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "image": {
+                                      "anyOf": [
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "audio": {
+                                      "anyOf": [
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "request": {
+                                      "anyOf": [
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  }
+                                },
+                                "preferred_min_throughput": {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "p50": {
+                                          "type": "number"
+                                        },
+                                        "p75": {
+                                          "type": "number"
+                                        },
+                                        "p90": {
+                                          "type": "number"
+                                        },
+                                        "p99": {
+                                          "type": "number"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "preferred_max_latency": {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "p50": {
+                                          "type": "number"
+                                        },
+                                        "p75": {
+                                          "type": "number"
+                                        },
+                                        "p90": {
+                                          "type": "number"
+                                        },
+                                        "p99": {
+                                          "type": "number"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "vercelGatewayRouting": {
+                              "type": "object",
+                              "properties": {
+                                "only": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "order": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
+                            "supportsOpenAIGrammarTools": {
+                              "type": "boolean"
+                            },
+                            "supportsStrictMode": {
+                              "type": "boolean"
+                            },
+                            "sendSessionAffinityHeaders": {
+                              "type": "boolean"
+                            },
+                            "deferredToolsMode": {
+                              "type": "string",
+                              "const": "kimi"
+                            },
+                            "sessionAffinityFormat": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "openai"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "openai-nosession"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "openrouter"
+                                }
+                              ]
+                            },
+                            "supportsLongCacheRetention": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "supportsDeveloperRole": {
+                              "type": "boolean"
+                            },
+                            "sessionAffinityFormat": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "openai"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "openai-nosession"
+                                },
+                                {
+                                  "type": "string",
+                                  "const": "openrouter"
+                                }
+                              ]
+                            },
+                            "supportsLongCacheRetention": {
+                              "type": "boolean"
+                            },
+                            "supportsStrictMode": {
+                              "type": "boolean"
+                            },
+                            "supportsOpenAIGrammarTools": {
+                              "type": "boolean"
+                            },
+                            "supportsAdditionalTools": {
+                              "type": "boolean"
+                            },
+                            "supportsToolSearch": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "supportsEagerToolInputStreaming": {
+                              "type": "boolean"
+                            },
+                            "supportsLongCacheRetention": {
+                              "type": "boolean"
+                            },
+                            "sendSessionAffinityHeaders": {
+                              "type": "boolean"
+                            },
+                            "supportsCacheControlOnTools": {
+                              "type": "boolean"
+                            },
+                            "supportsTemperature": {
+                              "type": "boolean"
+                            },
+                            "forceAdaptiveThinking": {
+                              "type": "boolean"
+                            },
+                            "allowEmptySignature": {
+                              "type": "boolean"
+                            },
+                            "supportsStrictTools": {
+                              "type": "boolean"
+                            },
+                            "supportsToolReferences": {
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "$schema": {
+      "type": "string",
+      "description": "Path to this schema; ignored by pi."
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "pi-subagents settings (subagents.json)",
+  "description": "Hand-derived from SubagentsSettings in @tintinweb/pi-subagents 0.18.1 (dist/settings.d.ts). Global file: ~/.pi/agent/subagents.json (manual defaults). Project file: <cwd>/.pi/subagents.json, written by /agents -> Settings; overrides global on load. Unknown keys are ignored on load, out-of-range numbers are dropped.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path to this schema; ignored by the extension."
+    },
+    "maxConcurrent": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1024,
+      "description": "Maximum subagents running at once. Default 10."
+    },
+    "defaultMaxTurns": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000,
+      "description": "Default turn cap per subagent; 0 = unlimited."
+    },
+    "graceTurns": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000,
+      "description": "Extra turns granted after the cap so the agent can wrap up."
+    },
+    "defaultJoinMode": {
+      "enum": ["async", "group", "smart"],
+      "description": "How multiple background spawns report back by default."
+    },
+    "backgroundByDefault": {
+      "type": "boolean",
+      "description": "Whether an unqualified top-level Agent spawn runs detached. Default true (Claude Code behaviour); false makes unqualified spawns block and return inline. Nested spawns always default to foreground."
+    },
+    "schedulingEnabled": {
+      "type": "boolean",
+      "description": "Master switch for scheduled subagents. Default true. When false the schedule param is stripped from the tool spec (applies next session) and the scheduler never binds."
+    },
+    "scopeModels": {
+      "type": "boolean",
+      "description": "Validate each spawn's effective model against pi's enabledModels. Caller-supplied out-of-scope models hard-error; frontmatter-pinned or parent-inherited ones warn and run. Default false."
+    },
+    "strictAgentFiles": {
+      "type": "boolean",
+      "description": "Abort extension load (pi exits, naming the file) on an unreadable or unparseable agent .md instead of skipping with a warning. Startup only. Default false."
+    },
+    "disableDefaultAgents": {
+      "type": "boolean",
+      "description": "Suppress the built-in default agents (general-purpose, Explore, Plan) at startup. Custom agents unaffected. Default false."
+    },
+    "toolDescriptionMode": {
+      "enum": ["full", "compact", "custom"],
+      "description": "Which Agent tool description the LLM sees. full (default), compact (~75% smaller for small/local models), or custom (reads .pi/agent-tool-description.md with {{placeholder}} substitution). Read once at tool registration."
+    },
+    "fleetView": {
+      "type": "boolean",
+      "description": "Show the navigable main+subagents FleetView below the editor. Default true. Pure UI."
+    },
+    "agentMentions": {
+      "anyOf": [
+        { "enum": ["model", "direct", "off"] },
+        { "type": "boolean", "description": "Legacy: true = model, false = off." }
+      ],
+      "description": "Routing for @handle typed at the prompt: model (default, main model spawns it via the Agent tool), direct (typed text becomes the agent's prompt, no main-model turn), or off. Applied live."
+    },
+    "rememberAgents": {
+      "type": "boolean",
+      "description": "Persist each subagent's pi session so @handle can reopen its conversation later; persisted sessions also nest under the spawning session in /resume. Default true. Per-agent persist_session frontmatter overrides."
+    },
+    "widgetMode": {
+      "enum": ["all", "background", "off"],
+      "description": "Above-editor agent widget: all agents, background only (default; foreground already renders inline), or off. Applied live."
+    },
+    "outputTranscript": {
+      "type": "boolean",
+      "description": "Write each subagent's .output JSON-lines transcript under the OS temp dir. Default true. Per-agent output_transcript frontmatter overrides. Transcript only; does not affect persisted sessions, worktrees, or memory."
+    },
+    "worktreeIsolation": {
+      "type": "boolean",
+      "description": "Allow isolation: worktree to create worktrees. Default true. When false a requested worktree is silently dropped and the agent runs in the main checkout; the isolation capability is also hidden from the tool spec."
+    },
+    "maxSubagentDepth": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 16,
+      "description": "Nesting ceiling counted from the main session (main = 0). Default 2; 0 or 1 disables nesting."
+    },
+    "fallbackSubagent": {
+      "anyOf": [
+        { "type": "string" },
+        { "const": false }
+      ],
+      "description": "Agent type substituted when subagent_type doesn't resolve. Omitted = general-purpose fallback; an agent name routes there; \"none\" (or false) fails closed with an error naming available types."
+    },
+    "reportUsage": {
+      "type": "boolean",
+      "description": "Attach usage to tool results so subagent spend reaches the parent session's /cost and statusline. Tokens exclude cacheRead; unpriced models contribute 0. Default false."
+    },
+    "showCost": {
+      "type": "boolean",
+      "description": "Show an estimated dollar cost (~$0.0042) next to token counts in subagent surfaces; omitted when the model has no pricing. Default false. Applied live."
+    },
+    "showModel": {
+      "type": "boolean",
+      "description": "Show model and thinking level on the widget's running rows. Default false."
+    },
+    "viewerMarkdown": {
+      "enum": ["off", "assistant", "all"],
+      "description": "How much of the conversation viewer renders as Markdown. Default assistant; all also renders tool results (lossy). The viewer's m key cycles this same setting."
+    }
+  }
+}

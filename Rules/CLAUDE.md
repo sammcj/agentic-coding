@@ -89,6 +89,7 @@ Prosody to avoid: paragraph pinning, parataxis, summary beats, negative anaphora
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
 - Leave the code you're changing better than you found it, but don't extend that to unrelated code
 - When requested to raise a PR, the PRs description should be a tight TLDR style, not a detailed narrative of your work, get the point across in a few bullet points or words
+- When designing config file handling, if using JSON prefer JSON5 as it supports comments and trailing commas
 
 ### Foundational Thinking
 

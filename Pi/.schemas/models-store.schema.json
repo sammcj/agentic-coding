@@ -1,0 +1,144 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "pi models-store.json",
+  "description": "Hand-derived from ModelsStoreEntry (pi-ai/dist/models-store.d.ts) and Model (pi-ai/dist/types.d.ts) in @earendil-works/pi-ai bundled with pi-coding-agent 0.84.3. This file is machine-managed: pi rewrites it on every remote catalogue refresh via FileModelsStore. Top level maps provider IDs to cached catalogue entries.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path to this schema; ignored by pi."
+    }
+  },
+  "additionalProperties": {
+    "$ref": "#/definitions/entry"
+  },
+  "definitions": {
+    "entry": {
+      "type": "object",
+      "required": ["models"],
+      "properties": {
+        "models": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/model"
+          }
+        },
+        "lastModified": {
+          "type": "number",
+          "description": "Unix timestamp from the remote catalogue's Last-Modified header."
+        },
+        "checkedAt": {
+          "type": "number",
+          "description": "Unix timestamp of the last completed remote check."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Opaque validator from the remote catalogue's ETag header, stored verbatim (quotes included) and echoed back as If-None-Match."
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "api",
+        "provider",
+        "baseUrl",
+        "reasoning",
+        "input",
+        "cost",
+        "contextWindow",
+        "maxTokens"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "api": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseUrl": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reasoning": {
+          "type": "boolean"
+        },
+        "thinkingLevelMap": {
+          "type": "object",
+          "description": "Maps pi thinking levels to provider/model-specific values. Missing keys use provider defaults; null marks a level as unsupported.",
+          "propertyNames": {
+            "enum": ["off", "minimal", "low", "medium", "high", "xhigh", "max"]
+          },
+          "additionalProperties": {
+            "type": ["string", "null"]
+          }
+        },
+        "input": {
+          "type": "array",
+          "items": {
+            "enum": ["text", "image"]
+          }
+        },
+        "cost": {
+          "type": "object",
+          "required": ["input", "output", "cacheRead", "cacheWrite"],
+          "properties": {
+            "input": { "type": "number" },
+            "output": { "type": "number" },
+            "cacheRead": { "type": "number" },
+            "cacheWrite": { "type": "number" },
+            "tiers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["inputTokensAbove", "input", "output", "cacheRead", "cacheWrite"],
+                "properties": {
+                  "inputTokensAbove": {
+                    "type": "number",
+                    "description": "Use this tier for requests whose total input usage exceeds this token count."
+                  },
+                  "input": { "type": "number" },
+                  "output": { "type": "number" },
+                  "cacheRead": { "type": "number" },
+                  "cacheWrite": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "contextWindow": {
+          "type": "number"
+        },
+        "maxTokens": {
+          "type": "number"
+        },
+        "samplingParams": {
+          "type": "object",
+          "description": "Default sampling parameters for this model; per-request keys override these."
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "compat": {
+          "type": "object",
+          "description": "Per-API compatibility overrides (conditional on the api field). Kept permissive here; see models.schema.json for the full per-API shapes."
+        }
+      }
+    }
+  }
+}

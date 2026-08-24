@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "typeRoots": ["/Users/samm/.bun/install/global/node_modules/@types"],
+    "types": ["node", "bun"],
+    "paths": {
+      "@earendil-works/*": ["/Users/samm/.bun/install/global/node_modules/@earendil-works/*"],
+      "@mariozechner/*": ["/Users/samm/.bun/install/global/node_modules/@mariozechner/*"]
+    }
+  },
+  "include": ["extensions/**/*.ts", "tests/**/*.ts"]
+}

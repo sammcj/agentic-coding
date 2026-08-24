@@ -1,0 +1,241 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "pi sandbox.json",
+  "description": "Generated from SandboxRuntimeConfigSchema in @carderne/sandbox-runtime 0.0.49. Regenerate after upgrading pi.",
+  "type": "object",
+  "properties": {
+    "network": {
+      "type": "object",
+      "properties": {
+        "allowedDomains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of allowed domains (e.g., [\"github.com\", \"*.npmjs.org\"])"
+        },
+        "deniedDomains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of denied domains"
+        },
+        "allowUnixSockets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "macOS only: Unix socket paths to allow. Ignored on Linux (seccomp cannot filter by path)."
+        },
+        "allowAllUnixSockets": {
+          "type": "boolean",
+          "description": "If true, allow all Unix sockets (disables blocking on both platforms)."
+        },
+        "allowLocalBinding": {
+          "type": "boolean",
+          "description": "Whether to allow binding to local ports (default: false)"
+        },
+        "allowMachLookup": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "macOS only: Additional XPC/Mach service names to allow looking up. Supports trailing-wildcard prefix matching (e.g., \"2BUA8C4S2C.com.1password.*\"). Needed for tools like 1Password CLI, Playwright, or the iOS Simulator that communicate via XPC."
+        },
+        "httpProxyPort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Port of an external HTTP proxy to use instead of starting a local one. When provided, the library will skip starting its own HTTP proxy and use this port. The external proxy must handle domain filtering."
+        },
+        "socksProxyPort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Port of an external SOCKS proxy to use instead of starting a local one. When provided, the library will skip starting its own SOCKS proxy and use this port. The external proxy must handle domain filtering."
+        },
+        "mitmProxy": {
+          "type": "object",
+          "properties": {
+            "socketPath": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Unix socket path to the MITM proxy"
+            },
+            "domains": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "description": "Domains to route through the MITM proxy (e.g., [\"api.example.com\", \"*.internal.org\"])"
+            }
+          },
+          "required": [
+            "socketPath",
+            "domains"
+          ],
+          "additionalProperties": false,
+          "description": "Optional MITM proxy configuration. Routes matching domains through an upstream proxy via Unix socket while SRT still handles allow/deny filtering."
+        },
+        "parentProxy": {
+          "type": "object",
+          "properties": {
+            "http": {
+              "type": "string",
+              "format": "uri",
+              "description": "Upstream proxy URL for plain HTTP traffic"
+            },
+            "https": {
+              "type": "string",
+              "format": "uri",
+              "description": "Upstream proxy URL for HTTPS/CONNECT traffic (falls back to http if unset)"
+            },
+            "noProxy": {
+              "type": "string",
+              "description": "Comma-separated NO_PROXY list (hostname suffixes and CIDR ranges). Matching destinations connect directly instead of via the parent proxy."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Upstream HTTP proxy for outbound connections. When set, SRT's proxy tunnels non-mitmProxy traffic through this parent instead of connecting directly. Falls back to HTTP_PROXY/HTTPS_PROXY/NO_PROXY env vars if unset."
+        }
+      },
+      "required": [
+        "allowedDomains",
+        "deniedDomains"
+      ],
+      "additionalProperties": false,
+      "description": "Network restrictions configuration"
+    },
+    "filesystem": {
+      "type": "object",
+      "properties": {
+        "denyRead": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Paths denied for reading"
+        },
+        "allowRead": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Paths to re-allow reading within denied regions (takes precedence over denyRead). Use with denyRead to deny a broad region then allow back specific subdirectories."
+        },
+        "allowWrite": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Paths allowed for writing"
+        },
+        "denyWrite": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Paths denied for writing (takes precedence over allowWrite)"
+        },
+        "allowGitConfig": {
+          "type": "boolean",
+          "description": "Allow writes to .git/config files (default: false). Enables git remote URL updates while keeping .git/hooks protected."
+        }
+      },
+      "required": [
+        "denyRead",
+        "allowWrite",
+        "denyWrite"
+      ],
+      "additionalProperties": false,
+      "description": "Filesystem restrictions configuration"
+    },
+    "ignoreViolations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "description": "Optional configuration for ignoring specific violations"
+    },
+    "enableWeakerNestedSandbox": {
+      "type": "boolean",
+      "description": "Enable weaker nested sandbox mode (for Docker environments)"
+    },
+    "enableWeakerNetworkIsolation": {
+      "type": "boolean",
+      "description": "Enable weaker network isolation to allow access to com.apple.trustd.agent (macOS only). This is needed for Go programs (gh, gcloud, terraform, kubectl, etc.) to verify TLS certificates when using httpProxyPort with a MITM proxy and custom CA. Enabling this opens a potential data exfiltration vector through the trustd service. Only enable if you need Go TLS verification."
+    },
+    "ripgrep": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "The ripgrep command to execute"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional arguments to pass before ripgrep args"
+        },
+        "argv0": {
+          "type": "string",
+          "description": "Override argv[0] when spawning (for multicall binaries that dispatch on argv[0])"
+        }
+      },
+      "required": [
+        "command"
+      ],
+      "additionalProperties": false,
+      "description": "Custom ripgrep configuration (default: { command: \"rg\" })"
+    },
+    "mandatoryDenySearchDepth": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Maximum directory depth to search for dangerous files on Linux (default: 3). Higher values provide more protection but slower performance."
+    },
+    "allowPty": {
+      "type": "boolean",
+      "description": "Allow pseudo-terminal (pty) operations (macOS only)"
+    },
+    "allowBrowserProcess": {
+      "type": "boolean",
+      "description": "Allow browser process operations (macOS only). Grants the additional Mach IPC, Mach bootstrap registration, and IOKit permissions that Chromium-based browsers need to launch and run inside the sandbox. Required for tools like agent-browser that spawn a Chrome/Chromium subprocess. Without this, Chrome will crash on startup due to denied Mach service lookups and bootstrap registrations."
+    },
+    "seccomp": {
+      "type": "object",
+      "properties": {
+        "applyPath": {
+          "type": "string",
+          "description": "Path to the apply-seccomp binary"
+        },
+        "argv0": {
+          "type": "string",
+          "description": "Invoke apply-seccomp as a multicall binary that dispatches on the ARGV0 environment variable. When set, applyPath is used verbatim (no existence check) and the invocation inside bwrap is prefixed with ARGV0=<this value>. The caller is responsible for ensuring applyPath resolves inside the bwrap namespace and that the target binary implements the apply-seccomp interface when ARGV0 matches."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Custom seccomp binary paths (Linux only)."
+    },
+    "$schema": {
+      "type": "string",
+      "description": "Path to this schema; ignored by the sandbox runtime."
+    }
+  },
+  "required": [
+    "network",
+    "filesystem"
+  ],
+  "additionalProperties": false
+}

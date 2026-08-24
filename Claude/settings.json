@@ -11,6 +11,8 @@
       "Bash(awk *)",
       "Bash(basename *)",
       "Bash(bun *)",
+      "Bash(brew list *)",
+      "Bash(brew info *)",
       "Bash(cargo *)",
       "Bash(cargo-fmt *)",
       "Bash(cat *)",
@@ -54,7 +56,6 @@
       "Bash(ls *)",
       "Bash(make *)",
       "Bash(mkdir *)",
-      "Bash(node *)",
       "Bash(npm *)",
       "Bash(npx eslint *)",
       "Bash(npx prettier *)",
@@ -74,10 +75,8 @@
       "Bash(pnpm *)",
       "Bash(pwd)",
       "Bash(pytest *)",
-      "Bash(python *)",
       "Bash(python /Users/samm/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
       "Bash(python ~/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
-      "Bash(python3 *)",
       "Bash(python3 /Users/samm/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
       "Bash(python3 ~/.claude/skills/extract-wisdom/scripts/wisdom.py *)",
       "Bash(realpath *)",
@@ -112,7 +111,6 @@
       "Bash(uvx ty check *)",
       "Bash(wc *)",
       "Bash(which *)",
-      "Bash(xargs *)",
       "Edit(./**/.dockerignore)",
       "Edit(./**/.gitattributes)",
       "Edit(./**/.gitignore)",
@@ -346,8 +344,6 @@
       "Bash(brew link *)",
       "Bash(brew unlink *)",
       "Bash(history -c *)",
-      "Bash(kill -9 *)",
-      "Bash(* kill -9 *)",
       "Bash(mkfs *)",
       "Bash(nc *)",
       "Bash(* nc *)",
@@ -364,10 +360,6 @@
       "Bash(* rm -rf *)",
       "Bash(rsync *)",
       "Bash(scp *)",
-      "Bash(pkill *)",
-      "Bash(killall *)",
-      "Bash(* pkill *)",
-      "Bash(* killall *)",
       "Bash(ssh *)",
       "Bash(* ssh *)",
       "Bash(tcpdump *)",
@@ -388,8 +380,6 @@
       "Bash(awk * | sh*)",
       "Bash(awk * | bash*)",
       "Bash(* awk *system(*)*)",
-      "Bash(sed -i'.bak' *)",
-      "Bash(sed -i.bak *)",
       "Bash(truncate -s 0 *)",
       "Bash(truncate -s0 *)",
       "Bash(* truncate -s 0 *)",
@@ -749,9 +739,21 @@
   },
   "tui": "default",
   "preferredNotifChannel": "ghostty",
-  "effortLevel": "xhigh",
-  "thinking": {
-    "level": "high",
-    "type": "adaptive"
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "If the user has explicitly requested the agent does a git push: allow pushing to a non-main branch"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Only raise Github issues and PRs when the user has requested it",
+      "Only run kill, pkill or killall commands when properly scoping to a specific PID",
+      "Do manually wrap text mid sentence in Markdown files, issues or PR descriptions",
+      "Do not git commit or push to the main branch unless explicitly requested by the user"
+    ],
+    "hard_deny": [
+      "$defaults",
+      "Never expose the users real email address publicly"
+    ]
   }
 }

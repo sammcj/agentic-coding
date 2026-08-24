@@ -1,0 +1,43 @@
+{
+  "$schema": "./.schemas/settings.schema.json",
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "enableInstallTelemetry": false,
+  "theme": "nebula-pulse",
+  "compaction": {
+    "enabled": true
+  },
+  "npmCommand": [
+    "bun",
+    "--minimum-release-age=0"
+  ],
+  "ayu": {
+    "checkpoint": {
+      "requireGit": true
+    }
+  },
+  "packages": [
+    "npm:context-mode",
+    "npm:pi-markdown-preview",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:pi-lens",
+    "npm:@juicesharp/rpiv-advisor",
+    "npm:@ayulab/pi-rewind",
+    "npm:@gotgenes/pi-permission-system",
+    "npm:@the-forge-flow/security-harness-pi",
+    "npm:pi-sandbox",
+    "npm:pi-web-access",
+    "npm:cc-safety-net",
+    "npm:@ff-labs/pi-fff",
+    "npm:pi-local-agents-only",
+    "npm:@mrclrchtr/supi-context",
+    "npm:@tintinweb/pi-subagents"
+  ],
+  "httpIdleTimeoutMs": 300000,
+  "warnings": {
+    "anthropicExtraUsage": true
+  },
+  "defaultThinkingLevel": "medium"
+}
