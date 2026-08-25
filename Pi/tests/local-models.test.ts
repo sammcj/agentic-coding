@@ -21,7 +21,7 @@ import {
   type LocalEndpoint,
   parseModelEntry,
   persistDefaultModel,
-  resolveReasoning,
+  resolveLevels,
   selectableModels,
 } from "../extensions/local-models.ts"
 
@@ -169,44 +169,39 @@ describe("vision input detection", () => {
   })
 })
 
-describe("reasoning family detection", () => {
-  const thinks = (id: string) => resolveReasoning(id) !== undefined
-
-  test("matches the hybrid thinking families", () => {
-    for (const id of [
-      "qwen3.8-27b",
-      "thinkingcap-qwen3.6-27b-mtp",
-      "deepseek-v4-flash-0731-oq2e-mtp",
-      "deepseek-r1-distill-32b",
-      "glm-4.7-air-q4kl-160k",
-      "gpt-oss-120b-mxfp4-128k",
-    ]) {
-      expect(thinks(id)).toBe(true)
+describe("reasoning defaults", () => {
+  test("every chat model is thinking-capable, known family or not", () => {
+    // The kwargs bundle is inert on a template that never reads it, so an id allow-list
+    // would only go stale - a model missing from it silently loses its thinking toggle.
+    for (const id of ["qwen3.8-27b", "deepseek-v4-flash-0731-oq2e-mtp", "glm-5.2-air", "gemma-4-31b", "muse-glimmer-30b"]) {
+      expect(resolveLevels(id)).toBeDefined()
     }
   })
 
-  test("does not match Qwen2.5 aliases that merely start with qwen-3", () => {
-    // "qwen-32b" / "qwen-30b" are Qwen2.5; the lookahead keeps them out.
-    expect(thinks("qwen-32b-instruct")).toBe(false)
-    expect(thinks("qwen-30b")).toBe(false)
+  test("an override is the only way to opt a model out", () => {
+    expect(resolveLevels("qwen3.8-27b", { reasoning: false })).toBeUndefined()
   })
 
-  test("excludes non-thinking DeepSeek families", () => {
-    expect(thinks("deepseek-coder-v2-16b")).toBe(false)
-    expect(thinks("deepseek-math-7b")).toBe(false)
-    expect(thinks("deepseek-v2.5")).toBe(false)
+  test("families with a constrained effort string get their own map", () => {
+    expect(resolveLevels("qwen3.8-27b")).not.toEqual(resolveLevels("muse-glimmer-30b"))
+    expect(resolveLevels("deepseek-v4-flash-mtp")).not.toEqual(resolveLevels("muse-glimmer-30b"))
   })
+})
 
-  test("leaves unknown models alone", () => {
-    for (const id of ["muse-glimmer-30b", "llama-3.3-70b", "mistral-small-24b"]) {
-      expect(thinks(id)).toBe(false)
+describe("developer role", () => {
+  // pi-ai infers supportsDeveloperRole from the baseUrl and every host on its non-standard
+  // list is a named cloud provider, so a local URL resolves it true and the system prompt
+  // ships as role:"developer". llama.cpp hands the role straight to the template: GLM 4.7
+  // and 5.2 drop the message, stock Qwen3.8 raise_exception()s on it.
+  test("is pinned off for every local model", () => {
+    for (const id of ["qwen3.8-27b", "glm-5.2-air", "muse-glimmer-30b"]) {
+      expect(compatOf(id)?.supportsDeveloperRole).toBe(false)
     }
   })
 
-  test("overrides win over the id heuristics", () => {
-    expect(resolveReasoning("qwen3.8-27b", { reasoning: false })).toBeUndefined()
-    expect(resolveReasoning("muse-glimmer-30b", { reasoning: true })).toBeDefined()
-    expect(resolveReasoning("muse-glimmer-30b", { thinkingFormat: "zai" })?.thinkingFormat).toBe("zai")
+  test("stays pinned off even when reasoning is overridden away", () => {
+    const cfg = buildModelConfig(entry({ id: "qwen3.8-27b" }), { reasoning: false })
+    expect((cfg.compat as OpenAICompletionsCompat).supportsDeveloperRole).toBe(false)
   })
 })
 
@@ -234,46 +229,66 @@ describe("thinking levels", () => {
   })
 
   test("families that can be switched off offer off", () => {
-    for (const id of ["qwen3.8-27b", "deepseek-v4-flash-mtp", "glm-4.7-air", "gpt-oss-120b"]) {
+    for (const id of ["qwen3.8-27b", "deepseek-v4-flash-mtp", "glm-4.7-air", "gemma-4-31b"]) {
       expect(levelsFor(id)).toContain("off")
     }
   })
 
-  test("non-thinking models offer nothing but off", () => {
-    expect(levelsFor("muse-glimmer-30b")).toEqual(["off"])
-    expect(configFor("muse-glimmer-30b").reasoning).toBe(false)
+  test("MiniMax offers no off switch, because it cannot stop thinking", () => {
+    expect(levelsFor("minimax-m2-230b")).not.toContain("off")
+  })
+
+  test("DeepSeek maps its top level onto the only strings V4 acts on", () => {
+    // V4 branches on reasoning_effort 'high' and 'max'; everything else renders as plain
+    // thinking mode, so offering low/medium would be three levels that do the same thing.
+    const cfg = configFor("deepseek-v4-flash-mtp")
+    expect(getSupportedThinkingLevels(cfg as any)).toEqual(["off", "high", "xhigh"])
+    expect(cfg.thinkingLevelMap?.xhigh).toBe("max")
+  })
+
+  test("a model outside the known families is a plain on/off toggle", () => {
+    expect(levelsFor("muse-glimmer-30b")).toEqual(["off", "high"])
+    expect(configFor("muse-glimmer-30b").reasoning).toBe(true)
   })
 })
 
-describe("request shape per family", () => {
-  test("Qwen, DeepSeek and GLM go through chat_template_kwargs", () => {
+describe("request shape", () => {
+  test("every model goes through chat_template_kwargs", () => {
     // pi-ai's built-in deepseek/zai formats emit the vendors' cloud parameters, which a
     // locally served model ignores - so "off" would not actually disable thinking.
-    for (const id of ["qwen3.8-27b", "deepseek-v4-flash-mtp", "glm-4.7-air"]) {
+    for (const id of ["qwen3.8-27b", "deepseek-v4-flash-mtp", "glm-4.7-air", "muse-glimmer-30b"]) {
       expect(compatOf(id)?.thinkingFormat).toBe("chat-template")
       expect(compatOf(id)?.chatTemplateKwargs).toBeDefined()
     }
   })
 
-  test("thinking is switchable through the template kwargs", () => {
+  test("both spellings of the switch ship on every request", () => {
+    // Templates disagree on the key - Qwen and GLM read enable_thinking, DeepSeek reads
+    // thinking - and Jinja drops whichever one its template never defines.
+    for (const id of ["qwen3.8-27b", "deepseek-v4-flash-mtp", "glm-4.7-air"]) {
+      const kwargs = kwargsOf(id)
+      expect(kwargs.enable_thinking).toEqual({ $var: "thinking.enabled" })
+      expect(kwargs.thinking).toEqual({ $var: "thinking.enabled" })
+    }
+  })
+
+  test("effort is sent when thinking is on and omitted when it is off", () => {
+    expect(kwargsOf("qwen3.8-27b").reasoning_effort).toEqual({ $var: "thinking.effort", omitWhenOff: true })
+  })
+
+  test("earlier think blocks are preserved in both spellings", () => {
+    // Qwen and Gemma read preserve_thinking; GLM spells the same thing clear_thinking,
+    // inverted. Sending both costs nothing on a template that reads neither.
     const kwargs = kwargsOf("qwen3.8-27b")
-    expect(kwargs.enable_thinking).toEqual({ $var: "thinking.enabled" })
-    expect(kwargs.reasoning_effort).toEqual({ $var: "thinking.effort", omitWhenOff: true })
+    expect(kwargs.preserve_thinking).toBe(true)
+    expect(kwargs.clear_thinking).toBe(false)
   })
 
-  test("DeepSeek sends both spellings, since templates disagree on the key", () => {
-    const kwargs = kwargsOf("deepseek-v4-flash-mtp")
-    expect(kwargs.thinking).toEqual({ $var: "thinking.enabled" })
-    expect(kwargs.enable_thinking).toEqual({ $var: "thinking.enabled" })
-  })
-
-  test("gpt-oss uses a plain reasoning_effort with llama.cpp's none disable", () => {
-    expect(compatOf("gpt-oss-120b-mxfp4-128k")?.supportsReasoningEffort).toBe(true)
-    expect(configFor("gpt-oss-120b-mxfp4-128k").thinkingLevelMap?.off).toBe("none")
-  })
-
-  test("non-thinking models carry no compat at all", () => {
-    expect(configFor("muse-glimmer-30b").compat).toBeUndefined()
+  test("a per-model thinkingFormat override still carries the kwargs", () => {
+    // buildChatTemplateValues does Object.entries(kwargs), so a chat-template format with
+    // no kwargs threw on every request.
+    const cfg = buildModelConfig(entry({ id: "muse-glimmer-30b" }), { thinkingFormat: "chat-template" })
+    expect((cfg.compat as OpenAICompletionsCompat).chatTemplateKwargs).toBeDefined()
   })
 })
 
@@ -285,10 +300,11 @@ describe("per-model overrides", () => {
     expect(buildModelConfig(model(), { maxTokens: 1234 }).maxTokens).toBe(1234)
   })
 
-  test("reasoning can be forced off for a model the heuristics matched", () => {
+  test("reasoning can be forced off, which drops the thinking compat but not the rest", () => {
     const cfg = buildModelConfig(model(), { reasoning: false })
     expect(cfg.reasoning).toBe(false)
-    expect(cfg.compat).toBeUndefined()
+    expect(cfg.thinkingLevelMap).toBeUndefined()
+    expect((cfg.compat as OpenAICompletionsCompat).chatTemplateKwargs).toBeUndefined()
   })
 
   test("a model with no detected context still gets a usable default", () => {

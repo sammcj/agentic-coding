@@ -14,8 +14,9 @@
  *     llama-swap, llama.cpp/router), with maxTokens derived from it
  *   - Filters aliases, embeddings, rerankers, TTS and ASR out of the picker
  *   - Vision input detection
- *   - Per-family thinking control (Qwen, DeepSeek, GLM, gpt-oss, R1): correct
- *     request shape and only the levels each chat template accepts
+ *   - Thinking control: one chat_template_kwargs bundle for every model, plus the
+ *     effort levels Qwen and DeepSeek templates actually accept
+ *   - Pins supportsDeveloperRole off, which pi-ai otherwise infers from the baseUrl
  *   - Fuzzy type-to-filter model picker
  *   - Per-model overrides in local-models.json
  *   - Picking a model persists it as the startup default in settings.json
@@ -69,13 +70,6 @@ export interface DiscoveredModel {
 type OpenAICompat = Extract<NonNullable<ProviderModelConfig["compat"]>, { thinkingFormat?: unknown }>
 type ThinkingFormat = NonNullable<OpenAICompat["thinkingFormat"]>
 type ThinkingLevelMap = NonNullable<ProviderModelConfig["thinkingLevelMap"]>
-
-interface ReasoningProfile {
-  thinkingFormat?: ThinkingFormat
-  supportsReasoningEffort?: boolean
-  chatTemplateKwargs?: OpenAICompat["chatTemplateKwargs"]
-  levels: ThinkingLevelMap
-}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -242,92 +236,62 @@ export async function fetchModelsFromEndpoint(url: string, apiKey?: string): Pro
 const BOOLEAN_LEVELS: ThinkingLevelMap = { minimal: null, low: null, medium: null, xhigh: null }
 
 /**
- * No local server advertises whether a model thinks, so match on the id. This is what
- * makes thinking controllable: pi-ai only emits enable_thinking, chat_template_kwargs
- * and friends when model.reasoning is true, so a false flag means thinking is pinned
- * to whatever the chat template defaults to.
+ * Every local chat template takes its thinking switch from chat_template_kwargs, and Jinja
+ * silently drops names the template never defines - llama.cpp and vLLM both forward the whole
+ * object untouched. So one bundle covers every family and the key names stop being a per-model
+ * concern. Which key each template actually reads:
+ *
+ *   enable_thinking   Qwen, GLM, Gemma, DeepSeek (fallback)
+ *   thinking          DeepSeek V3.1+ / V4 (primary)
+ *   reasoning_effort  Qwen, DeepSeek V4
+ *   preserve_thinking Qwen, Gemma - keep earlier think blocks when rendering history
+ *   clear_thinking    GLM's inverted spelling of the same thing
+ *
+ * Only the reasoning_effort *value* is family-specific, which is what EFFORT_LEVELS handles.
  */
-const REASONING_PROFILES: { re: RegExp; profile: ReasoningProfile }[] = [
-  // gpt-oss takes a plain reasoning_effort, which llama.cpp forwards to the template. Its docs
-  // also define reasoning_effort:"none" as disabling thinking outright, which is the only off
-  // switch this family has - on a server that ignores "none" the level simply stays low.
-  {
-    re: /gpt-?oss/i,
-    profile: { supportsReasoningEffort: true, levels: { off: "none", minimal: null, xhigh: null } },
-  },
-  // R1 and its distills think unconditionally, so "off" is not on offer.
-  {
-    re: /deepseek[-_]?r1|(^|[-_])r1([-_.]|$)/i,
-    profile: { thinkingFormat: "deepseek", levels: { off: null, minimal: null, xhigh: null } },
-  },
-  // Remaining DeepSeek hybrids (V3.1+, V4, reasoner). Excluding the known non-thinking families
-  // beats enumerating the thinking ones, which silently misses each new release. pi-ai's
-  // "deepseek" format sends a top-level thinking:{type}, which is the cloud dialect and leaves
-  // a locally served model thinking even when switched off, so declare the kwargs instead.
-  // DeepSeek templates read `thinking`; enable_thinking rides along for the ones that don't.
-  {
-    re: /deepseek(?!.*(coder|math|[-_]vl|llm|[-_]v2))/i,
-    profile: {
-      thinkingFormat: "chat-template",
-      chatTemplateKwargs: {
-        thinking: { $var: "thinking.enabled" },
-        enable_thinking: { $var: "thinking.enabled" },
-        reasoning_effort: { $var: "thinking.effort", omitWhenOff: true },
-      },
-      levels: { minimal: null, xhigh: null },
-    },
-  },
-  // GLM reads chat_template_kwargs.enable_thinking when served locally; pi-ai's "zai" format
-  // sends a top-level enable_thinking, which is Z.ai's cloud surface and llama.cpp ignores.
-  {
-    re: /(^|[-_/])glm|zai/i,
-    profile: {
-      thinkingFormat: "chat-template",
-      chatTemplateKwargs: {
-        enable_thinking: { $var: "thinking.enabled" },
-        reasoning_effort: { $var: "thinking.effort", omitWhenOff: true },
-      },
-      levels: BOOLEAN_LEVELS,
-    },
-  },
-  // Qwen3 hybrids and lookalikes. The lookahead keeps "qwen-32b" / "qwen-30b" (Qwen2.5 aliases)
-  // from matching as Qwen3. The built-in "qwen-chat-template" format would collapse the level to
-  // a bare enable_thinking boolean, so declare the kwargs instead: Qwen's template reads
-  // reasoning_effort and distinguishes low / medium / high, which is granularity worth keeping.
-  {
-    re: /qwen-?3(?![0-9])|qwq|thinkingcap|minimax|hunyuan|seed-oss/i,
-    profile: {
-      thinkingFormat: "chat-template",
-      chatTemplateKwargs: {
-        enable_thinking: { $var: "thinking.enabled" },
-        reasoning_effort: { $var: "thinking.effort", omitWhenOff: true },
-        preserve_thinking: true,
-      },
-      // Qwen's own template accepts only low/medium/xhigh and raise_exception()s on anything
-      // else, so offer exactly those three: each level sends its own name, and the ones the
-      // template would reject are hidden rather than silently rewritten into something else.
-      levels: { minimal: null, high: null, xhigh: "xhigh" },
-    },
-  },
+const THINKING_KWARGS: NonNullable<OpenAICompat["chatTemplateKwargs"]> = {
+  enable_thinking: { $var: "thinking.enabled" },
+  thinking: { $var: "thinking.enabled" },
+  reasoning_effort: { $var: "thinking.effort", omitWhenOff: true },
+  preserve_thinking: true,
+  clear_thinking: false,
+}
+
+/**
+ * The two families where the effort string is not free-form. Everything else is on/off, and
+ * an unread reasoning_effort costs nothing. Order matters: R1 is matched before the general
+ * DeepSeek pattern.
+ */
+const EFFORT_LEVELS: { re: RegExp; levels: ThinkingLevelMap }[] = [
+  // R1 and its distills think unconditionally and read no effort, so "off" is not on offer.
+  { re: /deepseek[-_]?r1|(^|[-_])r1([-_.]|$)/i, levels: { off: null, minimal: null, low: null, medium: null, xhigh: null } },
+  // DeepSeek V4 branches on reasoning_effort 'high' and 'max' only; every other value renders
+  // the same prompt as plain thinking mode, so map pi's top two levels onto those two.
+  { re: /deepseek(?!.*(coder|math|[-_]vl|llm|[-_]v2))/i, levels: { minimal: null, low: null, medium: null, xhigh: "max" } },
+  // Qwen3+ raise_exception()s on any reasoning_effort outside low/medium/xhigh, so offer exactly
+  // those three and hide the rest rather than silently rewriting them into something else.
+  { re: /qwen-?3(?![0-9])|thinkingcap|hunyuan/i, levels: { minimal: null, high: null, xhigh: "xhigh" } },
+  // Thinks unconditionally: enable_thinking:false is read by nothing in its template.
+  { re: /minimax/i, levels: { ...BOOLEAN_LEVELS, off: null } },
 ]
 
-export function resolveReasoning(id: string, override?: ModelOverride): ReasoningProfile | undefined {
+/**
+ * No local server reports whether a model thinks, and an id allow-list goes stale with every
+ * release. Since the kwargs above are inert on a template that ignores them, default every chat
+ * model to thinking-capable and let `"reasoning": false` in local-models.json opt one out.
+ */
+export function resolveLevels(id: string, override?: ModelOverride): ThinkingLevelMap | undefined {
   if (override?.reasoning === false) return undefined
-  if (override?.thinkingFormat) return { thinkingFormat: override.thinkingFormat, levels: BOOLEAN_LEVELS }
-  const inferred = REASONING_PROFILES.find(({ re }) => re.test(id))?.profile
-  if (inferred) return inferred
-  // An explicit opt-in with no pattern match: assume the most common local shape.
-  if (override?.reasoning === true) return { thinkingFormat: "qwen-chat-template", levels: BOOLEAN_LEVELS }
-  return undefined
+  return EFFORT_LEVELS.find(({ re }) => re.test(id))?.levels ?? BOOLEAN_LEVELS
 }
 
 export function buildModelConfig(model: DiscoveredModel, override?: ModelOverride): ProviderModelConfig {
   const contextWindow = override?.contextWindow ?? model.contextWindow ?? DEFAULT_CONTEXT_WINDOW
-  const profile = resolveReasoning(model.id, override)
+  const levels = resolveLevels(model.id, override)
   const config: ProviderModelConfig = {
     id: model.id,
     name: model.id,
-    reasoning: profile !== undefined,
+    reasoning: levels !== undefined,
     input: model.input,
     cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
     contextWindow,
@@ -337,14 +301,21 @@ export function buildModelConfig(model: DiscoveredModel, override?: ModelOverrid
     maxTokens:
       override?.maxTokens ??
       Math.min(contextWindow >> 1, Math.max(4096, Math.min(MAX_OUTPUT_CAP, contextWindow >> 2))),
+    // pi-ai auto-detects supportsDeveloperRole from the baseUrl, and every host on its
+    // non-standard list is a named cloud provider - a local URL matches none of them, so it
+    // resolves true and the system prompt goes out as role:"developer" for any reasoning model.
+    // llama.cpp passes the role straight to the template: GLM 4.7 and 5.2 have no branch for it
+    // and drop the prompt, stock Qwen3.8 raise_exception()s. No local template gains anything
+    // from the role, so pin it off.
+    compat: { supportsDeveloperRole: false },
   }
-  if (profile) {
-    config.thinkingLevelMap = profile.levels
-    const compat: OpenAICompat = {}
-    if (profile.thinkingFormat) compat.thinkingFormat = profile.thinkingFormat
-    if (profile.supportsReasoningEffort) compat.supportsReasoningEffort = true
-    if (profile.chatTemplateKwargs) compat.chatTemplateKwargs = profile.chatTemplateKwargs
-    if (Object.keys(compat).length > 0) config.compat = compat
+  if (levels) {
+    config.thinkingLevelMap = levels
+    config.compat = {
+      ...config.compat,
+      thinkingFormat: override?.thinkingFormat ?? "chat-template",
+      chatTemplateKwargs: THINKING_KWARGS,
+    }
   }
   return config
 }
@@ -358,21 +329,12 @@ export function selectableModels(endpoint: LocalEndpoint, models: DiscoveredMode
   return models.filter((m) => m.chat && !m.alias && endpoint.models?.[m.id]?.hidden !== true)
 }
 
-/** Thinking-capable model ids per provider, so the request hook knows which payloads to touch. */
-const thinkingModels = new Map<string, Set<string>>()
-
-function isThinkingModel(id: string): boolean {
-  for (const ids of thinkingModels.values()) if (ids.has(id)) return true
-  return false
-}
-
 function registerLocalProvider(pi: ExtensionAPI, endpoint: LocalEndpoint, models: DiscoveredModel[]) {
   const usable = selectableModels(endpoint, models)
   if (usable.length === 0) return
 
   const configs = usable.map((m) => buildModelConfig(m, endpoint.models?.[m.id]))
   const providerName = getProviderName(endpoint)
-  thinkingModels.set(providerName, new Set(configs.filter((c) => c.reasoning).map((c) => c.id)))
 
   pi.registerProvider(providerName, {
     name: endpoint.name,
@@ -384,7 +346,6 @@ function registerLocalProvider(pi: ExtensionAPI, endpoint: LocalEndpoint, models
 }
 
 function unregisterLocalProvider(pi: ExtensionAPI, endpoint: LocalEndpoint) {
-  thinkingModels.delete(getProviderName(endpoint))
   pi.unregisterProvider(getProviderName(endpoint))
 }
 
@@ -530,17 +491,6 @@ export default async function (pi: ExtensionAPI) {
   // startup model resolution and `pi --list-models`.
   loadEndpoints()
   await registerKnownEndpoints(pi)
-
-  // pi-ai attaches preserve_thinking only on the qwen-chat-template path, so models mapped
-  // to the deepseek / zai / reasoning_effort shapes never ask the server to keep earlier
-  // think blocks when rendering history. Add it for every local thinking model; templates
-  // that don't read the kwarg ignore it.
-  pi.on("before_provider_request", (event) => {
-    const payload = event.payload as { model?: unknown; chat_template_kwargs?: Record<string, unknown> } | null
-    if (!payload || typeof payload.model !== "string" || !isThinkingModel(payload.model)) return
-    payload.chat_template_kwargs = { preserve_thinking: true, ...payload.chat_template_kwargs }
-    return payload
-  })
 
   // ─── /local-models command ──────────────────────────────────────────────
 
