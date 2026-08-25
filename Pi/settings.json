@@ -6,7 +6,7 @@
   "enableInstallTelemetry": false,
   "theme": "nebula-pulse",
   "compaction": {
-    "enabled": true
+    "keepRecentTokens": 30000
   },
   "npmCommand": [
     "bun",
@@ -35,9 +35,5 @@
     "npm:@mrclrchtr/supi-context",
     "npm:@tintinweb/pi-subagents"
   ],
-  "httpIdleTimeoutMs": 300000,
-  "warnings": {
-    "anthropicExtraUsage": true
-  },
   "defaultThinkingLevel": "medium"
 }
