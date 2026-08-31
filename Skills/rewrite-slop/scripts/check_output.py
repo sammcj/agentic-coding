@@ -222,15 +222,16 @@ def _pos(text, off):
     return text.count("\n", 0, off) + 1, off - text.rfind("\n", 0, off)
 
 
-def scan(text, *rulesets):
-    """Return [(offset, name, matched_text)] for matches outside code, one per offset.
+def scan_spans(text, *rulesets):
+    """Return [(start, end, name, matched_text)] for matches outside code.
 
     Deduped because SAFE and REVIEW deliberately overlap: SAFE runs first and
     narrows a case (a numeric en-dash range) that REVIEW would otherwise claim.
 
     The matched text is carried so REPORT can name the word it objected to: a
     rule like marketing-adjective covers eighteen alternations, and the rule name
-    alone leaves the agent to reopen the line to find out which one fired.
+    alone leaves the agent to reopen the line to find out which one fired. The
+    end offset is carried for the HTML report, which marks the span in place.
     """
     spans = _code_spans(text)
     seen = {}
@@ -245,8 +246,13 @@ def scan(text, *rulesets):
     for off, (end, name, hit) in sorted(seen.items()):
         if any(a <= off and end <= b for a, (b, _, _) in seen.items() if a != off):
             continue
-        out.append((off, name, hit))
+        out.append((off, end, name, hit))
     return out
+
+
+def scan(text, *rulesets):
+    """scan_spans without the end offset, which most callers do not need."""
+    return [(off, name, hit) for off, _, name, hit in scan_spans(text, *rulesets)]
 
 
 def apply(text: str, rules, counts) -> str:
@@ -353,16 +359,19 @@ def blobs(text):
     return sorted(found, reverse=True)[:BLOB_LIST_MAX]
 
 
-def register(text):
-    """Density of the current Claude register, by group. Returns ([lines], flagged).
+def register_stats(text):
+    """Density of the current Claude register, by group, or None below the gates.
 
     Two gates, both of which must trip: a rate per 1000 words, and an absolute
     count. The rate alone flags clean short prose carrying one marker.
+
+    Structured rather than formatted because the HTML report reads the same
+    measurement, and a second implementation of it would drift from this one.
     """
     prose = CODE.sub(" ", text).lower()
     words = TOKEN.findall(prose)
     if len(words) < SHORT:
-        return [], False
+        return None
     hits = Counter(w for w in words if w in MARKERS)
     # Assigned, not update()d: Counter.update creates the key even at zero, which
     # would name "no one" as a marker in every report that did not contain it.
@@ -371,16 +380,30 @@ def register(text):
     total = sum(hits.values())
     rate = 1000 * total / len(words)
     if rate < ELEVATED or total < LEAST:
-        return [], False
+        return None
 
     by_group = {}
     for word, n in hits.most_common():
-        by_group.setdefault(MARKERS.get(word, "negation"), []).append(
-            "%s x%d" % (word, n) if n > 1 else word)
+        by_group.setdefault(MARKERS.get(word, "negation"), []).append((word, n))
+    return {
+        "rate": rate,
+        "total": total,
+        "words": len(words),
+        "band": "HEAVY" if rate >= HEAVY else "ELEVATED",
+        "groups": sorted(by_group.items(), key=lambda kv: -len(kv[1])),
+    }
+
+
+def register(text):
+    """Register density as report lines. Returns ([lines], flagged)."""
+    st = register_stats(text)
+    if not st:
+        return [], False
     lines = ["register %.1f/1000 %s, %d markers over %d words"
-             % (rate, "HEAVY" if rate >= HEAVY else "ELEVATED", total, len(words))]
-    for group, words_ in sorted(by_group.items(), key=lambda kv: -len(kv[1])):
-        lines.append("  %-13s %s" % (group, ", ".join(words_[:10])))
+             % (st["rate"], st["band"], st["total"], st["words"])]
+    for group, pairs in st["groups"]:
+        shown = ["%s x%d" % (w, n) if n > 1 else w for w, n in pairs[:10]]
+        lines.append("  %-13s %s" % (group, ", ".join(shown)))
     return lines, True
 
 

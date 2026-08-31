@@ -11,6 +11,8 @@ This is editing, not authoring. You add no new information. You change no facts,
 
 Tier 2's vocabulary is a snapshot of a ranking that moves. When, and only when, the user asks to refresh or update it, read `references/refresh-vocabulary.md` and follow it. Never do this as part of a rewrite.
 
+If the user asks for a report, a page or a visual of what was flagged, read `references/html-report.md`. Otherwise ignore it: the rewrite phases below never need it.
+
 ## Phase 0: Triage technical artefacts
 
 Run the checker first. It applies the mechanical fixes below and prints the rest:

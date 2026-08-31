@@ -4,7 +4,7 @@
 
 ## 2026-08-31
 
-Rebuilt the detection around two empirical sources, louisabraham.github.io/load-bearing and berenslab/llm-excess-vocab, and borrowed detection from `skill-creator-primer`. The finding behind it: the classic slop list (delve, leverage, pivotal, seamlessly) belongs to a *receding* register, and none of those words appear in the growing cluster's top 1000.
+Rebuilt the detection around two empirical sources, louisabraham.github.io/load-bearing and berenslab/llm-excess-vocab, and borrowed detection from `skill-creator-primer`. The finding behind it: the classic slop list (delve, leverage, pivotal, seamlessly) belongs to a _receding_ register, and none of those words appear in the growing cluster's top 1000.
 
 **Tier 2, the current register**
 
@@ -41,9 +41,20 @@ Rebuilt the detection around two empirical sources, louisabraham.github.io/load-
 - REPORT findings print the matched text, not just the rule name.
 - Tier 1 owns "honest" outright, widened to thoughts, appraisal, verdict and bare "honestly". `metaphor-tic` gained "smoking-gun", "corpus" and "corpora".
 
+**HTML report (optional)**
+
+- New `scripts/render_report.py` and `references/html-report.md`: one self-contained page per input, stdlib only, no network or build step. Gated in SKILL.md on the user asking, one line.
+- The reference is written for the agent running it, not for a reader of the page: which file is `FILE`, not to try opening it, and to hand back the path rather than narrating the findings the page already lists. The layout description is trimmed to the two judgements the page shows but does not make. Maintenance notes sit below a marked break.
+- Shows the register gauge against the calibrated thresholds, a bar per Tier 2 group, every term ranked by frequency with a search box, the structural findings, and the whole input with each flagged span marked in place. Clicking a term holds it selected and fades the rest.
+- `--against ORIG` adds paired before-and-after bars for word count, hits per severity, and register rate.
+- Two columns filling one screen, the panel of instruments beside the document rather than above it, each scrolling on its own. Stacked, clicking a term scrolled the text a screen away from the findings list that pointed at it.
+- Borrowed from louisabraham.github.io/load-bearing: the ruled compartments, click-to-hold selection, one grey ramp with a single accent, light only. None of its analysis carries over, since a single document has no time axis.
+- `register()` split into `register_stats()` plus formatting, and `scan()` into a projection of `scan_spans()`, so the page reads the same measurement rather than a second implementation of it.
+
 **Maintenance**
 
 - New `references/refresh-vocabulary.md` and `scripts/refresh_markers.py` for re-deriving the vocabulary when a source moves. Reports only; gated on the user asking.
+- Ran the checker over its own references. Both scored HEAVY and both now pass: marker words that were being mentioned rather than used are backticked so the inline-code skip catches them, and the rest was ordinary prose that thinned. SKILL.md still scores HEAVY by construction, since the rubric lists the vocabulary it detects.
 - CLAUDE.md names the upstream sources to check, none of them required.
 - Both scripts clean under ruff, pyright and mypy. Kept `%` formatting and the space-separated word blocks, which read better than what UP031 and SIM905 want.
 

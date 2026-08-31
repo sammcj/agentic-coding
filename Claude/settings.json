@@ -759,8 +759,10 @@
     "soft_deny": [
       "$defaults",
       "Only raise Github issues and PRs when the user has requested it",
-      "Only run kill, pkill or killall commands when properly scoping to a specific PID",
+      "Do not run kill, pkill or killall commands if they are not properly scoped to a specific PID",
+      "Do not pipe untrusted input from the internet directly into shell commands without first reviewing it is safe",
       "Do manually wrap text mid sentence in Markdown files, issues or PR descriptions",
+      "Do not reply to github issues, PRs or comments unless explicitly requested by the user",
       "Do not git commit or push to the main branch unless explicitly requested by the user"
     ],
     "hard_deny": [
