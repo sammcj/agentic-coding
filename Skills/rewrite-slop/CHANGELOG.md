@@ -21,6 +21,7 @@ Folded in the empirical ranking from louisabraham.github.io/load-bearing (461k G
 - Tier 3 now states that its lists match on meaning, not spelling, and the rewrite keeps the input's own convention. Fixed two rules that carried only one form: "emphasise" and "widely recognised". A single-spelling rule silently passes half its inputs.
 - The new `marketing-adjective` alternations write out every -ise/-ize pair.
 - Checked the same dataset against Tier 2 and found almost nothing (18 of 106 words at r>=1.5, all at noise-level counts). Its data ends in 2024 and the Tier 2 register grew through 2025 and 2026, so the two sources corroborate the split between the registers rather than overlapping.
+- Both scripts pass ruff, pyright and mypy clean. Fixed: two files opened without a context manager, an ambiguous `l` binding, two over-long lines, and the `zip` in `refresh_markers.py` now uses `strict=True` so an index misalignment in upstream data stops rather than truncating. `apply()` binds its loop variables as defaults, and the `zip` in `compare()` is explicitly `strict=False` because a differing block count is the finding there, not an error.
 - Recorded why the marketing register was left in Tier 3: of its 52 words only comprehensive, enhance, streamline, seamless and robust appear in the source data at all. The other 47 never clear its 50-account floor, so absence there is a limit of the sample rather than evidence.
 
 ## 2026-08-20

@@ -43,7 +43,8 @@ behaviour-preserving fleet-wide fail-loud -only spellings corpus prose idiom cen
 
 def load(path):
     try:
-        raw = open(path, encoding="utf-8").read()
+        with open(path, encoding="utf-8") as fh:
+            raw = fh.read()
     except OSError as exc:
         sys.exit("%s\n\nClone or update the data first:\n"
                  "    git clone https://github.com/louisabraham/load-bearing "
@@ -54,8 +55,9 @@ def load(path):
 
 def current_groups():
     """Read GROUPS out of check_output.py without importing it."""
-    src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            "check_output.py"), encoding="utf-8").read()
+    beside = os.path.join(os.path.dirname(os.path.abspath(__file__)), "check_output.py")
+    with open(beside, encoding="utf-8") as fh:
+        src = fh.read()
     body = src.split("GROUPS = {", 1)[1].split("\n}", 1)[0]
     groups = {}
     for name, words in re.findall(r'"([a-z-]+)":\s*"{1,3}(.*?)"{1,3},', body, re.S):
@@ -75,7 +77,9 @@ def main():
     if lead is None:
         sys.exit("no lead component in %s; the daily fit may have failed" % args.data)
 
-    ranked = sorted(zip(lead["word_list"], lead["word_lift"]),
+    # strict: the two arrays are index-aligned by the file format, so a length
+    # mismatch is upstream corruption and should stop rather than truncate.
+    ranked = sorted(zip(lead["word_list"], lead["word_lift"], strict=True),
                     key=lambda x: -x[1])[:args.top]
     top = {w for w, _ in ranked}
     groups = current_groups()
@@ -84,16 +88,17 @@ def main():
     print("data generated %s, %d weeks, %s descriptions"
           % (data.get("generated", "?"), len(data.get("weeks", [])),
              format(data.get("documents", 0), ",")))
-    print("lead cluster %.1f%% -> %.1f%% of the sample, %d words ranked, top %d examined\n"
+    print("lead cluster %.1f%% -> %.1f%% of the sample, %d words ranked, "
+          "top %d examined\n"
           % (100 * lead["start_share"], 100 * lead["end_share"],
              len(lead["word_list"]), args.top))
 
-    new = [(w, l) for w, l in ranked if w not in known and w not in DECLINED]
+    new = [(w, lift) for w, lift in ranked if w not in known and w not in DECLINED]
     print("CANDIDATES: %d words in the top %d that are neither grouped nor declined."
           % (len(new), args.top))
     print("Judge each one: style keeps, subject matter goes to DECLINED.\n")
-    for w, l in new:
-        print("  %-22s lift %5.1f" % (w, l))
+    for w, lift in new:
+        print("  %-22s lift %5.1f" % (w, lift))
 
     gone = sorted(w for w in known if w not in top)
     print("\nDROPPED OUT of the top %d (%d). Falling lift is not itself a reason to "
@@ -101,8 +106,9 @@ def main():
           "characteristic can be seen.\n" % (args.top, len(gone)))
     print("  " + ", ".join(gone) if gone else "  none")
 
-    print("\nEdit GROUPS in check_output.py by hand, keep the Tier 2 lists in SKILL.md "
-          "in step\n(the group names are shared), then note the change in CHANGELOG.md.")
+    print("\nEdit GROUPS in check_output.py by hand, keep the Tier 2 lists in "
+          "SKILL.md in step\n(the group names are shared), then note the change "
+          "in CHANGELOG.md.")
 
 
 if __name__ == "__main__":

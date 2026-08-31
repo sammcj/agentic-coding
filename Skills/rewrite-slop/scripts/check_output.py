@@ -189,7 +189,9 @@ def apply(text: str, rules, counts) -> str:
     for name, pat, repl in rules:
         spans = _code_spans(text)
 
-        def sub(m):
+        # Loop variables bound as defaults: re.sub consumes `sub` within this
+        # iteration, but binding them makes that independent of the call order.
+        def sub(m, name=name, repl=repl, spans=spans):
             if _in_code(m.start(), spans):
                 return m.group(0)
             counts[name] = counts.get(name, 0) + 1
@@ -261,7 +263,8 @@ def compare(orig, new):
     lines = ["words: %d -> %d (%+.1f%%)%s" % (ow, nw, pct, "  LONGER" if nw > ow else "")]
     ob = re.findall(r"```.*?```", orig, re.S)
     nb = re.findall(r"```.*?```", new, re.S)
-    same = sum(1 for a, b in zip(ob, nb) if a == b)
+    # Not strict: a differing block count is the finding, not an error.
+    same = sum(1 for a, b in zip(ob, nb, strict=False) if a == b)
     lines.append("code blocks: %d/%d identical%s" % (same, len(ob), "" if same == len(ob) and len(ob) == len(nb) else "  DIFFER"))
     return lines, nw > ow or ob != nb
 
