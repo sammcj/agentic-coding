@@ -44,6 +44,7 @@ Rebuilt the detection around two empirical sources, louisabraham.github.io/load-
 **HTML report (optional)**
 
 - New `scripts/render_report.py` and `references/html-report.md`: one self-contained page per input, stdlib only, no network or build step. Gated in SKILL.md on the user asking, one line.
+- "slopsummary" triggers the report. In the frontmatter as well as the body, since the body only reaches an agent that has already loaded the skill.
 - The reference is written for the agent running it, not for a reader of the page: which file is `FILE`, not to try opening it, and to hand back the path rather than narrating the findings the page already lists. The layout description is trimmed to the two judgements the page shows but does not make. Maintenance notes sit below a marked break.
 - Shows the register gauge against the calibrated thresholds, a bar per Tier 2 group, every term ranked by frequency with a search box, the structural findings, and the whole input with each flagged span marked in place. Clicking a term holds it selected and fades the rest.
 - `--against ORIG` adds paired before-and-after bars for word count, hits per severity, and register rate.

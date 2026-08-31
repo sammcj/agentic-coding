@@ -53,7 +53,7 @@ body { margin: 0; background: var(--ground); color: var(--ink);
 /* The panel beside the document, not above it: a term is clicked in the findings
    and read in the text, and a stacked board put the two an entire screen apart.
    Each column scrolls on its own so neither scrolls the other away. */
-.board { display: grid; grid-template-columns: minmax(340px, 32%) 1fr;
+.board { display: grid; grid-template-columns: minmax(440px, 41%) 1fr;
          grid-template-rows: auto minmax(0, 1fr) auto;
          gap: var(--rule); padding: var(--rule); height: 100vh; }
 .cell { border: var(--rule) solid var(--ink); padding: 14px 16px; min-width: 0; }
@@ -127,7 +127,7 @@ tr.pick:hover td { background: var(--fill); }
 .scroll { flex: 1; min-height: 90px; overflow: auto; }
 
 /* the frequency chart, drawn behind the rows it labels rather than beside them */
-td.f { width: 40%; }
+td.f { width: 30%; }
 td.f s { display: block; height: 11px; background: #d4d4d4; text-decoration: none; }
 tr.pick:first-child td.f s { background: var(--accent); }
 

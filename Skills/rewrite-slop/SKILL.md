@@ -1,6 +1,6 @@
 ---
 name: rewrite-slop
-description: Use when explicitly asked to rewrite AI-generated text so it reads as human, or with phrasings like "de-slop", "humanise this", "make it sound less like AI", or "remove the AI tells".
+description: Use when explicitly asked to review or rewrite AI-generated text so it reads as human, or with phrasings like "de-slop", "humanise this", "make it sound less like AI", or "remove the AI tells" or asks for a "slopsummary".
 ---
 
 # rewrite-slop
@@ -11,7 +11,7 @@ This is editing, not authoring. You add no new information. You change no facts,
 
 Tier 2's vocabulary is a snapshot of a ranking that moves. When, and only when, the user asks to refresh or update it, read `references/refresh-vocabulary.md` and follow it. Never do this as part of a rewrite.
 
-If the user asks for a report, a page or a visual of what was flagged, read `references/html-report.md`. Otherwise ignore it: the rewrite phases below never need it.
+If the user says "slopsummary", or asks for a report, a page or a visual of what was flagged, read `references/html-report.md`. Otherwise ignore it: the rewrite phases below never need it.
 
 ## Phase 0: Triage technical artefacts
 
@@ -33,7 +33,7 @@ Scan the input and remove the following. These are pure AI markers with no legit
 - JSON tails: `({"attribution":{"attributableIndex":"X-Y"}})`
 - Placeholder tokens: `[Your Name]`, `INSERT_SOURCE_URL_30`, `2025-XX-XX`, `[Describe the specific section]`, any other unfilled bracket placeholder
 - Decorative unicode: mathematical bold (`𝗯𝗼𝗹𝗱`), italic (`𝘪𝘵𝘢𝘭𝘪𝘤`), arrows used as bullets (`→`), multiplication signs in prose (`x` rendered as `×`)
-- Em dashes (`—`) and en dashes (`–`): replace with comma, period, parentheses, or hyphen as the sentence requires. Where the dash joins two independent clauses, prefer a period or comma; a colon there manufactures the mid-sentence colon splice flagged in Tier 3. Zero tolerance: not one dash is acceptable in the output.
+- Em dashes (`-`) and en dashes (`-`): replace with comma, period, parentheses, or hyphen as the sentence requires. Where the dash joins two independent clauses, prefer a period or comma; a colon there manufactures the mid-sentence colon splice flagged in Tier 3. Zero tolerance: not one dash is acceptable in the output.
 - Smart quotes (`" "`, `' '`): replace with straight quotes (`"`, `'`). Zero tolerance.
 - Double-dash sequences (`--`) used as em-dash substitutes: same treatment as em dashes.
 
@@ -278,7 +278,7 @@ Single-pass rewriting leaves patterns it was instructed to remove. This pass cat
 
 Create a task per question below. Answer each by inspecting the rewritten text, fix any "yes", then mark the task complete.
 
-- Are there any em dashes (`—`), en dashes (`–`), or `--` sequences? Any smart quotes (`" "` or `' '`)?
+- Are there any em dashes (`-`), en dashes (`-`), or `--` sequences? Any smart quotes (`" "` or `' '`)?
 - Does any sentence start with Additionally, Furthermore, Moreover, Notably, Consequently, In conclusion, Overall, In summary, It is important to note?
 - Does any paragraph contain three parallel adjectives, three parallel short phrases, or three parallel clauses used decoratively?
 - Are there any "It's not X. It's Y.", "Not just X, but Y.", or cousin negation-antithesis contrasts? Apply the swap test: if "It's not Y, it's X" is equally plausible, the contrast is decorative. Drop the negation and state Y directly.

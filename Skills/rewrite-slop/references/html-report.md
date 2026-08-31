@@ -1,6 +1,6 @@
 # The HTML report
 
-Read this only when the user has asked for a report, a page, or a visual of what was flagged. The rewrite phases never call it, and it changes no text.
+Read this only when the user has said "slopsummary", or asked for a report, a page, or a visual of what was flagged. The rewrite phases never call it, and it changes no text.
 
 ## Running it
 
