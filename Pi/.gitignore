@@ -16,3 +16,5 @@ run-history.jsonl
 *.crt
 *.bak
 *.bak*
+**/fixtures/
+diagnostics/captures/

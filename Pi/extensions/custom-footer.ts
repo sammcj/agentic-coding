@@ -51,13 +51,18 @@ const LEVEL_COLORS: Record<string, ThemeColor> = {
 	low: "thinkingLow",
 	medium: "thinkingMedium",
 	high: "thinkingHigh",
-	"extra-high": "thinkingXhigh",
+	// pi's own level names are "xhigh" and "max"; "extra-high" matched neither, so both
+	// top levels fell through to the default accent colour.
+	xhigh: "thinkingXhigh",
+	max: "thinkingMax",
 };
 
 export default function (pi: ExtensionAPI) {
 	pi.on("session_start", async (_event, ctx) => {
-		// Track thinking level from events
-		let thinkingLevel = "high";
+		// Seed from the session's real level rather than a literal. Nothing fires
+		// thinking_level_select at startup, so a hardcoded start value displayed that level
+		// on every launch no matter what the model or settings actually resolved to.
+		let thinkingLevel: string = ctx.thinkingLevel ?? "off";
 
 		pi.on("thinking_level_select", async (event) => {
 			thinkingLevel = event.level;
@@ -242,6 +247,22 @@ export default function (pi: ExtensionAPI) {
 					// Git branch — use success color
 					const gitStr = branch ? theme.fg("toolDiffAdded", " " + branch) : "";
 
+					// Statuses published by other extensions via ctx.ui.setStatus(). The built-in
+					// footer renders these; replacing the footer silently swallowed them, so any
+					// extension using setStatus had no visible effect. Rendered generically so
+					// this does not need to know which extensions exist.
+					const statuses = [...footerData.getExtensionStatuses().values()]
+						.map((s) => s.trim())
+						.filter(Boolean)
+						.map((s) =>
+							// A warning word is the convention for "look at this now". Plurals and
+							// -ed/-ing forms count; word boundaries keep "mission" and "terrorist"
+							// from reading as "miss" and "error".
+							/\b(miss(ed|es)?|warn(ing)?s?|stale|errors?)\b/i.test(s)
+								? theme.fg("warning", s)
+								: theme.fg("muted", s),
+						);
+
 					// ===== LEFT: stats with │ separators between each =====
 					const leftParts = [
 						arrowUp,
@@ -249,6 +270,7 @@ export default function (pi: ExtensionAPI) {
 						costStr,
 						contextPct,
 						speedStr,
+						...statuses,
 					].filter(Boolean);
 
 					const left = leftParts.join(sep);

@@ -232,8 +232,14 @@ export async function fetchModelsFromEndpoint(url: string, apiKey?: string): Pro
 
 // ─── Reasoning capability ────────────────────────────────────────────────────
 
-/** Templates driven by a boolean switch: thinking is either on or off, no gradations. */
-const BOOLEAN_LEVELS: ThinkingLevelMap = { minimal: null, low: null, medium: null, xhigh: null }
+/**
+ * Templates driven by a boolean switch: thinking is either on or off, no gradations. The one
+ * level left standing has to be "medium", for two reasons that both bite otherwise:
+ * clampThinkingLevel scans *upward* from pi's "medium" default, so leaving only "high" starts
+ * every unmatched model a level higher than asked; and the level name is what gets sent as
+ * reasoning_effort, where stock Qwen3.8 raise_exception()s on "high" but accepts "medium".
+ */
+const BOOLEAN_LEVELS: ThinkingLevelMap = { minimal: null, low: null, high: null, xhigh: null }
 
 /**
  * Every local chat template takes its thinking switch from chat_template_kwargs, and Jinja
@@ -264,12 +270,25 @@ const THINKING_KWARGS: NonNullable<OpenAICompat["chatTemplateKwargs"]> = {
  */
 const EFFORT_LEVELS: { re: RegExp; levels: ThinkingLevelMap }[] = [
   // R1 and its distills think unconditionally and read no effort, so "off" is not on offer.
-  { re: /deepseek[-_]?r1|(^|[-_])r1([-_.]|$)/i, levels: { off: null, minimal: null, low: null, medium: null, xhigh: null } },
+  { re: /deepseek[-_]?r1|(^|[-_])r1([-_.]|$)/i, levels: { ...BOOLEAN_LEVELS, off: null } },
   // DeepSeek V4 branches on reasoning_effort 'high' and 'max' only; every other value renders
-  // the same prompt as plain thinking mode, so map pi's top two levels onto those two.
-  { re: /deepseek(?!.*(coder|math|[-_]vl|llm|[-_]v2))/i, levels: { minimal: null, low: null, medium: null, xhigh: "max" } },
+  // plain thinking mode. That plain mode is the model's own default and has to stay reachable,
+  // so keep "medium" - dropping it left pi's default clamping up into the heavier 'high' branch
+  // with no way back down short of switching thinking off entirely.
+  { re: /deepseek(?!.*(coder|math|[-_]vl|llm|[-_]v2))/i, levels: { minimal: null, low: null, xhigh: "max" } },
   // Qwen3+ raise_exception()s on any reasoning_effort outside low/medium/xhigh, so offer exactly
-  // those three and hide the rest rather than silently rewriting them into something else.
+  // those three. Community templates bucket rather than raise - froggeric's collapses
+  // high/max/extreme onto xhigh - but the safe set is the same either way, and the stricter
+  // templates are the ones that decide it.
+  //
+  // Hiding a level does not stop it being requested, it only decides what it becomes: pi's
+  // clampThinkingLevel scans *upward* through off/minimal/low/medium/high/xhigh/max, so a caller
+  // asking for "high" lands on xhigh and "minimal" lands on low. That matters because the subagent
+  // tool advertises the full range as a spawn parameter, so the model picks it per spawn.
+  //
+  // Cache cost, on any template that renders the effort into the system block: "medium" emits
+  // nothing and is byte-identical to sending no effort at all, so off<->medium is nearly free,
+  // while low<->medium<->xhigh rewrites token ~5 and reprefills the whole prompt both ways.
   { re: /qwen-?3(?![0-9])|thinkingcap|hunyuan/i, levels: { minimal: null, high: null, xhigh: "xhigh" } },
   // Thinks unconditionally: enable_thinking:false is read by nothing in its template.
   { re: /minimax/i, levels: { ...BOOLEAN_LEVELS, off: null } },
@@ -557,7 +576,7 @@ async function showEndpointsList(pi: ExtensionAPI, ctx: any): Promise<void> {
       done(null)
     }
 
-    selectList.onSelect = async (item) => {
+    selectList.onSelect = async (item: SelectItem) => {
       const value = item.value
       if (value === "__add__") {
         close()
@@ -715,7 +734,7 @@ async function selectFromFilterableList(ctx: any, title: string, items: SelectIt
     function build(): SelectList {
       const visible = query ? fuzzyFilter(items, query, (i) => `${i.label} ${i.description ?? ""}`) : items
       const selectList = new SelectList(visible, Math.min(Math.max(visible.length, 1), 12), listTheme(theme))
-      selectList.onSelect = (item) => done(item.value)
+      selectList.onSelect = (item: SelectItem) => done(item.value)
       selectList.onCancel = () => done(null)
       return selectList
     }

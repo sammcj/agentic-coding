@@ -9,6 +9,8 @@ You rewrite AI-flavoured text into prose that reads like a tired human journalis
 
 This is editing, not authoring. You add no new information. You change no facts, names, numbers, dates, citations, or claims. You preserve quoted speech, code blocks, and direct citations exactly as they appear in the input.
 
+Tier 2's vocabulary is a snapshot of a ranking that moves. When, and only when, the user asks to refresh or update it, read `references/refresh-vocabulary.md` and follow it. Never do this as part of a rewrite.
+
 ## Phase 0: Triage technical artefacts
 
 Run the checker first. It applies the mechanical fixes below and prints the rest:
@@ -17,6 +19,7 @@ Run the checker first. It applies the mechanical fixes below and prints the rest
 
 - Silent fixes are safe. Re-read every dash and phrase swap it prints: it cannot see quoted speech, and an em dash replaced by a comma can leave a splice.
 - It skips fenced and inline code, and only reports anything needing judgement.
+- The `register` line is a density, not a hit list: it needs both a rate and at least four matches, and it stays quiet under 200 words. It groups the words that drove it, so treat it as a pointer to the passage and the group to thin, not as words to strike out.
 
 The script catches the low-hanging fruit and nothing more. It is an indicator, not a review: read the full text yourself against every list below, whatever the script reported and whether or not it could run.
 
@@ -73,33 +76,50 @@ The defining tells of Claude 4.x output. These rarely appear in genuine human pr
 - Sycophancy openers and validations: "You're absolutely right", "You're absolutely correct", "That's a great question", "Great question!", "Perfect!", "Excellent point!", "You're absolutely correct to point that out"
 - Coding and agentic residue: "I'll help you...", "Let me [verb]", "Let me start by", "Let me first", "Let me check", "Now let me...", "I'll go ahead and"
 - Helpful-chat closers: "I hope this helps", "Let me know if you'd like", "Feel free to", "Would you like me to", "I'd be happy to", "Happy to..."
-- Performative anti-sycophancy: "to be straight to the point", "no BS", "I want to be honest with you", "to be clear with you". Also output-framing labels: "Honest take:", "Honest review:", "Honest recommendation:" (diagnostic: if removing "honest" doesn't change the meaning, drop it)
+- Performative anti-sycophancy: "to be straight to the point", "no BS", "I want to be honest with you", "to be clear with you"
+- "Honest" framing in every form: the labels ("Honest take:", "Honest thoughts:", "Honest opinion:", "Honest review:", "Honest assessment:", "Honest recommendation:", "honest limits"), the asides ("to be honest", "in all honesty", "the honest truth"), and bare "honestly" as a sentence adverb. Diagnostic: remove the word. If the meaning is unchanged, it was announcing candour rather than being candid, so drop it and state the substance.
 - Parenthetical hedging asides: "(or, more precisely, ...)", "(and, increasingly, ...)"
 - Progress-update meta-narration in long-form: "Let me mark X as complete", "Now I'll examine"
 - False intimacy openers preceding the obvious: "Here's the thing:", "Let's be honest:", "The truth is"
-- Claude metaphor tics: "smoking gun" (Claude reaches for this to dramatise findings or evidence), "load-bearing" / "load bearing"
+- Claude metaphor tics: "smoking gun" / "smoking-gun" (dramatising a finding), "load-bearing" / "load bearing", and "corpus" for any body of text that is not a linguistics or NLP dataset (say "the documents", "the transcripts", "these 400 emails")
 
-### Tier 2: Claude self-describing vocabulary
+### Tier 2: Claude's current register
 
-These words appear in genuine human writing too. Flag when they are doing decorative or self-praising work rather than carrying a concrete claim a reader could verify.
+Ranked empirically from GitHub pull request descriptions (louisabraham.github.io/load-bearing), where the cluster carrying this vocabulary went from a rounding error to over a third of the sample across 2025 and 2026. It is what current Claude reaches for, and it is not the marketing register of Tier 3.
+
+Every word here is ordinary English, so no single use is wrong and none of these groups is a blocklist. Concentration is the tell. `check_output.py` prints a density per 1000 words, bands it ELEVATED or HEAVY, and names the group each word came from. Thin the group it reports as over-represented; leave the words it does not.
+
+- **Assertive adverbs**, claiming a rigour the sentence has not demonstrated: plainly, quietly, genuinely, deliberately, outright, loudly, provably, empirically, vacuously, legitimately, structurally, precisely, demonstrably, identically, verbatim, merely, squarely. Delete the adverb: if the claim survives intact, it was emphasis, not work.
+- **Absolute negation**: nobody, nothing, nowhere, never, neither, no one. One is emphasis. Three in a passage is the register. Keep the one whose scope is real and state the rest positively.
+- **Code as agent**, verbs that give a mechanism intent: carries, holds, rests, survives, admits, refuses, decides, declares, governs, forbids, agrees, contradicts, earns, pays, buys, drains, bites, swallows. Name the mechanism instead: "the flag is read twice" over "the flag carries the decision".
+- **Adjudication nouns**, importing courtroom weight into a technical claim: refusal, premise, ruling, precedent, verdict, obligation, remedy, caveat, symptom, asymmetry. Replace with the thing itself: a refusal becomes what was rejected and by which check, a caveat becomes the condition, a remedy becomes the change that fixes it.
+- **Structural metaphor nouns**: seam, ceiling, floor, lever, rung, ladder, chokepoint, backstop, carve-out, tripwire, machinery, knob. Tier 3 carries the replacements and the exemption for literal use.
+
+The rest of Tier 2 is Claude describing its own reasoning. These appear in genuine human writing too. Flag when they are doing decorative or self-praising work rather than carrying a concrete claim a reader could verify.
 
 - "complex", "complexity": flag when used as a vague intensifier ("the complex landscape of...", "navigating complexity", "this complex topic") rather than describing a specific technical property
-- "thoughtful", "nuanced", "careful", "honest": flag any instance applied to the writer's own analysis or reasoning ("a thoughtful approach", "a nuanced view", "careful consideration", "an honest take", "honest reasoning", "to be honest")
+- "thoughtful", "nuanced", "careful": flag any instance applied to the writer's own analysis or reasoning ("a thoughtful approach", "a nuanced view", "careful consideration"). Tier 1 owns "honest" in all its forms.
 - "concrete" as intensifier: "concrete evidence", "concrete examples", "concrete steps"
 
 ### Tier 3: cross-model AI vocabulary and structures
 
 These appear in Claude output too, sometimes at lower density than GPT, but still slop.
 
-**Puffery, marketing adjectives and abstract intensifiers**: vibrant, robust, comprehensive, pivotal, multifaceted, profound, crucial, vital, meticulous, valuable, enduring, groundbreaking, intricate, renowned, seamless, cutting-edge.
+Every list in this tier matches on meaning, not spelling. Where a word has a British and an American form, both count: emphasise and emphasize, recognised and recognized, revolutionise and revolutionize. Keep the input's own convention when you rewrite.
 
-**Filler verbs as substitutes for "is" and "has"**: serves as, stands as, marks (verb), represents, boasts, features, offers. The simpler verb is almost always correct.
+**Puffery, marketing adjectives and abstract intensifiers**: vibrant, robust, comprehensive, pivotal, multifaceted, profound, crucial, vital, meticulous, valuable, enduring, groundbreaking, intricate, renowned, seamless, cutting-edge, poised (as in "poised to").
 
-**Filler verbs (action without information)**: delve, dive into, leverage, harness, foster, fostering, bolster, underscore, streamline, facilitate, empower, garner, showcase, emphasise, enhance, highlight, align with, exemplify, unlock (figurative), navigate (figurative).
+**Filler verbs as substitutes for "is" and "has"**: serves as, stands as, marks (verb), represents, boasts, features, offers, emerges (as). The simpler verb is almost always correct.
 
-**Vague abstract nouns**: landscape (figurative), tapestry, testament, interplay, paradigm.
+**Filler verbs (action without information)**: delve, dive into, leverage, harness, foster, fostering, bolster, underscore, streamline, facilitate, empower, garner, showcase, emphasise, enhance, highlight, align with, exemplify, revolutionise, unlock (figurative), navigate (figurative).
 
-**Abstract metaphor nouns**: locus, vantage, nexus, primitive, surface, bedrock, scaffolding, modality, north star, flywheel, plus these with their plain replacements:
+**Vague abstract nouns**: landscape (figurative), realm (figurative), tapestry, testament, interplay, paradigm.
+
+**Abstract metaphor nouns**: locus, vantage, nexus, primitive, surface, bedrock, scaffolding, modality, north star, flywheel.
+
+Tier 2's structural group (seam, ceiling, floor, lever, rung, ladder, chokepoint, backstop, carve-out, tripwire, machinery, knob) belongs here too. The density decides whether to look; the metaphor test below decides what to do with each one.
+
+Plus these with their plain replacements:
 
 - substrate becomes base
 - "wedge in" becomes add
@@ -149,7 +169,7 @@ Flag only where the word is metaphor and a plainer one fits. Terms of art stay: 
 
 **Puffery, fabricated significance**: "marks a pivotal moment", "represents a significant shift", "reflects the enduring legacy", "shaping the evolving landscape of", "stands as a testament to", "indelible mark", "deeply rooted", "key turning point".
 
-**Puffery, notability framing without evidence**: "profiled in", "featured in", "active social media presence", "widely recognised".
+**Puffery, notability framing without evidence**: "profiled in", "featured in", "active social media presence", "widely recognised" / "widely recognized".
 
 **Puffery, promotional register in non-marketing prose**: "nestled in the heart of", "boasts a vibrant", "diverse array", "stunning natural beauty", "groundbreaking contributions".
 
@@ -255,7 +275,9 @@ Create a task per question below. Answer each by inspecting the rewritten text, 
 - Are there any "Despite [positive], [subject] faces challenges" pivots?
 - Did I leave any bold-header bullets whose label restates the line that follows (`**X:** X did...`)? A label followed by new detail stays.
 - Are there any "Let me", "I'll", "Happy to", "Let me know if", "I hope this helps", "Perfect!", "Excellent!" remaining?
-- Are there any metaphor tics left ("smoking gun", "load-bearing")? Replace with what the thing does.
+- Are there any metaphor tics left ("smoking gun", "load-bearing", "corpus" for an ordinary set of documents)? Replace with what the thing is or does.
+- Did the register line drop a band? If it still reads ELEVATED or HEAVY, thin the group it names first, working from the words it prints.
+- Is there any "honest" or "honestly" left whose removal would not change the meaning?
 - Are there abstract metaphor nouns left (substrate, vector, nexus, primitive, bedrock, scaffolding, north star, flywheel) used as metaphor where a plainer word fits? Literal terms of art stay: embedding vector, attack vector, cryptographic primitive, API surface.
 - Could any sentence appear unchanged in another document on the same topic? If so it says nothing here. Restate it using a fact the input already gives, or cut it. Do not invent the fact.
 - Is any colon joining two clauses where the second neither explains nor specifies the first?

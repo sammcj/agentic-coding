@@ -324,6 +324,7 @@
       "Bash(chmod -R *)",
       "Bash(chmod 777 *)",
       "Bash(chown -R *)",
+      "Bash(launchctl *)",
       "Bash(dd *)",
       "Bash(diskutil *)",
       "Bash(echo y | *)",
@@ -501,6 +502,16 @@
           {
             "type": "command",
             "command": "\"/Users/samm/.claude/hooks/context-mode-cache-heal.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/Users/samm/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10
           }
         ]
       }
@@ -688,6 +699,7 @@
         "~/go",
         "~/.cargo/registry",
         "~/.cargo/git",
+        "~/.lmstudio",
         "~/.npm"
       ],
       "denyWrite": [

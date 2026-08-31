@@ -5,15 +5,21 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "checkJs": true,
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "typeRoots": ["/Users/samm/.bun/install/global/node_modules/@types"],
+    // Resolved through the agent/node_modules symlink rather than an absolute path, so this
+    // file is the same on every machine. The symlink points at bun's global install dir,
+    // whose location differs per host; if it is missing, recreate it with:
+    //   ln -s "$(bun pm bin -g)" node_modules
+    "typeRoots": ["./node_modules/@types"],
     "types": ["node", "bun"],
     "paths": {
-      "@earendil-works/*": ["/Users/samm/.bun/install/global/node_modules/@earendil-works/*"],
-      "@mariozechner/*": ["/Users/samm/.bun/install/global/node_modules/@mariozechner/*"]
+      "@earendil-works/*": ["./node_modules/@earendil-works/*"],
+      "@mariozechner/*": ["./node_modules/@mariozechner/*"]
     }
   },
-  "include": ["extensions/**/*.ts", "tests/**/*.ts"]
+  "include": ["extensions/**/*.ts", "tests/**/*.ts", "diagnostics/**/*.mjs"]
 }

@@ -204,7 +204,7 @@ export default function (pi: ExtensionAPI) {
 		ctx.ui.setWidget("filechanges", buildWidgetLines(tracked, ctx.ui.theme));
 	}
 
-	async function recomputeTrackedFile(ctx: any, relPath: string) {
+	async function recomputeTrackedFile(_ctx: any, relPath: string) {
 		const baseline = baselines.get(relPath);
 		if (!baseline) return;
 

@@ -2,6 +2,27 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-08-31
+
+Folded in the empirical ranking from louisabraham.github.io/load-bearing (461k GitHub PR descriptions, one vocabulary cluster growing 0.7% -> 36.6% of the corpus between January 2025 and August 2026). The finding that drove the change: the classic slop list (delve, leverage, pivotal, seamlessly) belongs to a *receding* register, and none of those words appear in the growing cluster's top 1000 at all.
+
+- Tier 2 rewritten as "Claude's current register", with four empirically ranked groups: assertive adverbs, absolute negation, code-as-agent verbs, adjudication nouns. Concentration is the tell, so none of it is a blocklist.
+- Tier 3 abstract metaphor nouns gained the building/machinery family actually observed in current output: seam, ceiling, floor, lever, rung, ladder, chokepoint, backstop, carve-out, tripwire, machinery, knob.
+- `check_output.py` gained a `register` density check, grouped by the same headings Tier 2 uses so the report names which group is over-represented. Two gates must both trip: 4.0 per 1000 words (HEAVY at 10.0) and 4 absolute matches, and it stays quiet under 200 words. On the source corpus that separates 0.3% of January 2025 descriptions from 45.2% of August 2026 ones. The rate alone flagged clean short prose on a single word.
+- New `marketing-adjective` rule (comprehensive, robust, seamless, enterprise-grade, scalable, vibrant, groundbreaking and the rest of the receding register). Report-only: several have a literal technical sense.
+- `honest` framing widened to thoughts, appraisal, read, verdict, summary, version, breakdown, plus bare "honestly" and "if I'm honest". Tier 1 now owns "honest" outright; Tier 2 no longer restates it.
+- `metaphor-tic` now catches hyphenated "smoking-gun" and "corpus"/"corpora" used for an ordinary set of documents.
+- REPORT findings print the text that matched, not just the rule name. A rule with eighteen alternations was leaving the agent to reopen the line to find out which one fired.
+- `honest-framing` and `chat-residue` now match curly apostrophes, which the sycophancy rules already did. REPORT runs before SAFE straightens them, so "If I'm honest" and "I'll help you" were slipping through in report-only mode.
+- `--write` no longer sends a correctly-applied `en-dash-range` fix back for a re-read; the review list now goes through the same SAFE/REVIEW dedup as the report path.
+- Phase 0 explains the density line; Phase 4 gained three verify questions (band dropped, metaphor tics, surviving "honest").
+- New `references/refresh-vocabulary.md` and `scripts/refresh_markers.py`: how to re-derive the Tier 2 vocabulary when the source ranking moves. The script reports candidates and drop-outs against the live data and edits nothing, since separating style from subject matter is a judgement call. Gated in SKILL.md on the user asking, so it never runs during a rewrite.
+- Tier 3 gained realm, emerges (as), poised (to) and revolutionise, from Kobak et al.'s PubMed excess vocabulary (berenslab/llm-excess-vocab, MIT). Ratios on five-figure abstract counts: realm 5.5, revolutionize 5.2, poised 3.6, emerges 3.5, measured against a real pre-2023 human baseline.
+- Tier 3 now states that its lists match on meaning, not spelling, and the rewrite keeps the input's own convention. Fixed two rules that carried only one form: "emphasise" and "widely recognised". A single-spelling rule silently passes half its inputs.
+- The new `marketing-adjective` alternations write out every -ise/-ize pair.
+- Checked the same dataset against Tier 2 and found almost nothing (18 of 106 words at r>=1.5, all at noise-level counts). Its data ends in 2024 and the Tier 2 register grew through 2025 and 2026, so the two sources corroborate the split between the registers rather than overlapping.
+- Recorded why the marketing register was left in Tier 3: of its 52 words only comprehensive, enhance, streamline, seamless and robust appear in the source data at all. The other 47 never clear its 50-account floor, so absence there is a limit of the sample rather than evidence.
+
 ## 2026-08-20
 
 - Added `scripts/check_output.py` (stdlib): SAFE fixes silently, REVIEW fixes and prints each location, REPORT detects only. `--write` to fix, `--against ORIG` for length and code-block passthrough. Skips fenced and inline code.

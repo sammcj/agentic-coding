@@ -8,6 +8,7 @@
   "compaction": {
     "keepRecentTokens": 30000
   },
+  "showCacheMissNotices": true,
   "npmCommand": [
     "bun",
     "--minimum-release-age=0"
@@ -23,7 +24,6 @@
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@juicesharp/rpiv-todo",
     "npm:pi-lens",
-    "npm:@juicesharp/rpiv-advisor",
     "npm:@ayulab/pi-rewind",
     "npm:@gotgenes/pi-permission-system",
     "npm:@the-forge-flow/security-harness-pi",
@@ -33,7 +33,8 @@
     "npm:@ff-labs/pi-fff",
     "npm:pi-local-agents-only",
     "npm:@mrclrchtr/supi-context",
-    "npm:@tintinweb/pi-subagents"
+    "npm:@tintinweb/pi-subagents",
+    "npm:remote-pi"
   ],
   "defaultThinkingLevel": "medium"
 }

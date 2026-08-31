@@ -58,7 +58,7 @@ Helpful implementation hint:
 
 export default function (pi: ExtensionAPI) {
   pi.registerCommand("usage", {
-    description: "Ask the agent to summarize Pi usage and cost for the last 1, 7, 30, and 90 days",
+    description: "Ask the agent to summarise Pi usage and cost for the last 1, 7, 30, and 90 days",
     handler: async (_args, ctx) => {
       await ctx.waitForIdle();
       pi.sendUserMessage(USAGE_PROMPT);

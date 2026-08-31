@@ -11,7 +11,7 @@ import { describe, expect, test } from "bun:test"
 import * as fs from "node:fs"
 import * as os from "node:os"
 import * as path from "node:path"
-import { getSupportedThinkingLevels, type OpenAICompletionsCompat } from "@earendil-works/pi-ai"
+import { clampThinkingLevel, getSupportedThinkingLevels, type OpenAICompletionsCompat } from "@earendil-works/pi-ai"
 import {
   buildModelConfig,
   ctxFromIdSuffix,
@@ -186,6 +186,15 @@ describe("reasoning defaults", () => {
     expect(resolveLevels("qwen3.8-27b")).not.toEqual(resolveLevels("muse-glimmer-30b"))
     expect(resolveLevels("deepseek-v4-flash-mtp")).not.toEqual(resolveLevels("muse-glimmer-30b"))
   })
+
+  test("ids the family regexes must not claim fall through to the boolean map", () => {
+    // Without these, loosening either lookahead would hand a non-thinking model an effort
+    // string its template never validates, and nothing in the suite would notice.
+    const boolean = resolveLevels("muse-glimmer-30b")
+    for (const id of ["qwen-32b-instruct", "qwen-30b", "deepseek-coder-v2-16b", "deepseek-math-7b", "deepseek-v2.5"]) {
+      expect(resolveLevels(id)).toEqual(boolean)
+    }
+  })
 })
 
 describe("developer role", () => {
@@ -238,17 +247,37 @@ describe("thinking levels", () => {
     expect(levelsFor("minimax-m2-230b")).not.toContain("off")
   })
 
-  test("DeepSeek maps its top level onto the only strings V4 acts on", () => {
-    // V4 branches on reasoning_effort 'high' and 'max'; everything else renders as plain
-    // thinking mode, so offering low/medium would be three levels that do the same thing.
+  test("DeepSeek offers plain thinking plus the two strings V4 acts on", () => {
+    // V4 branches on reasoning_effort 'high' and 'max'; every other value is plain thinking
+    // mode, which is the model's own default and has to stay selectable.
     const cfg = configFor("deepseek-v4-flash-mtp")
-    expect(getSupportedThinkingLevels(cfg as any)).toEqual(["off", "high", "xhigh"])
+    expect(getSupportedThinkingLevels(cfg as any)).toEqual(["off", "medium", "high", "xhigh"])
     expect(cfg.thinkingLevelMap?.xhigh).toBe("max")
+    expect(clampThinkingLevel(cfg as any, "medium")).toBe("medium")
   })
 
   test("a model outside the known families is a plain on/off toggle", () => {
-    expect(levelsFor("muse-glimmer-30b")).toEqual(["off", "high"])
+    expect(levelsFor("muse-glimmer-30b")).toEqual(["off", "medium"])
     expect(configFor("muse-glimmer-30b").reasoning).toBe(true)
+  })
+
+  test("pi's medium default is not clamped upward on a boolean model", () => {
+    // clampThinkingLevel scans upward, so a map whose only on-level is "high" silently
+    // starts every unmatched model one level above what settings asked for.
+    for (const id of ["muse-glimmer-30b", "gemma-4-31b", "glm-5.2-air", "deepseek-r1-distill-32b"]) {
+      expect(clampThinkingLevel(configFor(id) as any, "medium")).toBe("medium")
+    }
+  })
+
+  test("a boolean model sends an effort string stock Qwen3.8 would accept", () => {
+    // The fallback also catches a Qwen served under a name the regex misses, and that
+    // template raise_exception()s on anything outside low/medium/xhigh.
+    const accepted = new Set(["low", "medium", "xhigh"])
+    const cfg = configFor("muse-glimmer-30b")
+    for (const level of getSupportedThinkingLevels(cfg as any)) {
+      if (level === "off") continue
+      expect(accepted.has((cfg.thinkingLevelMap?.[level] ?? level) as string)).toBe(true)
+    }
   })
 })
 
