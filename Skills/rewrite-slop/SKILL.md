@@ -1,6 +1,7 @@
 ---
 name: rewrite-slop
 description: Use when explicitly asked to review or rewrite AI-generated text so it reads as human, or with phrasings like "de-slop", "humanise this", "make it sound less like AI", or "remove the AI tells" or asks for a "slopsummary".
+argument-hint: "[Please (review|rewrite) the text in file.md to make sure it doesn't sound like AI slop]"
 ---
 
 # rewrite-slop
