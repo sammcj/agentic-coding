@@ -37,7 +37,7 @@ goldens mutant mutants re-derived re-derive re-derives re-deriving re-verified
 re-measured re-read re-reads re-checked re-confirmed re-runs live-verified pre-fix
 post-fix root-caused mid-flight mid-run round-1 round-2 phase-2 fall-through fan-out
 hand-written hand-rolled hand-maintained cross-checked back-compat no-ops in-flight
-behaviour-preserving fleet-wide fail-loud -only spellings corpus prose idiom census
+behaviour-preserving fleet-wide fail-loud -only spellings corpus prose census
 """.split())
 
 
@@ -60,8 +60,12 @@ def current_groups():
         src = fh.read()
     body = src.split("GROUPS = {", 1)[1].split("\n}", 1)[0]
     groups = {}
-    for name, words in re.findall(r'"([a-z-]+)":\s*"{1,3}(.*?)"{1,3},', body, re.S):
+    for name, words in re.findall(r'"([a-z-]+)":\s*"{1,3}(.*?)"{1,3},', body, re.DOTALL):
         groups[name] = set(words.split())
+    clash = DECLINED & set().union(*groups.values()) if groups else set()
+    if clash:
+        sys.exit("declined and grouped at once, so the two lists disagree: %s"
+                 % ", ".join(sorted(clash)))
     return groups
 
 

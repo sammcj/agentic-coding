@@ -21,6 +21,7 @@ that lands inside a quotation has to be undone by hand.
 """
 
 import argparse
+import functools
 import re
 import sys
 import unicodedata
@@ -87,12 +88,8 @@ REPORT = [
     # Fixed puffery phrases only. Single adjectives (robust, vibrant) stay in the
     # Tier 3 rubric, where surrounding context decides whether they are decorative.
     ("puffery", r"(?i)\b(?:nestled in the heart of|stands? as a testament to|marks? a pivotal moment|represents? a significant shift|indelible mark|stunning natural beauty|diverse array|rich tapestry|ever[- ]evolving landscape|remains limitless)\b", None),
-    # The marketing register: high-lift vocabulary of the load-bearing cluster that
-    # is receding (12.1% -> 4.0%). Reported, not swapped, because a few have a
-    # literal technical sense (a robust estimator, a scalable queue).
-    #
-    # Every -ise/-ize alternation is written out. The lists match on meaning, so a
-    # rule carrying only one spelling silently passes half its inputs.
+    # Reported, not swapped: a few have a literal technical sense (a robust
+    # estimator, a scalable queue). Both spellings, or half the inputs pass.
     ("marketing-adjective", r"(?i)\b(?:comprehensive(?:ly)?|robust|seamless(?:ly)?|enterprise[- ]grade|production[- ]ready|cutting[- ]edge|best[- ]in[- ]class|feature[- ]rich|innovative|pivotal|multifaceted|streamlin(?:ed|ing)|scalable|ai[- ]powered|vibrant|groundbreaking|meticulous|renowned)\b", None),
     # Kobak et al.'s PubMed excess ratios, all on five-figure abstract counts:
     # realm 5.5, revolutionize 5.2, poised 3.6, emerges 3.5.
@@ -106,17 +103,18 @@ REPORT = [
     ("honest-framing", r"(?i)\bhonestly\b", None),
     ("honest-framing", r"(?i)\bhonest\s+(?:take|feedback|account|review|assessment|answer|opinion|recommendation|reasoning|analysis|limits?|view|conversation|thoughts?|appraisal|read|verdict|summary|version|breakdown)\b", None),
     ("emoji", r"[\U0001f300-\U0001faff☀-➿]", None),
+    # Ported from skill-creator-primer's _FILLER_RULES. "harness" only in its
+    # verb-with-object shape, because a test harness is the literal noun.
+    ("filler-verb", r"(?i)\b(?:delv(?:e|es|ed|ing)|div(?:e|es|ed|ing) into|leverag(?:e|es|ed|ing)|harness(?:ing)? the|foster(?:s|ed|ing)?|bolster(?:s|ed|ing)?|underscor(?:e|es|ed|ing)|facilitat(?:e|es|ed|ing)|empower(?:s|ed|ing)?|showcas(?:e|es|ed|ing)|garner(?:s|ed|ing)?|exemplif(?:y|ies|ied|ying)|emphasi[sz](?:e|es|ed|ing))\b", None),
+    ("negation-antithesis", r"(?i)\bnot (?:just|only|merely|simply)\b[^.\n]{1,60}?\bbut\b|\b(?:it['’]?s|it is|this is|that['’]?s) not\b[^.\n]{1,60}?[,.]\s*(?:it['’]?s|it is)\b|\bthe question is(?:n['’]?t| not)\b[^.\n]{1,60}?[,.]\s*it['’]?s\b", None),
+    # Padding: each collapses to one word or none without losing anything.
+    ("padding", r"(?i)\b(?:in terms of|with respect to|in the context of|a (?:wide )?(?:variety|range|number) of|a myriad of|the fact that|in order for|for the purpose of|it goes without saying|needless to say|each and every|first and foremost|clear and concise|various different|basic fundamentals?|end result|past history|advance planning)\b", None),
 ]
 
-# The register Claude writes in now, ranked empirically at
-# louisabraham.github.io/load-bearing. Group names match the Tier 2 headings in
-# SKILL.md, and `register` prints them, so the agent is told which group is
-# over-represented without re-reading the rubric. Dropped from the source ranking
-# are its function words (ever, alone, rather, half) and its CI/testing jargon
-# (byte-identical, goldens, wall-clock), which lift on subject matter, not style.
-#
-# No single one of these is wrong, so there is no per-word rule here.
-# Concentration is the signal, which is why this is a density and not a match list.
+# Ranked at louisabraham.github.io/load-bearing. Group names match the Tier 2
+# headings in SKILL.md, so `register` can name the over-represented group.
+# Concentration is the signal, so this is a density, not a match list.
+# See references/refresh-vocabulary.md for what was excluded and why.
 GROUPS = {
     "adverbs": """plainly quietly genuinely genuine deliberately deliberate outright
         loudly provably empirically vacuously vacuous legitimately structurally
@@ -132,25 +130,84 @@ GROUPS = {
     "adjudication": """refusal refusals premise ruling precedent verdict verdicts
         obligation caveat remedy symptom asymmetry shortfall hazard idiom
         disagreement""",
-    "structural": """load-bearing seam seams ceiling lever levers wedge wedged rung
-        ladder chokepoint backstop tripwire machinery knob carve-out scaffolding
-        substrate bedrock nexus flywheel""",
+    # scaffolding, substrate, bedrock, nexus and flywheel are deliberately absent:
+    # they are Tier 3's guessed metaphor nouns, not words the ranking found, so
+    # they have no business inflating a density derived from it.
+    "structural": """load-bearing seam seams ceiling floor lever levers wedge wedged
+        rung ladder chokepoint backstop tripwire machinery knob carve-out""",
 }
 MARKERS = {w: g for g, ws in GROUPS.items() for w in ws.split()}
 
 # "no one" is two tokens, so it cannot come from the token list like the rest.
 NO_ONE = re.compile(r"\bno one\b")
 
-# Per 1000 words, against the source ranking's own corpus: 99.1% of January 2025
-# descriptions sit under ELEVATED and 36.3% of August 2026 ones clear it.
-# LEAST is the absolute floor that stops a rate tripping a band on one or two
-# words, which a short input otherwise does (60 words carrying one marker is 16.7).
+# Per 1000 words. Both gates must trip: LEAST stops a rate banding clean short
+# prose on one word. On the source corpus that flags 0.3% of January 2025
+# descriptions against 45.2% of August 2026 ones.
 ELEVATED, HEAVY, LEAST, SHORT = 4.0, 10.0, 4, 200
 
 # Matches load-bearing's own tokeniser, so `load-bearing` and `carve-out` survive whole.
 TOKEN = re.compile(r"[a-z0-9_/-]*[a-z][a-z0-9_/-]*")
 
-CODE = re.compile(r"```.*?```|~~~.*?~~~|`[^`\n]+`", re.S)
+# A compression target, not an AI tell: measured on the load-bearing corpus,
+# paragraph length does not separate AI from human. 150 rather than the 100
+# skill-creator-primer uses, because prose earns longer paragraphs than
+# instructions do.
+BLOB_WORDS = 150
+BLOB_LIST_MAX = 10
+LOCATIONS_MAX = 6  # line numbers shown per grouped finding
+_LIST_MARKER = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
+_HEADING = re.compile(r"^#{1,6}\s")
+_FENCE = re.compile(r"^(`{3,}|~{3,})")
+
+CODE = re.compile(r"```.*?```|~~~.*?~~~|`[^`\n]+`", re.DOTALL)
+
+
+@functools.cache
+def _wrappable(pattern):
+    """Let a literal space in a pattern match a hard line-wrap too.
+
+    Prose arrives wrapped, so "the fact that" is regularly split across two
+    lines and a literal space would miss it. Two spans are left alone: a
+    character class, where `[- ]` must stay two characters, and a lookbehind,
+    which Python requires to be fixed width.
+    """
+    out, klass, i = [], False, 0
+    while i < len(pattern):
+        c = pattern[i]
+        if c == "\\" and i + 1 < len(pattern):
+            out.append(pattern[i:i + 2])
+            i += 2
+            continue
+        if not klass and pattern.startswith(("(?<=", "(?<!"), i):
+            end, depth = i, 0
+            while end < len(pattern):  # copy the assertion verbatim
+                if pattern[end] == "\\":
+                    end += 1
+                elif pattern[end] == "(":
+                    depth += 1
+                elif pattern[end] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                end += 1
+            out.append(pattern[i:end + 1])
+            i = end + 1
+            continue
+        if c == "[":
+            klass = True
+        elif c == "]":
+            klass = False
+        # At most one newline: a run spanning a blank line would let a REVIEW swap
+        # merge two paragraphs.
+        out.append(r"(?:[^\S\n]+|[^\S\n]*\n[^\S\n]*)" if c == " " and not klass else c)
+        i += 1
+    widened = "".join(out)
+    try:
+        re.compile(widened)
+    except re.error:
+        return pattern  # a pattern we cannot widen still has to work as written
+    return widened
 
 
 def _code_spans(text):
@@ -179,10 +236,17 @@ def scan(text, *rulesets):
     seen = {}
     for rules in rulesets:
         for name, pat, _ in rules:
-            for m in re.finditer(pat, text):
+            for m in re.finditer(_wrappable(pat), text):
                 if not _in_code(m.start(), spans):
-                    seen.setdefault(m.start(), (name, " ".join(m.group(0).split())))
-    return [(off, name, hit) for off, (name, hit) in sorted(seen.items())]
+                    seen.setdefault(m.start(), (m.end(), name, " ".join(m.group(0).split())))
+    # Drop a hit whose span sits inside another's: "marks a pivotal moment" and
+    # "pivotal" are one edit, and reporting both spends two lines and two counts.
+    out = []
+    for off, (end, name, hit) in sorted(seen.items()):
+        if any(a <= off and end <= b for a, (b, _, _) in seen.items() if a != off):
+            continue
+        out.append((off, name, hit))
+    return out
 
 
 def apply(text: str, rules, counts) -> str:
@@ -197,7 +261,10 @@ def apply(text: str, rules, counts) -> str:
             counts[name] = counts.get(name, 0) + 1
             return str(repl(m)) if callable(repl) else m.expand(repl)
 
-        text = re.sub(pat, sub, text)
+        # Same wrap handling as scan, so the review list never names a fix that
+        # did not happen. A swap spanning a wrap closes it up; the text is being
+        # rewritten anyway and markdown soft-wraps.
+        text = re.sub(_wrappable(pat), sub, text)
     return text
 
 
@@ -206,7 +273,13 @@ def line_checks(text):
     out = []
     lines = text.split("\n")
     fenced = False
+    # A front matter block closes on `---` immediately before the first heading,
+    # which is not the decorative break the rule is looking for.
+    front = 2 if lines and lines[0].strip() == "---" else 0
     for i, line in enumerate(lines):
+        if front and line.strip() == "---":
+            front -= 1
+            continue
         if line.lstrip().startswith(("```", "~~~")):
             fenced = not fenced
             continue
@@ -228,6 +301,58 @@ def line_checks(text):
     return out
 
 
+def blobs(text):
+    """Paragraph units at or over BLOB_WORDS. Returns [(words, line, opening)].
+
+    Words are accumulated per unit rather than per line, so a wrapped list item
+    lands wholly in its item and a hard-wrapped paragraph is measured whole.
+    """
+    found, unit, start, opening, fence = [], 0, 0, "", False
+    indented = re.compile(r"^ {4,}\S")
+    blank_before, in_indent = True, False
+
+    def close():
+        nonlocal unit
+        if unit >= BLOB_WORDS:
+            found.append((unit, start, opening))
+        unit = 0
+
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        s = line.strip()
+        if _FENCE.match(s):
+            fence = not fence
+            close()
+            continue
+        if fence:
+            continue
+        # Indented code block: only fences are tracked above, so a long indented
+        # listing would otherwise report as one very long paragraph. It opens
+        # after a blank line and runs until the indent stops.
+        if indented.match(line) and not _LIST_MARKER.match(line) and (blank_before or in_indent):
+            close()
+            in_indent = True
+            continue
+        in_indent = False
+        blank_before = not s
+        if (marker := _LIST_MARKER.match(line)):
+            # Starts a new unit rather than skipping: the marker line carries the
+            # item's opening words, and its wrapped continuation belongs with it.
+            # The bullet itself is not a word.
+            close()
+            rest = line[marker.end():].split()
+            start, opening = lineno, " ".join(rest[:8])
+            unit = len(rest)
+            continue
+        if not s or _HEADING.match(s) or s.startswith(("|", ">")):
+            close()
+            continue
+        if unit == 0:
+            start, opening = lineno, " ".join(s.split()[:8])
+        unit += len(s.split())
+    close()
+    return sorted(found, reverse=True)[:BLOB_LIST_MAX]
+
+
 def register(text):
     """Density of the current Claude register, by group. Returns ([lines], flagged).
 
@@ -239,7 +364,10 @@ def register(text):
     if len(words) < SHORT:
         return [], False
     hits = Counter(w for w in words if w in MARKERS)
-    hits.update({"no one": len(NO_ONE.findall(prose))})
+    # Assigned, not update()d: Counter.update creates the key even at zero, which
+    # would name "no one" as a marker in every report that did not contain it.
+    if (spaced := len(NO_ONE.findall(prose))):
+        hits["no one"] = spaced
     total = sum(hits.values())
     rate = 1000 * total / len(words)
     if rate < ELEVATED or total < LEAST:
@@ -261,8 +389,8 @@ def compare(orig, new):
     ow, nw = len(orig.split()), len(new.split())
     pct = (nw - ow) / ow * 100 if ow else 0.0
     lines = ["words: %d -> %d (%+.1f%%)%s" % (ow, nw, pct, "  LONGER" if nw > ow else "")]
-    ob = re.findall(r"```.*?```", orig, re.S)
-    nb = re.findall(r"```.*?```", new, re.S)
+    ob = re.findall(r"```.*?```", orig, re.DOTALL)
+    nb = re.findall(r"```.*?```", new, re.DOTALL)
     # Not strict: a differing block count is the finding, not an error.
     same = sum(1 for a, b in zip(ob, nb, strict=False) if a == b)
     lines.append("code blocks: %d/%d identical%s" % (same, len(ob), "" if same == len(ob) and len(ob) == len(nb) else "  DIFFER"))
@@ -291,7 +419,11 @@ def main():
             # en-dash range that REVIEW would otherwise claim, and a fix that
             # needed no judgement must not be sent back for a re-read.
             names = {r[0] for r in REVIEW}
-            review = [h for h in scan(text, SAFE, REVIEW) if h[1] in names]
+            # Only en-dash-range narrows a REVIEW rule, so only it takes part in
+            # the dedup. Scanning all of SAFE also let nbsp mask an adjacent em
+            # dash, applying the fix without listing it for the re-read.
+            narrowing = [r for r in SAFE if r[0] == "en-dash-range"]
+            review = [h for h in scan(text, narrowing, REVIEW) if h[1] in names]
             new = apply(apply(text, SAFE, counts), REVIEW, counts)
             if new != text:
                 with open(path, "w", encoding="utf-8") as fh:
@@ -305,11 +437,25 @@ def main():
                 print("%s:%d:%d %s %s" % ((path,) + _pos(text, off) + (name, hit)))
                 findings += 1
 
+        # Grouped one line per distinct term, after skill-creator-primer: the
+        # agent fixes a word everywhere at once, so ten hits on "comprehensive"
+        # is one action, not ten. Locations are still listed, capped.
         rest = [(_pos(text, o)[0], n, h) for o, n, h in scan(text, REPORT)]
         rest += [(ln, n, "") for ln, n in line_checks(text)]
+        grouped = {}
         for ln, name, hit in sorted(rest):
-            print("%s:%d %s %s" % (path, ln, name, hit))
+            grouped.setdefault((name, hit.lower()), []).append(ln)
+        for (name, hit), lines in sorted(grouped.items()):
+            where = ", ".join("L%d" % n for n in lines[:LOCATIONS_MAX])
+            if len(lines) > LOCATIONS_MAX:
+                where += ", +%d more" % (len(lines) - LOCATIONS_MAX)
+            count = " x%d" % len(lines) if len(lines) > 1 else ""
+            print("%s: %-20s %s%s  (%s)" % (path, name, hit or "-", count, where))
         findings += len(rest)
+
+        for words, ln, opening in blobs(text):
+            print("%s:%d long-paragraph %d words  \"%s...\"" % (path, ln, words, opening))
+            findings += 1
 
         reg, flagged = register(text)
         for line in reg:

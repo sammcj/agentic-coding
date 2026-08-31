@@ -20,6 +20,7 @@ Run the checker first. It applies the mechanical fixes below and prints the rest
 - Silent fixes are safe. Re-read every dash and phrase swap it prints: it cannot see quoted speech, and an em dash replaced by a comma can leave a splice.
 - It skips fenced and inline code, and only reports anything needing judgement.
 - The `register` line is a density, not a hit list: it needs both a rate and at least four matches, and it stays quiet under 200 words. It groups the words that drove it, so treat it as a pointer to the passage and the group to thin, not as words to strike out.
+- Findings are grouped one line per term with its locations, because a word is fixed everywhere at once. `long-paragraph` marks a compression target, not a tell.
 
 The script catches the low-hanging fruit and nothing more. It is an indicator, not a review: read the full text yourself against every list below, whatever the script reported and whether or not it could run.
 
@@ -89,11 +90,11 @@ Ranked empirically from GitHub pull request descriptions (louisabraham.github.io
 
 Every word here is ordinary English, so no single use is wrong and none of these groups is a blocklist. Concentration is the tell. `check_output.py` prints a density per 1000 words, bands it ELEVATED or HEAVY, and names the group each word came from. Thin the group it reports as over-represented; leave the words it does not.
 
-- **Assertive adverbs**, claiming a rigour the sentence has not demonstrated: plainly, quietly, genuinely, deliberately, outright, loudly, provably, empirically, vacuously, legitimately, structurally, precisely, demonstrably, identically, verbatim, merely, squarely. Delete the adverb: if the claim survives intact, it was emphasis, not work.
-- **Absolute negation**: nobody, nothing, nowhere, never, neither, no one. One is emphasis. Three in a passage is the register. Keep the one whose scope is real and state the rest positively.
-- **Code as agent**, verbs that give a mechanism intent: carries, holds, rests, survives, admits, refuses, decides, declares, governs, forbids, agrees, contradicts, earns, pays, buys, drains, bites, swallows. Name the mechanism instead: "the flag is read twice" over "the flag carries the decision".
-- **Adjudication nouns**, importing courtroom weight into a technical claim: refusal, premise, ruling, precedent, verdict, obligation, remedy, caveat, symptom, asymmetry. Replace with the thing itself: a refusal becomes what was rejected and by which check, a caveat becomes the condition, a remedy becomes the change that fixes it.
-- **Structural metaphor nouns**: seam, ceiling, floor, lever, rung, ladder, chokepoint, backstop, carve-out, tripwire, machinery, knob. Tier 3 carries the replacements and the exemption for literal use.
+- **Assertive adverbs**, claiming a rigour the sentence has not demonstrated: plainly, quietly, genuinely, deliberately, outright, loudly, provably, empirically, vacuously, legitimately, structurally, precisely, demonstrably, identically, adversarially, faithfully, verbatim, merely, squarely. Delete the adverb: if the claim survives intact, it was emphasis, not work.
+- **Absolute negation**: nobody, nothing, nowhere, never, neither, none, no one. One is emphasis. Three in a passage is the register. Keep the one whose scope is real and state the rest positively.
+- **Code as agent**, verbs that give a mechanism intent: carries, holds, rests, survives, outlives, admits, refuses, decides, declares, governs, forbids, agrees, contradicts, falsified, refuted, restated, earns, pays, buys, drains, bites, swallows, degrades, escalates, short-circuits, self-heals, mints, stamps. Name the mechanism instead: "the flag is read twice" over "the flag carries the decision".
+- **Adjudication nouns**, importing courtroom weight into a technical claim: refusal, premise, ruling, precedent, verdict, obligation, remedy, caveat, symptom, asymmetry, disagreement, shortfall, hazard, idiom. Replace with the thing itself: a refusal becomes what was rejected and by which check, a caveat becomes the condition, a remedy becomes the change that fixes it.
+- **Structural metaphor nouns**: load-bearing, seam, ceiling, floor, lever, wedge, rung, ladder, chokepoint, backstop, carve-out, tripwire, machinery, knob. Tier 3 carries the exemption for literal use.
 
 The rest of Tier 2 is Claude describing its own reasoning. These appear in genuine human writing too. Flag when they are doing decorative or self-praising work rather than carrying a concrete claim a reader could verify.
 
@@ -107,17 +108,26 @@ These appear in Claude output too, sometimes at lower density than GPT, but stil
 
 Every list in this tier matches on meaning, not spelling. Where a word has a British and an American form, both count: emphasise and emphasize, recognised and recognized, revolutionise and revolutionize. Keep the input's own convention when you rewrite.
 
-**Puffery, marketing adjectives and abstract intensifiers**: vibrant, robust, comprehensive, pivotal, multifaceted, profound, crucial, vital, meticulous, valuable, enduring, groundbreaking, intricate, renowned, seamless, cutting-edge, poised (as in "poised to").
+**Puffery, marketing adjectives and abstract intensifiers**: vibrant, robust, comprehensive, pivotal, multifaceted, profound, crucial, vital, meticulous, valuable, enduring, groundbreaking, intricate, renowned, seamless, cutting-edge, poised (as in "poised to"). Delete the adjective, or replace it with the measurement that earned it.
 
 **Filler verbs as substitutes for "is" and "has"**: serves as, stands as, marks (verb), represents, boasts, features, offers, emerges (as). The simpler verb is almost always correct.
 
-**Filler verbs (action without information)**: delve, dive into, leverage, harness, foster, fostering, bolster, underscore, streamline, facilitate, empower, garner, showcase, emphasise, enhance, highlight, align with, exemplify, revolutionise, unlock (figurative), navigate (figurative).
+**Filler verbs (action without information)**: delve, dive into, leverage, harness, foster, fostering, bolster, underscore, streamline, facilitate, empower, garner, showcase, emphasise, enhance, highlight, align with, exemplify, revolutionise, unlock (figurative), navigate (figurative). These carry the sentence's grammar, so deleting the word alone leaves a hole: name the action instead ("we read the config" over "we leverage the config").
 
-**Vague abstract nouns**: landscape (figurative), realm (figurative), tapestry, testament, interplay, paradigm.
+**Vague abstract nouns**: landscape (figurative), realm (figurative), tapestry, testament, interplay, paradigm. Name the things the noun stands in for, or cut the sentence.
+
+**Verbosity**, where the length is itself the tell. Each of these survives deletion with the meaning intact:
+
+- Padding that collapses to one word or none: "in terms of", "with respect to", "in the context of", "a variety of", "a range of", "a wide range of", "a number of", "a myriad of", "the fact that", "in order for", "for the purpose of", "advance planning".
+- Redundant doublets, one word doing the work of two: "each and every", "first and foremost", "clear and concise", "various different", "end result", "past history", "basic fundamentals".
+- Restating the question before answering it, and preamble that arrives before the substance.
+- Paraphrase repetition: a sentence restating its predecessor in different words, or explaining what that sentence already told the reader. Keep the more specific one.
+
+`check_output.py` reports the fixed phrases and flags prose paragraphs of 150 words or more, ten at most. Read each flagged paragraph and cut what carries nothing; a long paragraph that earns its length stays.
 
 **Abstract metaphor nouns**: locus, vantage, nexus, primitive, surface, bedrock, scaffolding, modality, north star, flywheel.
 
-Tier 2's structural group (seam, ceiling, floor, lever, rung, ladder, chokepoint, backstop, carve-out, tripwire, machinery, knob) belongs here too. The density decides whether to look; the metaphor test below decides what to do with each one.
+Tier 2's structural group belongs here too. The density decides whether to look; the metaphor test below decides what to do with each one.
 
 Plus these with their plain replacements:
 
@@ -238,7 +248,7 @@ Work from the positive style brief below plus the flagged spans from Phase 2. Do
 - Sentence-case headings.
 - Express information as flowing prose. Reserve bullet lists for genuinely discrete items. Avoid bold-header bullets whose label merely restates the line; a bold lead-in followed by new detail is fine and stays.
 - Match the original's meaning and structure. Paragraphs stay paragraphs, sections stay sections, genuine lists stay lists. Change the structure only where the structure is itself the slop: bold-header bullets in flowing prose, a `---` break before every heading, emoji in headers.
-- Length moves one way only. The rewrite is never longer than the input, and normally within ~10% under it. Removing slop and empty sentences may take it further under, which is correct. Never add words to compensate.
+- Length moves one way only. The rewrite is never longer than the input, and never padded to fill space. There is no floor: cutting a bloated input by a third or a half is the correct result, not an overreach. What sets the length is the last sentence that still carries a claim, not a target percentage.
 - Where the original front-loads a TL;DR/BLUF that the original author did not deliberately choose (i.e. it is sysprompt-driven scannability rather than authorial intent), restructure so the answer unfolds naturally.
 - Repetition is natural. Reuse a noun rather than cycle through synonyms. "Constraints" stays "constraints" across the passage.
 
@@ -262,7 +272,7 @@ Sentences containing no flagged span pass through unchanged. Be conservative: ov
 
 Single-pass rewriting leaves patterns it was instructed to remove. This pass catches them.
 
-`python3 scripts/check_output.py <rewrite> --against <original>` answers the dash, smart-quote, opener, unnamed-source, chat-residue, sycophancy, metaphor-tic, heading, emoji, length and code-block questions below. Its silence is not a pass: it reads for patterns, not sense, so answer every question below against the full text yourself.
+`python3 scripts/check_output.py <rewrite> --against <original>` pre-answers every question below that a pattern can settle, so confirm those from its output rather than re-deriving them. Its silence is not a pass: it reads for patterns, not sense. The questions it cannot reach, and they are most of them, you answer against the full text yourself.
 
 Create a task per question below. Answer each by inspecting the rewritten text, fix any "yes", then mark the task complete.
 
@@ -276,7 +286,8 @@ Create a task per question below. Answer each by inspecting the rewritten text, 
 - Did I leave any bold-header bullets whose label restates the line that follows (`**X:** X did...`)? A label followed by new detail stays.
 - Are there any "Let me", "I'll", "Happy to", "Let me know if", "I hope this helps", "Perfect!", "Excellent!" remaining?
 - Are there any metaphor tics left ("smoking gun", "load-bearing", "corpus" for an ordinary set of documents)? Replace with what the thing is or does.
-- Did the register line drop a band? If it still reads ELEVATED or HEAVY, thin the group it names first, working from the words it prints.
+- Does the register line still read ELEVATED or HEAVY? If so, thin the group it names first, working from the words it prints.
+- Are there filler verbs or marketing adjectives left that the script named? Each is one edit applied everywhere, not one per location.
 - Is there any "honest" or "honestly" left whose removal would not change the meaning?
 - Are there abstract metaphor nouns left (substrate, vector, nexus, primitive, bedrock, scaffolding, north star, flywheel) used as metaphor where a plainer word fits? Literal terms of art stay: embedding vector, attack vector, cryptographic primitive, API surface.
 - Could any sentence appear unchanged in another document on the same topic? If so it says nothing here. Restate it using a fact the input already gives, or cut it. Do not invent the fact.
@@ -287,7 +298,8 @@ Create a task per question below. Answer each by inspecting the rewritten text, 
 - Does any sentence claim significance, legacy, or a "broader trend" that is not demonstrated by a fact in the same paragraph?
 - Did I introduce any fact, name, number, date, claim, or example not in the original and I cannot verify as true?
 - Did I rewrite any quoted speech, code block, or direct citation that should have passed through unchanged?
-- Is it too verbose? Could the same story, meaning, detail and intent be conveyed in fewer words?
+- Does every sentence still carry a claim? Cut any that does not, and do not stop cutting because the rewrite is already shorter.
+- Did any paragraph the script flagged as long survive without being read? Did any padding phrase or doublet survive?
 - Is the rewrite longer than the input? It should never be. If a sentence split added words, undo it.
 - Does any pair of sentences contradict each other?
 

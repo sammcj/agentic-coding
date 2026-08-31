@@ -11,9 +11,9 @@ That project samples GitHub pull request descriptions daily, clusters them by vo
 ## Steps
 
 1. Clone or update the data: `git clone https://github.com/louisabraham/load-bearing ~/git/load-bearing`, or `git -C ~/git/load-bearing pull` if it is already there.
-2. Run `python3 scripts/refresh_markers.py` (add `--data PATH` if the clone is elsewhere). It reports; it changes nothing.
+2. Run `python3 scripts/refresh_markers.py`. It reports; it changes nothing. `--data PATH/analysis.js` points at a clone kept somewhere other than `~/git/load-bearing`, and `--top N` widens the candidate window from its default of 300.
 3. Judge each candidate it prints. Keep a word only if it is a **style** tell. Send **subject matter** to the script's `DECLINED` set so later refreshes stop proposing it.
-4. Apply keeps to `GROUPS` in `check_output.py` and to the matching Tier 2 bullet in `SKILL.md`. The two must stay in step, because the script prints the group names the rubric uses.
+4. Apply keeps to `GROUPS` in `check_output.py` and to the matching Tier 2 bullet in `SKILL.md`. The two must stay in step, because the script names the group and the agent is then sent to that bullet. Check parity both ways before finishing: a word the script counts but the rubric omits leaves the agent without guidance, and a word the rubric lists but the script does not count never trips its own group. Inflections (`carries`, `carrying`, `carried`) belong in `GROUPS` only; the rubric lists the lemma.
 5. Re-run `scripts/check_output.py` over `resources/*.md`. Those files are target prose: a group that flags them has taken in a word that is ordinary English, so pull it back out.
 6. Record what changed in `CHANGELOG.md`.
 
