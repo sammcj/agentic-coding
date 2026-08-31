@@ -2,6 +2,11 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-08-31
+
+- New `scripts/render_report.py` renders a skill's findings as one self-contained HTML page: a panel of measurements beside the full source with every finding marked in place. `--against OTHER_DIR` adds a before-and-after cell. Output goes to the platform temp directory, never inside the skill. Run it under `uv` for the spec cell; plain `python3` renders the rest and names the missing dependency. To feed it, `_structure` findings now carry an inclusive line span - `(size, path, first line, last line, opening)` - so a whole unit can be shaded rather than its opening line, and `_filler_scan` is factored out of `_filler` so anything placing a finding preprocesses the line the same way the detector did.
+- `SKILL.md` gains a routing entry and a pointer under "Validating a Skill" that gate the renderer behind an explicit ask for a report, a page or a visual; `references/html-report.md` covers running it.
+
 ## 2026-08-20
 
 - `validate_skill.py` reports lexical no-ops under SIGNALS: sentence-initial filler, puffery adjectives, filler verbs, and negation-antithesis contrasts, skipping frontmatter, fenced blocks, and inline code. Detection only, never gated - a skill may mean "robust" literally. Findings group one line per distinct term (`[puffery] "comprehensive" x3 - path:line, ...`), capped at 10 terms and 6 locations, so a repeated word is one action rather than one report line per hit. The word list lives in the script, not `SKILL.md`: a banned-word list is dead weight in an always-loaded file and naming unwanted behaviour in prose primes it.

@@ -104,6 +104,20 @@ class BlobDetectionTests(unittest.TestCase):
         _, _, long_code = self.blobs(f"# T\n\n```\n{fence}\n")
         self.assertEqual(len(long_code), 1)
 
+    # Findings carry an inclusive line span so a caller rendering the source can
+    # mark the whole unit. The fixture's frontmatter puts the first body line at 6.
+    def test_wrapped_blob_reports_its_first_and_last_line(self):
+        body = "# T\n\n" + "\n".join(["ten short words on this line to build the unit up"] * 12)
+        skill_blobs, _, _ = self.blobs(body + "\n")
+        _size, _path, first, last, _opening = skill_blobs[0]
+        self.assertEqual((first, last), (8, 19))
+
+    def test_code_fence_spans_opening_to_closing_line(self):
+        fence = "\n".join(f"line {n}" for n in range(vs.CODE_FENCE_LINES + 5))
+        _, _, long_code = self.blobs(f"# T\n\n```\n{fence}\n```\n")
+        _size, _path, first, last, _opening = long_code[0]
+        self.assertEqual((first, last), (8, 24))
+
 
 class FillerDetectionTests(unittest.TestCase):
     """Lexical no-ops are a SIGNAL, so precision matters more than recall: a
@@ -203,13 +217,13 @@ class FillerDetectionTests(unittest.TestCase):
 
 class ListingTests(unittest.TestCase):
     def test_listing_truncates_past_the_cap(self):
-        group = [(100, "SKILL.md", n, "opening words here") for n in range(vs.BLOB_LIST_MAX + 3)]
+        group = [(100, "SKILL.md", n, n + 2, "opening words here") for n in range(vs.BLOB_LIST_MAX + 3)]
         out = vs._listing(group, "w")
         self.assertEqual(len(out), vs.BLOB_LIST_MAX + 1)
         self.assertIn("+3 more", out[-1])
 
     def test_listing_shows_every_finding_within_the_cap(self):
-        group = [(100, "SKILL.md", n, "opening words here") for n in range(vs.BLOB_LIST_MAX)]
+        group = [(100, "SKILL.md", n, n + 2, "opening words here") for n in range(vs.BLOB_LIST_MAX)]
         self.assertEqual(len(vs._listing(group, "w")), vs.BLOB_LIST_MAX)
 
 

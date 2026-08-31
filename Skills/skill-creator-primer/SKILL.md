@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-08-20
+  version: 2026-08-31
   skill-lint:
     max-load-tokens: 10000 # primer skill accepted as being larger
 hooks:
@@ -23,6 +23,7 @@ Route to an entry point by the task in front of you (which-one routing per "Rout
 - Editing an existing skill -> the sections covering what you're changing, then the "Self-Review Protocol".
 - Reviewing a skill, or a diff to one -> "Reviewing a Skill".
 - Tuning a description or its triggering -> "Writing Effective Descriptions".
+- Producing a report, page or visual of a skill's findings -> `references/html-report.md`.
 
 ## Predictable Process, Not Identical Output
 
@@ -326,6 +327,8 @@ On a valid skill it also prints a token-budget estimate and rating alongside the
 - Findings are FACTS (over-long description, over-budget load, blobs in SKILL.md: always-loaded cost, fix them) or SIGNALS (large references, blobs or 10+ line code fences within them: branch-loaded, judge waffle against earned detail). Three or more reference blobs draw a warning - the load rating trusts references to stay tight.
 - A blob is any text unit of 100+ words, any shape (paragraph, list item, quote, table row): prose long enough to bury instructions (see "Buried instructions" in Failure Modes). The blob list feeds the compression pass in the Self-Review Protocol.
 - While this primer is active, a PostToolUse hook re-runs the report (`--report-only`, stdlib-only) after every SKILL.md edit, keeping the budget in view across the session.
+
+When the user asks for a skill report, a page, or a visual of the findings, **read `references/html-report.md`** and run the renderer it describes. The text report above covers every other case.
 
 ### Upstream validators may have an incomplete frontmatter allowlist
 

@@ -360,11 +360,12 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
     """Scan a skill's referenced Markdown for prose shape. Returns
     (percent of body words in paragraph prose or None if no body,
     blobs in SKILL.md, blobs in referenced files, over-length code blocks);
-    blob and code entries are (size, relative path, 1-based line, opening text),
-    largest first."""
+    blob and code entries are (size, relative path, 1-based first line, 1-based
+    last line, opening text), largest first. The line span is inclusive, so a
+    caller rendering the source can mark the whole unit rather than its opening."""
     para_words = struct_words = 0
-    units: list[tuple[int, str, int, str]] = []  # (words, relative path, 1-based line, opening words)
-    long_code: list[tuple[int, str, int, str]] = []  # (lines, relative path, 1-based line, first code line)
+    units: list[tuple[int, str, int, int, str]] = []  # (words, rel path, first line, last line, opening words)
+    long_code: list[tuple[int, str, int, int, str]] = []  # (lines, rel path, first line, last line, first code line)
     skill_root = Path(skill_dir).resolve()
     for path in referenced_md_files(skill_dir):
         text = path.read_text(encoding="utf-8-sig", errors="ignore")
@@ -375,6 +376,7 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
         fence: str | None = None  # open fence marker, None outside fences
         unit = 0  # words in the unit being accumulated
         unit_line = 0
+        unit_end = 0  # last line the unit covers, so callers can mark the span
         unit_is_para = False
         unit_open = ""  # first words of the unit, for the report quote
 
@@ -384,21 +386,21 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
             standalone sentence is not mistaken for a wall of prose."""
             nonlocal unit, para_words, struct_words
             if unit:
-                units.append((unit, str(rel), unit_line, unit_open))
+                units.append((unit, str(rel), unit_line, unit_end, unit_open))
                 if unit_is_para and unit >= PROSE_UNIT_MIN:
                     para_words += unit
                 else:
                     struct_words += unit
             unit = 0
 
-        fence_start = fence_lines = 0
+        fence_start = fence_lines = lineno = 0
         fence_first = ""
         for lineno, line in enumerate(body.splitlines(), start=first_line):
             stripped = line.strip()
             if fence is not None:
                 if _fence_close(stripped, fence):
                     if fence_lines > CODE_FENCE_LINES:
-                        long_code.append((fence_lines, str(rel), fence_start, fence_first))
+                        long_code.append((fence_lines, str(rel), fence_start, lineno, fence_first))
                     fence = None
                 else:
                     fence_lines += 1
@@ -420,19 +422,22 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
             elif _LIST_MARKER.match(line):
                 close()
                 unit, unit_line, unit_is_para, unit_open = words, lineno, False, stripped
+                unit_end = lineno
             elif stripped.startswith("|") or stripped.startswith(">"):
                 close()
                 unit, unit_line, unit_is_para, unit_open = words, lineno, False, stripped
+                unit_end = lineno
                 close()  # one unit per row/quote line
             else:
                 # a wrapped continuation belongs to its list item, not to prose
                 if unit == 0:
                     unit_line, unit_is_para, unit_open = lineno, True, stripped
                 unit += words
+                unit_end = lineno
         close()
         if fence is not None and fence_lines > CODE_FENCE_LINES:
             # unterminated fence: still report it rather than losing it silently
-            long_code.append((fence_lines, str(rel), fence_start, fence_first))
+            long_code.append((fence_lines, str(rel), fence_start, lineno, fence_first))
     body_words = para_words + struct_words
     pct = round(100 * para_words / body_words) if body_words else None
     blobs = sorted((u for u in units if u[0] >= BLOB_WORDS), reverse=True)
@@ -501,6 +506,18 @@ FILLER_LOCATIONS_MAX = 6
 _INLINE_CODE = re.compile(r"`[^`\n]*`")
 
 
+def _filler_scan(line: str) -> str:
+    """The text the filler rules match against: one line stripped, with inline
+    code blanked to equal-length spaces so sentence boundaries either side of a
+    span stay intact and offsets into the result map back onto the line.
+
+    Shared with anything that needs to place a finding rather than just count it
+    - a caller that rebuilt this preprocessing itself would drift silently the
+    first time a step is added here.
+    """
+    return _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), line.strip())
+
+
 def _filler(skill_dir: Path) -> list[tuple[str, str, int, str]]:
     """Scan referenced Markdown for lexical no-ops. Returns
     (category, relative path, 1-based line, matched text), in file order.
@@ -523,9 +540,7 @@ def _filler(skill_dir: Path) -> list[tuple[str, str, int, str]]:
             if (opened := _fence_open(stripped)) is not None:
                 fence = opened
                 continue
-            # blank the inline code rather than dropping it, so offsets and
-            # sentence boundaries either side of a span stay intact
-            scan = _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), stripped)
+            scan = _filler_scan(line)
             for category, pattern in _FILLER_RULES:
                 for hit in pattern.finditer(scan):
                     found.append((category, str(rel), lineno, hit.group(0).strip()))
@@ -557,7 +572,7 @@ def _listing(group: list, unit: str) -> list[str]:
     """Indented finding lines: 'path:line (Nw) "opening words..."'."""
     out = [
         f'    {path}:{lineno} ({size}{unit}) "{" ".join(opening.split()[:8])}..."'
-        for size, path, lineno, opening in group[:BLOB_LIST_MAX]
+        for size, path, lineno, _end, opening in group[:BLOB_LIST_MAX]
     ]
     if len(group) > BLOB_LIST_MAX:
         out.append(f"    ... +{len(group) - BLOB_LIST_MAX} more")
