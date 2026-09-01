@@ -4,27 +4,48 @@
 
 ## 2026-09-02
 
-**Possible versus probable**
+Reviewed against fresh Fable 5.1 output (1.6k words, five genres): zero hits on the classic vocabulary, register ELEVATED at 6.3/1000, and the live tells were sentence-shaped (short closers, clipped contrasts, tag clauses, invented anecdotes). Everything below follows from that.
 
-- Findings now carry a confidence. `POSSIBLE` in `check_output.py` maps a rule name to a one-line caveat; a rule in it prints under `? possible, read before deciding:` with its caveat once above its hits, and the tally counts them apart (`4 findings, 6 possible`). Possible findings do not set the exit code.
-- Reclassified as possible: `weasel-source`, `us-spelling`, and two rules split out for it: `corpus-noun` from `metaphor-tic` and `emphasis-verb` (underscore, emphasise) from `filler-verb`. `underscore` now needs its verb-with-object shape, so a double underscore stops firing. `weasel-source` is case-insensitive, since "Studies show" opens the sentence.
-- The report's marks run on one ramp from pale yellow to red by slop confidence, and the key under the findings says so in those words: possible (a caveat applies), probable (REPORT rules, the reader confirms), certain (SAFE and REVIEW, mechanical). The old safe/review/report labels described what the script did, not what the reader should think. The grey is gone from marks and from block shading alike (dense runs and unjoined paragraphs in the yellow of possible, long paragraphs and prose tables in the orange of probable); a dotted rule for possible could not be seen at reading distance, and the underline now carries no meaning of its own. Possible rows carry `?` before their count, rank below every probable row and end their reason with the caveat. The brief splits into "Findings, fix these" and "Possible, read before changing".
+**Confidence tier**
+
+- Every finding is possible, probable or certain. `POSSIBLE` in `check_output.py` maps a rule name to a one-line caveat; membership is the whole mechanism, so reclassifying a rule is one line. SAFE and REVIEW rules are certain, REPORT rules probable.
+- Text output prints possible rules after the rest under `? possible, read before deciding:`, each rule's caveat once above its hits, every line prefixed `?`. The tally counts them apart (`4 findings, 6 possible`) and they never set the exit code.
+- Reclassified as possible: `weasel-source` (now case-insensitive, since "Studies show" opens the sentence), `us-spelling`, and two rules split out so the caveat does not soften their neighbours: `corpus-noun` from `metaphor-tic`, `emphasis-verb` (emphasise, underscore) from `filler-verb`. `underscore` needs its verb-with-object shape, so a double underscore stops firing.
+- Rubric: Phase 0 and Phase 4 say a plain finding is a fix and a `?` finding is a read decided against its caveat.
+
+**Sentence-shape tells** (new `scripts/syntax.py`, all in `POSSIBLE`)
+
+- Module wiring: `syntax.py` takes the `units` list as a parameter rather than importing `check_output`, which avoids the circular import. `check_output.py` wraps it as `shape_spans(text)` and `parataxis_stats(text)` and adds the spans to the REPORT grouping; `render_report.py` reads `all_spans()` (regex plus shape) for marks and tally. `line_offsets` lives in `syntax.py` and the report imports it.
+- Sentence splitter: ends on `.!?` followed by a capital, digit or opening quote, or the end of the unit. Abbreviation list (e.g., i.e., vs, etc, Dr, Mr, Inc...) only. No single-letter initial, because "plan B." ends a sentence far more often than "J. Smith" appears in technical prose; no digit, because "in 2024." ends a sentence and "3.10" is already refused on the missing space. Inline code is masked to same-length `x` runs so offsets hold and `foo.bar()` is one word.
+- `landing-sentence`: a closer of `LANDING_MAX` 6 words or fewer, after sentences averaging `LANDING_REST` 12 or more, in a paragraph of 2 or more sentences ("Not Postgres.", "It is a different product."). Not counted: list items, a closer ending in a colon, one carrying a link ("Source: [...]"), or closers opening on the same two words at the end of `TRAILER_RUN` 3 or more paragraphs ("Depends on M1."), which are structure. Banded `landing HABIT` at `LANDING_RATE` 1.5 per 1000 words with at least `LANDING_LEAST` 3, which promotes it to a finding.
+- `contrast-pair`: a sentence of `CONTRAST_MAX` 8 words or fewer, not the first in its paragraph, ending `is|are|does|... not` before `.`, `!` or `:` ("What we gain is small. What we pay is not:").
+- `tag-clause`: a sentence ending `, and|but|which|though|or` + pronoun + auxiliary (", and we should.", ", which it does.").
+- `anaphora`: `ANAPHORA_RUN` 3 consecutive sentences in one paragraph opening on the same word.
+- `parataxis`: the share of measurable paragraphs (`FLAT_SENTENCES` 3 or more sentences, mean 9 to 30 words, list items included) with no subordinator (because, although, which, if, when, ...). Sentence length is not the measure: model output varies length widely (four-word punch after a twenty-word sentence) and lacks subordination instead. Printed as a measurement, counted as nothing, once `FLAT_MEASURED` 6 paragraphs exist; banded `UNJOINED` at `FLAT_SHARE` 0.6 with at least `FLAT_LEAST` 4.
+- Calibration: 524 local markdown files of 200+ words (personal notes, installed skills, 400 random files under ~/git, node_modules and vendor excluded) against the Fable samples. Landing bands 2% of the corpus and the samples; contrast pairs and tag clauses appear in under 1%; a third of paragraphs unjoined is the corpus median, and the band takes 3%. The first parataxis measure, sentence-length coefficient of variation, banded 20% and did not separate the samples, and was dropped.
+- Rubric: Tier 3 syntax tells gain elided contrast pairs, tag clauses and parataxis; sourcing gains invented specificity ("which got us rate-limited last week": a model taught that concrete beats abstract makes the concrete up).
+
+**New specifics under `--against`**
+
+- `new-number`, `new-name`, `new-time`, `new-anecdote`: numbers (thousands separators ignored), mid-sentence proper nouns, relative time ("last week", "the other day") and discovery narrative ("I only noticed", "we ran into", "the hard way") in the rewrite that the original lacks. Each is a fact to check against the original, and Phase 4 says so: "three" as "3" or "it was found" as "we found" is the same fact. The anecdote shapes are narrative only; "found", "saw", "measured" were dropped because de-nominalising a passive produces them.
+
+**Report**
+
+- Marks run on one ramp from pale yellow to red by slop confidence, and the key under the findings is headed "Slop confidence" with possible, probable and certain in those words. The old safe/review/report labels described what the script did, not what the reader should think. Block shading sits on the same ramp a shade lighter: dense runs and unjoined paragraphs in the yellow of possible, long paragraphs and prose tables in the orange of probable. No grey anywhere a finding is marked; a dotted rule for possible could not be seen at reading distance, and the underline carries no meaning of its own. Orange was darkened once because it read as the yellow.
+- Possible rows carry `?` before their count, rank below every probable row whatever their count, and their reason (`why()`) ends with the caveat. The brief splits into "Findings, fix these" and "Possible, read before changing", caveat included, since the receiving agent has the file but not the page.
+- Shaded blocks carry `data-why`, so hovering one shows its reason in the caption as hovering a mark does.
+- Marks cannot nest in the single-pass marker, and a landing sentence can hold a chat-residue phrase: probable spans are placed first and a possible span overlapping one is not marked, keeping its row. Landing sentences select as one term, so the habit row and each closer's row hold all of them, as bold does.
+- Unjoined paragraphs are shaded only once banded, and listed once as the aggregate row rather than once per block; the findings count in the strip excludes possible spans and those blocks, so it agrees with the text tally.
+- Before and after, shown only with `--against`, is one small table of figures with a delta column instead of five pairs of bars, with the added specifics listed under it.
 
 **Vocabulary**
 
 - "Nothing collapses." joins `metaphor-tic` as a certain finding: the landing sentence at its most reflexive.
-- `WEIGHTS` beside `MARKERS`: "earns" (and earn, earned, earning, now all in the code-as-agent group) counts double in the register rate. Never a finding on its own, since people write it; the per-word counts under the band stay raw.
+- `WEIGHTS` beside `MARKERS`: "earns" (and earn, earned, earning, now all in the code-as-agent group) counts double in the register rate. The count gate stays raw, so a weighted word cannot band a short document by itself, and the per-word counts under the band are what was found. A weighted word must also be in `GROUPS`; refresh-vocabulary.md says so.
 
-- Before and after, shown only with `--against`, is one small table of figures with a delta column instead of five pairs of bars; it took the height of the register cell for a comparison read once.
+**Tests**
 
-**Sentence-shape tells** (`scripts/syntax.py`, all possible)
-
-- `landing-sentence`: a closer of six words or fewer after sentences averaging twelve or more ("Not Postgres.", "It is a different product."). Banded `landing HABIT` at 1.5 per 1000 words with at least three, which promotes it to a finding; 2% of 524 local markdown files band, and fresh Fable 5.1 output does. Closers that introduce a list, carry a link ("Source: [...]") or open on the same two words at the end of three or more paragraphs ("Depends on M1.") are structure and do not count.
-- `contrast-pair`: a clipped "X is small. Y is not." including before a colon. `tag-clause`: a sentence ending ", and we should." or ", which it does.". `anaphora`: three consecutive sentences opening on the same word. Under 1% of the corpus carries either of the first two.
-- `parataxis`: the share of measurable paragraphs (three or more sentences, mean 9 to 30 words) with no subordinate clause. Sentence length is not the measure: model output varies length widely and lacks subordination instead. A third is the corpus median, so the number is printed as a measurement (counted as nothing) once six paragraphs can be measured, and banded `UNJOINED` only at 60% with at least four; 3% of the corpus bands. The report shades those paragraphs once banded.
-- `--against` lists each number, mid-sentence proper noun, relative time ("last week") and discovery anecdote ("I noticed") in the rewrite that the original lacks, as `new-number`, `new-name`, `new-time`, `new-anecdote`. Each is a fact to check against the original; a numeral for a spelled number is not new. The report's before-and-after block lists them too.
-- `scripts/test_syntax.py`: catch and keep cases per rule, sentence-splitter cases, the new-specifics check, the emphasis-verb split and the printed `?` block.
-- Rubric: Tier 3 syntax tells gain elided contrast pairs, tag clauses and parataxis; sourcing gains invented specificity. Phase 0 and Phase 4 say a plain finding is a fix and a `?` finding is a read.
+- `scripts/test_syntax.py`: catch and keep cases per shape rule, sentence-splitter cases (abbreviation, decimal, year, single letter, inline code), the new-specifics check and its de-nominalised keep case, the emphasis-verb split, "Nothing collapses.", the earns weight, a banded and an unbanded parataxis document, and the printed `?` block and tally.
 
 ## 2026-09-01
 
