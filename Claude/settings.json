@@ -1,5 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "1",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "380000",
+    "CLAUDE_CODE_DISABLE_MOUSE": "1",
+    "ENABLE_PROMPT_CACHING_1H": "1",
+    "CLAUDE_CODE_WORKFLOWS": "1",
+    "IMPECCABLE_HOOK_DISABLED": "1",
+    "CLAUDE_CODE_SYNTAX_HIGHLIGHT": "true"
+  },
   "attribution": {
     "commit": "",
     "pr": ""
@@ -625,6 +634,7 @@
       }
     }
   },
+  "outputStyle": "terse",
   "language": "Australian English",
   "sandbox": {
     "enabled": true,
@@ -749,8 +759,12 @@
       "xcodebuild *"
     ]
   },
+  "promptSuggestionEnabled": false,
   "tui": "default",
   "preferredNotifChannel": "ghostty",
+  "remoteControlAtStartup": true,
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
   "autoMode": {
     "allow": [
       "$defaults",
@@ -769,5 +783,6 @@
       "$defaults",
       "Never expose the users real email address publicly"
     ]
-  }
+  },
+  "enableArtifact": false
 }
