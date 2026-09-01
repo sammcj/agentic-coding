@@ -77,6 +77,23 @@ WHY = {
     "times-sign": "A multiplication sign in prose. Use x.",
     "utm-llm": "A tracking parameter naming the model that wrote this.",
     "weasel-source": "Attribution to nobody. Name the source or drop the claim.",
+    # Tier 2 groups. None of these words is wrong on its own, which is the whole
+    # point of measuring them as a rate, so each line says what the concentration
+    # of them is doing rather than condemning the word.
+    "code-as-agent": "Code given intent, as though it decides and refuses: \"the check "
+                     "refuses\", \"the cache holds\", \"the contract survives\". Occasionally "
+                     "apt, tiring in quantity. Say what runs.",
+    "adverbs": "Adverbs asserting that a claim is solid: plainly, genuinely, precisely, "
+               "demonstrably. Delete one. If the claim survives intact, it was emphasis "
+               "rather than evidence.",
+    "negation": "Absolute negation: never, nothing, nobody, none. Each is a total claim, "
+                "and in quantity they promise more certainty than the text has.",
+    "adjudication": "The vocabulary of a court, applied to code: verdict, ruling, premise, "
+                    "refusal, remedy. Fine in a document about decisions, a costume "
+                    "elsewhere.",
+    "structural": "Building and machinery metaphors: load-bearing, seam, chokepoint, "
+                  "backstop, lever. Literal use is exempt; the tell is reaching for them "
+                  "to describe abstractions.",
     # block and line findings
     "blob": "A paragraph long enough to hide its own argument. Cut or split it.",
     "table": "A table holding prose. Tables are for structured data.",
@@ -167,7 +184,9 @@ footer { display: flex; justify-content: space-between;
 /* group bars: one grey ramp, the accent reserved for the group that leads */
 .bar { display: grid; grid-template-columns: 108px 1fr 34px; align-items: center;
        gap: 8px; margin-bottom: 7px; font: 400 12px var(--mono); }
-.bar u { text-decoration: none; color: var(--muted); }
+.bar { cursor: help; }
+.bar u { text-decoration: none; color: var(--muted);
+         border-bottom: 1px dotted #c4c4c4; }
 .bar s { text-decoration: none; height: 13px; background: #d4d4d4; display: block; }
 /* The accent marks the group to thin. Set explicitly: as `:first-of-type` it
    matched the verdict div above these rows and never reached a bar at all. */
@@ -442,8 +461,11 @@ def groups_block(stats):
     rows = []
     for i, (group, pairs) in enumerate(stats["groups"]):
         n = sum(c for _, c in pairs)
-        rows.append('<div class="bar%s"><u>%s</u><s style="width:%.1f%%"></s><em>%d</em></div>'
-                    % (" lead" if i == 0 else "", e(group), 100.0 * n / top, n))
+        words = ", ".join(w for w, _ in pairs[:8])
+        rows.append('<div class="bar%s" data-why="%s" title="%s"><u>%s</u>'
+                    '<s style="width:%.1f%%"></s><em>%d</em></div>'
+                    % (" lead" if i == 0 else "", e("%s  Here: %s." % (WHY.get(group, ""), words)),
+                       e(WHY.get(group, group)), e(group), 100.0 * n / top, n))
     return '<h2 class="sub">By group</h2>%s' % "".join(rows)
 
 

@@ -473,7 +473,7 @@ def tables(text):
     decision, and REPORT.md's 135 offending rows were 9 tables.
     """
     out, start, end, wide, fence = [], 0, 0, 0, False
-    for lineno, line in enumerate(text.splitlines() + [""], start=1):
+    for lineno, line in enumerate([*text.splitlines(), ""], start=1):
         s = line.strip()
         if _FENCE.match(s):
             fence = not fence
@@ -616,11 +616,11 @@ def main():
                     fh.write(new)
             print("%s: %d fixed (%s)" % (path, sum(counts.values()), summarise(counts) or "none"))
             for off, name, hit in review:
-                print("%s:%d:%d %s %s  fixed, re-read" % ((path,) + _pos(text, off) + (name, hit)))
+                print("%s:%d:%d %s %s  fixed, re-read" % (path, *_pos(text, off), name, hit))
             text = new
         else:
             for off, name, hit in scan(text, SAFE, REVIEW):
-                print("%s:%d:%d %s %s" % ((path,) + _pos(text, off) + (name, hit)))
+                print("%s:%d:%d %s %s" % (path, *_pos(text, off), name, hit))
                 findings += 1
 
         # Grouped one line per distinct term, after skill-creator-primer: the

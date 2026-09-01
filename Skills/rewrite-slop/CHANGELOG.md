@@ -62,6 +62,8 @@ Rebuilt the detection around two empirical sources, louisabraham.github.io/load-
 **Findings carry their reason**
 
 - One line per rule saying what it caught and why it is worth changing, on hover over a mark or a row, and in a caption under the list that holds while a finding is selected. A rule name alone left the reader to guess whether a hit was a typographic artefact or a habit of thought.
+- The Tier 2 group names carry the same, plus the words that put them there. `code-as-agent` means nothing without the rubric open. Each says what the concentration is doing rather than condemning the word, since no word in these groups is wrong on its own.
+- New `ruff.toml`. The scripts were clean only under a hand-passed ignore list, so the same run in an editor produced 67 warnings. UP031, SIM905 and RUF001 are ignored with the reason stated in the file; E5 is left out of the select because the rule tables put one detection rule on one line. Fixed the three RUF005 sites rather than ignoring them. Ruff's own UP031 fix was rejected: it writes `.format()` rather than f-strings and reaches 27 of 67 sites, which would leave the same function written two ways.
 
 **Block findings, after a 776-line report the page had little to say about**
 

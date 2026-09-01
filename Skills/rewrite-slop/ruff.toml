@@ -1,0 +1,26 @@
+# Scripts are standard library only and run under whatever python3 the agent has.
+target-version = "py310"
+
+[lint]
+# Ruff's default (E4, E7, E9, F) plus the rulesets that earn their keep here.
+# E5 is deliberately absent: the rule tables put one detection rule on one line,
+# which is what makes a rule addable by editing a single line, and several of
+# those regexes are long.
+select = ["E4", "E7", "E9", "F", "W", "I", "B", "SIM", "UP", "RUF", "C4", "ISC", "PIE", "FURB"]
+
+ignore = [
+    # printf formatting, deliberate. Most of these sites are HTML templates
+    # carrying five or six positional values, where a tuple after the string
+    # keeps the markup readable in one piece. Ruff's own fix converts to
+    # `.format()` rather than f-strings and reaches only 27 of 67 sites, so
+    # taking it would leave the same function written two ways.
+    "UP031",
+    # `str.split()` over a block of words. The DECLINED and GROUPS tables are
+    # written as space-separated words across several lines, which is how they
+    # are read and edited; as list literals they become a column of quotes.
+    "SIM905",
+    # Ambiguous unicode in strings. Em dashes, curly quotes, the multiplication
+    # sign and the rest are what this tool detects, so they have to appear
+    # literally in its patterns.
+    "RUF001",
+]
