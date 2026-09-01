@@ -109,7 +109,9 @@ The rest of Tier 2 is Claude describing its own reasoning. These appear in genui
 
 These appear in Claude output too, sometimes at lower density than GPT, but still slop.
 
-Every list in this tier matches on meaning, not spelling. Where a word has a British and an American form, both count: emphasise and emphasize, recognised and recognized, revolutionise and revolutionize. Keep the input's own convention when you rewrite.
+Every list in this tier matches on meaning, not spelling. Where a word has a British and an American form, both count: emphasise and emphasize, recognised and recognized.
+
+American spelling is its own tell, since a model reaches for it whatever the document keeps to. `check_output.py` reports it, and leaves alone what Australian technical writing already spells the American way (program, artifact, licence, practice). Match the surrounding text, unless the document is written for an American reader.
 
 **Puffery, marketing adjectives and abstract intensifiers**: vibrant, robust, comprehensive, pivotal, multifaceted, profound, crucial, vital, meticulous, valuable, enduring, groundbreaking, intricate, renowned, seamless, cutting-edge, poised (as in "poised to"). Delete the adjective, or replace it with the measurement that earned it.
 

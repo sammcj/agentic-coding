@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -419,7 +420,7 @@ class WhyCaptionTests(unittest.TestCase):
         return rr.render(build_skill(Path(tmp.name), body))
 
     def test_every_rule_the_renderer_reports_has_a_reason(self):
-        for _category, _pattern in vs._FILLER_RULES:
+        for _category, _pattern in vs._ALL_TEXT_RULES:
             self.assertIn(_category, rr.WHY, f"no WHY entry for {_category}")
         for rule in ("blob", "code", "load", "spec-error", "spec-warning",
                      "bold-emphasis"):
@@ -445,6 +446,29 @@ class WhyCaptionTests(unittest.TestCase):
         self.assertIn('data-why="%s"' % rr.WHY["blob"].replace("'", "&#x27;"), page)
         self.assertIn("puffery", page)
         self.assertIn('<p id="why" class="why">', page)
+
+    def test_an_american_spelling_is_marked_and_ranked_like_any_term(self):
+        page = self.render("# H\n\nNormalize the color before analyzing it.\n")
+        self.assertEqual(len(re.findall(r"<mark ", page)), 3)
+        self.assertIn('<tr class="pick" data-term="normalize"', page)
+        self.assertIn("americanism", page)
+
+    def test_the_spec_cell_still_checks_the_description_without_skills_ref(self):
+        # The description rule is the primer's own and needs only PyYAML. Routing it
+        # solely through lint() lost it wherever skills-ref was not installed.
+        long_desc = " ".join(["trigger word"] * 60)
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        skill_dir = build_skill(Path(tmp.name), "# H\n\nShort.\n")
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: fixture\ndescription: %s\n---\n\n# H\n\nShort.\n" % long_desc,
+            encoding="utf-8")
+        with unittest.mock.patch.object(vs, "lint", side_effect=SystemExit(1)):
+            findings = rr.spec_findings(skill_dir)
+        self.assertIsInstance(findings, tuple)
+        errors, warnings = findings
+        self.assertTrue(any("120 words" in x for x in errors))
+        self.assertTrue(any("skills-ref" in x for x in warnings))
 
     def test_the_copy_button_sits_in_the_footer(self):
         # It belongs on the footer rule beside the date, not over the stat strip:

@@ -71,6 +71,9 @@ WHY = {
     "padding": "Collapses to one word, or none, with nothing lost.",
     "phrase-swap": "A long phrase with a one-word equivalent.",
     "placeholder": "A placeholder that was never filled in.",
+    "us-spelling": "American spelling. A model writes it whatever convention "
+                   "the document is in. Ignore this on a document written for "
+                   "an American reader; otherwise match the rest of the text.",
     "private-use": "A private-use codepoint, which renders differently everywhere.",
     "puffery": "Says the thing is impressive instead of saying what it does.",
     "smart-quote": "A curly quote. Straight quotes survive copy and paste.",
@@ -841,8 +844,7 @@ def main():
         with open(out, "w", encoding="utf-8") as fh:
             fh.write(render(args.file, text, against))
     except OSError as err:
-        # The default output sits beside the input, which is read-only often enough
-        # that the fix is worth naming rather than leaving to be guessed at.
+        # The default output sits beside the input, which is often read-only.
         ap.error("cannot write %s: %s. Pass -o to choose another path." % (err.filename, err.strerror))
     print(out)
 

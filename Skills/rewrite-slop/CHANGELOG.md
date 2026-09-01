@@ -21,6 +21,13 @@
 - `bold_stats` matches the raw text and skips code the way `scan_spans` does. Substituting code away first, as the word count still does, collapses each span to one character and moves every offset after it: the marks landed on words several sentences from the bold they described.
 - Long paragraphs are shaded red rather than grey, so the two block kinds read as findings rather than as one finding and one aside.
 
+**American spelling**
+
+- New `us-spelling` rule in REPORT, in eight patterns. A model writes American spelling whatever convention the document keeps to, which makes a stray `color` in an Australian document a tell of the same kind as a stray em dash.
+- Reported, never swapped. The word can be right as a proper noun (the Australian Labor Party, the World Health Organization) and `licence`/`practice` turn on noun versus verb, which no pattern can see. `program` and `artifact` are left out, being what Australian technical writing uses.
+- `scripts/test_us_spelling.py` holds 147 words the rules must catch and 190 they must not, importing the patterns rather than copying them. The second list is the point. It is why the -our stems take no `ous` ending, and why the -ize rule keys on the letter before `iz` never being `s` or `i`.
+- Tier 3 said to keep the input's own spelling convention, now true only for a document written for an American reader. Both paragraphs are one.
+
 **Register bands**
 
 - The register's upper band reads `SLOPPY` rather than `HEAVY`. The bold check keeps its own `HEAVY`, one band under `ABUSED`, so the two scales no longer share a label: a register reading and a bold reading measure different things and sat next to each other in the report saying the same word.
@@ -28,7 +35,7 @@
 
 **Comment width**
 
-- `ruff.toml` sets `line-length = 120` and the comments and docstrings in `scripts/` are rewrapped to it. Comments are most of what is written in these files, and at Black's 88 an explanation ran to six lines where four say it. E501 stays unselected either way, because the rule tables put one detection rule on one line.
+- `ruff.toml` sets `line-length = 120`, and the comments and docstrings in `scripts/` are rewrapped to it. E501 stays unselected, because the rule tables put one detection rule on one line.
 - Usage blocks, examples and rule tables keep the shape they were given: only paragraphs whose later lines are unindented, unbulleted and not introduced by a colon were reflowed. Both scripts produce byte-identical output to before the rewrap.
 - `render_report.py` reports a missing input file, and an output path it cannot write, as one line each instead of a traceback. The write error names `-o` as the fix, since the default output sits beside the input and that directory is often read-only.
 - The `nbsp` and `private-use` patterns are written as `\uXXXX` escapes. Their literal form is invisible in an editor and does not survive a copy through anything that normalises whitespace; one such round trip had already emptied both character classes, silently disabling the rules.

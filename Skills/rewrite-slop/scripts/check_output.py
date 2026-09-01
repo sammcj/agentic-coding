@@ -48,8 +48,7 @@ SAFE = [
     ("smart-quote", r"[“”]", '"'),
     ("smart-quote", r"[‘’]", "'"),
     ("ellipsis", r"…", "..."),
-    # Escapes, not the literal characters: these are invisible in an editor, and a
-    # copy through anything that normalises whitespace silently empties the class.
+    # Escapes rather than the characters, which are invisible in an editor and do not survive a copy.
     ("nbsp", r"[\u00a0\u2007\u202f]", " "),
     ("math-unicode", r"[\U0001d400-\U0001d7ff]+", _ascii_math),
     ("private-use", r"[\ue000-\uf8ff]+", ""),
@@ -163,6 +162,21 @@ REPORT = [
     ("negation-antithesis", _ANTITHESIS, None),
     # Padding: each collapses to one word or none without losing anything.
     ("padding", r"(?i)\b(?:in terms of|with respect to|in the context of|a (?:wide )?(?:variety|range|number) of|a myriad of|the fact that|in order for|for the purpose of|it goes without saying|needless to say|each and every|first and foremost|clear and concise|various different|basic fundamentals?|end result|past history|advance planning)\b", None),
+    # American spelling. Never swapped, because the word can be right as a proper noun: the Australian Labor Party,
+    # the World Health Organization, Pearl Harbor. Omissions and near misses are in scripts/test_us_spelling.py.
+    # `[a-hj-rt-z]` is the letter before `iz`, never `s` or `i` here, which drops size, resize, capsize and prize.
+    ("us-spelling", r"(?i)\b[a-z]{2,}[a-hj-rt-z]iz(?:e|es|ed|ing|er|ers|ation|ations|ational|able|ability)\b", None),
+    ("us-spelling", r"(?i)\b[a-z]{3,}yz(?:e|es|ed|ing|er|ers)\b", None),
+    # No `ous` suffix, since humorous, vigorous and laborious drop the u here too.
+    ("us-spelling", r"(?i)\b(?:col|behavi|fav|hon|neighb|hum|flav|harb|rum|vap|arm|endeav|splend|val|sav|od|cand|clam|demean|ferv|parl|tum|vig|lab|ard|glam|rig)or(?:s|ed|ing|ite|ites|able|ably|ful|fully|less|hood|al|ally|ists?|ers?|y|ies)?\b", None),
+    # No bare `meter`, since a parking meter keeps that spelling here.
+    ("us-spelling", r"(?i)\b(?:cent|theat|fib|lit|kilomet|centimet|millimet|millilit|calib|somb|spect|scept|lust|maneuv)er(?:s|ed|ing)?\b", None),
+    # `dialogue` is not matched, because `ue` is not an ending and the boundary then fails. Prolog is a language.
+    ("us-spelling", r"(?i)\b(?:catalog|dialog|monolog|epilog|analog|travelog)(?:s|ed|ing|ged|ging)?\b", None),
+    ("us-spelling", r"(?i)\b(?:defense|defenses|defenseless|offense|offenses|pretense|pretenses)\b", None),
+    # Only the forms that differ. Installed, fulfilled and enrolled are spelled the same in both.
+    ("us-spelling", r"(?i)\b(?:travel(?:ed|ing|er|ers)|cancel(?:ed|ing)|model(?:ed|ing)|label(?:ed|ing)|signal(?:ed|ing)|fuel(?:ed|ing)|total(?:ed|ing)|counsel(?:ed|ing|or|ors)|marvelous(?:ly)?|jewelry|woolen|enrollment|fulfillment|fulfillments|installments?|skillful(?:ly)?|willful(?:ly)?|distill|instill|enrolls?|fulfills?)\b", None),
+    ("us-spelling", r"(?i)\b(?:aluminum|gray(?:ed|ing|ish)?|mold(?:s|ed|ing|y)?|plow(?:s|ed|ing)?|smolder(?:s|ed|ing)?|airplanes?|aging|acknowledgments?|math|sizable|practicing)\b", None),
 ]
 
 # Ranked at louisabraham.github.io/load-bearing. Group names match the Tier 2 headings in SKILL.md, so `register` can

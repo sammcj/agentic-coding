@@ -502,6 +502,49 @@ _FILLER_RULES: list[tuple[str, re.Pattern]] = [
     ),
 ]
 
+# Australian spelling, which this primer's author writes in and which no skill's prose has a reason to depart from. A
+# separate table from the no-ops above because it is a different kind of finding: a no-op is a word to cut, an
+# Americanism is a word to respell, and the report says which is which.
+#
+# The stems are explicit rather than a general \w+ize pattern, which eats "sizes", "prized" and "capsized". Same
+# precision-over-recall rule as the no-ops: deliberately absent are `dialog` (Claude Code's own permission dialog, and
+# the HTML element), `catalog` (names a published thing, e.g. schemastore.org's), `tokenize`/`tokenizer` (spelled -iz-
+# everywhere in ML), `program` (the computing sense is Australian too), and `license`/`practice`, where the correct form
+# turns on noun versus verb and a checker cannot see which.
+_IZE_STEMS = (
+    r"apolog|author|categor|central|critic|custom|digit|emphas|final|formal|general|ideal|initial|legal|local"
+    r"|maxim|memor|minim|mobil|modern|modular|neutral|normal|optim|organ|parameter|personal|priorit|real|recogn"
+    r"|sanit|serial|special|standard|summar|synchron|util|visual"
+)
+_SPELLING_RULES: list[tuple[str, re.Pattern]] = [
+    (
+        "americanism",
+        re.compile(
+            # -ise verbs and their derivatives, with the prefixes that hide the stem from a word boundary.
+            # The agent nouns (-izer, -izers, -yzer) are left out on purpose: measured over the corpus they are
+            # almost always a component's name carried into prose - kicad's `analyzer` output, an `optimizer`,
+            # a `serializer` - where respelling would rename the thing rather than fix the spelling.
+            r"\b(?:re|de|un)?(?:" + _IZE_STEMS + r")iz(?:e|es|ed|ing|ation|ations)\b"
+            # the -yse family, which takes no `i`: analyse, paralyse, catalyse
+            r"|\b(?:anal|paral|catal)yz(?:e|es|ed|ing)\b"
+            # -our. rigor/vigor/clamor are left out: their -ous forms drop the u in Australian English too
+            r"|\b(?:behavio|colo|favo|hono|labo|neighbo|flavo|humo|armo|rumo|endeavo)"
+            r"r(?:s|ed|ing|al|ally|able|ful|less|ite|ites|scale)?\b"
+            # -ll- before a suffix, which American English single-ls
+            r"|\b(?:cancel|label|model|travel|signal|fuel|total|marvel|level)(?:ed|ing|er|ers)\b"
+            r"|\bcancelation\b"
+            r"|\b(?:cent|calib|fib)er(?:s|ed|ing)?\b"
+            r"|\b(?:gray|grayscale|maneuver|aluminum|jewelry|defense|offense|judgment|skillful"
+            r"|practicing|practiced)(?:s|es|ed|ing|less)?\b",
+            re.IGNORECASE,
+        ),
+    ),
+]
+
+# Both tables are scanned in one pass so a term is placed and marked the same way whichever it came from; the report
+# splits them again by category, since the fix differs.
+_ALL_TEXT_RULES = _FILLER_RULES + _SPELLING_RULES
+
 # Findings are grouped one line per distinct term, not one per occurrence: the agent fixes a word everywhere at once, so
 # ten hits on "comprehensive" is one action, not ten. These cap the grouped lines and the locations shown per line.
 FILLER_LIST_MAX = 10
@@ -550,7 +593,7 @@ def _filler(skill_dir: Path) -> list[tuple[str, str, int, str]]:
                 fence = opened
                 continue
             scan = _filler_scan(line)
-            for category, pattern in _FILLER_RULES:
+            for category, pattern in _ALL_TEXT_RULES:
                 for hit in pattern.finditer(scan):
                     found.append((category, str(rel), lineno, hit.group(0).strip()))
     return found
@@ -699,11 +742,19 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
             "inline scripts belong in scripts/, templates in assets/:"
         )
         signals.extend(_listing(long_code, " lines"))
-    if filler:
+    # One scan, two findings: a no-op is a word to cut, an Americanism a word to respell.
+    no_ops = [f for f in filler if f[0] != "americanism"]
+    spellings = [f for f in filler if f[0] == "americanism"]
+    if no_ops:
         signals.append(
-            f"  Lexical no-ops ({len(filler)}) - cut the word or state the claim plainly:"
+            f"  Lexical no-ops ({len(no_ops)}) - cut the word or state the claim plainly:"
         )
-        signals.extend(_filler_listing(filler))
+        signals.extend(_filler_listing(no_ops))
+    if spellings:
+        signals.append(
+            f"  American spellings ({len(spellings)}) - use the Australian form (-ise, -our, -re, doubled l):"
+        )
+        signals.extend(_filler_listing(spellings))
     if emphasis:
         signals.append(
             f"  Bold {emphasis['band']} ({emphasis['rate']:.1f} mid-sentence bolds per "
@@ -729,7 +780,7 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
             "list item, quote, table row); shrink by deleting words, not by reshaping."
         )
     if not facts and not signals:
-        out.append("  No blobs, oversized code blocks, lexical no-ops, or bold abuse found.")
+        out.append("  No blobs, oversized code blocks, lexical no-ops, American spellings, or bold abuse found.")
     return "\n".join(out), rating, advice, within_budget
 
 

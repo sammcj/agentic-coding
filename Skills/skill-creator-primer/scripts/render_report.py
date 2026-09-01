@@ -87,6 +87,10 @@ WHY = {
     "negation-antithesis": "A not-X-but-Y contrast. Apply the swap test - if the "
                            "reversal reads as well, the contrast carries nothing. "
                            "State the claim directly.",
+    "americanism": "An American spelling. Australian English is the house style, so "
+                   "use the -ise, -our, -re or doubled-l form. Words whose Australian "
+                   "form turns on noun versus verb, and technical terms spelled -iz- "
+                   "everywhere, are not flagged.",
     "blob": f"A text unit of {vs.BLOB_WORDS}+ words, in any shape. Long enough to "
             "bury the instruction inside it, so the agent acts on the prose it "
             "remembers. Split it into steps, or cut it.",
@@ -773,7 +777,7 @@ def filler_spans(line):
     lead = len(line) - len(line.lstrip())
     scan = vs._filler_scan(line)
     found = []
-    for category, pattern in vs._FILLER_RULES:
+    for category, pattern in vs._ALL_TEXT_RULES:
         for hit in pattern.finditer(scan):
             raw = hit.group(0)
             at = lead + hit.start()

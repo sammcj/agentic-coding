@@ -1,10 +1,7 @@
 # Scripts are standard library only and run under whatever python3 the agent has.
 target-version = "py310"
 
-# Wider than Black's 88. Prose in comments is the bulk of what is written here,
-# and at 88 an explanation ran to six lines where four say it. E501 is still not
-# selected, because the rule tables put one detection rule on one line and some
-# of those regexes are far longer than any limit worth setting.
+# Wider than Black's 88, because comments are most of what is written here. E501 stays unselected either way.
 line-length = 120
 
 [lint]

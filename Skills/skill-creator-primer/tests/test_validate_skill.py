@@ -215,6 +215,108 @@ class FillerDetectionTests(unittest.TestCase):
         self.assertIn("+2 more terms", out[-1])
 
 
+class AmericanismTests(unittest.TestCase):
+    """Australian spelling is the house style. Same precision-over-recall rule as
+    the no-ops: a word that names a thing is not a spelling to fix."""
+
+    def terms(self, body: str) -> list[str]:
+        with tempfile.TemporaryDirectory() as tmp:
+            return [hit.lower() for category, _, _, hit in vs._filler(build_skill(Path(tmp), body))
+                    if category == "americanism"]
+
+    def test_the_ise_family_is_flagged_across_its_forms(self):
+        self.assertEqual(
+            self.terms("# T\n\nNormalize it, then organized and summarizing the optimization.\n"),
+            ["normalize", "organized", "summarizing", "optimization"],
+        )
+
+    def test_the_yse_family_is_flagged(self):
+        self.assertEqual(self.terms("# T\n\nAnalyze it while analyzing the rest.\n"),
+                         ["analyze", "analyzing"])
+
+    def test_a_prefix_does_not_hide_the_stem(self):
+        self.assertEqual(self.terms("# T\n\nReorganize and deserialize the input.\n"),
+                         ["reorganize", "deserialize"])
+
+    def test_the_australian_form_is_not_flagged(self):
+        body = ("# T\n\nNormalise it, analyse the colour and behaviour, then centre "
+                "the labelled panel and organise the visualisation.\n")
+        self.assertEqual(self.terms(body), [])
+
+    def test_our_and_doubled_l_families_are_flagged(self):
+        self.assertEqual(
+            self.terms("# T\n\nThe color and behavior of a labeled, cancelled panel.\n"),
+            ["color", "behavior", "labeled"],
+        )
+
+    def test_an_agent_noun_is_a_component_name_not_a_spelling(self):
+        # Measured over the corpus, `analyzer` and `optimizer` almost always carry a
+        # tool's name into prose; respelling would rename the thing.
+        self.assertEqual(self.terms("# T\n\nRun the analyzer, then the optimizer.\n"), [])
+
+    def test_words_whose_form_turns_on_sense_are_left_alone(self):
+        # `dialog` is Claude Code's own permission dialog and the HTML element;
+        # `catalog` names a published thing; `program` is Australian in computing.
+        body = "# T\n\nOpen the dialog, read the catalog, run the program, load the tokenizer.\n"
+        self.assertEqual(self.terms(body), [])
+
+    def test_a_lookalike_word_is_not_a_false_positive(self):
+        body = "# T\n\nCheck the sizes, the prized capsized resized output, and the size.\n"
+        self.assertEqual(self.terms(body), [])
+
+    def test_inline_code_and_fences_are_skipped(self):
+        self.assertEqual(self.terms("# T\n\nPass `--normalize` to it.\n"), [])
+        self.assertEqual(self.terms("# T\n\n```\nnormalize(color)\n```\n"), [])
+
+    def test_the_report_lists_spellings_apart_from_no_ops(self):
+        # The fix differs - one word is cut, the other respelled - so one line each.
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nA comprehensive plan to normalize the color.\n")
+            text, _rating, _advice, _within = vs.build_report(skill_dir)
+        self.assertIn("Lexical no-ops (1)", text)
+        self.assertIn("American spellings (2)", text)
+
+
+class DescriptionEnforcementTests(unittest.TestCase):
+    """The description rule is the primer's own, not the spec's, and needs only
+    PyYAML - so it must not be lost with an optional third-party install."""
+
+    LONG = " ".join(["trigger word"] * 60)
+
+    @unittest.skipIf(vs.yaml is None, "needs PyYAML to parse frontmatter")
+    def test_report_only_fails_an_over_length_description(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nShort.\n")
+            (skill_dir / "SKILL.md").write_text(
+                "---\nname: fixture\ndescription: %s\n---\n\n# T\n\nShort.\n" % self.LONG,
+                encoding="utf-8")
+            out, passed = vs.validate_one(skill_dir, report_only=True)
+        self.assertFalse(passed)
+        self.assertIn("Validation failed", "\n".join(out))
+
+    @unittest.skipIf(vs.yaml is None, "needs PyYAML to parse frontmatter")
+    def test_report_only_passes_a_normal_description(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nShort.\n")
+            _out, passed = vs.validate_one(skill_dir, report_only=True)
+        self.assertTrue(passed)
+
+    @unittest.skipIf(vs.yaml is None, "needs PyYAML to parse frontmatter")
+    def test_a_folded_scalar_description_is_counted_whole(self):
+        # The field is regularly a `>-` block running to a dozen lines, which is
+        # what a regex reader gets wrong.
+        folded = "---\nname: fixture\ndescription: >-\n" + "".join(
+            "  %s\n" % (" ".join(["trigger word"] * 10)) for _ in range(6)) + "---\n\n# T\n\nShort.\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nShort.\n")
+            (skill_dir / "SKILL.md").write_text(folded, encoding="utf-8")
+            self.assertEqual(vs.description_word_count(vs.skill_description(skill_dir)), 120)
+
+    def test_a_missing_skill_md_reads_as_no_description(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(vs.skill_description(Path(tmp)), "")
+
+
 class BoldDetectionTests(unittest.TestCase):
     """Bold is a rate, and a rate is only worth reporting when both gates trip.
     The exemptions carry the weight: a bullet lead and a table badge are labels,
