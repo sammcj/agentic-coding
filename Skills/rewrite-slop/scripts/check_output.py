@@ -23,11 +23,16 @@ swaps sit in REVIEW rather than SAFE: a swap that lands inside a quotation has t
 import argparse
 import bisect
 import functools
+import os
 import re
 import sys
 import unicodedata
 from collections import Counter
 from typing import NamedTuple
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import syntax
 
 # Cells longer than this hold prose, not structured data, and the skill's own Tier 4 rubric flags tables used for
 # non-tabular comparisons.
@@ -132,12 +137,14 @@ _ANTITHESIS = "(?i)" + "|".join((
 REPORT = [
     ("placeholder", r"\[(?:Your |Insert|Describe|TODO)[^\]]*\]|\bINSERT_[A-Z_0-9]+\b|\b\d{4}-XX-XX\b", None),
     ("opener-filler", r"(?m)(?:^|(?<=\. ))(?:Additionally|Furthermore|Moreover|Notably|Consequently|Accordingly|In conclusion|Overall|In summary|It is worth mentioning|It should be noted)\b", None),
-    ("weasel-source", r"\b(?:experts (?:argue|say|note)|studies show|research (?:suggests|shows)|researchers have noted|observers have cited|industry reports suggest|critics contend)\b", None),
+    # Case-insensitive, since "Studies show" opens the sentence more often than not.
+    ("weasel-source", r"(?i)\b(?:experts (?:argue|say|note)|studies show|research (?:suggests|shows)|researchers have noted|observers have cited|industry reports suggest|critics contend)\b", None),
     ("chat-residue", r"\b(?:Let me|I['’]ll help you|I hope this helps|Let me know if|Happy to|I['’]d be happy to|Feel free to|Would you like me to)\b|\b(?:Perfect|Excellent|Great question)!", None),
-    ("metaphor-tic", r"\b(?:smoking[- ]gun|load[- ]bearing)\b", None),
-    # Literal in linguistics and NLP, inflation everywhere else, so it is reported rather than swapped and the agent
-    # decides which one it is looking at.
-    ("metaphor-tic", r"(?i)\bcorp(?:us|ora)\b", None),
+    # "Nothing collapses." is the landing sentence at its most reflexive: a two-word profundity beat after an argument.
+    ("metaphor-tic", r"(?i)\b(?:smoking[- ]gun|load[- ]bearing|nothing collapses)\b", None),
+    # Literal in linguistics and NLP, inflation everywhere else. Its own name so POSSIBLE can carry that caveat without
+    # softening the two above.
+    ("corpus-noun", r"(?i)\bcorp(?:us|ora)\b", None),
     # Fixed puffery phrases only. Single adjectives (robust, vibrant) stay in the Tier 3 rubric, where surrounding
     # context decides whether they are decorative.
     ("puffery", r"(?i)\b(?:nestled in the heart of|stands? as a testament to|marks? a pivotal moment|represents? a significant shift|indelible mark|stunning natural beauty|diverse array|rich tapestry|ever[- ]evolving landscape|remains limitless)\b", None),
@@ -158,7 +165,10 @@ REPORT = [
     ("emoji", r"[\U0001f300-\U0001faff☀-➿]", None),
     # Ported from skill-creator-primer's _FILLER_RULES. "harness" only in its verb-with-object shape, because a test
     # harness is the literal noun.
-    ("filler-verb", r"(?i)\b(?:delv(?:e|es|ed|ing)|div(?:e|es|ed|ing) into|leverag(?:e|es|ed|ing)|harness(?:ing)? the|foster(?:s|ed|ing)?|bolster(?:s|ed|ing)?|underscor(?:e|es|ed|ing)|facilitat(?:e|es|ed|ing)|empower(?:s|ed|ing)?|showcas(?:e|es|ed|ing)|garner(?:s|ed|ing)?|exemplif(?:y|ies|ied|ying)|emphasi[sz](?:e|es|ed|ing))\b", None),
+    ("filler-verb", r"(?i)\b(?:delv(?:e|es|ed|ing)|div(?:e|es|ed|ing) into|leverag(?:e|es|ed|ing)|harness(?:ing)? the|foster(?:s|ed|ing)?|bolster(?:s|ed|ing)?|facilitat(?:e|es|ed|ing)|empower(?:s|ed|ing)?|showcas(?:e|es|ed|ing)|garner(?:s|ed|ing)?|exemplif(?:y|ies|ied|ying))\b", None),
+    # Split from filler-verb because both have a literal sense: text is emphasised, and a double underscore is a
+    # character. Only the verb-with-object shape of underscore, which drops "double underscore" and "an underscore".
+    ("emphasis-verb", r"(?i)\b(?:underscor(?:es|ed|ing)|underscore (?:the|that|how|why|its|our|this))\b|\bemphasi[sz](?:e|es|ed|ing)\b", None),
     ("negation-antithesis", _ANTITHESIS, None),
     # Padding: each collapses to one word or none without losing anything.
     ("padding", r"(?i)\b(?:in terms of|with respect to|in the context of|a (?:wide )?(?:variety|range|number) of|a myriad of|the fact that|in order for|for the purpose of|it goes without saying|needless to say|each and every|first and foremost|clear and concise|various different|basic fundamentals?|end result|past history|advance planning)\b", None),
@@ -179,6 +189,21 @@ REPORT = [
     ("us-spelling", r"(?i)\b(?:aluminum|gray(?:ed|ing|ish)?|mold(?:s|ed|ing|y)?|plow(?:s|ed|ing)?|smolder(?:s|ed|ing)?|airplanes?|aging|acknowledgments?|math|sizable|practicing)\b", None),
 ]
 
+# Rules whose hit is as often ordinary prose as a tell, keyed by rule name with the caveat the reader needs before
+# deciding. A rule listed here is a READ, printed apart from the rest and marked `?`; everything not listed is a fix.
+# The sentence-shape rules from syntax.py are all here: each shape is ordinary in small doses, and their document-level
+# bands (parataxis) are the finding, printed with the rest.
+POSSIBLE = {
+    "weasel-source": "a named source may follow in the next sentence, or the claim may be common knowledge",
+    "us-spelling": "right as a proper noun (Labor Party, World Health Organization) and in a document for an American reader",
+    "corpus-noun": "literal in linguistics and NLP; inflation only for an ordinary set of documents",
+    "emphasis-verb": "literal when something is being emphasised or underlined; filler when it stands in for 'shows'",
+    "landing-sentence": "one short closer per document is style; the tic is one per paragraph",
+    "contrast-pair": "a clipped 'X is Y. Z is not.' is also plain English when the elided predicate is obvious",
+    "tag-clause": "', and we should' is speech register; count it only alongside other tells",
+    "anaphora": "deliberate in rhetoric and lists of parallel facts; the tell is three sentences that did not need it",
+}
+
 # Ranked at louisabraham.github.io/load-bearing. Group names match the Tier 2 headings in SKILL.md, so `register` can
 # name the over-represented group. Concentration is the signal, so this is a density, not a match list. See
 # references/refresh-vocabulary.md for what was excluded and why.
@@ -191,9 +216,10 @@ GROUPS = {
     "code-as-agent": """carries carrying carried admits asserts asserted asserting
         rests holds survives survived surviving survive outlives outlived decides
         declares governs forbids agrees disagrees disagreed disagree contradicts
-        contradicted contradicting falsified refuted restated restating earns buys
-        pays drains bites swallows swallowed degrades escalates short-circuits
-        self-heals mints minted stamps stamped refuse refuses refused refusing""",
+        contradicted contradicting falsified refuted restated restating earns earn
+        earned earning buys pays drains bites swallows swallowed degrades escalates
+        short-circuits self-heals mints minted stamps stamped refuse refuses refused
+        refusing""",
     "adjudication": """refusal refusals premise ruling precedent verdict verdicts
         obligation caveat remedy symptom asymmetry shortfall hazard idiom
         disagreement""",
@@ -204,6 +230,10 @@ GROUPS = {
         rung ladder chokepoint backstop tripwire machinery knob carve-out""",
 }
 MARKERS = {w: g for g, ws in GROUPS.items() for w in ws.split()}
+
+# A marker the current generation leans on harder than its lift alone says: "nothing earns one", "the change earns a
+# ticket". Counted at this weight in the rate, never reported on its own, since people do write it.
+WEIGHTS = {"earns": 2, "earn": 2, "earned": 2, "earning": 2}
 
 # "no one" is two tokens, so it cannot come from the token list like the rest.
 NO_ONE = re.compile(r"\bno one\b")
@@ -683,9 +713,11 @@ def register_stats(text):
     # every report that did not contain it.
     if (spaced := len(NO_ONE.findall(prose))):
         hits["no one"] = spaced
-    total = sum(hits.values())
+    # Weighted in the rate only. The count gate stays raw, so a weighted word cannot band a short document by itself,
+    # and the per-word counts shown under the band are what was found.
+    total = sum(n * WEIGHTS.get(w, 1) for w, n in hits.items())
     rate = 1000 * total / len(words)
-    if rate < ELEVATED or total < LEAST:
+    if rate < ELEVATED or sum(hits.values()) < LEAST:
         return None
 
     by_group = {}
@@ -715,8 +747,40 @@ def register(text):
     return lines, True
 
 
+def shape_spans(text):
+    """Sentence-shaped tells from syntax.py, in scan_spans' shape. All of them are in POSSIBLE."""
+    return syntax.spans(text, units(text))
+
+
+def parataxis_stats(text):
+    """Document-level parataxis band from syntax.py, or None below its gates."""
+    return syntax.parataxis_stats(text, units(text))
+
+
+def parataxis(text):
+    """Parataxis and landing measurements as report lines. Returns ([lines], findings).
+
+    Landing promotes a possible span to a finding on concentration, the way `register` does for its words. Parataxis
+    is printed as an indicator whenever there is enough to measure, and counts as a finding only when banded: on this
+    machine's corpus a third of paragraphs unjoined is the median, so the number is for the reader to weigh.
+    """
+    lines, flagged = [], 0
+    if (st := parataxis_stats(text)):
+        # No `?`: that mark is for POSSIBLE rules with a caveat above their hits. This is a measurement, and its
+        # caveat is in the line. Below the band it counts as nothing.
+        lines.append("parataxis %s%d of %d measured paragraphs carry no subordinate clause (a third is ordinary)"
+                     % (st["band"] + ", " if st["band"] else "", len(st["flat"]), st["measured"]))
+        lines += ["  L%d-%d  %d sentences, mean %.0f words" % f for f in st["flat"][:LOCATIONS_MAX]]
+        flagged += bool(st["band"])
+    if (st := syntax.landing_stats(text, units(text))):
+        lines.append("landing %s, %d short closers per %d words (%.1f/1000, habit at %.1f)"
+                     % (st["band"], st["total"], st["words"], st["rate"], syntax.LANDING_RATE))
+        flagged += 1
+    return lines, flagged
+
+
 def compare(orig, new):
-    """Length and code-block passthrough, per Phase 4."""
+    """Length, code-block passthrough and new specifics, per Phase 4."""
     ow, nw = len(orig.split()), len(new.split())
     pct = (nw - ow) / ow * 100 if ow else 0.0
     lines = ["words: %d -> %d (%+.1f%%)%s" % (ow, nw, pct, "  LONGER" if nw > ow else "")]
@@ -725,7 +789,12 @@ def compare(orig, new):
     # Not strict: a differing block count is the finding, not an error.
     same = sum(1 for a, b in zip(ob, nb, strict=False) if a == b)
     lines.append("code blocks: %d/%d identical%s" % (same, len(ob), "" if same == len(ob) and len(ob) == len(nb) else "  DIFFER"))
-    return lines, nw > ow or ob != nb
+    # A number, a "last week", an "I noticed" or a mid-sentence name the original does not have. Each is a fact to check
+    # against the original: usually invented, sometimes "three" rewritten as "3".
+    added = syntax.new_specifics(orig, new)
+    for off, _, name, hit in added:
+        lines.append("%d:%d %s %s  not in the original" % (*_pos(new, off), name, hit))
+    return lines, nw > ow or ob != nb or bool(added)
 
 
 def summarise(counts):
@@ -739,7 +808,7 @@ def main():
     ap.add_argument("--against", metavar="ORIG", help="original file, for length and code-block checks")
     args = ap.parse_args()
 
-    findings = 0
+    findings = possible = 0
     for path in args.files:
         with open(path, encoding="utf-8") as fh:
             text = fh.read()
@@ -770,16 +839,30 @@ def main():
         # ten hits on "comprehensive" is one action, not ten. Locations are still listed, capped.
         rest = [(_pos(text, o)[0], n, h) for o, n, h in scan(text, REPORT)]
         rest += [(ln, n, "") for ln, n in line_checks(text)]
+        rest += [(_pos(text, o)[0], n, h) for o, _, n, h in shape_spans(text)]
         grouped = {}
         for ln, name, hit in sorted(rest):
             grouped.setdefault((name, hit.lower()), []).append(ln)
-        for (name, hit), lines in sorted(grouped.items()):
-            where = ", ".join("L%d" % n for n in lines[:LOCATIONS_MAX])
-            if len(lines) > LOCATIONS_MAX:
-                where += ", +%d more" % (len(lines) - LOCATIONS_MAX)
-            count = " x%d" % len(lines) if len(lines) > 1 else ""
-            print("%s: %-20s %s%s  (%s)" % (path, name, hit or "-", count, where))
-        findings += len(rest)
+        # Fixes first, then the reads under their own marker with each rule's caveat printed once. The two are kept
+        # apart so a page of `?` lines cannot read as a page of defects.
+        for sure in (True, False):
+            last = None
+            for (name, hit), lines in sorted(grouped.items()):
+                if (name not in POSSIBLE) != sure:
+                    continue
+                if not sure and last != name:
+                    if last is None:
+                        print("%s: ? possible, read before deciding:" % path)
+                    print("%s: ?   %s: %s" % (path, name, POSSIBLE[name]))
+                    last = name
+                where = ", ".join("L%d" % n for n in lines[:LOCATIONS_MAX])
+                if len(lines) > LOCATIONS_MAX:
+                    where += ", +%d more" % (len(lines) - LOCATIONS_MAX)
+                count = " x%d" % len(lines) if len(lines) > 1 else ""
+                print("%s: %s%-20s %s%s  (%s)" % (path, "? " if not sure else "", name, hit or "-", count, where))
+        sure_count = sum(1 for _, n, _ in rest if n not in POSSIBLE)
+        findings += sure_count
+        possible += len(rest) - sure_count
 
         for words, ln, opening, end in blobs(text):
             print("%s:%d-%d long-paragraph %d words  \"%s...\""
@@ -812,6 +895,11 @@ def main():
             print("%s: %s" % (path, line))
         findings += flagged
 
+        flat, flagged = parataxis(text)
+        for line in flat:
+            print("%s: %s" % (path, line))
+        findings += flagged
+
         if args.against:
             with open(args.against, encoding="utf-8") as fh:
                 lines, bad = compare(fh.read(), text)
@@ -819,7 +907,9 @@ def main():
                 print("%s: %s" % (path, line))
             findings += bad
 
-    print("%d finding%s" % (findings, "" if findings == 1 else "s"))
+    # Possible findings do not fail the run: they are reads, and a clean document can carry a few.
+    print("%d finding%s%s" % (findings, "" if findings == 1 else "s",
+                              ", %d possible" % possible if possible else ""))
     return 1 if findings else 0
 
 

@@ -22,17 +22,23 @@ from typing import NamedTuple
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import check_output as co
+import syntax
 
-SEVERITY: dict[str, str] = {}
-for _rules, _sev in ((co.SAFE, "safe"), (co.REVIEW, "review"), (co.REPORT, "report")):
+# How sure the checker is, per rule. SAFE and REVIEW are mechanical (a smart quote is a smart quote), REPORT is a
+# pattern the reader confirms, and POSSIBLE carries a caveat whatever list the rule came from. The sentence-shape rules
+# from syntax.py are only in POSSIBLE.
+CONFIDENCE: dict[str, str] = {}
+for _rules, _how in ((co.SAFE, "certain"), (co.REVIEW, "certain"), (co.REPORT, "probable")):
     for _rule in _rules:
-        SEVERITY.setdefault(_rule[0], _sev)
+        CONFIDENCE.setdefault(_rule[0], _how)
+for _name in co.POSSIBLE:
+    CONFIDENCE[_name] = "possible"
 
-# What each severity means in the rubric, since the page is read away from it.
+# The key under the findings, pale to red. The page is read away from the rubric.
 LEGEND = [
-    ("safe", "applied by --write"),
-    ("review", "swapped, but read the line"),
-    ("report", "detected only, you decide"),
+    ("possible", "might be: read the caveat"),
+    ("probable", "usually is: you decide"),
+    ("certain", "is: --write fixes most of these"),
 ]
 
 # The copied brief is read by an agent with a context budget, so it stays about a page: the kinds worth acting on, with
@@ -52,6 +58,22 @@ WHY = {
     "arrow-bullet": "An arrow used as a bullet. Use a list.",
     "chat-residue": "Assistant talk left in the draft. The reader is not in a chat.",
     "cite-marker": "A citation marker from the tool that generated this, not from the source.",
+    "corpus-noun": "\"Corpus\" for an ordinary set of documents. Say what they are.",
+    "emphasis-verb": "Underscores, emphasises: a verb standing in for \"shows\". Say what it shows.",
+    "landing-sentence": "A short closing sentence performing profundity after longer ones. Cut it, "
+                        "or fold it into the sentence before.",
+    "contrast-pair": "\"X is Y. Z is not.\" with the predicate clipped off for effect. Say what Z is.",
+    "tag-clause": "A sentence ending on \", and we should\": an afterthought tagged on for "
+                  "rhythm. End on the claim.",
+    "anaphora": "Three or more sentences in a row opening on the same word. Vary one.",
+    "landing-habit": "Short closers at a rate that makes them the habit rather than the "
+                     "emphasis: over %.1f per 1000 words." % syntax.LANDING_RATE,
+    "flat": "A paragraph with no subordinate clause: one idea per sentence, set side by side. "
+            "A third of paragraphs like this is ordinary; the tell is most of them.",
+    "new-number": "A number the original does not contain. The rewrite may not add facts.",
+    "new-time": "A \"last week\" the original does not contain. The rewrite may not add facts.",
+    "new-anecdote": "An \"I noticed\" the original does not contain. The rewrite may not add facts.",
+    "new-name": "A name the original does not contain. The rewrite may not add facts.",
     "double-dash": "Two hyphens standing in for a dash. Repunctuate the sentence.",
     "ellipsis": "A trailing-off ellipsis. Finish the sentence or cut it.",
     "em-dash": "An em dash. Comma, full stop or brackets, as the sentence needs.",
@@ -119,6 +141,19 @@ WHY = {
                           "not as published.",
 }
 
+
+def why(rule):
+    """The reason, with the caveat appended for a rule that is only possibly a tell."""
+    text = WHY.get(rule, "")
+    if rule in co.POSSIBLE:
+        text = "%s Possible only: %s." % (text, co.POSSIBLE[rule])
+    return text.strip()
+
+
+def all_spans(text):
+    """Regex spans and sentence-shape spans together, one list for the marks and the tally."""
+    return sorted(co.scan_spans(text, co.SAFE, co.REVIEW, co.REPORT) + co.shape_spans(text))
+
 CSS = """
 :root {
   color-scheme: only light;
@@ -126,6 +161,9 @@ CSS = """
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
   --ground: #fff; --ink: #0d0d0d; --muted: #5f5f5f;
   --accent: #de301e; --fill: #de301e1f; --rule: 2px;
+  /* the mark ramp by confidence: possible in pale yellow, probable in orange, certain in the accent red */
+  --maybe: #fff4c2; --maybe-rule: #e6c200;
+  --likely: #ffc978; --likely-rule: #e07a0c;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; -moz-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -232,16 +270,15 @@ tr.pick:first-child td.f s { background: var(--accent); }
 /* The description takes whatever the three measured columns leave. */
 td.d { width: 100%; }
 
-/* before and after: two bars to a pair, the original hollow and the rewrite filled */
-.pair { margin-bottom: 12px; font: 400 12px var(--mono); }
-.pair u { text-decoration: none; color: var(--muted); }
-.pair div { display: grid; grid-template-columns: 1fr 76px; align-items: center;
-            gap: 8px; margin-top: 4px; }
-.pair s { text-decoration: none; height: 13px; display: block; min-width: 1px; }
-.pair .was s { background: transparent; border: var(--rule) solid #9a9a9a; }
-.pair .now s { background: var(--accent); }
-.pair em { font-style: normal; color: var(--muted); }
+/* before and after: a glance, so a small table rather than a bar per figure */
+table.diff { width: auto; font: 400 12px var(--mono); }
+table.diff th { font-weight: 400; color: var(--muted); text-align: right; padding: 0 12px 3px 0; }
+table.diff td { padding: 2px 12px 2px 0; border: 0; text-align: right; }
+table.diff td:first-child { text-align: left; color: var(--muted); }
 .cut { color: var(--accent); }
+.diff-head { font: 400 12px var(--mono); color: var(--muted); margin: 10px 0 0; }
+.added { margin: 4px 0 0; padding-left: 18px; color: var(--ink); font: 400 12px var(--mono); }
+.added b { color: var(--accent); font-weight: 700; }
 
 .why { font: 400 12px/1.45 var(--mono); color: var(--ink); margin: 12px 0 0;
        padding: 9px 11px; background: #f4f4f4; border-left: var(--rule) solid var(--ink);
@@ -251,9 +288,13 @@ td.d { width: 100%; }
           color: var(--muted); margin-top: 12px; flex-wrap: wrap; }
 .key { display: inline-block; width: 22px; height: 11px; margin-right: 5px;
        vertical-align: -1px; }
-.k-safe { background: #ececec; }
-.k-review { background: #ececec; box-shadow: inset 0 -3px 0 #9a9a9a; }
-.k-report { background: var(--fill); box-shadow: inset 0 -3px 0 var(--accent); }
+/* One ramp from pale yellow to red by confidence. The key swatches match the marks;
+   the underline is the same rule in each step's colour and carries no meaning of
+   its own. */
+.k-possible { background: var(--maybe); box-shadow: inset 0 -3px 0 var(--maybe-rule); }
+.k-probable { background: var(--likely); box-shadow: inset 0 -3px 0 var(--likely-rule); }
+.k-certain { background: var(--fill); box-shadow: inset 0 -3px 0 var(--accent); }
+.legend b { font-weight: 700; color: var(--ink); letter-spacing: 0.1em; text-transform: uppercase; }
 
 pre { margin: 0; font: 400 13px/1.65 var(--mono); white-space: pre-wrap;
       word-wrap: break-word; }
@@ -268,20 +309,18 @@ body.spill { overflow: auto; }
 .block::after { content: attr(data-label); position: absolute; right: 0; top: 0;
                 font: 400 10px var(--mono); letter-spacing: 0.08em; color: var(--muted);
                 background: var(--ground); padding-left: 8px; text-transform: uppercase; }
-/* Light enough that the paragraph inside stays readable: the shade marks the
-   extent, it does not obscure what is in it. */
-.block.blob { background: #fbeceb; border-left-color: #e0a49c; }
-/* Grey rather than red: a stretch of dense units is the lesser finding, and it
-   often contains a blob, which keeps its own red inside this one. */
-.block.dense { background: #f2f2f2; border-left-color: #b9b9b9; }
-.block.table { background: #fbf3d8; border-left-color: #e8b400; }
+/* Block shades sit on the same ramp as the marks, lighter so the paragraph inside
+   stays readable: a dense run and an unjoined paragraph are possible (yellow), a
+   long paragraph and a prose table are probable (orange). A run often contains a
+   blob, which keeps its own deeper shade inside it. The margin label says which. */
+.block.dense, .block.flat { background: #fffbe6; border-left-color: var(--maybe-rule); }
+.block.blob, .block.table { background: #ffe4bd; border-left-color: var(--likely-rule); }
 .block.flash { animation: flash 1.1s ease-out; }
 @keyframes flash { from { background: var(--fill); border-left-color: var(--accent); } }
 @media (prefers-reduced-motion: reduce) { .block.flash { animation: none; } }
-/* the two block kinds keep their colour where they are listed, too */
-tr.pick.blob td.n { color: #b4463a; }
-tr.pick.dense td.n { color: var(--muted); }
-tr.pick.table td.n { color: #a07c00; }
+/* the block kinds keep their step of the ramp where they are listed, too */
+tr.pick.blob td.n, tr.pick.table td.n { color: var(--likely-rule); }
+tr.pick.dense td.n, tr.pick.flat td.n { color: var(--maybe-rule); }
 
 /* The hard wrap, shown where it happens: invisible in rendered markdown, and it
    reflows the whole paragraph in every later diff. */
@@ -289,9 +328,13 @@ tr.pick.table td.n { color: #a07c00; }
 .wrap::before { content: "\\21B5"; color: var(--accent); font-weight: 700;
                 padding-left: 4px; font-size: 1.1em; }
 
-mark { background: #ececec; color: inherit; padding: 0 1px; cursor: pointer; }
-mark[data-sev="review"] { box-shadow: inset 0 -3px 0 #9a9a9a; }
-mark[data-sev="report"] { background: var(--fill); box-shadow: inset 0 -3px 0 var(--accent); }
+mark { color: inherit; padding: 0 1px; cursor: pointer; }
+/* Filled at every step, pale to red: a dotted rule on plain ground could not be
+   seen at reading distance. */
+mark[data-conf="possible"] { background: var(--maybe); box-shadow: inset 0 -3px 0 var(--maybe-rule); }
+mark[data-conf="probable"] { background: var(--likely); box-shadow: inset 0 -3px 0 var(--likely-rule); }
+mark[data-conf="certain"] { background: var(--fill); box-shadow: inset 0 -3px 0 var(--accent); }
+tr.pick.possible td.n::before { content: "?"; color: var(--muted); margin-right: 3px; }
 /* Mid-sentence bold is a density, not a defect at the span, so it takes the
    blue of the findings count rather than competing with the severity ramp. */
 mark.em { background: #e9eff9; box-shadow: inset 0 -3px 0 #1a4fa0; }
@@ -404,14 +447,7 @@ def e(s):
     return html.escape(str(s), quote=True)
 
 
-def line_offsets(text):
-    """Byte offset of the start of each line, 1-indexed by line number."""
-    at, out, n = 0, {}, 0
-    for n, line in enumerate(text.splitlines(), start=1):
-        out[n] = at
-        at += len(line) + 1
-    out[n + 1] = at
-    return out
+line_offsets = syntax.line_offsets
 
 
 class Block(NamedTuple):
@@ -448,6 +484,12 @@ def blocks(text):
         out.append(Block(at[start], end_of(last), "table",
                          "table, %d prose cell%s" % (wide, "" if wide == 1 else "s"),
                          "%dc" % wide, "L%d-%d" % (start, last)))
+    # Shaded only once the document bands: below that, a third of paragraphs unjoined is what prose looks like.
+    if (flat := co.parataxis_stats(text)) and flat["band"]:
+        for start, last, n, _ in flat["flat"]:
+            out.append(Block(at[start], end_of(last), "flat",
+                             "no subordinate clause, %d sentences" % n,
+                             "%ds" % n, "L%d-%d" % (start, last)))
     return sorted(out)
 
 
@@ -463,12 +505,22 @@ def marked(text, spans, text_blocks=(), wrap_points=(), ids=None, emphasis=()):
     opens = {}
     for i, b in enumerate(text_blocks):
         anchor = ' id="%s"' % e(ids[i]) if ids else ""
+        # data-why, so hovering the shaded paragraph says what it is, as hovering a mark does.
         opens.setdefault(b.start, []).append(
-            ('<div class="block %s"%s data-label="%s">'
-             % (b.kind, anchor, e("%s  %s" % (b.measure, b.kind))), b.end))
+            ('<div class="block %s"%s data-label="%s" data-why="%s" title="%s">'
+             % (b.kind, anchor, e("%s  %s" % (b.measure, b.kind)),
+                e("%s: %s" % (b.label, why(b.kind))), e("%s: %s" % (b.kind, why(b.kind)))), b.end))
     wrap_at = set(wrap_points)
 
-    span_at = {s: (en, name, hit, "") for s, en, name, hit in spans}
+    # Marks cannot nest in a single pass, and a landing sentence can hold a chat-residue phrase ("Happy to change it.").
+    # Probable spans are placed first and a possible span overlapping one is not marked; it keeps its row in the list.
+    span_at = {}
+    placed = []
+    for s, en, name, hit in sorted(spans, key=lambda x: (CONFIDENCE.get(x[2]) == "possible", x[0])):
+        if any(s < b and a < en for a, b in placed):
+            continue
+        span_at[s] = (en, name, hit, "")
+        placed.append((s, en))
     # A bold span holding a flagged word ("**load-bearing**") would nest one mark inside another, which the single pass
     # cannot close; the rule already has its own row, so the narrower finding keeps the mark.
     for start, end, body in emphasis:
@@ -494,12 +546,13 @@ def marked(text, spans, text_blocks=(), wrap_points=(), ids=None, emphasis=()):
             out.append('<i class="wrap" title="hard wrap"></i>')
         if cut in span_at:
             end, name, hit, kind = span_at[cut]
-            term = name if kind else hit.lower()
-            out.append('<mark class="%s" data-sev="%s" data-term="%s" data-why="%s" '
+            # Landing sentences select as one term, so the habit row and each closer's row hold all of them, as bold
+            # does: the rate is the finding, and one closer on its own is not.
+            term = name if kind or name == "landing-sentence" else hit.lower()
+            out.append('<mark class="%s" data-conf="%s" data-term="%s" data-why="%s" '
                        'title="%s">%s</mark>'
-                       % (kind.strip(), SEVERITY.get(name, "report"), e(term),
-                          e(WHY.get(name, "")),
-                          e("%s: %s" % (name, WHY.get(name, ""))), e(text[cut:end])))
+                       % (kind.strip(), CONFIDENCE.get(name, "probable"), e(term),
+                          e(why(name)), e("%s: %s" % (name, why(name))), e(text[cut:end])))
             at = end
     out.append(e(text[at:]))
     out.append("</div>" * len(closing))
@@ -580,13 +633,17 @@ class Finding(NamedTuple):
     note: str = ""  # a band or verdict the count alone does not carry
     term: str = ""  # selection and search key
     goto: str = ""  # block id, for rows that scroll the document
-    kind: str = ""  # blob | table, so the row keeps the block's colour
+    kind: str = ""  # blob | table | flat | possible, so the row keeps its colour
     pick: bool = False  # clickable, and subject to the search box
     bar: float = -1.0  # frequency bar width, terms only
 
     @property
     def why(self):
-        return WHY.get(self.rule, "")
+        return why(self.rule)
+
+    @property
+    def possible(self):
+        return self.rule in co.POSSIBLE or self.kind == "possible"
 
 
 def findings(text, spans, text_blocks, ids):
@@ -600,6 +657,8 @@ def findings(text, spans, text_blocks, ids):
     """
     out = []
     for i, b in enumerate(text_blocks):
+        if b.kind == "flat":
+            continue  # listed once as the aggregate row below, since the share is the finding
         out.append(Finding(rule=b.kind, n=1,
                            unit={"blob": "paragraph", "dense": "run"}.get(
                                b.kind, "prose table"),
@@ -620,6 +679,28 @@ def findings(text, spans, text_blocks, ids):
                                    co.BOLD_ABUSED, em["crowded"], em["units"]),
                            note=em["band"], where=where,
                            term="bold-emphasis", pick=True))
+
+    if (lb := syntax.landing_stats(text, co.units(text), spans)):
+        out.append(Finding(rule="landing-habit", n=lb["total"], unit="short closer",
+                           example="%d closers" % lb["total"], cell="%dx" % lb["total"],
+                           what="%s: %.1f short closing sentences per 1000 words (habit at %.1f)"
+                                % (lb["band"], lb["rate"], syntax.LANDING_RATE),
+                           note=lb["band"], where="landing-sentence", term="landing-sentence",
+                           pick=True))
+
+    # Listed whenever there is enough to measure and something measured flat; banded only past the share, and below
+    # the band it is a possible row. Banded, it scrolls to the first shaded paragraph.
+    if (flat := co.parataxis_stats(text)) and flat["flat"]:
+        where = ", ".join("L%d" % s for s, _, _, _ in flat["flat"][:co.LOCATIONS_MAX])
+        first = next((ids[i] for i, b in enumerate(text_blocks) if b.kind == "flat"), "")
+        out.append(Finding(rule="flat", n=len(flat["flat"]), unit="paragraph",
+                           example=where, cell="%dp" % len(flat["flat"]),
+                           what="%s%d of %d measured paragraphs with no subordinate clause "
+                                "(a third is ordinary)"
+                                % (flat["band"] + ": " if flat["band"] else "",
+                                   len(flat["flat"]), flat["measured"]),
+                           note=flat["band"], where=where, term="flat", goto=first,
+                           kind="flat" if flat["band"] else "possible", pick=bool(first)))
 
     points, wrapped, total = co.wraps(text)
     if wrapped:
@@ -642,11 +723,15 @@ def findings(text, spans, text_blocks, ids):
                            where=where, term=name))
 
     terms = tally(spans)
-    ranked = sorted(terms.items(), key=lambda kv: (-kv[1][1], kv[0]))
-    top = ranked[0][1][1] if ranked else 1
+    # Possible terms rank below every probable one, whatever their count: a page of "?" rows above the defects would
+    # invert what the split is for.
+    ranked = sorted(terms.items(), key=lambda kv: (kv[1][0] in co.POSSIBLE, -kv[1][1], kv[0]))
+    top = max((c for _, (_, c) in ranked), default=1)
     for term, (name, count) in ranked:
         out.append(Finding(rule=name, n=count, unit="use", example=term,
-                           cell="%d" % count, what=term, where=name, term=term,
+                           cell="%d" % count, what=term, where=name,
+                           term=name if name == "landing-sentence" else term,
+                           kind="possible" if name in co.POSSIBLE else "",
                            pick=True, bar=100.0 * count / top))
     return out
 
@@ -669,7 +754,8 @@ def findings_block(found):
 
     if not rows:
         return '<p class="empty">Nothing flagged.</p>'
-    legend = "".join('<span><i class="key k-%s"></i>%s</span>' % (s, e(d)) for s, d in LEGEND)
+    legend = "<b>Slop confidence</b>" + "".join(
+        '<span><i class="key k-%s"></i>%s, %s</span>' % (s, s, e(d)) for s, d in LEGEND)
     # The caption holds the description of whatever is hovered or chosen, so the reason a thing is flagged does not
     # depend on finding a tooltip.
     return ('<input id="find" placeholder="Search for a finding..." autocomplete="off">'
@@ -703,65 +789,78 @@ def brief(path, stats, nwords, found):
         out.append("Register: clean, under %.1f marker words per 1000 over %d words."
                    % (co.ELEVATED, nwords))
 
-    groups = {}
+    groups: dict[str, tuple] = {}
     for f in found:
-        n, unit, note, seen = groups.get(f.rule, (0, f.unit, f.note, []))
+        n, unit, note, seen, maybe = groups.get(f.rule, (0, f.unit, f.note, [], f.possible))
         if f.example not in seen and len(seen) < BRIEF_EXAMPLES:
             seen.append(f.example)
-        groups[f.rule] = (n + f.n, unit, note, seen)
+        groups[f.rule] = (n + f.n, unit, note, seen, maybe)
 
-    out.append("")
     if not groups:
-        out.append("Nothing else flagged.")
+        out += ["", "Nothing else flagged."]
         return "\n".join(out)
 
-    out.append("Findings:")
-    for rule, (n, unit, note, seen) in list(groups.items())[:BRIEF_MAX]:
-        out.append("- %s, %d %s%s (%s): %s"
-                   % (rule, n, unit if n == 1 else unit + "s",
-                      ", " + note if note else "", ", ".join(seen),
-                      WHY.get(rule, "")))
-    if len(groups) > BRIEF_MAX:
-        out.append("- and %d further kinds, listed in the report."
-                   % (len(groups) - BRIEF_MAX))
+    # Two lists, so the receiving agent fixes one and reads the other. The caveat travels with each possible rule,
+    # since the agent has the file but not this page.
+    for maybe, head in ((False, "Findings, fix these:"), (True, "Possible, read before changing:")):
+        rows = [(r, g) for r, g in groups.items() if g[4] == maybe]
+        if not rows:
+            continue
+        out += ["", head]
+        for rule, (n, unit, note, seen, _) in rows[:BRIEF_MAX]:
+            out.append("- %s, %d %s%s (%s): %s"
+                       % (rule, n, unit if n == 1 else unit + "s",
+                          ", " + note if note else "", ", ".join(seen), why(rule)))
+        if len(rows) > BRIEF_MAX:
+            out.append("- and %d further kinds, listed in the report." % (len(rows) - BRIEF_MAX))
     return "\n".join(out)
 
 
-def _pair(label, was, now, unit=""):
-    scale = max(was, now) or 1
-    delta = ""
-    if was:
-        pct = (now - was) / was * 100
-        delta = ' <span class="%s">%+.0f%%</span>' % ("cut" if now < was else "", pct)
-    return ('<div class="pair"><u>%s</u>'
-            '<div class="was"><s style="width:%.1f%%"></s><em>%d%s before</em></div>'
-            '<div class="now"><s style="width:%.1f%%"></s><em>%d%s after%s</em></div></div>'
-            % (e(label), 100.0 * was / scale, was, unit,
-               100.0 * now / scale, now, unit, delta))
+def _delta(was, now):
+    if not was:
+        return ""
+    pct = (now - was) / was * 100
+    return '<span class="%s">%+.0f%%</span>' % ("cut" if now < was else "", pct)
 
 
 def compare_block(orig, new):
-    """Before and after, per severity and per length."""
-    before = tally(co.scan_spans(orig, co.SAFE, co.REVIEW, co.REPORT))
-    after = tally(co.scan_spans(new, co.SAFE, co.REVIEW, co.REPORT))
+    """Before and after as one small table: words, hits by confidence, register rate.
 
-    def by_sev(terms, sev):
-        return sum(n for name, n in terms.values() if SEVERITY.get(name) == sev)
+    Only rendered when an original was passed. A row of figures, not a bar per row: at five pairs of bars it took the
+    height of the register cell for a comparison the reader glances at once.
+    """
+    before = tally(all_spans(orig))
+    after = tally(all_spans(new))
 
-    out = [_pair("words", len(orig.split()), len(new.split()))]
-    for sev, _ in LEGEND:
-        was, now = by_sev(before, sev), by_sev(after, sev)
+    def by_conf(terms, how):
+        return sum(n for name, n in terms.values() if CONFIDENCE.get(name) == how)
+
+    rows = [("words", len(orig.split()), len(new.split()))]
+    for how, _ in reversed(LEGEND):
+        was, now = by_conf(before, how), by_conf(after, how)
         if was or now:
-            out.append(_pair(sev + " hits", was, now))
+            rows.append((how + " hits", was, now))
     ob, nb = co.register_stats(orig), co.register_stats(new)
     if ob or nb:
-        out.append(_pair("register per 1000", round(ob["rate"] if ob else 0),
-                         round(nb["rate"] if nb else 0)))
+        rows.append(("register per 1000", round(ob["rate"] if ob else 0), round(nb["rate"] if nb else 0)))
+    out = ['<table class="diff"><tr><th></th><th>before</th><th>after</th><th></th></tr>%s</table>'
+           % "".join('<tr><td>%s</td><td>%d</td><td>%d</td><td>%s</td></tr>'
+                     % (e(label), was, now, _delta(was, now)) for label, was, now in rows)]
+    # Specifics the rewrite added are listed, not counted: each is a fact to check against the original.
+    added = syntax.new_specifics(orig, new)
+    if added:
+        at = line_offsets(new)
+        items = "".join("<li><b>%s</b> %s, L%d</li>"
+                        % (e(hit), e(name), max(n for n, off in at.items() if off <= start))
+                        for start, _, name, hit in added[:BRIEF_EXAMPLES * 2])
+        more = len(added) - BRIEF_EXAMPLES * 2
+        out.append('<p class="diff-head">not in the original</p><ul class="added">%s%s</ul>'
+                   % (items, "<li>and %d more</li>" % more if more > 0 else ""))
     return "".join(out)
 
 
 def render(path, text, against=None):
-    spans = co.scan_spans(text, co.SAFE, co.REVIEW, co.REPORT)
+    spans = all_spans(text)
     stats = co.register_stats(text)
     nwords = len(text.split())
     text_blocks = blocks(text)
@@ -775,13 +874,15 @@ def render(path, text, against=None):
 
     # Markers rather than distinct terms in the third slot: on a document whose problem is register rather than
     # vocabulary, "4 flagged spans, 2 terms" read as a clean bill while the register line underneath said SLOPPY.
-    nfindings = len(spans) + len(text_blocks) + len(co.line_checks(text)) + sum(
-        1 for f in found if f.rule in ("hard-wrapped", "bold-emphasis"))
+    # Possible spans are counted apart, as check_output prints them: a page of reads is not a page of defects.
+    maybe = sum(1 for s in spans if s[2] in co.POSSIBLE)
+    nfindings = len(spans) - maybe + sum(1 for b in text_blocks if b.kind != "flat") + len(co.line_checks(text)) + sum(
+        1 for f in found if f.rule in ("hard-wrapped", "bold-emphasis", "landing-habit"))
     strip = "".join(
         '<div><i style="background:%s"></i><b>%s</b><u>%s</u></div>' % (colour, e(n), e(label))
         for colour, n, label in (
             ("#de301e", "%d" % nwords, "words"),
-            ("#1a4fa0", "%d" % nfindings, "findings"),
+            ("#1a4fa0", "%d" % nfindings, "findings" + (", %d possible" % maybe if maybe else "")),
             ("#e8b400", "%d" % (stats["total"] if stats else 0), "register markers"),
         ))
 

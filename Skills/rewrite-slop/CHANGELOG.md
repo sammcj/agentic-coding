@@ -2,6 +2,30 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-09-02
+
+**Possible versus probable**
+
+- Findings now carry a confidence. `POSSIBLE` in `check_output.py` maps a rule name to a one-line caveat; a rule in it prints under `? possible, read before deciding:` with its caveat once above its hits, and the tally counts them apart (`4 findings, 6 possible`). Possible findings do not set the exit code.
+- Reclassified as possible: `weasel-source`, `us-spelling`, and two rules split out for it: `corpus-noun` from `metaphor-tic` and `emphasis-verb` (underscore, emphasise) from `filler-verb`. `underscore` now needs its verb-with-object shape, so a double underscore stops firing. `weasel-source` is case-insensitive, since "Studies show" opens the sentence.
+- The report's marks run on one ramp from pale yellow to red by slop confidence, and the key under the findings says so in those words: possible (a caveat applies), probable (REPORT rules, the reader confirms), certain (SAFE and REVIEW, mechanical). The old safe/review/report labels described what the script did, not what the reader should think. The grey is gone from marks and from block shading alike (dense runs and unjoined paragraphs in the yellow of possible, long paragraphs and prose tables in the orange of probable); a dotted rule for possible could not be seen at reading distance, and the underline now carries no meaning of its own. Possible rows carry `?` before their count, rank below every probable row and end their reason with the caveat. The brief splits into "Findings, fix these" and "Possible, read before changing".
+
+**Vocabulary**
+
+- "Nothing collapses." joins `metaphor-tic` as a certain finding: the landing sentence at its most reflexive.
+- `WEIGHTS` beside `MARKERS`: "earns" (and earn, earned, earning, now all in the code-as-agent group) counts double in the register rate. Never a finding on its own, since people write it; the per-word counts under the band stay raw.
+
+- Before and after, shown only with `--against`, is one small table of figures with a delta column instead of five pairs of bars; it took the height of the register cell for a comparison read once.
+
+**Sentence-shape tells** (`scripts/syntax.py`, all possible)
+
+- `landing-sentence`: a closer of six words or fewer after sentences averaging twelve or more ("Not Postgres.", "It is a different product."). Banded `landing HABIT` at 1.5 per 1000 words with at least three, which promotes it to a finding; 2% of 524 local markdown files band, and fresh Fable 5.1 output does. Closers that introduce a list, carry a link ("Source: [...]") or open on the same two words at the end of three or more paragraphs ("Depends on M1.") are structure and do not count.
+- `contrast-pair`: a clipped "X is small. Y is not." including before a colon. `tag-clause`: a sentence ending ", and we should." or ", which it does.". `anaphora`: three consecutive sentences opening on the same word. Under 1% of the corpus carries either of the first two.
+- `parataxis`: the share of measurable paragraphs (three or more sentences, mean 9 to 30 words) with no subordinate clause. Sentence length is not the measure: model output varies length widely and lacks subordination instead. A third is the corpus median, so the number is printed as a measurement (counted as nothing) once six paragraphs can be measured, and banded `UNJOINED` only at 60% with at least four; 3% of the corpus bands. The report shades those paragraphs once banded.
+- `--against` lists each number, mid-sentence proper noun, relative time ("last week") and discovery anecdote ("I noticed") in the rewrite that the original lacks, as `new-number`, `new-name`, `new-time`, `new-anecdote`. Each is a fact to check against the original; a numeral for a spelled number is not new. The report's before-and-after block lists them too.
+- `scripts/test_syntax.py`: catch and keep cases per rule, sentence-splitter cases, the new-specifics check, the emphasis-verb split and the printed `?` block.
+- Rubric: Tier 3 syntax tells gain elided contrast pairs, tag clauses and parataxis; sourcing gains invented specificity. Phase 0 and Phase 4 say a plain finding is a fix and a `?` finding is a read.
+
 ## 2026-09-01
 
 **Dense runs**

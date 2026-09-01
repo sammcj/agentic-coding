@@ -39,10 +39,13 @@ Copy brief, in the footer, puts the same findings on the clipboard as about a pa
 
 Four kinds of mark in the document, because not every finding is a word:
 
-- Flagged spans underlined and shaded by severity.
-- Long paragraphs shaded grey, prose tables shaded yellow, each labelled in its own margin. What is wrong with these is their extent, so they are shaded rather than underlined, and each is listed once. The rule that reported a wide cell per row buried a 776-line document under 135 identical entries.
+- Flagged spans shaded on one ramp from pale yellow to red by slop confidence, which the key under the findings names: possible (a caveat applies), probable (the reader confirms), certain (mechanical, and `--write` fixes most of them).
+- Block findings shaded on the same ramp, lighter: dense runs and unjoined paragraphs in the yellow of possible, long paragraphs and prose tables in the orange of probable, each labelled in its own margin. What is wrong with these is their extent, so they are shaded rather than underlined, and each is listed once. The rule that reported a wide cell per row buried a 776-line document under 135 identical entries.
 - A `↵` at each hard wrap, since the break is invisible in rendered markdown and reflows the whole paragraph in every later diff. A markdown paragraph renders as one line however it is typed, so every break inside one was put there by hand; the only test is a length floor, which separates a wrap from a deliberately short line.
 - Mid-sentence bold in blue rather than the severity ramp, since no single one of them is the defect. Clicking the row holds all of them at once, which is the only way to see the density the band is naming.
+- Possible findings at the pale yellow end of that ramp, and `?` before their count in the list, where they rank below every probable row. Their reason ends with the caveat. Paragraphs with no subordinate clause are shaded only once the document bands UNJOINED.
+
+The brief splits the same way: "Findings, fix these" and "Possible, read before changing", each possible rule carrying its caveat. With `--against`, and only then, a small before-and-after table sits between the register and the findings, and under it a list of each number, mid-sentence name, relative time and "I noticed" the rewrite added.
 
 ---
 
@@ -56,7 +59,7 @@ Two columns rather than that page's twelve. Twelve suits a board of charts read 
 
 ## When you change the detection
 
-The page reads `check_output.py` rather than reimplementing it: `scan_spans` for the marks, `register_stats` for the gauge and bars, `blobs`, `tables`, `wraps` and `line_checks` for the structure cell and the block shading, and `SAFE`/`REVIEW`/`REPORT` membership for each mark's severity. A new rule reaches the page with no edit here.
+The page reads `check_output.py` rather than reimplementing it: `scan_spans` and `shape_spans` for the marks, `register_stats` for the gauge and bars, `blobs`, `tables`, `wraps`, `parataxis_stats` and `line_checks` for the structure cell and the block shading, `SAFE`/`REVIEW`/`REPORT`/`POSSIBLE` membership for each mark's confidence (certain, certain, probable, possible). A new rule reaches the page with no edit here; a new possible rule needs only its caveat in `POSSIBLE`.
 
 The findings list and the copied brief are two renderings of one list of `Finding`s, so a rule cannot appear in one and not the other.
 

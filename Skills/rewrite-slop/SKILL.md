@@ -24,6 +24,7 @@ Run the checker first. It applies the mechanical fixes below and prints the rest
 - It skips fenced and inline code, and only reports anything needing judgement.
 - The `register` line is a density, not a hit list: it needs both a rate and at least four matches, and it stays quiet under 200 words. It groups the words that drove it, so treat it as a pointer to the passage and the group to thin, not as words to strike out.
 - Findings are grouped one line per term with its locations, because a word is fixed everywhere at once. `long-paragraph` marks a compression target, not a tell.
+- Lines marked `?` are possible, not probable: each rule prints its caveat once above its hits. Read the passage against the caveat and decide; a `?` line is never a strike on its own. The tally counts them apart.
 
 The script catches the low-hanging fruit and nothing more. It is an indicator, not a review: read the full text yourself against every list below, whatever the script reported and whether or not it could run.
 
@@ -85,7 +86,7 @@ The defining tells of Claude 4.x output. These rarely appear in genuine human pr
 - Parenthetical hedging asides: "(or, more precisely, ...)", "(and, increasingly, ...)"
 - Progress-update meta-narration in long-form: "Let me mark X as complete", "Now I'll examine"
 - False intimacy openers preceding the obvious: "Here's the thing:", "Let's be honest:", "The truth is"
-- Claude metaphor tics: "smoking gun" / "smoking-gun" (dramatising a finding), "load-bearing" / "load bearing", and "corpus" for any body of text that is not a linguistics or NLP dataset (say "the documents", "the transcripts", "these 400 emails")
+- Claude metaphor tics: "smoking gun" / "smoking-gun" (dramatising a finding), "load-bearing" / "load bearing", "Nothing collapses." as a closing beat, and "corpus" for any body of text that is not a linguistics or NLP dataset (say "the documents", "the transcripts", "these 400 emails")
 
 ### Tier 2: Claude's current register
 
@@ -95,7 +96,7 @@ Every word here is ordinary English, so no single use is wrong and none of these
 
 - **Assertive adverbs**, claiming a rigour the sentence has not demonstrated: plainly, quietly, genuinely, deliberately, outright, loudly, provably, empirically, vacuously, legitimately, structurally, precisely, demonstrably, identically, adversarially, faithfully, verbatim, merely, squarely. Delete the adverb: if the claim survives intact, it was emphasis, not work.
 - **Absolute negation**: nobody, nothing, nowhere, never, neither, none, no one. One is emphasis. Three in a passage is the register. Keep the one whose scope is real and state the rest positively.
-- **Code as agent**, verbs that give a mechanism intent: carries, holds, rests, survives, outlives, admits, refuses, decides, declares, governs, forbids, agrees, contradicts, falsified, refuted, restated, earns, pays, buys, drains, bites, swallows, degrades, escalates, short-circuits, self-heals, mints, stamps. Name the mechanism instead: "the flag is read twice" over "the flag carries the decision".
+- **Code as agent**, verbs that give a mechanism intent: carries, holds, rests, survives, outlives, admits, refuses, decides, declares, governs, forbids, agrees, contradicts, falsified, refuted, restated, earns, pays, buys, drains, bites, swallows, degrades, escalates, short-circuits, self-heals, mints, stamps. "Earns" counts double in the density ("nothing earns one", "the change earns a ticket"), though never on its own. Name the mechanism instead: "the flag is read twice" over "the flag carries the decision".
 - **Adjudication nouns**, importing courtroom weight into a technical claim: refusal, premise, ruling, precedent, verdict, obligation, remedy, caveat, symptom, asymmetry, disagreement, shortfall, hazard, idiom. Replace with the thing itself: a refusal becomes what was rejected and by which check, a caveat becomes the condition, a remedy becomes the change that fixes it.
 - **Structural metaphor nouns**: load-bearing, seam, ceiling, floor, lever, wedge, rung, ladder, chokepoint, backstop, carve-out, tripwire, machinery, knob. Tier 3 carries the exemption for literal use.
 
@@ -169,9 +170,12 @@ Flag only where the word is metaphor and a plainer one fits. Terms of art stay: 
 
 - Nominalisation: a verb turned into a noun propped up by a weak verb. "performed an analysis of" becomes "analysed"; "the implementation of X" becomes "implemented X".
 - Stacked noun phrases: three or more nouns modifying each other ("context window budget allocation strategy"). Break them with a preposition or a verb.
-- Landing sentences: a short declarative closing a paragraph to perform profundity ("That is the whole trick.", "The rest is detail."). Cut it, or fold its content into the sentence before.
+- Landing sentences: a short declarative closing a paragraph to perform profundity ("That is the whole trick.", "Not Postgres.", "It is a different product."). Cut it, or fold its content into the sentence before. The script lists each as possible and bands the document HABIT past one and a half per thousand words.
+- Elided contrast pairs: "X is small. Y is not." with the second predicate clipped for effect. State what Y is.
+- Tag clauses: a sentence ending on an afterthought for rhythm (", and we should.", ", which it does."). End on the claim.
+- Parataxis: one clause per sentence, set side by side with full stops where "because", "which" or "although" would have joined them. The script prints the share of paragraphs with no subordinate clause; a third is ordinary prose, most of them is the register. Join two sentences where one is the reason for the other.
 - Negative anaphora: consecutive sentences opening with the same negation ("Not a X. Not a Y."). Keep one and state the positive claim.
-- In-paragraph parallelism: consecutive sentences sharing a shape. Vary one.
+- In-paragraph parallelism: consecutive sentences sharing a shape, including three opening on the same word. Vary one.
 - Forward references and long pronoun chains: "as we'll see below", or a pronoun three sentences from its noun. Name the thing where it is used.
 
 **Dense sentences the reader has to re-read**: stacked subordinate clauses carrying more than one idea. Split by cutting, never by padding. Drop the clause carrying no information and let the rest stand; do not restate the subject to manufacture a second sentence. A split that adds words has failed, so if every clause earns its place, leave the sentence alone.
@@ -183,6 +187,7 @@ Flag only where the word is metaphor and a plainer one fits. Terms of art stay: 
 - Exaggerated source counts: "several publications have noted" when one or two; "many critics" when one
 - Knowledge-cutoff disclaimers: "As of my last knowledge update", "While specific details are limited"
 - Speculation after disclaiming ignorance: "While specific details about X are not extensively documented... the region likely supports..."
+- Invented specificity: a detail that exists to sound lived rather than to inform ("which is what got us rate-limited last week", "I only noticed this while writing the tests"). A model taught that concrete beats abstract makes the concrete up. Ask whether the input gives a source for the detail; in a rewrite, `--against` lists each number, mid-sentence name, relative time and "I noticed" it can see that the original does not contain.
 
 **Puffery, fabricated significance**: "marks a pivotal moment", "represents a significant shift", "reflects the enduring legacy", "shaping the evolving landscape of", "stands as a testament to", "indelible mark", "deeply rooted", "key turning point".
 
@@ -280,7 +285,7 @@ Sentences containing no flagged span pass through unchanged. Be conservative: ov
 
 Single-pass rewriting leaves patterns it was instructed to remove. This pass catches them.
 
-`python3 scripts/check_output.py <rewrite> --against <original>` pre-answers every question below that a pattern can settle, so confirm those from its output rather than re-deriving them. Its silence is not a pass: it reads for patterns, not sense. The questions it cannot reach, and they are most of them, you answer against the full text yourself.
+`python3 scripts/check_output.py <rewrite> --against <original>` pre-answers every question below that a pattern can settle, so confirm those from its output rather than re-deriving them. Its silence is not a pass: it reads for patterns, not sense. The questions it cannot reach, and they are most of them, you answer against the full text yourself. A plain finding is a fix. A `?` finding is a read: decide it against its caveat, and leave it where the caveat holds.
 
 Create a task per question below. Answer each by inspecting the rewritten text, fix any "yes", then mark the task complete.
 
@@ -306,7 +311,8 @@ Create a task per question below. Answer each by inspecting the rewritten text, 
 - Did I leave any title-case headings? A `---` above heading after heading? Any emoji in expository content?
 - Does the rewrite assume frictionless rationality, universal cooperation, or unearned emotional resonance ("communities will enthusiastically adopt", "deeply resonates with")?
 - Does any sentence claim significance, legacy, or a "broader trend" that is not demonstrated by a fact in the same paragraph?
-- Did I introduce any fact, name, number, date, claim, or example not in the original and I cannot verify as true?
+- Did I introduce any fact, name, number, date, claim, or example not in the original? The `--against` run lists each one it can see as `new-number`, `new-name`, `new-time` or `new-anecdote`. Check each against the original: a numeral for a spelled number or "we found" for "it was found" is the same fact; anything else comes out, whether or not it is true.
+- Does the landing line read HABIT, or the parataxis line UNJOINED? Fold the short closers into the sentence before them; join sentences where one is the reason for the other.
 - Did I rewrite any quoted speech, code block, or direct citation that should have passed through unchanged?
 - Does every sentence still carry a claim? Cut any that does not, and do not stop cutting because the rewrite is already shorter.
 - Did any paragraph the script flagged as long survive without being read? Did any padding phrase or doublet survive?
