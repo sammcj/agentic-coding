@@ -18,6 +18,7 @@ import datetime
 import html
 import os
 import sys
+from typing import NamedTuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -34,6 +35,14 @@ LEGEND = [
     ("review", "swapped, but read the line"),
     ("report", "detected only, you decide"),
 ]
+
+# Line-level rule names say nothing to someone reading the page without the
+# rubric open beside it.
+EXPLAIN = {
+    "break-before-heading": "--- rule sitting directly above a heading",
+    "title-case-heading": "heading Written In Title Case",
+    "wide-table-cell": "table cell holding prose",
+}
 
 CSS = """
 :root {
@@ -104,9 +113,11 @@ footer { display: flex; justify-content: space-between;
 .band { font: 700 46px/1 var(--grotesk); letter-spacing: -0.02em; }
 .band.heavy, .band.elevated { color: var(--accent); }
 .rate { font: 400 13px var(--mono); color: var(--muted); margin-top: 6px; }
-.gauge { position: relative; height: 22px; border: var(--rule) solid var(--ink); margin-top: 14px; }
-.gauge i { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
-.gauge b { position: absolute; top: -2px; bottom: -2px; width: var(--rule); background: var(--ink); }
+.gauge { display: flex; height: 22px; border: var(--rule) solid var(--ink);
+         margin-top: 14px; position: relative; }
+.gauge s { text-decoration: none; display: block; height: 100%; }
+.gauge b { position: absolute; top: -5px; bottom: -5px; width: 3px; margin-left: -1px;
+           background: var(--accent); }
 .ticks { display: flex; justify-content: space-between;
          font: 400 11px var(--mono); color: var(--muted); margin-top: 4px; }
 
@@ -115,7 +126,9 @@ footer { display: flex; justify-content: space-between;
        gap: 8px; margin-bottom: 7px; font: 400 12px var(--mono); }
 .bar u { text-decoration: none; color: var(--muted); }
 .bar s { text-decoration: none; height: 13px; background: #d4d4d4; display: block; }
-.bar:first-of-type s { background: var(--accent); }
+/* The accent marks the group to thin. Set explicitly: as `:first-of-type` it
+   matched the verdict div above these rows and never reached a bar at all. */
+.bar.lead s { background: var(--accent); }
 .bar em { font-style: normal; text-align: right; color: var(--muted); }
 
 table { border-collapse: collapse; width: 100%; font: 400 13px var(--mono); }
@@ -152,6 +165,28 @@ tr.pick:first-child td.f s { background: var(--accent); }
 
 pre { margin: 0; font: 400 13px/1.65 var(--mono); white-space: pre-wrap;
       word-wrap: break-word; }
+/* A block finding is shaded rather than underlined, and named in its own margin,
+   because what is wrong with it is its extent. */
+.block { display: block; border-left: var(--rule) solid #b9b9b9; padding-left: 10px;
+         margin: 2px 0 2px -12px; position: relative; }
+.block::after { content: attr(data-label); position: absolute; right: 0; top: 0;
+                font: 400 10px var(--mono); letter-spacing: 0.08em; color: var(--muted);
+                background: var(--ground); padding-left: 8px; text-transform: uppercase; }
+.block.blob { background: #f4f4f4; }
+.block.table { background: #fbf3d8; border-left-color: #e8b400; }
+.block.flash { animation: flash 1.1s ease-out; }
+@keyframes flash { from { background: var(--fill); border-left-color: var(--accent); } }
+@media (prefers-reduced-motion: reduce) { .block.flash { animation: none; } }
+/* the two block kinds keep their colour where they are listed, too */
+tr.pick.blob td.n { color: var(--ink); }
+tr.pick.table td.n { color: #a07c00; }
+
+/* The hard wrap, shown where it happens: invisible in rendered markdown, and it
+   reflows the whole paragraph in every later diff. */
+.wrap { display: inline-block; width: 0; overflow: visible; font-style: normal; }
+.wrap::before { content: "\\21B5"; color: var(--accent); font-weight: 700;
+                padding-left: 4px; font-size: 1.1em; }
+
 mark { background: #ececec; color: inherit; padding: 0 1px; cursor: pointer; }
 mark[data-sev="review"] { box-shadow: inset 0 -3px 0 #9a9a9a; }
 mark[data-sev="report"] { background: var(--fill); box-shadow: inset 0 -3px 0 var(--accent); }
@@ -178,6 +213,17 @@ function choose(term) {
   }
 }
 document.addEventListener('click', function (e) {
+  var go = e.target.closest('[data-goto]');
+  if (go) {
+    var block = document.getElementById(go.dataset.goto);
+    if (block) {
+      block.scrollIntoView({block: 'center', behavior: 'smooth'});
+      block.classList.remove('flash');
+      void block.offsetWidth;
+      block.classList.add('flash');
+    }
+    return;
+  }
   var el = e.target.closest('[data-term]');
   if (el) choose(el.dataset.term);
   else if (sel) choose(sel);
@@ -201,28 +247,111 @@ def e(s):
     return html.escape(str(s), quote=True)
 
 
-def marked(text, spans):
-    """The input with every flagged span wrapped, escaped around the marks."""
-    out, at = [], 0
-    for start, end, name, hit in spans:
-        out.append(e(text[at:start]))
-        out.append('<mark data-sev="%s" data-term="%s" title="%s">%s</mark>'
-                   % (SEVERITY.get(name, "report"), e(hit.lower()), e(name), e(text[start:end])))
-        at = end
+def line_offsets(text):
+    """Byte offset of the start of each line, 1-indexed by line number."""
+    at, out, n = 0, {}, 0
+    for n, line in enumerate(text.splitlines(), start=1):
+        out[n] = at
+        at += len(line) + 1
+    out[n + 1] = at
+    return out
+
+
+class Block(NamedTuple):
+    """A finding with a line range instead of a word: shaded, and listed once."""
+
+    start: int  # character offsets, for marking the text
+    end: int
+    kind: str  # blob | table
+    label: str  # what it is, in the margin of the document
+    measure: str  # its extent, which is why it is worth fixing
+    where: str
+
+
+def blocks(text):
+    """Long paragraphs and prose tables, as ranges to shade.
+
+    Listing a wide table once per row, as the per-line rule did, buried a
+    776-line document under 135 identical entries.
+    """
+    at = line_offsets(text)
+
+    def end_of(ln):
+        return at.get(ln + 1, len(text))
+
+    out = []
+    for words, start, opening, last in co.blobs(text):
+        out.append(Block(at[start], end_of(last), "blob", opening,
+                         "%dw" % words, "L%d-%d" % (start, last)))
+    for start, last, wide in co.tables(text):
+        out.append(Block(at[start], end_of(last), "table",
+                         "table, %d prose cell%s" % (wide, "" if wide == 1 else "s"),
+                         "%dc" % wide, "L%d-%d" % (start, last)))
+    return sorted(out)
+
+
+def marked(text, spans, text_blocks=(), wrap_points=(), ids=None):
+    """The input with flagged spans wrapped, blocks shaded and hard wraps shown.
+
+    Built in one pass over sorted cut points so a span inside a shaded block
+    still gets its own mark, rather than one pass per layer fighting the others.
+    """
+    opens = {}
+    for i, b in enumerate(text_blocks):
+        anchor = ' id="%s"' % e(ids[i]) if ids else ""
+        opens.setdefault(b.start, []).append(
+            ('<div class="block %s"%s data-label="%s">'
+             % (b.kind, anchor, e("%s  %s" % (b.measure, b.kind))), b.end))
+    wrap_at = set(wrap_points)
+
+    out, at, closing = [], 0, []
+    cuts = sorted({0, len(text)} | set(opens) | {b.end for b in text_blocks} | wrap_at
+                  | {s for s, _, _, _ in spans} | {en for _, en, _, _ in spans})
+    span_at = {s: (en, name, hit) for s, en, name, hit in spans}
+
+    for cut in cuts:
+        out.append(e(text[at:cut]))
+        at = cut
+        while closing and closing[-1] <= cut:
+            closing.pop()
+            out.append("</div>")
+        for tag, end in opens.get(cut, []):
+            out.append(tag)
+            closing.append(end)
+            closing.sort(reverse=True)
+        if cut in wrap_at:
+            # The newline itself stays; the glyph only makes it visible.
+            out.append('<i class="wrap" title="hard wrap"></i>')
+        if cut in span_at:
+            end, name, hit = span_at[cut]
+            out.append('<mark data-sev="%s" data-term="%s" title="%s">%s</mark>'
+                       % (SEVERITY.get(name, "report"), e(hit.lower()), e(name),
+                          e(text[cut:end])))
+            at = end
     out.append(e(text[at:]))
+    out.append("</div>" * len(closing))
     return "".join(out)
 
 
 def gauge(rate):
-    """Position on the calibrated scale, topped out at twice HEAVY."""
-    full = co.HEAVY * 2
-    pct = min(100.0, 100.0 * rate / full)
-    return ('<div class="gauge"><i style="width:%.1f%%"></i>'
-            '<b style="left:%.1f%%"></b><b style="left:%.1f%%"></b></div>'
+    """The three bands as ground, the measurement as a needle on them.
+
+    A filled bar said nothing once the rate passed the end of the scale: at 22.5
+    on a scale to 20 it was a solid block of accent, pinned at 100%. The scale
+    now stretches to hold the value, and the needle is the only accent on it.
+    """
+    full = max(co.HEAVY * 2, rate * 1.08)
+    zones = ((co.ELEVATED, "#ececec"), (co.HEAVY, "#d4d4d4"), (full, "#b9b9b9"))
+    bands, at = [], 0.0
+    for upto, colour in zones:
+        bands.append('<s style="width:%.2f%%;background:%s"></s>'
+                     % (100.0 * (upto - at) / full, colour))
+        at = upto
+    return ('<div class="gauge">%s<b style="left:%.2f%%"></b></div>'
             '<div class="ticks"><span>0</span><span>%g elevated</span>'
             '<span>%g heavy</span><span>%g</span></div>'
-            % (pct, 100.0 * co.ELEVATED / full, 100.0 * co.HEAVY / full,
-               co.ELEVATED, co.HEAVY, full))
+            % ("".join(bands), 100.0 * min(rate, full) / full,
+               co.ELEVATED, co.HEAVY, round(full)))
 
 
 def verdict(stats, nwords):
@@ -242,10 +371,10 @@ def groups_block(stats):
         return ""
     top = max(sum(n for _, n in pairs) for _, pairs in stats["groups"])
     rows = []
-    for group, pairs in stats["groups"]:
+    for i, (group, pairs) in enumerate(stats["groups"]):
         n = sum(c for _, c in pairs)
-        rows.append('<div class="bar"><u>%s</u><s style="width:%.1f%%"></s><em>%d</em></div>'
-                    % (e(group), 100.0 * n / top, n))
+        rows.append('<div class="bar%s"><u>%s</u><s style="width:%.1f%%"></s><em>%d</em></div>'
+                    % (" lead" if i == 0 else "", e(group), 100.0 * n / top, n))
     return '<h2 class="sub">By group</h2>%s' % "".join(rows)
 
 
@@ -259,25 +388,58 @@ def tally(spans):
     return terms
 
 
-def findings_block(spans):
-    """Ranked frequency, one row per term: a word is fixed everywhere at once.
+def findings_block(text, spans, text_blocks, ids):
+    """Every finding in one ranked list, blocks above terms.
 
-    The bar is drawn in the row it labels rather than as a chart beside it. Two
-    views of the same counts would be the duplication this skill objects to.
+    Split across two cells, a document whose problem was structure showed two
+    rows under "findings" and eighteen under "structure". They are one list of
+    things to fix, so they are one list.
+
+    Terms carry a frequency bar in the row they label, rather than a chart
+    beside it: two views of the same counts is the duplication this skill exists
+    to flag. Blocks carry their extent instead, which is what makes them worth
+    fixing.
     """
-    if not spans:
-        return '<p class="empty">Nothing flagged.</p>'
+    rows = []
+    for i, b in enumerate(text_blocks):
+        rows.append('<tr class="pick %s" data-goto="%s" data-term="%s">'
+                    '<td class="n">%s</td><td class="f"></td><td>%s</td>'
+                    '<td class="r">%s</td></tr>'
+                    % (b.kind, e(ids[i]), e(b.label.lower()), e(b.measure),
+                       e(b.label), e(b.where)))
+
+    points, wrapped, total = co.wraps(text)
+    if wrapped:
+        rows.append('<tr data-term="hard-wrapped"><td class="n">%dp</td><td class="f"></td>'
+                    '<td>paragraphs wrapped by hand, of %d, at %d breaks</td>'
+                    '<td class="r">hard-wrapped</td></tr>' % (wrapped, total, len(points)))
+
+    # Grouped by rule, like the terms below: five title-case headings are one
+    # habit to drop, not five findings.
+    at_line = {}
+    for line, name in co.line_checks(text):
+        at_line.setdefault(name, []).append(line)
+    for name, lines in sorted(at_line.items()):
+        where = ", ".join("L%d" % n for n in lines[:co.LOCATIONS_MAX])
+        if len(lines) > co.LOCATIONS_MAX:
+            where += ", +%d" % (len(lines) - co.LOCATIONS_MAX)
+        rows.append('<tr data-term="%s" title="%s"><td class="n">%d</td><td class="f"></td>'
+                    '<td>%s</td><td class="r">%s</td></tr>'
+                    % (e(name), e(name), len(lines), e(EXPLAIN.get(name, name)), e(where)))
+
     terms = tally(spans)
     ranked = sorted(terms.items(), key=lambda kv: (-kv[1][1], kv[0]))
-    top = ranked[0][1][1]
-    rows = []
+    top = ranked[0][1][1] if ranked else 1
     for term, (name, count) in ranked:
         rows.append('<tr class="pick" data-term="%s"><td class="n">%d</td>'
                     '<td class="f"><s style="width:%.1f%%"></s></td>'
                     '<td>%s</td><td class="r">%s</td></tr>'
                     % (e(term), count, 100.0 * count / top, e(term), e(name)))
+
+    if not rows:
+        return '<p class="empty">Nothing flagged.</p>'
     legend = "".join('<span><i class="key k-%s"></i>%s</span>' % (s, e(d)) for s, d in LEGEND)
-    return ('<input id="find" placeholder="Search for a term..." autocomplete="off">'
+    return ('<input id="find" placeholder="Search for a finding..." autocomplete="off">'
             '<div class="scroll"><table>%s</table></div><div class="legend">%s</div>'
             % ("".join(rows), legend))
 
@@ -315,38 +477,28 @@ def compare_block(orig, new):
     return "".join(out)
 
 
-def structure_block(text):
-    """Findings addressed by line rather than by span: line_checks and blobs.
-
-    Both live here because neither has a span to mark in the text, and leaving
-    line_checks off the page would make it disagree with the text report.
-    """
-    rows = ['<tr><td class="n">%dw</td><td>%s</td><td class="r">L%d</td></tr>'
-            % (words, e(opening), line) for words, line, opening in co.blobs(text)]
-    rows += ['<tr><td class="n"></td><td>%s</td><td class="r">L%d</td></tr>'
-             % (e(name), line) for line, name in co.line_checks(text)]
-    if not rows:
-        return ('<p class="empty">No paragraph at or over %d words, nothing at line level.</p>'
-                % co.BLOB_WORDS)
-    return "<table>%s</table>" % "".join(rows)
-
-
 def render(path, text, against=None):
     spans = co.scan_spans(text, co.SAFE, co.REVIEW, co.REPORT)
     stats = co.register_stats(text)
     nwords = len(text.split())
+    text_blocks = blocks(text)
+    ids = ["b%d" % i for i in range(len(text_blocks))]
 
     extra = ""
     if against is not None:
-        extra = ('<section class="cell w12"><h2>Before and after</h2>%s</section>'
+        extra = ('<section class="cell"><h2>Before and after</h2>%s</section>'
                  % compare_block(against, text))
 
+    # Markers rather than distinct terms in the third slot: on a document whose
+    # problem is register rather than vocabulary, "4 flagged spans, 2 terms"
+    # read as a clean bill while the register line underneath said HEAVY.
+    nfindings = len(spans) + len(text_blocks) + len(co.line_checks(text))
     strip = "".join(
         '<div><i style="background:%s"></i><b>%s</b><u>%s</u></div>' % (colour, e(n), e(label))
         for colour, n, label in (
             ("#de301e", "%d" % nwords, "words"),
-            ("#1a4fa0", "%d" % len(spans), "flagged spans"),
-            ("#e8b400", "%d" % len({h.lower() for *_, h in spans}), "distinct terms"),
+            ("#1a4fa0", "%d" % nfindings, "findings"),
+            ("#e8b400", "%d" % (stats["total"] if stats else 0), "register markers"),
         ))
 
     return """<!doctype html>
@@ -362,8 +514,7 @@ def render(path, text, against=None):
   <div class="panel">
     <section class="cell"><h2>Register</h2>%(verdict)s%(groups)s</section>
     %(extra)s
-    <section class="cell"><h2>Structure</h2>%(paras)s</section>
-    <section class="cell grow"><h2>Findings by frequency</h2>%(findings)s</section>
+    <section class="cell grow"><h2>Findings</h2>%(findings)s</section>
   </div>
   <section class="cell doc"><h2>The text</h2><pre>%(text)s</pre></section>
   <footer><span>generated %(when)s</span><span>rewrite-slop</span></footer>
@@ -376,10 +527,9 @@ def render(path, text, against=None):
         "when": datetime.datetime.now().astimezone().date().isoformat(),
         "verdict": verdict(stats, nwords),
         "groups": groups_block(stats),
-        "findings": findings_block(spans),
-        "paras": structure_block(text),
+        "findings": findings_block(text, spans, text_blocks, ids),
         "extra": extra,
-        "text": marked(text, spans),
+        "text": marked(text, spans, text_blocks, co.wraps(text)[0], ids),
     }
 
 

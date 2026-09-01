@@ -103,6 +103,37 @@ def _is_mac() -> bool:
     return platform.system() == "Darwin"
 
 
+def _add_homebrew_libs_to_dyld_path() -> list[str]:
+    """Make Homebrew's Pango/Cairo visible to weasyprint's dlopen calls.
+
+    uv-managed Pythons are not linked against Homebrew, so ctypes.util.find_library
+    only finds libgobject/pango/cairo when DYLD_FALLBACK_LIBRARY_PATH names the
+    Homebrew lib dir. Login shells that export it are not in play when an agent
+    runs `uv run wisdom.py`, so set it here. Returns the dirs that were added.
+    """
+    if not _is_mac():
+        return []
+    prefixes = [os.environ.get("HOMEBREW_PREFIX", ""), "/opt/homebrew", "/usr/local"]
+    existing = os.environ.get("DYLD_FALLBACK_LIBRARY_PATH", "")
+    current = [p for p in existing.split(":") if p]
+    added: list[str] = []
+    for prefix in prefixes:
+        if not prefix:
+            continue
+        lib_dir = str(Path(prefix) / "lib")
+        if lib_dir in current or not Path(lib_dir, "libgobject-2.0.dylib").exists():
+            continue
+        current.append(lib_dir)
+        added.append(lib_dir)
+    if added:
+        # dyld's own fallback list is dropped once this variable is set, so keep
+        # the documented defaults on the end.
+        defaults = [str(Path.home() / "lib"), "/usr/local/lib", "/lib", "/usr/lib"]
+        current += [d for d in defaults if d not in current]
+        os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = ":".join(current)
+    return added
+
+
 def detect_base_dir() -> Path:
     """Detect the output directory based on environment and OS."""
     home = Path.home()
@@ -1404,12 +1435,13 @@ def _render_diagrams(html_body: str, *, raster: bool = False) -> tuple[str, dict
 
 def _import_pdf_deps() -> tuple[Any, Any]:
     """Import markdown + weasyprint, exiting with a friendly message if missing."""
+    _add_homebrew_libs_to_dyld_path()
     try:
         import markdown as md_lib  # type: ignore[import-untyped]  # ty: ignore[unresolved-import]
         from weasyprint import HTML  # type: ignore[import-untyped]  # ty: ignore[unresolved-import]
     except OSError as exc:
         if _is_mac():
-            hint = "brew install pango"
+            hint = "brew install pango cairo gdk-pixbuf libffi"
         else:
             hint = "sudo apt install libpango-1.0-0 libcairo2 libgdk-pixbuf-2.0-0"
         print(

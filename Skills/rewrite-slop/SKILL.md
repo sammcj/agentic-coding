@@ -215,7 +215,7 @@ Most of these come from the consumer claude.ai system prompt (which mandates "bu
 - BLUF / TL;DR front-loading: first sentence summarises the entire answer, then expansion follows
 - Triple-backtick fenced blocks for non-code: file paths, single commands, error strings
 - Tables for non-tabular comparisons (pros/cons, "approach A vs B")
-- `---` thematic breaks before headings
+- `---` thematic breaks before headings, when it is the habit rather than one divider. A horizontal rule is ordinary markdown; the tell is one above heading after heading. The script gates on both a count and a share of the document's headings.
 - Title case in headings (use sentence case)
 - Inline natural-language lists in prose: "things include x, y, and z"
 - Skipped heading levels (h3 without a preceding h2)
@@ -296,7 +296,7 @@ Create a task per question below. Answer each by inspecting the rewritten text, 
 - Could any sentence appear unchanged in another document on the same topic? If so it says nothing here. Restate it using a fact the input already gives, or cut it. Do not invent the fact.
 - Is any colon joining two clauses where the second neither explains nor specifies the first?
 - Are there "from X to Y" ranges where X and Y are not on a shared scale?
-- Did I leave any title-case headings? Any `---` thematic break before a heading? Any emoji in expository content?
+- Did I leave any title-case headings? A `---` above heading after heading? Any emoji in expository content?
 - Does the rewrite assume frictionless rationality, universal cooperation, or unearned emotional resonance ("communities will enthusiastically adopt", "deeply resonates with")?
 - Does any sentence claim significance, legacy, or a "broader trend" that is not demonstrated by a fact in the same paragraph?
 - Did I introduce any fact, name, number, date, claim, or example not in the original and I cannot verify as true?

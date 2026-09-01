@@ -27,9 +27,17 @@ If the text renders in a narrow column, the source is hard-wrapped and the page 
 
 ## What is on it
 
-Two columns on one screen. Left, a panel: the register band with a gauge against the calibrated thresholds, one bar per Tier 2 group, the structural findings, and every term ranked by frequency with a search box. Right, the whole input with each flagged span marked in place and shaded by severity.
+Two columns on one screen. Left, a panel: the register band, a needle on the calibrated thresholds, one bar per Tier 2 group with the accent on the group to thin, and one searchable list of every finding. Right, the whole input, marked up.
 
-Clicking a term in either column keeps it selected and fades the rest, so a term in the list can be found in the text and a bad passage traced back to its term.
+The findings list is one list on purpose. Long paragraphs, prose tables, hard-wrapping and the line-level findings sit at the top, measured by their extent; the terms follow, ranked by count with a bar in each row. Split into two cells, a document whose problem was structure showed two rows under findings and eighteen under structure.
+
+Clicking a term keeps it selected and fades the rest, so a term in the list can be found in the text and a bad passage traced back to its term. Clicking a block scrolls the document to it.
+
+Four kinds of mark in the document, because not every finding is a word:
+
+- Flagged spans underlined and shaded by severity.
+- Long paragraphs shaded grey, prose tables shaded yellow, each labelled in its own margin. What is wrong with these is their extent, so they are shaded rather than underlined, and each is listed once. The rule that reported a wide cell per row buried a 776-line document under 135 identical entries.
+- A `↵` at each hard wrap, since the break is invisible in rendered markdown and reflows the whole paragraph in every later diff. A markdown paragraph renders as one line however it is typed, so every break inside one was put there by hand; the only test is a length floor, which separates a wrap from a deliberately short line.
 
 ---
 
@@ -43,10 +51,13 @@ Two columns rather than that page's twelve. Twelve suits a board of charts read 
 
 ## When you change the detection
 
-The page reads `check_output.py` rather than reimplementing it: `scan_spans` for the marks, `register_stats` for the gauge and bars, `blobs` and `line_checks` for the structure cell, and `SAFE`/`REVIEW`/`REPORT` membership for each mark's severity. A new rule reaches the page with no edit here. A new *kind* of finding, neither span nor line, needs a cell of its own.
+The page reads `check_output.py` rather than reimplementing it: `scan_spans` for the marks, `register_stats` for the gauge and bars, `blobs`, `tables`, `wraps` and `line_checks` for the structure cell and the block shading, and `SAFE`/`REVIEW`/`REPORT` membership for each mark's severity. A new rule reaches the page with no edit here.
 
-Three checks after a change, all of them past what a browser screenshot will show you:
+A new block-level finding is a paragraph unit test, not a regex. `units()` is the one markdown walker, and `blobs`, `_wrapped` and the block shading all read it; a second walker would drift from it on fences, indented code and list markers, which took three separate fixes to get right the first time.
+
+Four checks after a change, all of them past what a browser screenshot will show you:
 
 - The page's mark count equals the finding count `check_output.py` prints for the same input.
+- Its shaded blocks and `¬` glyphs likewise equal `blobs` + `tables` and `wraps`.
 - Every tag closes.
 - No `grid-column: span` is left in the CSS.

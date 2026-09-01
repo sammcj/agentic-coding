@@ -26,6 +26,7 @@ import re
 import sys
 import unicodedata
 from collections import Counter
+from typing import NamedTuple
 
 # Cells longer than this hold prose, not structured data, and the skill's own
 # Tier 4 rubric flags tables used for non-tabular comparisons.
@@ -156,6 +157,18 @@ TOKEN = re.compile(r"[a-z0-9_/-]*[a-z][a-z0-9_/-]*")
 BLOB_WORDS = 150
 BLOB_LIST_MAX = 10
 LOCATIONS_MAX = 6  # line numbers shown per grouped finding
+
+# A markdown paragraph renders as one line however it is typed, so a paragraph
+# arriving as several lines was wrapped by hand. The length floor is all the test
+# needs: it separates a wrap from a deliberately short line. Testing the columns
+# for consistency instead missed a third of them, because one line ending early
+# before a long link is enough to break the pattern while still being a wrap.
+WRAP_MIN = 50
+
+# A `---` before a heading is ordinary markdown. What claude.ai does is put one
+# above heading after heading, so both a count and a share of the document's
+# headings have to trip before it is worth reporting.
+BREAK_LEAST, BREAK_SHARE = 3, 0.33
 _LIST_MARKER = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
 _HEADING = re.compile(r"^#{1,6}\s")
 _FENCE = re.compile(r"^(`{3,}|~{3,})")
@@ -276,7 +289,7 @@ def apply(text: str, rules, counts) -> str:
 
 def line_checks(text):
     """Checks needing line context rather than a single regex."""
-    out = []
+    out, breaks, headings = [], [], 0
     lines = text.split("\n")
     fenced = False
     # A front matter block closes on `---` immediately before the first heading,
@@ -295,36 +308,61 @@ def line_checks(text):
         if stripped == "---":
             nxt = next((n for n in lines[i + 1:] if n.strip()), "")
             if nxt.startswith("#"):
-                out.append((i + 1, "break-before-heading"))
+                breaks.append(i + 1)
         if stripped.startswith("#"):
+            headings += 1
             words = stripped.lstrip("# ").split()
             if sum(1 for w in words[1:] if re.fullmatch(r"[A-Z][a-z]+", w)) >= 2:
                 out.append((i + 1, "title-case-heading"))
-        if stripped.startswith("|") and not re.fullmatch(r"[|\s:-]+", stripped):
-            cells = [c.strip() for c in stripped.strip("|").split("|")]
-            if any(len(c) > TABLE_CELL_MAX for c in cells):
-                out.append((i + 1, "wide-table-cell"))
-    return out
+
+    # The habit is the fingerprint, not one divider: a horizontal rule is
+    # ordinary markdown, and claude.ai's tell is putting one above heading after
+    # heading. Both gates, so a long document does not qualify on count alone.
+    if len(breaks) >= BREAK_LEAST and headings and len(breaks) / headings >= BREAK_SHARE:
+        out += [(ln, "break-before-heading") for ln in breaks]
+    return sorted(out)
 
 
-def blobs(text):
-    """Paragraph units at or over BLOB_WORDS. Returns [(words, line, opening)].
+class Unit(NamedTuple):
+    """One prose paragraph or list item, measured whole across its wrapped lines."""
+
+    words: int
+    start: int
+    opening: str
+    end: int
+    lengths: tuple  # visible length of each line, for the hard-wrap test
+
+
+def units(text):
+    """Prose paragraph units, skipping code, tables and headings.
 
     Words are accumulated per unit rather than per line, so a wrapped list item
     lands wholly in its item and a hard-wrapped paragraph is measured whole.
+
+    One walker for three findings. A table scan and a wrap scan each need the
+    same fence, indent and list handling, and three copies of it would drift.
     """
     found, unit, start, opening, fence = [], 0, 0, "", False
+    lengths, last = [], 0
     indented = re.compile(r"^ {4,}\S")
     blank_before, in_indent = True, False
+    lines = text.splitlines()
+    # Front matter is a data block, not a paragraph. Its long `description:`
+    # followed by another key read as a hard-wrapped paragraph.
+    front = 2 if lines and lines[0].strip() == "---" else 0
 
     def close():
-        nonlocal unit
-        if unit >= BLOB_WORDS:
-            found.append((unit, start, opening))
-        unit = 0
+        nonlocal unit, lengths
+        if unit:
+            found.append(Unit(unit, start, opening, last, tuple(lengths)))
+        unit, lengths = 0, []
 
-    for lineno, line in enumerate(text.splitlines(), start=1):
+    for lineno, line in enumerate(lines, start=1):
         s = line.strip()
+        if front:
+            if s == "---":
+                front -= 1
+            continue
         if _FENCE.match(s):
             fence = not fence
             close()
@@ -347,7 +385,7 @@ def blobs(text):
             close()
             rest = line[marker.end():].split()
             start, opening = lineno, " ".join(rest[:8])
-            unit = len(rest)
+            unit, lengths, last = len(rest), [len(line.rstrip())], lineno
             continue
         if not s or _HEADING.match(s) or s.startswith(("|", ">")):
             close()
@@ -355,8 +393,74 @@ def blobs(text):
         if unit == 0:
             start, opening = lineno, " ".join(s.split()[:8])
         unit += len(s.split())
+        lengths.append(len(line.rstrip()))
+        last = lineno
     close()
+    return found
+
+
+def blobs(text):
+    """Paragraph units at or over BLOB_WORDS. Returns [(words, line, opening, end)]."""
+    found = [(u.words, u.start, u.opening, u.end) for u in units(text) if u.words >= BLOB_WORDS]
     return sorted(found, reverse=True)[:BLOB_LIST_MAX]
+
+
+def _explicit_break(line):
+    """A line break the author asked markdown to keep: two trailing spaces, or a backslash."""
+    return line.endswith(("  ", "\\"))
+
+
+def tables(text):
+    """Table blocks holding a cell over TABLE_CELL_MAX. Returns [(start, end, cells)].
+
+    One finding per table rather than per row: a table full of prose is one
+    decision, and REPORT.md's 135 offending rows were 9 tables.
+    """
+    out, start, end, wide, fence = [], 0, 0, 0, False
+    for lineno, line in enumerate(text.splitlines() + [""], start=1):
+        s = line.strip()
+        if _FENCE.match(s):
+            fence = not fence
+        row = not fence and s.startswith("|")
+        if row:
+            start = start or lineno
+            end = lineno
+            if not re.fullmatch(r"[|\s:-]+", s):
+                wide += sum(1 for c in s.strip("|").split("|")
+                            if len(c.strip()) > TABLE_CELL_MAX)
+        elif start:
+            if wide:
+                out.append((start, end, wide))
+            start, end, wide = 0, 0, 0
+    return out
+
+
+def wraps(text):
+    """Hard-wrap newline offsets, and how many paragraphs carry one.
+
+    Returns (offsets, wrapped_units, total_units). Decided per break rather than
+    per paragraph, so one deliberate short line does not excuse the rest, and
+    reported as one document-level count because a wrapped file is wrapped
+    throughout: 52 identical findings say nothing that 1 does not.
+    """
+    lines, starts, at = text.splitlines(), [], 0
+    for line in lines:
+        starts.append(at)
+        at += len(line) + 1
+
+    all_units = units(text)
+    offsets, wrapped = [], 0
+    for u in all_units:
+        found = []
+        # Every line but the last: that break is where the wrap happened.
+        for ln in range(u.start, u.end):
+            raw = lines[ln - 1] if ln - 1 < len(lines) else ""
+            if len(raw.rstrip()) >= WRAP_MIN and not _explicit_break(raw):
+                found.append(starts[ln - 1] + len(raw))
+        if found:
+            offsets += found
+            wrapped += 1
+    return offsets, wrapped, len(all_units)
 
 
 def register_stats(text):
@@ -390,7 +494,10 @@ def register_stats(text):
         "total": total,
         "words": len(words),
         "band": "HEAVY" if rate >= HEAVY else "ELEVATED",
-        "groups": sorted(by_group.items(), key=lambda kv: -len(kv[1])),
+        # By total hits, not by how many distinct words a group used: the group
+        # to thin is the one carrying the most weight, and ordering by distinct
+        # words put a group of 56 hits below one of 27.
+        "groups": sorted(by_group.items(), key=lambda kv: -sum(n for _, n in kv[1])),
     }
 
 
@@ -476,8 +583,19 @@ def main():
             print("%s: %-20s %s%s  (%s)" % (path, name, hit or "-", count, where))
         findings += len(rest)
 
-        for words, ln, opening in blobs(text):
-            print("%s:%d long-paragraph %d words  \"%s...\"" % (path, ln, words, opening))
+        for words, ln, opening, end in blobs(text):
+            print("%s:%d-%d long-paragraph %d words  \"%s...\""
+                  % (path, ln, end, words, opening))
+            findings += 1
+
+        for start, end, wide in tables(text):
+            print("%s:%d-%d wide-table %d cell%s over %d characters"
+                  % (path, start, end, wide, "" if wide == 1 else "s", TABLE_CELL_MAX))
+            findings += 1
+
+        _, wrapped, total = wraps(text)
+        if wrapped:
+            print("%s: hard-wrapped %d of %d paragraphs" % (path, wrapped, total))
             findings += 1
 
         reg, flagged = register(text)

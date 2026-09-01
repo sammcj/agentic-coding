@@ -37,6 +37,7 @@ Rebuilt the detection around two empirical sources, louisabraham.github.io/load-
 - Overlapping rules double-reported one edit ("marks a pivotal moment" plus "pivotal"); a contained span is now dropped.
 - `--write` could apply an em-dash fix without listing it for the re-read when an nbsp sat at the same offset.
 - YAML front matter registered as a `break-before-heading`.
+- `break-before-heading` fired on a single `---`, which is just a horizontal rule. Gated on both a count and a share of the document's headings, since what claude.ai does is put one above heading after heading. Rubric updated to match.
 - Indented code blocks counted as prose.
 - REPORT findings print the matched text, not just the rule name.
 - Tier 1 owns "honest" outright, widened to thoughts, appraisal, verdict and bare "honestly". `metaphor-tic` gained "smoking-gun", "corpus" and "corpora".
@@ -51,6 +52,20 @@ Rebuilt the detection around two empirical sources, louisabraham.github.io/load-
 - Two columns filling one screen, the panel of instruments beside the document rather than above it, each scrolling on its own. Stacked, clicking a term scrolled the text a screen away from the findings list that pointed at it.
 - Borrowed from louisabraham.github.io/load-bearing: the ruled compartments, click-to-hold selection, one grey ramp with a single accent, light only. None of its analysis carries over, since a single document has no time axis.
 - `register()` split into `register_stats()` plus formatting, and `scan()` into a projection of `scan_spans()`, so the page reads the same measurement rather than a second implementation of it.
+
+**Block findings, after a 776-line report the page had little to say about**
+
+- `wide-table-cell` reported once per row: a real document produced 135 identical entries and drowned everything else. Now one `wide-table` finding per table, with the count of prose cells. That document went from 143 findings to 22.
+- New `hard-wrapped` detection. A markdown paragraph renders as one line however it is typed, so a paragraph arriving as several lines was wrapped by hand: the test is a length floor per break, nothing more. Testing the columns for consistency first missed 30 of 82 paragraphs, because one line ending early before a long link breaks the pattern while still being a wrap. Reported once for the document with a count, and marked in the text at each break, since the wrap is invisible in rendered markdown and reflows the whole paragraph in every later diff.
+- `units()` skips YAML front matter, which was reporting `description:` plus the next key as a wrapped paragraph.
+- Long paragraphs and prose tables are now shaded in the document rather than only listed, and `blobs` carries its end line to make that possible. What is wrong with them is their extent, so an underline could not show it.
+- The headline strip counts findings and register markers, not spans and distinct terms. On a document whose problem is register, "4 flagged spans, 2 terms" read as a clean bill directly above a HEAVY verdict.
+- Findings and Structure merged into one searchable list, blocks above terms. Separate, the same document put two rows in one cell and eighteen in the other. Clicking a block now scrolls the document to it.
+- Every row carries its count: paragraphs for the wrap finding, occurrences for the line-level rules, which are now grouped by rule the way the terms are. Line rules also carry a plain-English label, since `break-before-heading` names nothing to a reader without the rubric open.
+- The gauge is three bands with a needle on them. As a filled bar it said nothing once the rate passed the end of the scale: 22.5 on a scale to 20 was a solid block of accent at 100%, and the scale now stretches to hold the value.
+- Register groups sort by total hits, not by how many distinct words they used, so the order matches the bars: a group of 56 was sitting below one of 27.
+- The accent now reaches the leading group bar. As `:first-of-type` it matched the verdict div above the bars and coloured nothing.
+- One markdown walker, `units()`, now backs the blob, table and wrap findings. It was buried inside `blobs()`, and a table scan and a wrap scan would each have copied its fence, indented-code and list-marker handling.
 
 **Maintenance**
 

@@ -34,7 +34,8 @@
     "npm:pi-local-agents-only",
     "npm:@mrclrchtr/supi-context",
     "npm:@tintinweb/pi-subagents",
-    "npm:remote-pi"
+    "npm:remote-pi",
+    "npm:@narumitw/pi-plan-mode"
   ],
   "defaultThinkingLevel": "medium"
 }
