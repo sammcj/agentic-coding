@@ -2,6 +2,16 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-09-01
+
+**Copy brief**
+
+- A button in the report's footer copies the findings as about a page of text: the register band, the heaviest Tier 2 group with the words that put it there, then one line per rule carrying its count, up to six instances, and the reason it is worth changing. Written to be pasted into a coding agent that has the file but not the page, so it opens with what to do and names the file it applies to. Capped at twelve kinds, with the remainder counted rather than dropped silently.
+- Grouped by rule, since one rule is one habit to drop however many times it fired, and a list of bare rule names leaves the receiving agent guessing.
+- The list and the brief are now two renderings of one list of `Finding`s. Building the brief from a second walk of the checker would let the two disagree about the document they describe.
+- `navigator.clipboard` is not there to call on every browser under `file://`, so a hidden textarea and `execCommand` stand behind it, and the brief is revealed to select by hand if both refuse.
+- The brief's own lines are separated by a blank one rather than wrapped, since whatever it is pasted into may render it as markdown. It was reporting itself as hard-wrapped.
+
 ## 2026-08-31
 
 Rebuilt the detection around two empirical sources, louisabraham.github.io/load-bearing and berenslab/llm-excess-vocab, and borrowed detection from `skill-creator-primer`. The finding behind it: the classic slop list (delve, leverage, pivotal, seamlessly) belongs to a _receding_ register, and none of those words appear in the growing cluster's top 1000.

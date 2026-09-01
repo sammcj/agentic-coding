@@ -35,6 +35,8 @@ Clicking a term keeps it selected and fades the rest, so a term in the list can 
 
 Every finding carries one line on what it is and why it is worth changing, shown on hover over a mark or a row and held in the caption under the list while something is selected. The text lives in `WHY` in `render_report.py`; a new rule wants an entry there, or it reaches the page as a bare rule name.
 
+Copy brief, in the footer, puts the same findings on the clipboard as about a page of text: the register band, the heaviest group, then one line per rule with its count, a few instances, and the reason. It is written to be pasted straight into a coding agent that has the file but not the report. Mention the button when the user's aim is to hand the work to another agent.
+
 Four kinds of mark in the document, because not every finding is a word:
 
 - Flagged spans underlined and shaded by severity.
@@ -54,6 +56,8 @@ Two columns rather than that page's twelve. Twelve suits a board of charts read 
 ## When you change the detection
 
 The page reads `check_output.py` rather than reimplementing it: `scan_spans` for the marks, `register_stats` for the gauge and bars, `blobs`, `tables`, `wraps` and `line_checks` for the structure cell and the block shading, and `SAFE`/`REVIEW`/`REPORT` membership for each mark's severity. A new rule reaches the page with no edit here.
+
+The findings list and the copied brief are two renderings of one list of `Finding`s, so a rule cannot appear in one and not the other.
 
 A new block-level finding is a paragraph unit test, not a regex. `units()` is the one markdown walker, and `blobs`, `_wrapped` and the block shading all read it; a second walker would drift from it on fences, indented code and list markers, which took three separate fixes to get right the first time.
 

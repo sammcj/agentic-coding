@@ -36,6 +36,10 @@ LEGEND = [
     ("report", "detected only, you decide"),
 ]
 
+# The copied brief is read by an agent with a context budget, so it stays about
+# a page: the kinds worth acting on, with a few instances of each to find them by.
+BRIEF_MAX, BRIEF_EXAMPLES = 12, 6
+
 # Line-level rule names say nothing to someone reading the page without the
 # rubric open beside it.
 EXPLAIN = {
@@ -159,15 +163,22 @@ h2.sub { margin: 20px 0 10px; padding-top: 14px; border-top: 1px solid #ececec; 
 .stats div u { display: block; text-decoration: none; margin-top: 5px;
                font: 400 10px var(--mono); letter-spacing: 0.1em; color: var(--muted); }
 
+button { border: 1px solid var(--ink); background: var(--ground); color: var(--ink);
+         font: 400 10px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase;
+         padding: 4px 9px; cursor: pointer; white-space: nowrap; }
+button:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.done { background: var(--ink); border-color: var(--ink); color: #fff; }
+
 input { width: 100%; border: var(--rule) solid var(--ink); background: var(--ground);
         color: var(--ink); font: 400 12px var(--mono); padding: 7px 9px;
         margin-bottom: 10px; letter-spacing: 0.08em; }
 input::placeholder { color: var(--muted); text-transform: uppercase; }
 tr.gone { display: none; }
 
-footer { display: flex; justify-content: space-between;
+footer { display: flex; align-items: center; gap: 14px;
          font: 400 10px var(--mono); letter-spacing: 0.1em; color: var(--muted);
-         padding: 10px 16px; border: var(--rule) solid var(--ink); text-transform: uppercase; }
+         padding: 7px 16px; border: var(--rule) solid var(--ink); text-transform: uppercase; }
+footer .end { margin-left: auto; }
 
 /* the verdict, set at the size of the finding it is */
 .band { font: 700 46px/1 var(--grotesk); letter-spacing: -0.02em; }
@@ -231,6 +242,10 @@ tr.pick:first-child td.f s { background: var(--accent); }
 
 pre { margin: 0; font: 400 13px/1.65 var(--mono); white-space: pre-wrap;
       word-wrap: break-word; }
+/* The brief, kept hidden as the copy source and revealed only if the clipboard
+   refuses, so there is still something to select by hand. */
+#brief { margin: var(--rule); padding: 14px 16px; border: var(--rule) solid var(--ink); }
+body.spill { overflow: auto; }
 /* A block finding is shaded rather than underlined, and named in its own margin,
    because what is wrong with it is its extent. */
 .block { display: block; border-left: var(--rule) solid #b9b9b9; padding-left: 10px;
@@ -328,6 +343,36 @@ box.addEventListener('input', function () {
   });
 });
 box.addEventListener('click', function (e) { e.stopPropagation(); });
+
+var copy = document.getElementById('copy'), stash = document.getElementById('brief');
+function flashed(ok) {
+  if (!ok) { stash.hidden = false; body.classList.add('spill'); stash.scrollIntoView(); }
+  copy.textContent = ok ? 'Copied' : 'Copy failed, brief below';
+  copy.classList.add('done');
+  setTimeout(function () {
+    copy.textContent = 'Copy brief';
+    copy.classList.remove('done');
+  }, 1800);
+}
+/* file:// is not a secure context in every browser, so the clipboard API is not
+   always there to call. */
+function bySelection() {
+  var ta = document.createElement('textarea'), ok = false;
+  ta.value = stash.textContent;
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+  document.body.removeChild(ta);
+  flashed(ok);
+}
+copy.addEventListener('click', function (e) {
+  e.stopPropagation();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(stash.textContent).then(function () { flashed(true); },
+                                                          bySelection);
+  } else bySelection();
+});
 """
 
 
@@ -479,7 +524,32 @@ def tally(spans):
     return terms
 
 
-def findings_block(text, spans, text_blocks, ids):
+class Finding(NamedTuple):
+    """One entry in the findings list, in the form the page and the brief share.
+
+    Both read this list rather than each walking the checker again, so the brief
+    cannot disagree with the page it was copied from.
+    """
+
+    rule: str  # what fired; also the grouping key in the brief
+    n: int  # how many, counted in `unit`
+    unit: str  # what n counts, so the brief can say "3 paragraphs"
+    example: str  # the term itself, or the lines it sits on
+    cell: str  # the count as the page prints it: 412w, 3p, 12
+    what: str  # middle column
+    where: str  # right column
+    term: str = ""  # selection and search key
+    goto: str = ""  # block id, for rows that scroll the document
+    kind: str = ""  # blob | table, so the row keeps the block's colour
+    pick: bool = False  # clickable, and subject to the search box
+    bar: float = -1.0  # frequency bar width, terms only
+
+    @property
+    def why(self):
+        return WHY.get(self.rule, "")
+
+
+def findings(text, spans, text_blocks, ids):
     """Every finding in one ranked list, blocks above terms.
 
     Split across two cells, a document whose problem was structure showed two
@@ -491,48 +561,59 @@ def findings_block(text, spans, text_blocks, ids):
     to flag. Blocks carry their extent instead, which is what makes them worth
     fixing.
     """
-    rows = []
+    out = []
     for i, b in enumerate(text_blocks):
-        rows.append('<tr class="pick %s" data-goto="%s" data-term="%s" data-why="%s" '
-                    'title="%s"><td class="n">%s</td><td class="f"></td><td>%s</td>'
-                    '<td class="r">%s</td></tr>'
-                    % (b.kind, e(ids[i]), e(b.label.lower()), e(WHY.get(b.kind, "")),
-                       e(WHY.get(b.kind, "")), e(b.measure), e(b.label), e(b.where)))
+        out.append(Finding(rule=b.kind, n=1,
+                           unit="paragraph" if b.kind == "blob" else "prose table",
+                           example=b.where, cell=b.measure, what=b.label, where=b.where,
+                           term=b.label.lower(), goto=ids[i], kind=b.kind, pick=True))
 
     points, wrapped, total = co.wraps(text)
     if wrapped:
-        rows.append('<tr data-term="hard-wrapped" data-why="%s" title="%s">'
-                    '<td class="n">%dp</td><td class="f"></td>'
-                    '<td>paragraphs wrapped by hand, of %d, at %d breaks</td>'
-                    '<td class="r">hard-wrapped</td></tr>'
-                    % (e(WHY["hard-wrapped"]), e(WHY["hard-wrapped"]),
-                       wrapped, total, len(points)))
+        out.append(Finding(rule="hard-wrapped", n=wrapped, unit="paragraph",
+                           example="%d breaks" % len(points), cell="%dp" % wrapped,
+                           what="paragraphs wrapped by hand, of %d, at %d breaks"
+                                % (total, len(points)),
+                           where="hard-wrapped", term="hard-wrapped"))
 
     # Grouped by rule, like the terms below: five title-case headings are one
     # habit to drop, not five findings.
-    at_line = {}
+    at_line: dict[str, list[int]] = {}
     for line, name in co.line_checks(text):
         at_line.setdefault(name, []).append(line)
     for name, lines in sorted(at_line.items()):
         where = ", ".join("L%d" % n for n in lines[:co.LOCATIONS_MAX])
         if len(lines) > co.LOCATIONS_MAX:
             where += ", +%d" % (len(lines) - co.LOCATIONS_MAX)
-        rows.append('<tr data-term="%s" data-why="%s" title="%s">'
-                    '<td class="n">%d</td><td class="f"></td>'
-                    '<td>%s</td><td class="r">%s</td></tr>'
-                    % (e(name), e(WHY.get(name, "")), e(WHY.get(name, name)),
-                       len(lines), e(EXPLAIN.get(name, name)), e(where)))
+        out.append(Finding(rule=name, n=len(lines), unit="occurrence", example=where,
+                           cell="%d" % len(lines), what=EXPLAIN.get(name, name),
+                           where=where, term=name))
 
     terms = tally(spans)
     ranked = sorted(terms.items(), key=lambda kv: (-kv[1][1], kv[0]))
     top = ranked[0][1][1] if ranked else 1
     for term, (name, count) in ranked:
-        rows.append('<tr class="pick" data-term="%s" data-why="%s" title="%s">'
-                    '<td class="n">%d</td>'
-                    '<td class="f"><s style="width:%.1f%%"></s></td>'
-                    '<td>%s</td><td class="r">%s</td></tr>'
-                    % (e(term), e(WHY.get(name, "")), e(WHY.get(name, name)),
-                       count, 100.0 * count / top, e(term), e(name)))
+        out.append(Finding(rule=name, n=count, unit="use", example=term,
+                           cell="%d" % count, what=term, where=name, term=term,
+                           pick=True, bar=100.0 * count / top))
+    return out
+
+
+def _row(f):
+    cls = " ".join(x for x in ("pick" if f.pick else "", f.kind) if x)
+    attrs = ' class="%s"' % cls if cls else ""
+    if f.goto:
+        attrs += ' data-goto="%s"' % e(f.goto)
+    if f.term:
+        attrs += ' data-term="%s"' % e(f.term)
+    bar = '<s style="width:%.1f%%"></s>' % f.bar if f.bar >= 0 else ""
+    return ('<tr%s data-why="%s" title="%s"><td class="n">%s</td><td class="f">%s</td>'
+            '<td>%s</td><td class="r">%s</td></tr>'
+            % (attrs, e(f.why), e(f.why or f.rule), e(f.cell), bar, e(f.what), e(f.where)))
+
+
+def findings_block(found):
+    rows = [_row(f) for f in found]
 
     if not rows:
         return '<p class="empty">Nothing flagged.</p>'
@@ -544,6 +625,54 @@ def findings_block(text, spans, text_blocks, ids):
             '<p id="why" class="why">Hover or click a finding for what it is and why.</p>'
             '<div class="legend">%s</div>'
             % ("".join(rows), legend))
+
+
+def brief(path, stats, nwords, found):
+    """The findings as text, sized to paste into another agent.
+
+    Grouped by rule and carrying each rule's reason. A list of bare rule names
+    leaves the receiving agent guessing, and one rule is one habit to drop
+    however many times it fired.
+
+    Lines are separated by a blank one, never wrapped: the brief is pasted into
+    something that may render it as markdown, where a wrap reflows anyway.
+    """
+    out = ["Slop check of %s. Rewrite to fix the following. Keep the facts and the "
+           "meaning, and do not make it longer." % os.path.basename(path), ""]
+    if stats:
+        group, pairs = stats["groups"][0]
+        out += ["Register: %s. %.1f marker words per 1000 (elevated at %.1f, heavy at "
+                "%.1f), %d markers over %d words."
+                % (stats["band"], stats["rate"], co.ELEVATED, co.HEAVY,
+                   stats["total"], nwords), "",
+                "Heaviest group: %s, %d hits (%s). %s"
+                % (group, sum(n for _, n in pairs), ", ".join(w for w, _ in pairs[:6]),
+                   WHY.get(group, ""))]
+    else:
+        out.append("Register: clean, under %.1f marker words per 1000 over %d words."
+                   % (co.ELEVATED, nwords))
+
+    groups = {}
+    for f in found:
+        n, unit, seen = groups.get(f.rule, (0, f.unit, []))
+        if f.example not in seen and len(seen) < BRIEF_EXAMPLES:
+            seen.append(f.example)
+        groups[f.rule] = (n + f.n, unit, seen)
+
+    out.append("")
+    if not groups:
+        out.append("Nothing else flagged.")
+        return "\n".join(out)
+
+    out.append("Findings:")
+    for rule, (n, unit, seen) in list(groups.items())[:BRIEF_MAX]:
+        out.append("- %s, %d %s (%s): %s"
+                   % (rule, n, unit if n == 1 else unit + "s", ", ".join(seen),
+                      WHY.get(rule, "")))
+    if len(groups) > BRIEF_MAX:
+        out.append("- and %d further kinds, listed in the report."
+                   % (len(groups) - BRIEF_MAX))
+    return "\n".join(out)
 
 
 def _pair(label, was, now, unit=""):
@@ -585,6 +714,7 @@ def render(path, text, against=None):
     nwords = len(text.split())
     text_blocks = blocks(text)
     ids = ["b%d" % i for i in range(len(text_blocks))]
+    found = findings(text, spans, text_blocks, ids)
 
     extra = ""
     if against is not None:
@@ -619,8 +749,11 @@ def render(path, text, against=None):
     <section class="cell grow"><h2>Findings</h2>%(findings)s</section>
   </div>
   <section class="cell doc"><h2>The text</h2><pre>%(text)s</pre></section>
-  <footer><span>generated %(when)s</span><span>rewrite-slop</span></footer>
+  <footer><span>generated %(when)s</span>
+    <button id="copy" data-why="Copies these findings as text, each with its reason, to paste into a coding agent.">Copy brief</button>
+    <span class="end">rewrite-slop</span></footer>
 </div>
+<pre id="brief" hidden>%(brief)s</pre>
 <script>%(js)s</script>
 """ % {
         "name": e(os.path.basename(path)),
@@ -629,7 +762,8 @@ def render(path, text, against=None):
         "when": datetime.datetime.now().astimezone().date().isoformat(),
         "verdict": verdict(stats, nwords),
         "groups": groups_block(stats),
-        "findings": findings_block(text, spans, text_blocks, ids),
+        "findings": findings_block(found),
+        "brief": e(brief(path, stats, nwords, found)),
         "extra": extra,
         "text": marked(text, spans, text_blocks, co.wraps(text)[0], ids),
     }
