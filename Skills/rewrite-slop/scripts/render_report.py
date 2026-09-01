@@ -36,9 +36,9 @@ for _name in co.POSSIBLE:
 
 # The key under the findings, pale to red. The page is read away from the rubric.
 LEGEND = [
-    ("possible", "might be: read the caveat"),
-    ("probable", "usually is: you decide"),
-    ("certain", "is: --write fixes most of these"),
+    ("possible", "maybe"),
+    ("probable", "likely"),
+    ("certain", "slopperific"),
 ]
 
 # The copied brief is read by an agent with a context budget, so it stays about a page: the kinds worth acting on, with
@@ -754,7 +754,7 @@ def findings_block(found):
 
     if not rows:
         return '<p class="empty">Nothing flagged.</p>'
-    legend = "<b>Slop confidence</b>" + "".join(
+    legend = "<b>Confidence</b>" + "".join(
         '<span><i class="key k-%s"></i>%s, %s</span>' % (s, s, e(d)) for s, d in LEGEND)
     # The caption holds the description of whatever is hovered or chosen, so the reason a thing is flagged does not
     # depend on finding a tooltip.
