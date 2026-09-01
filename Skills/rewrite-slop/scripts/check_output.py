@@ -77,6 +77,62 @@ REVIEW = [
     ("phrase-swap", r"(?i)\bit is important to note that (\w)", lambda m: m.group(1).upper()),
 ]
 
+# "It's not X, it's Y" and its family. What makes this safe to match is not the
+# negation, which ordinary prose is full of, but the positive re-assertion after
+# it: a pronoun and copula echoing the clause just denied, an explicit `but`
+# after a comma, or the same verb repeated with the same subject. Each
+# alternation below carries that second half, so a plain negative sentence with a
+# comma in it does not qualify.
+_P = r"(?:it|this|that|these|those|they|we|you)"  # subject that can be echoed
+_COP = r"(?:['’]s|['’]re|\s+is|\s+are|\s+was|\s+were)"
+# The figure denies what a thing IS, so a bare preposition after the negation is
+# an ordinary statement of place or relation: "is not among them" goes on to say
+# something further, where "is not a bug" is about to be replaced. A preposition
+# that then REPEATS is the figure again ("not about speed, it's about clarity"),
+# so that case has its own alternation below rather than being excluded here.
+_PREP = (r"among|in|on|at|by|for|with|from|about|under|over|within"
+         r"|across|into|onto|through|during|against")
+_NOTPREP = r"(?!\s+(?:%s)\b)" % _PREP
+# Nor does the denied half carry a conjunction. "not among them, and stays a
+# separate file. It is..." is two statements, not a denial and its replacement.
+_GAP = (r"(?:(?!\b(?:and|or|so|because|which|while|whereas|although|though)\b)"
+        r"[^.\n;]){1,70}")
+_ANTITHESIS = "(?i)" + "|".join((
+    # a denied clause, then the same kind of subject re-asserting
+    r"\b(?:%s\s*)?(?:is|are|was|were)?\s*n['’]?t\b%s%s[,;.]\s*(?:but\s+)?%s%s\b"
+    % (_P, _NOTPREP, _GAP, _P, _COP),
+    r"\b(?:is|are|was|were)\s+not\b%s%s[,;.]\s*(?:but\s+)?%s%s\b"
+    % (_NOTPREP, _GAP, _P, _COP),
+    # "It's not X, it's Y": a contracted copula plus a separate `not`, which
+    # neither the n't head nor the "is not" head reaches.
+    r"\b%s\s*(?:['’]s|['’]re)\s+not\b%s%s[,;.]\s*(?:but\s+)?%s%s\b"
+    % (_P, _NOTPREP, _GAP, _P, _COP),
+    # "not about speed, it's about clarity": the preposition repeats, which is
+    # the parallel the figure is made of. Named group, because these alternations
+    # are joined and a numbered backreference would shift as rules are added.
+    r"(?:\bnot\b|n['’]?t\b)\s+(?P<prep>%s)\b%s[,;.]\s*(?:but\s+)?%s%s\s+(?P=prep)\b"
+    % (_PREP, _GAP, _P, _COP),
+    # not X but Y, only where the sentence marks the figure itself. A bare
+    # "not X, but Y" cannot be separated from ordinary contrast without knowing
+    # whether a finite verb follows `but`: "not the count, but the trend" is the
+    # figure and "not warm, but the test still passes" is not, and they are the
+    # same shape to a regex. These four carry their own marker, so they are
+    # decidable: the adverb, the repeated subordinator, `rather`, `so much as`.
+    r"\bnot (?:just|only|merely|simply)\b[^.\n]{1,60}?\bbut\b",
+    r"\bnot\b[^.\n;]{1,70},\s*but\s+rather\b",
+    r"\bnot\s+because\b[^.\n;]{1,70},\s*but\s+because\b",
+    r"\bnot so much\b[^.\n]{1,60}\bas\b",
+    # never X, it was Y
+    r"\bnever\b[^.\n;]{1,60},\s*%s%s\b" % (_P, _COP),
+    # less about X and more about Y
+    r"\bless\s+(?:about|a matter of)\b[^.\n]{1,60}\band more\b",
+    # rather than X, this is Y
+    r"\brather than\b[^.\n]{1,60},\s*%s%s\b" % (_P, _COP),
+    # you don't need X, you need Y: the same verb, repeated
+    (r"\b(?:you|we|they|i)\s+(?:do|does|did)n['’]?t\s+(?P<verb>\w+)\b[^.\n;]{1,60},"
+     r"\s*(?:you|we|they|i)\s+(?P=verb)\b"),
+))
+
 REPORT = [
     ("placeholder", r"\[(?:Your |Insert|Describe|TODO)[^\]]*\]|\bINSERT_[A-Z_0-9]+\b|\b\d{4}-XX-XX\b", None),
     ("opener-filler", r"(?m)(?:^|(?<=\. ))(?:Additionally|Furthermore|Moreover|Notably|Consequently|Accordingly|In conclusion|Overall|In summary|It is worth mentioning|It should be noted)\b", None),
@@ -107,7 +163,7 @@ REPORT = [
     # Ported from skill-creator-primer's _FILLER_RULES. "harness" only in its
     # verb-with-object shape, because a test harness is the literal noun.
     ("filler-verb", r"(?i)\b(?:delv(?:e|es|ed|ing)|div(?:e|es|ed|ing) into|leverag(?:e|es|ed|ing)|harness(?:ing)? the|foster(?:s|ed|ing)?|bolster(?:s|ed|ing)?|underscor(?:e|es|ed|ing)|facilitat(?:e|es|ed|ing)|empower(?:s|ed|ing)?|showcas(?:e|es|ed|ing)|garner(?:s|ed|ing)?|exemplif(?:y|ies|ied|ying)|emphasi[sz](?:e|es|ed|ing))\b", None),
-    ("negation-antithesis", r"(?i)\bnot (?:just|only|merely|simply)\b[^.\n]{1,60}?\bbut\b|\b(?:it['’]?s|it is|this is|that['’]?s) not\b[^.\n]{1,60}?[,.]\s*(?:it['’]?s|it is)\b|\bthe question is(?:n['’]?t| not)\b[^.\n]{1,60}?[,.]\s*it['’]?s\b", None),
+    ("negation-antithesis", _ANTITHESIS, None),
     # Padding: each collapses to one word or none without losing anything.
     ("padding", r"(?i)\b(?:in terms of|with respect to|in the context of|a (?:wide )?(?:variety|range|number) of|a myriad of|the fact that|in order for|for the purpose of|it goes without saying|needless to say|each and every|first and foremost|clear and concise|various different|basic fundamentals?|end result|past history|advance planning)\b", None),
 ]
@@ -151,10 +207,10 @@ ELEVATED, HEAVY, LEAST, SHORT = 4.0, 10.0, 4, 200
 TOKEN = re.compile(r"[a-z0-9_/-]*[a-z][a-z0-9_/-]*")
 
 # A compression target, not an AI tell: measured on the load-bearing corpus,
-# paragraph length does not separate AI from human. 150 rather than the 100
+# paragraph length does not separate AI from human. 130 rather than the 100
 # skill-creator-primer uses, because prose earns longer paragraphs than
 # instructions do.
-BLOB_WORDS = 150
+BLOB_WORDS = 130
 BLOB_LIST_MAX = 10
 LOCATIONS_MAX = 6  # line numbers shown per grouped finding
 

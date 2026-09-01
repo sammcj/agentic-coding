@@ -44,6 +44,49 @@ EXPLAIN = {
     "wide-table-cell": "table cell holding prose",
 }
 
+# One line per rule, saying what it caught and why that is worth changing. The
+# page is read away from the rubric, and a rule name alone leaves the reader to
+# guess whether a hit is a typographic artefact or a habit of thought.
+WHY = {
+    "arrow-bullet": "An arrow used as a bullet. Use a list.",
+    "chat-residue": "Assistant talk left in the draft. The reader is not in a chat.",
+    "cite-marker": "A citation marker from the tool that generated this, not from the source.",
+    "double-dash": "Two hyphens standing in for a dash. Repunctuate the sentence.",
+    "ellipsis": "A trailing-off ellipsis. Finish the sentence or cut it.",
+    "em-dash": "An em dash. Comma, full stop or brackets, as the sentence needs.",
+    "emoji": "An emoji in expository prose.",
+    "en-dash": "An en dash outside a numeric range.",
+    "en-dash-range": "An en dash in a numeric range. A hyphen carries it.",
+    "filler-verb": "A verb that sounds like work and does none. Say the action.",
+    "honest-framing": "Framing an answer as the honest one implies the others were not.",
+    "json-tail": "A fragment of the generating tool's output, left in the text.",
+    "marketing-adjective": "Praise in place of a fact. State what it does.",
+    "math-unicode": "Unicode maths characters used as bold or italic. Use markdown.",
+    "metaphor-tic": "A figure this model reaches for by habit rather than by fit.",
+    "nbsp": "A non-breaking space where an ordinary one belongs.",
+    "negation-antithesis": "\"Not X, it's Y\". Reversing it reads as well, so it carries "
+                           "no information. Make the positive claim.",
+    "opener-filler": "An opening that delays the sentence. Start at the claim.",
+    "padding": "Collapses to one word, or none, with nothing lost.",
+    "phrase-swap": "A long phrase with a one-word equivalent.",
+    "placeholder": "A placeholder that was never filled in.",
+    "private-use": "A private-use codepoint, which renders differently everywhere.",
+    "puffery": "Says the thing is impressive instead of saying what it does.",
+    "smart-quote": "A curly quote. Straight quotes survive copy and paste.",
+    "sycophancy": "Praise for the reader's question. Answer it instead.",
+    "times-sign": "A multiplication sign in prose. Use x.",
+    "utm-llm": "A tracking parameter naming the model that wrote this.",
+    "weasel-source": "Attribution to nobody. Name the source or drop the claim.",
+    # block and line findings
+    "blob": "A paragraph long enough to hide its own argument. Cut or split it.",
+    "table": "A table holding prose. Tables are for structured data.",
+    "hard-wrapped": "Line breaks inserted by hand. They reflow the whole paragraph "
+                    "in every later diff, and markdown ignores them.",
+    "break-before-heading": "A --- above heading after heading is a claude.ai habit.",
+    "title-case-heading": "Title case in a heading. Sentence case reads as written, "
+                          "not as published.",
+}
+
 CSS = """
 :root {
   color-scheme: only light;
@@ -155,6 +198,10 @@ tr.pick:first-child td.f s { background: var(--accent); }
 .pair em { font-style: normal; color: var(--muted); }
 .cut { color: var(--accent); }
 
+.why { font: 400 12px/1.45 var(--mono); color: var(--ink); margin: 12px 0 0;
+       padding: 9px 11px; background: #f4f4f4; border-left: var(--rule) solid var(--ink);
+       min-height: 3.2em; }
+.why.idle { color: var(--muted); border-left-color: #d4d4d4; }
 .legend { display: flex; gap: 16px; font: 400 11px var(--mono);
           color: var(--muted); margin-top: 12px; flex-wrap: wrap; }
 .key { display: inline-block; width: 22px; height: 11px; margin-right: 5px;
@@ -201,6 +248,19 @@ body.sel tr.pick.on td { background: var(--fill); }
 
 JS = """
 var body = document.body, sel = null;
+var why = document.getElementById('why'), idle = why.textContent, pinned = '';
+why.classList.add('idle');
+function say(text) {
+  why.textContent = text || pinned || idle;
+  why.classList.toggle('idle', !(text || pinned));
+}
+document.addEventListener('mouseover', function (e) {
+  var el = e.target.closest('[data-why]');
+  if (el) say(el.dataset.why);
+});
+document.addEventListener('mouseout', function (e) {
+  if (e.target.closest('[data-why]')) say('');
+});
 function choose(term) {
   sel = (sel === term) ? null : term;
   body.classList.toggle('sel', sel !== null);
@@ -215,6 +275,8 @@ function choose(term) {
 document.addEventListener('click', function (e) {
   var go = e.target.closest('[data-goto]');
   if (go) {
+    pinned = go.dataset.why || '';
+    say('');
     var block = document.getElementById(go.dataset.goto);
     if (block) {
       block.scrollIntoView({block: 'center', behavior: 'smooth'});
@@ -225,8 +287,15 @@ document.addEventListener('click', function (e) {
     return;
   }
   var el = e.target.closest('[data-term]');
-  if (el) choose(el.dataset.term);
-  else if (sel) choose(sel);
+  if (el) {
+    choose(el.dataset.term);
+    pinned = sel ? (el.dataset.why || '') : '';
+    say('');
+  } else if (sel) {
+    choose(sel);
+    pinned = '';
+    say('');
+  }
 });
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' && sel) choose(sel);
@@ -324,9 +393,9 @@ def marked(text, spans, text_blocks=(), wrap_points=(), ids=None):
             out.append('<i class="wrap" title="hard wrap"></i>')
         if cut in span_at:
             end, name, hit = span_at[cut]
-            out.append('<mark data-sev="%s" data-term="%s" title="%s">%s</mark>'
-                       % (SEVERITY.get(name, "report"), e(hit.lower()), e(name),
-                          e(text[cut:end])))
+            out.append('<mark data-sev="%s" data-term="%s" data-why="%s" title="%s">%s</mark>'
+                       % (SEVERITY.get(name, "report"), e(hit.lower()), e(WHY.get(name, "")),
+                          e("%s: %s" % (name, WHY.get(name, ""))), e(text[cut:end])))
             at = end
     out.append(e(text[at:]))
     out.append("</div>" * len(closing))
@@ -402,17 +471,20 @@ def findings_block(text, spans, text_blocks, ids):
     """
     rows = []
     for i, b in enumerate(text_blocks):
-        rows.append('<tr class="pick %s" data-goto="%s" data-term="%s">'
-                    '<td class="n">%s</td><td class="f"></td><td>%s</td>'
+        rows.append('<tr class="pick %s" data-goto="%s" data-term="%s" data-why="%s" '
+                    'title="%s"><td class="n">%s</td><td class="f"></td><td>%s</td>'
                     '<td class="r">%s</td></tr>'
-                    % (b.kind, e(ids[i]), e(b.label.lower()), e(b.measure),
-                       e(b.label), e(b.where)))
+                    % (b.kind, e(ids[i]), e(b.label.lower()), e(WHY.get(b.kind, "")),
+                       e(WHY.get(b.kind, "")), e(b.measure), e(b.label), e(b.where)))
 
     points, wrapped, total = co.wraps(text)
     if wrapped:
-        rows.append('<tr data-term="hard-wrapped"><td class="n">%dp</td><td class="f"></td>'
+        rows.append('<tr data-term="hard-wrapped" data-why="%s" title="%s">'
+                    '<td class="n">%dp</td><td class="f"></td>'
                     '<td>paragraphs wrapped by hand, of %d, at %d breaks</td>'
-                    '<td class="r">hard-wrapped</td></tr>' % (wrapped, total, len(points)))
+                    '<td class="r">hard-wrapped</td></tr>'
+                    % (e(WHY["hard-wrapped"]), e(WHY["hard-wrapped"]),
+                       wrapped, total, len(points)))
 
     # Grouped by rule, like the terms below: five title-case headings are one
     # habit to drop, not five findings.
@@ -423,24 +495,32 @@ def findings_block(text, spans, text_blocks, ids):
         where = ", ".join("L%d" % n for n in lines[:co.LOCATIONS_MAX])
         if len(lines) > co.LOCATIONS_MAX:
             where += ", +%d" % (len(lines) - co.LOCATIONS_MAX)
-        rows.append('<tr data-term="%s" title="%s"><td class="n">%d</td><td class="f"></td>'
+        rows.append('<tr data-term="%s" data-why="%s" title="%s">'
+                    '<td class="n">%d</td><td class="f"></td>'
                     '<td>%s</td><td class="r">%s</td></tr>'
-                    % (e(name), e(name), len(lines), e(EXPLAIN.get(name, name)), e(where)))
+                    % (e(name), e(WHY.get(name, "")), e(WHY.get(name, name)),
+                       len(lines), e(EXPLAIN.get(name, name)), e(where)))
 
     terms = tally(spans)
     ranked = sorted(terms.items(), key=lambda kv: (-kv[1][1], kv[0]))
     top = ranked[0][1][1] if ranked else 1
     for term, (name, count) in ranked:
-        rows.append('<tr class="pick" data-term="%s"><td class="n">%d</td>'
+        rows.append('<tr class="pick" data-term="%s" data-why="%s" title="%s">'
+                    '<td class="n">%d</td>'
                     '<td class="f"><s style="width:%.1f%%"></s></td>'
                     '<td>%s</td><td class="r">%s</td></tr>'
-                    % (e(term), count, 100.0 * count / top, e(term), e(name)))
+                    % (e(term), e(WHY.get(name, "")), e(WHY.get(name, name)),
+                       count, 100.0 * count / top, e(term), e(name)))
 
     if not rows:
         return '<p class="empty">Nothing flagged.</p>'
     legend = "".join('<span><i class="key k-%s"></i>%s</span>' % (s, e(d)) for s, d in LEGEND)
+    # The caption holds the description of whatever is hovered or chosen, so the
+    # reason a thing is flagged does not depend on finding a tooltip.
     return ('<input id="find" placeholder="Search for a finding..." autocomplete="off">'
-            '<div class="scroll"><table>%s</table></div><div class="legend">%s</div>'
+            '<div class="scroll"><table>%s</table></div>'
+            '<p id="why" class="why">Hover or click a finding for what it is and why.</p>'
+            '<div class="legend">%s</div>'
             % ("".join(rows), legend))
 
 

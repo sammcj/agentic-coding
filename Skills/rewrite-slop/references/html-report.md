@@ -33,6 +33,8 @@ The findings list is one list on purpose. Long paragraphs, prose tables, hard-wr
 
 Clicking a term keeps it selected and fades the rest, so a term in the list can be found in the text and a bad passage traced back to its term. Clicking a block scrolls the document to it.
 
+Every finding carries one line on what it is and why it is worth changing, shown on hover over a mark or a row and held in the caption under the list while something is selected. The text lives in `WHY` in `render_report.py`; a new rule wants an entry there, or it reaches the page as a bare rule name.
+
 Four kinds of mark in the document, because not every finding is a word:
 
 - Flagged spans underlined and shaded by severity.

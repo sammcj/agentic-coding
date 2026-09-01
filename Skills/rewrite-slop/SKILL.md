@@ -233,7 +233,7 @@ Some patterns are commonly mistaken for AI tells but appear in genuine human wri
 - Letter salutations and valedictions in actual letters
 - Unsourced claims (many legitimate documents have unsourced claims)
 
-Em dashes, en dashes, and smart quotes are NOT exceptions to this. They are always removed regardless of context or apparent intent.
+Em dashes, en dashes, and smart quotes are always removed, regardless of context or apparent intent.
 
 ## Phase 3: Rewrite
 

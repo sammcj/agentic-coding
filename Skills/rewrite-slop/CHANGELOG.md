@@ -53,6 +53,16 @@ Rebuilt the detection around two empirical sources, louisabraham.github.io/load-
 - Borrowed from louisabraham.github.io/load-bearing: the ruled compartments, click-to-hold selection, one grey ramp with a single accent, light only. None of its analysis carries over, since a single document has no time axis.
 - `register()` split into `register_stats()` plus formatting, and `scan()` into a projection of `scan_spans()`, so the page reads the same measurement rather than a second implementation of it.
 
+**Negation-antithesis, widened**
+
+- Caught 6 of 17 phrasings of "it's not X, it's Y". Now 36 of 36 across a test set, with no false positive on the skill's own prose or a 776-line sample. What makes it decidable is not the negation, which ordinary prose is full of, but the positive re-assertion after it: a pronoun and copula echoing the clause just denied, a preposition that repeats, or the same verb with the same subject.
+- Three discriminators, each from a real false positive. The denied half carries no conjunction, so "not among them, and stays a separate file. It is..." is two statements rather than a denial and its replacement. A bare preposition after the negation means place or relation, not identity, unless it repeats: "not among them" continues, "not about speed, it's about clarity" is the figure. And `but` needs its own marker, because a bare "not X, but Y" cannot be told from ordinary contrast without knowing whether a finite verb follows it: "not the count, but the trend" and "not warm, but the test still passes" are the same shape to a regex. Only the marked forms are matched: the adverb, the repeated subordinator, `rather`, `so much as`.
+- SKILL.md used the figure itself, in the line banning dashes.
+
+**Findings carry their reason**
+
+- One line per rule saying what it caught and why it is worth changing, on hover over a mark or a row, and in a caption under the list that holds while a finding is selected. A rule name alone left the reader to guess whether a hit was a typographic artefact or a habit of thought.
+
 **Block findings, after a 776-line report the page had little to say about**
 
 - `wide-table-cell` reported once per row: a real document produced 135 identical entries and drowned everything else. Now one `wide-table` finding per table, with the count of prose cells. That document went from 143 findings to 22.
