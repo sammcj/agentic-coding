@@ -4,6 +4,8 @@ description: >
   A pattern for adding a self-narrating (typed out) guided walkthrough to any HTML/web application.
   Use this skill whenever the user wants to add a guided demo, auto-narration, self-running presentation,
   or step-by-step tour to an HTML page, web app, prototype, HTML slide deck, dashboard, or data story.
+disable-model-invocation: true
+argument-hint: "Thing you want to add a demo to"
 ---
 
 # Guided Demo Pattern

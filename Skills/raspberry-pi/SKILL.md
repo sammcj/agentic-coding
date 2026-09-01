@@ -3,6 +3,8 @@ name: raspberry-pi-pico2
 description: >
   Use when developing with Raspberry Pi Pico 2 or the Pi Debug Probe.
 allowed-tools: Bash Read Write Edit Grep Glob Agent
+disable-model-invocation: true
+argument-hint: "Thing you want to do"
 ---
 
 # Raspberry Pi Pico 2 and Debug Probe

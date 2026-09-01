@@ -1,6 +1,8 @@
 ---
 name: home-assistant
 description: This skill should be used when helping with Home Assistant setup, including creating automations, modifying dashboards, checking entity states, debugging automations, and managing the smart home configuration. Use this for queries about HA entities, YAML automation/dashboard generation, or troubleshooting HA issues.
+argument-hint: "Thing you want to do"
+disable-model-invocation: true
 ---
 
 # Home Assistant Helper

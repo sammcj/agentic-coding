@@ -1,6 +1,8 @@
 ---
 name: excalidraw-diagrams
 description: Use when asked to create or update Excalidraw diagrams. Provides guidance on Excalidraw best practices.
+disable-model-invocation: true
+argument-hint: "Thing you want to do"
 ---
 
 # Creating Excalidraw Diagrams

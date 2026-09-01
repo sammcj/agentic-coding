@@ -178,6 +178,8 @@
       "Skill"
     ],
     "deny": [
+      "NotebookEdit",
+      "PowerShell",
       "Bash(/usr/bin/sudo *)",
       "Bash(//usr/bin/sudo *)",
       "Bash(/usr/libexec/security_authtrampoline *)",

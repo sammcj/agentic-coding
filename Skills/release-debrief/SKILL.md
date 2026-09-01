@@ -18,7 +18,8 @@ allowed-tools: >-
   Bash(open *)
 metadata:
   author: 'Sam McLeod (adapted from Arjen Schwarz)'
-disable-model-invocation: false
+disable-model-invocation: true
+argument-hint: "What's been the latest changes in llama.cpp since we last checked? Give me a debrief"
 ---
 
 # Release Notes Catch-Up
