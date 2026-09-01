@@ -10,6 +10,7 @@ Run: python3 -m unittest discover -s tests -v
 """
 
 import contextlib
+import html
 import importlib.util
 import io
 import re
@@ -25,16 +26,14 @@ sys.path.insert(0, str(SCRIPTS))
 
 import render_report as rr  # noqa: E402  # pyright: ignore[reportMissingImports]
 import validate_skill as vs  # noqa: E402  # pyright: ignore[reportMissingImports]
-
 from test_validate_skill import build_skill  # noqa: E402  # pyright: ignore[reportMissingImports]
 
-# The real void set only. The page's bars, ticks and gauge markers are <i>, <b>,
-# <s>, <u> and <em>, which do carry end tags, so exempting them would let an
-# unclosed one through the balance check unseen.
+# The real void set only. The page's bars, ticks and gauge markers are <i>, <b>, <s>, <u> and <em>, which do carry end
+# tags, so exempting them would let an unclosed one through the balance check unseen.
 VOID = {"meta", "br", "hr", "img", "link", "input"}
 
-# A paragraph past BLOB_WORDS, wrapped over several source lines, so the blob it
-# produces spans a line range rather than a single line.
+# A paragraph past BLOB_WORDS, wrapped over several source lines, so the blob it produces spans a line range rather than
+# a single line.
 BLOB = "\n".join(["filler words repeated to clear the blob threshold on purpose"] * 14)
 
 # A fence past CODE_FENCE_LINES, so the code finding also spans a range.
@@ -92,31 +91,32 @@ class MarkCountTests(unittest.TestCase):
         self.assertEqual(len(re.findall(r"<mark ", page)), 3)
 
     def test_a_term_inside_inline_code_is_not_marked(self):
-        # _filler blanks inline code before matching, so a page that re-located
-        # terms by searching the raw line would flag an identifier as a no-op.
+        # _filler blanks inline code before matching, so a page that re-located terms by searching the raw line would
+        # flag an identifier as a no-op.
         page, skill_dir = self.render("# H\n\nUse `robust` mode and the robust option.\n")
         self.assertEqual(len(vs._filler(skill_dir)), 1)
         self.assertEqual(len(re.findall(r"<mark ", page)), 1)
-        self.assertIn("<mark data-term=\"robust\">robust</mark> option", page)
+        self.assertIn(">robust</mark> option", page)
+        self.assertIn('data-term="robust"', page)
 
     def test_a_sentence_initial_rule_does_not_mark_mid_sentence(self):
-        # The opener rule is anchored to a sentence start; the second occurrence
-        # here is not a finding and must not be marked.
+        # The opener rule is anchored to a sentence start; the second occurrence here is not a finding and must not be
+        # marked.
         page, skill_dir = self.render("# H\n\nAdditionally we go. We additionally note.\n")
         self.assertEqual(len(vs._filler(skill_dir)), 1)
         self.assertEqual(len(re.findall(r"<mark ", page)), 1)
 
     def test_mark_spans_the_matched_text_exactly(self):
         page, _ = self.render("# H\n\nIt is a comprehensive plan.\n")
-        self.assertIn('<mark data-term="comprehensive">comprehensive</mark> plan.', page)
+        self.assertIn("It is a <mark ", page)
+        self.assertIn(">comprehensive</mark> plan.", page)
 
     def test_overlapping_rules_share_one_mark_carrying_both_terms(self):
-        # "robust" sits inside the negation-antithesis span. Both are findings and
-        # both get a frequency row, so both must resolve to a mark - a row with
-        # nothing to highlight fades the whole document and selects nothing.
+        # "robust" sits inside the negation-antithesis span. Both are findings and both get a frequency row, so both
+        # must resolve to a mark - a row with nothing to highlight fades the whole document and selects nothing.
         page, skill_dir = self.render("# H\n\nIt is not just robust but fast.\n")
         self.assertEqual(len(vs._filler(skill_dir)), 2)
-        marks = re.findall(r'<mark data-term="([^"]+)"', page)
+        marks = re.findall(r'<mark [^>]*data-term="([^"]+)"', page)
         self.assertEqual(len(marks), 1)
         rows = re.findall(r'<tr class="pick" data-term="([^"]+)"', page)
         for term in rows:
@@ -124,15 +124,15 @@ class MarkCountTests(unittest.TestCase):
 
     def test_a_term_is_marked_and_ranked_under_the_same_key(self):
         page, _ = self.render("# H\n\nA comprehensive line.\n")
-        marked = re.search(r'<mark data-term="([^"]+)"', page)
+        marked = re.search(r'<mark [^>]*data-term="([^"]+)"', page)
         assert marked is not None
         self.assertIn('<tr class="pick" data-term="%s"' % marked.group(1), page)
 
     def test_clean_skill_says_so_and_keeps_the_search_box(self):
-        # The page's JS binds unconditionally to #find; dropping the element on a
-        # clean skill would break every other interaction on the page.
+        # The page's JS binds unconditionally to #find; dropping the element on a clean skill would break every other
+        # interaction on the page.
         page, _ = self.render("# H\n\nA plain line of body text.\n")
-        self.assertIn("No lexical no-ops found.", page)
+        self.assertIn("No lexical no-ops or bold abuse found.", page)
         self.assertIn('id="find"', page)
 
 
@@ -221,9 +221,8 @@ class BudgetCellTests(unittest.TestCase):
         self.assertIn("Within the declared max-load-tokens 20000.", page)
 
     def test_a_justified_ceiling_is_not_painted_as_a_failure(self):
-        # The validator passes a skill inside a justified ceiling, so the band
-        # must not contradict the note sitting under it. The body is sized to rate
-        # OK on its own, or the assertion would hold without the fix.
+        # The validator passes a skill inside a justified ceiling, so the band must not contradict the note sitting
+        # under it. The body is sized to rate OK on its own, or the assertion would hold without the fix.
         page = self.render(
             "# H\n\n" + "word " * 9000 + "\n",
             metadata="metadata:\n  skill-lint:\n    max-load-tokens: 20000 # fixture\n",
@@ -248,7 +247,19 @@ class BudgetCellTests(unittest.TestCase):
         skill_dir = build_skill(Path(tmp.name), "# H\n\nSee references/extra.md.\n")
         (skill_dir / "references" / "extra.md").write_text("# Extra\n", encoding="utf-8")
         page = rr.render(skill_dir)
-        self.assertEqual(len(re.findall(r'<div class="bar">', page)), 2)
+        self.assertEqual(len(re.findall(r'<div class="bar', page)), 2)
+
+    def test_the_largest_file_is_the_one_marked_as_leading(self):
+        # `.bar:first-of-type` matched the band div above these rows and reached no bar at all, so the accent never
+        # rendered.
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        skill_dir = build_skill(Path(tmp.name), "# H\n\nSee references/extra.md.\n" + "word " * 400)
+        (skill_dir / "references" / "extra.md").write_text("# Extra\n", encoding="utf-8")
+        page = rr.render(skill_dir)
+        lead = re.search(r'<div class="bar lead"><u>([^<]+)</u>', page)
+        self.assertIsNotNone(lead)
+        self.assertEqual(lead.group(1), "SKILL.md")  # pyright: ignore
 
 
 class SpecCellTests(unittest.TestCase):
@@ -261,8 +272,8 @@ class SpecCellTests(unittest.TestCase):
         self.assertIn("uv run", page)
 
     def test_lint_exiting_degrades_the_cell_instead_of_killing_the_render(self):
-        # lint() calls sys.exit on a missing or partial skills-ref. Catching the
-        # exit, rather than probing for the import, is what keeps the page alive.
+        # lint() calls sys.exit on a missing or partial skills-ref. Catching the exit, rather than probing for the
+        # import, is what keeps the page alive.
         def explode(_skill_dir):
             print("Error: dependencies not found. Run this script with uv:")
             raise SystemExit(1)
@@ -270,16 +281,15 @@ class SpecCellTests(unittest.TestCase):
         original, vs.lint = vs.lint, explode
         self.addCleanup(lambda: setattr(vs, "lint", original))
         leaked = io.StringIO()
-        with tempfile.TemporaryDirectory() as tmp:
-            with contextlib.redirect_stdout(leaked):
-                page = rr.render(build_skill(Path(tmp), "# H\n\nShort.\n"))
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(leaked):
+            page = rr.render(build_skill(Path(tmp), "# H\n\nShort.\n"))
         self.assertIn("skills-ref is not installed", page)
         # The CLI's stdout is the report path alone, so lint's hint stays swallowed.
         self.assertEqual(leaked.getvalue(), "")
 
     def test_a_partial_skills_ref_degrades_rather_than_killing_the_render(self):
-        # A present-but-incomplete skills-ref raises ImportError, not
-        # ModuleNotFoundError, so it escapes lint()'s own handler.
+        # A present-but-incomplete skills-ref raises ImportError, not ModuleNotFoundError, so it escapes lint()'s own
+        # handler.
         def partial(_skill_dir):
             raise ImportError("cannot import name 'validator' from 'skills_ref'")
 
@@ -300,7 +310,7 @@ class CompareCellTests(unittest.TestCase):
     def pairs(self, page):
         """{label: (before, after)} from the before-and-after cell."""
         found = {}
-        for block in re.findall(r'<div class="pair">.*?(?=<div class="pair">|$)', page, re.S):
+        for block in re.findall(r'<div class="pair">.*?(?=<div class="pair">|$)', page, re.DOTALL):
             label = re.search(r"<u>([^<]+)</u>", block)
             was = re.search(r"<em>(\d+)[^<]* before</em>", block)
             now = re.search(r"<em>(\d+)[^<]* after", block)
@@ -309,8 +319,8 @@ class CompareCellTests(unittest.TestCase):
         return found
 
     def test_against_reports_the_baseline_before_and_the_subject_after(self):
-        # Asserting the direction, not just the cell's presence: swapping was/now
-        # would leave every string on the page intact.
+        # Asserting the direction, not just the cell's presence: swapping was/now would leave every string on the page
+        # intact.
         with tempfile.TemporaryDirectory() as tmp:
             before = build_skill(Path(tmp), "# H\n\n" + BLOB + "\n\nrobust.\n", name="before")
             after = build_skill(Path(tmp), "# H\n\nShort.\n", name="after")
@@ -324,6 +334,204 @@ class CompareCellTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             page = rr.render(build_skill(Path(tmp), "# H\n\nShort.\n"))
         self.assertNotIn("Before and after", page)
+
+
+class BriefTests(unittest.TestCase):
+    """The copied brief is the page's findings as text, for pasting into another
+    agent. It must agree with the page and stay small enough to be worth pasting."""
+
+    def brief_of(self, body, metadata=""):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        page = rr.render(build_skill(Path(tmp.name), body, metadata=metadata))
+        found = re.search(r'<pre id="brief" hidden>(.*?)</pre>', page, re.DOTALL)
+        self.assertIsNotNone(found)
+        return html.unescape(found.group(1)), page  # pyright: ignore
+
+    def test_brief_opens_by_telling_the_agent_what_to_do(self):
+        text, _ = self.brief_of("# H\n\nA comprehensive plan.\n")
+        self.assertTrue(text.startswith("Skill report for fixture."))
+        self.assertIn("Load the skill-creator-primer skill", text)
+        self.assertIn("Cut words, not behaviour", text)
+
+    def test_every_finding_kind_carries_its_reason(self):
+        text, _ = self.brief_of("# H\n\n" + BLOB + "\n\n" + FENCE + "\n\nA robust plan.\n")
+        for rule in ("blob", "code", "puffery"):
+            self.assertIn(rule, text)
+            self.assertIn(rr.WHY[rule], text)
+
+    def test_one_rule_is_one_line_however_often_it_fired(self):
+        text, _ = self.brief_of("# H\n\nrobust and robust and comprehensive.\n")
+        self.assertEqual(len(re.findall(r"^- puffery,", text, re.MULTILINE)), 1)
+        self.assertIn("puffery, 3 uses", text)
+
+    def test_brief_counts_agree_with_the_page(self):
+        body = "# H\n\n" + BLOB + "\n\nA robust plan.\n"
+        text, page = self.brief_of(body)
+        rows = len(re.findall(r'<tr class="pick"', page))
+        listed = len(re.findall(r"^- ", text, re.MULTILINE))
+        self.assertEqual(rows, 2)  # one blob, one term
+        self.assertEqual(listed, 2)
+
+    def test_examples_are_capped_per_rule(self):
+        fences = "\n\n".join(FENCE for _ in range(rr.BRIEF_EXAMPLES + 3))
+        text, _ = self.brief_of("# H\n\n" + fences + "\n")
+        line = next(x for x in text.splitlines() if x.startswith("- code,"))
+        self.assertIn("code, %d code blocks" % (rr.BRIEF_EXAMPLES + 3), line)
+        self.assertEqual(line.count("SKILL.md:"), rr.BRIEF_EXAMPLES)
+
+    def test_budget_cure_appears_only_when_over(self):
+        over, _ = self.brief_of("# H\n\n" + "word " * 40000 + "\n")
+        self.assertIn(rr.WHY["load"], over)
+        under, _ = self.brief_of("# H\n\nShort.\n")
+        self.assertNotIn(rr.WHY["load"], under)
+
+    def test_a_justified_ceiling_is_stated_instead_of_the_cure(self):
+        text, _ = self.brief_of(
+            "# H\n\n" + "word " * 9000 + "\n",
+            metadata="metadata:\n  skill-lint:\n    max-load-tokens: 20000 # fixture\n",
+        )
+        self.assertIn("Within the declared max-load-tokens 20000.", text)
+        self.assertNotIn(rr.WHY["load"], text)
+
+    def test_a_clean_skill_says_so(self):
+        text, _ = self.brief_of("# H\n\nA plain line of body text.\n")
+        self.assertIn("Nothing else flagged.", text)
+
+    def test_brief_is_escaped_into_the_page(self):
+        _, page = self.brief_of("# H\n\nUse <script>alert(1)</script> robustly.\n")
+        stash = re.search(r'<pre id="brief" hidden>(.*?)</pre>', page, re.DOTALL)
+        self.assertNotIn("<script>", stash.group(1))  # pyright: ignore
+
+    def test_the_copy_button_and_its_source_are_both_present(self):
+        _, page = self.brief_of("# H\n\nShort.\n")
+        self.assertIn('<button id="copy"', page)
+        self.assertIn('<pre id="brief" hidden>', page)
+        # The fallback path needs execCommand when file:// is not a secure context.
+        self.assertIn("navigator.clipboard", page)
+        self.assertIn("execCommand", page)
+
+
+class WhyCaptionTests(unittest.TestCase):
+    def render(self, body):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return rr.render(build_skill(Path(tmp.name), body))
+
+    def test_every_rule_the_renderer_reports_has_a_reason(self):
+        for _category, _pattern in vs._FILLER_RULES:
+            self.assertIn(_category, rr.WHY, f"no WHY entry for {_category}")
+        for rule in ("blob", "code", "load", "spec-error", "spec-warning",
+                     "bold-emphasis"):
+            self.assertIn(rule, rr.WHY)
+
+    def test_marks_in_the_document_carry_their_reason(self):
+        # Clicking a highlighted word has to answer why it is flagged; the mark carried a term but no reason, so the
+        # caption fell back to idle.
+        page = self.render("# H\n\nA comprehensive plan.\n")
+        mark = re.search(r'<mark [^>]*data-term="[^"]*" data-why="([^"]+)"', page)
+        self.assertIsNotNone(mark)
+        self.assertEqual(html.unescape(mark.group(1)), rr.WHY["puffery"])  # pyright: ignore
+
+    def test_a_shared_mark_carries_both_reasons(self):
+        page = self.render("# H\n\nIt is not just robust but fast.\n")
+        mark = re.search(r'<mark [^>]*data-term="[^"]*" data-why="([^"]+)"', page)
+        why = html.unescape(mark.group(1))  # pyright: ignore
+        self.assertIn(rr.WHY["negation-antithesis"], why)
+        self.assertIn(rr.WHY["puffery"], why)
+
+    def test_rows_carry_their_reason(self):
+        page = self.render("# H\n\n" + BLOB + "\n\nA robust plan.\n")
+        self.assertIn('data-why="%s"' % rr.WHY["blob"].replace("'", "&#x27;"), page)
+        self.assertIn("puffery", page)
+        self.assertIn('<p id="why" class="why">', page)
+
+    def test_the_copy_button_sits_in_the_footer(self):
+        # It belongs on the footer rule beside the date, not over the stat strip:
+        # the brief is what you leave with, so it reads at the end of the page.
+        page = self.render("# H\n\nA robust plan.\n")
+        footer = page.split("<footer>")[1].split("</footer>")[0]
+        self.assertIn('id="copy"', footer)
+        self.assertNotIn('id="copy"', page.split("</header>")[0])
+
+    def test_the_caption_survives_a_clean_skill(self):
+        # The JS binds to #why unconditionally; dropping it would break the page.
+        page = self.render("# H\n\nA plain line of body text.\n")
+        self.assertIn('id="why"', page)
+
+
+class BoldReportTests(unittest.TestCase):
+    """Bold reaches the page as one row and many marks. The row is the finding;
+    the marks are the only way to see the density the row names."""
+
+    BODY = ("# H\n\n"
+            + "\n\n".join("Line %d carries **phrase %d** mid-sentence." % (n, n)
+                          for n in range(vs.BOLD_LEAST))
+            + "\n\n- **Lead.** An exempt bullet lead.\n\n" + "word " * 700 + "\n")
+
+    def render(self, body: str) -> tuple[str, Path]:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        skill_dir = build_skill(Path(tmp.name), body)
+        return rr.render(skill_dir), skill_dir
+
+    def test_every_counted_span_is_marked_and_nothing_else_is(self):
+        page, skill_dir = self.render(self.BODY)
+        stats = vs._bold(skill_dir)
+        assert stats is not None
+        self.assertEqual(len(re.findall(r'<mark class="em"', page)), stats["total"])
+
+    def test_the_exempt_bullet_lead_is_not_marked(self):
+        # The page marks the spans the scan handed it, so an exemption the detector applied cannot come back on the
+        # page.
+        page, _ = self.render(self.BODY)
+        self.assertIn("- **Lead.** An exempt bullet lead.", page)
+        self.assertNotIn('<mark class="em" data-term="bold-emphasis" data-why="'
+                         '%s" title="%s">**Lead.**'
+                         % (rr.WHY["bold-emphasis"], rr.WHY["bold-emphasis"]), page)
+
+    def test_the_row_and_the_marks_share_one_selection_key(self):
+        page, _ = self.render(self.BODY)
+        self.assertIn('<tr class="pick em" data-term="bold-emphasis"', page)
+        self.assertIn('<mark class="em" data-term="bold-emphasis"', page)
+
+    def test_the_row_names_the_band_and_the_thresholds(self):
+        page, _ = self.render(self.BODY)
+        self.assertIn("SLOPPY: ", page)
+        self.assertIn("abused at %.0f" % vs.BOLD_ABUSED, page)
+
+    def test_a_no_op_inside_a_bold_shares_one_mark_carrying_both_keys(self):
+        # Nesting a mark inside a mark cannot be closed by the single pass, and a row with no mark to reach fades the
+        # document and selects nothing.
+        body = self.BODY.replace("**phrase 0**", "**a comprehensive phrase**")
+        page, _ = self.render(body)
+        marks = re.findall(r'<mark [^>]*data-term="([^"]+)"[^>]*>\*\*a comprehensive', page)
+        self.assertEqual(len(marks), 1)
+        self.assertIn("bold-emphasis", marks[0].split("|"))
+        self.assertIn("comprehensive", marks[0].split("|"))
+
+    def test_a_shared_mark_spans_both_findings(self):
+        # Here the bold opens first and the no-op runs past it. Merging without extending the end cut the mark off at
+        # the closing asterisks, so the rest of the flagged phrase lost its highlight.
+        body = self.BODY.replace("Line 0 carries **phrase 0** mid-sentence.",
+                                 "It is **not just robust** but fast.")
+        page, _ = self.render(body)
+        mark = re.search(r'<mark [^>]*data-term="[^"]*"[^>]*>([^<]+)</mark>', page)
+        assert mark is not None
+        self.assertEqual(html.unescape(mark.group(1)), "**not just robust** but")
+
+    def test_the_brief_carries_the_band_not_just_the_count(self):
+        page, _ = self.render(self.BODY)
+        brief = html.unescape(re.search(r'<pre id="brief" hidden>(.*?)</pre>',
+                                        page, re.DOTALL).group(1))  # pyright: ignore
+        self.assertIn("bold-emphasis", brief)
+        self.assertIn("SLOPPY", brief)
+        self.assertIn(rr.WHY["bold-emphasis"], brief)
+
+    def test_a_clean_skill_shows_no_bold_row(self):
+        page, _ = self.render("# H\n\nA plain line of body text.\n")
+        self.assertNotIn("bold-emphasis", page.split("<style>")[0]
+                         + page.split("</style>")[-1])
 
 
 class CommandLineTests(unittest.TestCase):

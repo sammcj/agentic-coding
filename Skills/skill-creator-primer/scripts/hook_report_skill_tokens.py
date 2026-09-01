@@ -16,8 +16,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Housekeeping files never load as skill content (mirrors the validator's
-# IGNORED_MD_BASENAMES); edits to them don't change the budget.
+# Housekeeping files never load as skill content (mirrors the validator's IGNORED_MD_BASENAMES); edits to them don't
+# change the budget.
 IGNORED_MD_BASENAMES = {"changelog.md", "contributing.md", "claude.md", "agents.md", "readme.md"}
 
 
@@ -41,9 +41,8 @@ def main() -> None:
     report = (result.stdout or "").strip()
     if report:
         context = f"Skill token budget after edit:\n{report}"
-        # The documented shape is the nested hookSpecificOutput.additionalContext;
-        # the top-level key is belt-and-braces for versions that read it there.
-        # Keep both - extras are ignored, and one of them will land.
+        # The documented shape is the nested hookSpecificOutput.additionalContext; the top-level key is belt-and-braces
+        # for versions that read it there. Keep both - extras are ignored, and one of them will land.
         print(
             json.dumps(
                 {
@@ -61,6 +60,6 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as exc:
-        # Never fail the edit over a reporting problem, but leave a trace so a
-        # validator regression doesn't silently disable the report.
+        # Never fail the edit over a reporting problem, but leave a trace so a validator regression doesn't silently
+        # disable the report.
         print(f"hook_report_skill_tokens: {exc}", file=sys.stderr)

@@ -44,11 +44,11 @@ pool measured 50% slower.
 import argparse
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
-# yaml is only needed for the spec checks (lint); the token/structure reports
-# are stdlib-only so --report-only runs with plain python3 (the post-edit hook
-# relies on this). The missing-dep error is raised where lint needs it.
+# yaml is only needed for the spec checks (lint); the token/structure reports are stdlib-only so --report-only runs with
+# plain python3 (the post-edit hook relies on this). The missing-dep error is raised where lint needs it.
 try:
     import yaml
 except ModuleNotFoundError:
@@ -56,12 +56,11 @@ except ModuleNotFoundError:
 
 _FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
 
-# Description word-count rule from the primer's Skill Description Checklist:
-# soft ceiling 55 words, hard cap 65. Descriptions share the agent's always-loaded
-# token budget with every other skill, so length is policed mechanically here
-# rather than by eyeballing. The bounds are ceilings only - a stated aim reads as
-# a quota and gets padded up to, so the messages never name a target. MIN is set
-# low enough to catch a description with no triggers in it, not to demand length.
+# Description word-count rule from the primer's Skill Description Checklist: soft ceiling 55 words, hard cap 65.
+# Descriptions share the agent's always-loaded token budget with every other skill, so length is policed mechanically
+# here rather than by eyeballing. The bounds are ceilings only - a stated aim reads as a quota and gets padded up to, so
+# the messages never name a target. MIN is set low enough to catch a description with no triggers in it, not to demand
+# length.
 DESCRIPTION_WORDS_MIN = 15
 DESCRIPTION_WORDS_WARN = 55
 DESCRIPTION_WORDS_FAIL = 65
@@ -78,37 +77,35 @@ def description_findings(description: str) -> tuple[list[str], list[str]]:
     lint() so the wording is testable without skills-ref installed."""
     words = description_word_count(description)
     if words > DESCRIPTION_WORDS_FAIL:
-        return [
-            f"Description is {words} words; the checklist caps it at "
-            f"{DESCRIPTION_WORDS_FAIL} - cut a trigger branch rather than trimming to the cap"
-        ], []
+        return [(
+            f"Description is {words} words; the checklist caps it at {DESCRIPTION_WORDS_FAIL} "
+            "- cut a trigger branch rather than trimming to the cap"
+        )], []
     if words > DESCRIPTION_WORDS_WARN:
-        return [], [
+        return [], [(
             f"Description is {words} words; over the {DESCRIPTION_WORDS_WARN}-word ceiling "
             f"(hard cap {DESCRIPTION_WORDS_FAIL}) - cut a trigger branch or synonym padding"
-        ]
+        )]
     if 0 < words < DESCRIPTION_WORDS_MIN:
-        return [], [
+        return [], [(
             f"Description is {words} words - check each distinct branch has a trigger, "
             "rather than padding the wording"
-        ]
+        )]
     return [], []
 
-# Token-budget estimate. The chars/N heuristic is a dependency-free stand-in for a
-# real tokeniser; N is calibrated against tiktoken's o200k_base BPE (a reproducible
-# proxy for Claude's unpublished tokeniser), measured at ~4.12 chars/token over ~60
-# sampled skills. This is the single calibration source: toolkit's corpus checks
-# import estimate_tokens from here rather than keeping their own. Pass --tiktoken to
-# count with the real tokeniser instead (needs tiktoken: run via `uv run --with tiktoken`).
+# Token-budget estimate. The chars/N heuristic is a dependency-free stand-in for a real tokeniser; N is calibrated
+# against tiktoken's o200k_base BPE (a reproducible proxy for Claude's unpublished tokeniser), measured at ~4.12
+# chars/token over ~60 sampled skills. This is the single calibration source: toolkit's corpus checks import
+# estimate_tokens from here rather than keeping their own. Pass --tiktoken to count with the real tokeniser instead
+# (needs tiktoken: run via `uv run --with tiktoken`).
 CHARS_PER_TOKEN = 4.12
 TIKTOKEN_ENCODING = "o200k_base"
 _TOKEN_RATINGS = ((5_000, "Great"), (9_000, "Good"), (12_000, "OK"))
 _MD_REF = re.compile(r"[\w./-]+\.md")
 
-# Fence handling follows CommonMark: an opener is 3+ backticks or tildes (info
-# string allowed), the closer is the same character, at least as long, alone on
-# its line. Matching opener to closer stops ``` examples inside a ````/~~~
-# fence from toggling state.
+# Fence handling follows CommonMark: an opener is 3+ backticks or tildes (info string allowed), the closer is the same
+# character, at least as long, alone on its line. Matching opener to closer stops ``` examples inside a ````/~~~ fence
+# from toggling state.
 _FENCE_OPEN = re.compile(r"^(`{3,}|~{3,})")
 
 
@@ -122,9 +119,8 @@ def _fence_close(stripped: str, marker: str) -> bool:
     """True if this stripped line closes a fence opened with `marker`."""
     return stripped.startswith(marker) and stripped == stripped[:1] * len(stripped)
 
-# Repo housekeeping files are never loaded as skill content, so prose mentions of
-# them (e.g. a "DO NOT create README.md, CHANGELOG.md..." list) must not drag them
-# into the token count. Matched on basename, case-insensitively.
+# Repo housekeeping files are never loaded as skill content, so prose mentions of them (e.g. a "DO NOT create README.md,
+# CHANGELOG.md..." list) must not drag them into the token count. Matched on basename, case-insensitively.
 IGNORED_MD_BASENAMES = {"changelog.md", "contributing.md", "claude.md", "agents.md", "readme.md"}
 
 
@@ -162,11 +158,9 @@ def referenced_md_files(skill_dir: Path) -> list[Path]:
                     continue
                 hits = [c for base in (skill_dir, current.parent) if (c := (base / ref).resolve()).is_file()]
                 if not hits and "/" not in ref:
-                    # Bare-basename fallback: prose often names a reference without
-                    # its directory ("see api-design.md" with references/ implied).
-                    # The agent would find and load it, so count every match.
-                    # Compared by name, not passed to rglob as a pattern, so glob
-                    # metacharacters in a filename can't break the walk.
+                    # Bare-basename fallback: prose often names a reference without its directory ("see api-design.md"
+                    # with references/ implied). The agent would find and load it, so count every match. Compared by
+                    # name, not passed to rglob as a pattern, so glob metacharacters in a filename can't break the walk.
                     hits = [p.resolve() for p in skill_dir.rglob("*") if p.name == ref and p.is_file()]
                 for candidate in hits:
                     if candidate not in seen:
@@ -236,8 +230,8 @@ def _budget(skill_dir: Path, use_tiktoken: bool = False) -> tuple[list[str], str
         lines = [
             f"Tokens: worst-case load {load} [{rating}] = SKILL.md {main} + largest reference {big_rel} {big_tokens}",
         ]
-        # With one reference the line above already names every file counted, so
-        # a corpus line would only restate it. The count includes SKILL.md.
+        # With one reference the line above already names every file counted, so a corpus line would only restate it.
+        # The count includes SKILL.md.
         if len(refs) > 1:
             lines.append(
                 f"  corpus total {total} across {len(refs) + 1} .md file(s), SKILL.md included ({method})"
@@ -274,60 +268,70 @@ def _budget(skill_dir: Path, use_tiktoken: bool = False) -> tuple[list[str], str
     return lines, rating, advice, driver_is_main, within_budget
 
 
-# Structure measurement: how much of the body is paragraph prose vs structured
-# text (lists, tables, headings, blockquotes). Purely informational - no
-# threshold gate - because prose-shape gates are gameable and legitimate skills
-# differ in how much conceptual prose they need. Surfacing the measurement lets
-# the reviewing agent judge; the hard gate stays on total tokens above.
+# Structure measurement: how much of the body is paragraph prose vs structured text (lists, tables, headings,
+# blockquotes). Purely informational - no threshold gate - because prose-shape gates are gameable and legitimate skills
+# differ in how much conceptual prose they need. Surfacing the measurement lets the reviewing agent judge; the hard gate
+# stays on total tokens above.
 #
-# Blob detection is form-invariant per unit: the unit is any contiguous run of
-# non-fence body text, and each list marker, table row, and blockquote line
-# starts a new unit. Moving a whole unit between a paragraph, a bullet, a quote,
-# or a table cell never changes its size, so no container is an exempt hiding
-# place. Splitting one unit into several smaller ones does clear the threshold -
-# that is a real limit, not a dodge the check catches.
+# Blob detection is form-invariant per unit: the unit is any contiguous run of non-fence body text, and each list
+# marker, table row, and blockquote line starts a new unit. Moving a whole unit between a paragraph, a bullet, a quote,
+# or a table cell never changes its size, so no container is an exempt hiding place. Splitting one unit into several
+# smaller ones does clear the threshold - that is a real limit, not a dodge the check catches.
 _LIST_MARKER = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
 _HEADING = re.compile(r"^#{1,6}\s")
 
-# A text unit this size (~6-8 sentences) is a "blob": prose long enough that
-# instructions are likely buried in it. Calibrated against real skills: the
-# 80-95 band flagged mostly dense-but-earned units, unambiguous waffle started
-# past ~100. Reported as compression targets, never gated - see above.
+# A text unit this size (~6-8 sentences) is a "blob": prose long enough that instructions are likely buried in it.
+# Calibrated against real skills: the 80-95 band flagged mostly dense-but-earned units, unambiguous waffle started past
+# ~100. Reported as compression targets, never gated - see above.
 BLOB_WORDS = 100
-# The agent reading this report is the one fixing the findings, so the list has
-# to be long enough to act on; 20 clears every real skill measured while still
-# capping a pathological file's output.
+# The agent reading this report is the one fixing the findings, so the list has to be long enough to act on; 20 clears
+# every real skill measured while still capping a pathological file's output.
 BLOB_LIST_MAX = 20
 
-# The load rating deliberately trusts references (only the largest one counts),
-# so this is the counterweight: a blob or two in references is normal
-# conceptual prose, three or more signals systemic waffle rather than an
-# outlier, and earns a warning pointing at the compression pass.
+# The load rating deliberately trusts references (only the largest one counts), so this is the counterweight: a blob or
+# two in references is normal conceptual prose, three or more signals systemic waffle rather than an outlier, and earns
+# a warning pointing at the compression pass.
 REF_BLOB_WARN = 3
 
-# Single commands and short examples belong inline; a fenced block past this
-# many lines is script-shaped, and the primer's "Do not add inline scripts
-# within markdown" rule puts scripts in scripts/ (templates in assets/). A
-# signal, not a fact: a long example or template can be legitimate.
+# Single commands and short examples belong inline; a fenced block past this many lines is script-shaped, and the
+# primer's "Do not add inline scripts within markdown" rule puts scripts in scripts/ (templates in assets/). A signal,
+# not a fact: a long example or template can be legitimate.
 CODE_FENCE_LINES = 10
 
-# A standalone sentence or two carries one instruction - structurally a bullet
-# without the marker - so counting it as prose makes a skill of one-line
-# directives read as ~96% prose when it needs no work at all. Only a longer run
-# is the wall of prose the percentage exists to surface.
+# A standalone sentence or two carries one instruction - structurally a bullet without the marker - so counting it as
+# prose makes a skill of one-line directives read as ~96% prose when it needs no work at all. Only a longer run is the
+# wall of prose the percentage exists to surface.
 PROSE_UNIT_MIN = 40
 
-# Escape hatch for a deliberately branchy skill whose branch test keeps nearly
-# everything inline (the primer itself is the case it exists for). Declared as
-# `metadata.skill-lint.max-load-tokens: <int>` in SKILL.md frontmatter and
-# honoured only when a trailing `#` comment justifies the ceiling - an undefended
-# number is how a ceiling becomes a way to dodge the compression pass rather than
-# a considered trade.
+# Bold dropped into a running sentence, which claude.ai's own system prompt asks for outright ("bold key facts for
+# scannability"). Emphasis works by being rare, so this is a rate over the whole load rather than a list of spans to fix
+# one at a time: no single one of them is the defect.
 #
-# Parsed by regex, not PyYAML, so the stdlib-only --report-only path the post-edit
-# hook runs keeps working. The nesting is matched rather than assumed: the key is
-# only honoured under a `skill-lint:` parent, so a same-named key belonging to
-# another tool is ignored instead of silently raising this skill's ceiling.
+# Bold that OPENS its line is a label and is exempt at any volume - a bullet lead ("- **Structure over prose.** ..."),
+# "**Date:** 2026-09-01", a bold line standing in for a heading, a task-list checkbox. That is the shape this primer
+# teaches, and it is what separates the habit from ordinary use.
+BOLD = re.compile(r"\*\*(?!\s)((?:[^*]|\*(?!\*))+?)(?<!\s)\*\*|__(?!\s)([^_]+?)(?<!\s)__")
+# Structure only before the bold: indent, blockquote, list marker, and a task-list checkbox after it, so "- [ ] **Clear
+# audience**:" reads as the bullet lead it is.
+BOLD_OPENS = re.compile(r"[\s>]*(?:(?:[-*+]|\d+[.)])\s*(?:\[[ xX]\]\s*)?)?\s*")
+# Both gates trip before anything is said, as with the blob threshold: a rate per 1000 words, and an absolute count so a
+# short file cannot band on one span. Calibrated over 110 installed skills, where 6.0 flags 4% and 12.0 calls 2% abused,
+# and every skill flagged carried the same shape - arbitrary phrases bolded mid-sentence for scannability, not terms of
+# art. Set at 5.0 first, which caught two more sitting right on the line and read as nagging; the count gate does no
+# work at either setting, since every skill near the threshold carries nine spans or more.
+BOLD_RATE, BOLD_LEAST, BOLD_ABUSED, BOLD_SHORT = 6.0, 6, 12.0, 200
+# Phrases shown, ranked by repetition: one phrase bolded six times is the habit at its plainest, and is what the agent
+# should be shown first.
+BOLD_LIST_MAX = 8
+
+# Escape hatch for a deliberately branchy skill whose branch test keeps nearly everything inline (the primer itself is
+# the case it exists for). Declared as `metadata.skill-lint.max-load-tokens: <int>` in SKILL.md frontmatter and honoured
+# only when a trailing `#` comment justifies the ceiling - an undefended number is how a ceiling becomes a way to dodge
+# the compression pass rather than a considered trade.
+#
+# Parsed by regex, not PyYAML, so the stdlib-only --report-only path the post-edit hook runs keeps working. The nesting
+# is matched rather than assumed: the key is only honoured under a `skill-lint:` parent, so a same-named key belonging
+# to another tool is ignored instead of silently raising this skill's ceiling.
 _SKILL_LINT_BLOCK_RE = re.compile(
     r"^(?P<indent>[ \t]*)skill-lint:[ \t]*(?:#[^\n]*)?\n"
     r"(?P<body>(?:(?P=indent)[ \t]+[^\n]*\n?|[ \t]*\n)*)",
@@ -380,14 +384,17 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
         unit_is_para = False
         unit_open = ""  # first words of the unit, for the report quote
 
+        # B023 below is the point of the closure, not a bug: close() reads the unit being accumulated in the enclosing
+        # loop, and is only ever called from inside the iteration that set it. Binding the values as defaults would
+        # freeze them at the first line of the file.
         def close() -> None:
             """Bank the accumulated unit. Words are attributed per unit, not per
             line, so a wrapped list item lands wholly in structure and a short
             standalone sentence is not mistaken for a wall of prose."""
             nonlocal unit, para_words, struct_words
             if unit:
-                units.append((unit, str(rel), unit_line, unit_end, unit_open))
-                if unit_is_para and unit >= PROSE_UNIT_MIN:
+                units.append((unit, str(rel), unit_line, unit_end, unit_open))  # noqa: B023
+                if unit_is_para and unit >= PROSE_UNIT_MIN:  # noqa: B023
                     para_words += unit
                 else:
                     struct_words += unit
@@ -423,7 +430,7 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
                 close()
                 unit, unit_line, unit_is_para, unit_open = words, lineno, False, stripped
                 unit_end = lineno
-            elif stripped.startswith("|") or stripped.startswith(">"):
+            elif stripped.startswith(("|", ">")):
                 close()
                 unit, unit_line, unit_is_para, unit_open = words, lineno, False, stripped
                 unit_end = lineno
@@ -446,16 +453,14 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
     return pct, skill_blobs, ref_blobs, sorted(long_code, reverse=True)
 
 
-# Lexical no-ops: words and shapes that spend always-loaded tokens without
-# changing what the agent does, so they fail the primer's deletion test on
-# sight. Kept in the script rather than SKILL.md for two reasons: a banned-word
-# list is dead weight in an always-loaded file, and naming unwanted behaviour in
-# prose primes it (the primer's own pink-elephant rule).
+# Lexical no-ops: words and shapes that spend always-loaded tokens without changing what the agent does, so they fail
+# the primer's deletion test on sight. Kept in the script rather than SKILL.md for two reasons: a banned-word list is
+# dead weight in an always-loaded file, and naming unwanted behaviour in prose primes it (the primer's own pink-elephant
+# rule).
 #
-# Detection only, never gated: a skill may legitimately say "robust error
-# handling", and precision matters more than recall for a finding an agent has
-# to read. Terms with a common literal technical sense (critical, reflect,
-# powerful) are deliberately absent.
+# Detection only, never gated: a skill may legitimately say "robust error handling", and precision matters more than
+# recall for a finding an agent has to read. Terms with a common literal technical sense (critical, reflect, powerful)
+# are deliberately absent.
 _FILLER_RULES: list[tuple[str, re.Pattern]] = [
     (
         "opener",
@@ -478,8 +483,8 @@ _FILLER_RULES: list[tuple[str, re.Pattern]] = [
     (
         "filler-verb",
         re.compile(
-            # "harness" only in its verb-with-object shape: a test harness or an
-            # eval harness is the literal noun, and skills name those constantly
+            # "harness" only in its verb-with-object shape: a test harness or an eval harness is the literal noun, and
+            # skills name those constantly
             r"\b(?:delv(?:e|ing)|dive into|leverag(?:e|ing)|harness(?:ing)? the|foster(?:ing)?"
             r"|bolster(?:ing)?|underscor(?:e|ing)|streamlin(?:e|ing)|facilitat(?:e|ing)"
             r"|empower(?:ing)?|showcas(?:e|ing)|garner(?:ing)?)\b",
@@ -497,25 +502,29 @@ _FILLER_RULES: list[tuple[str, re.Pattern]] = [
     ),
 ]
 
-# Findings are grouped one line per distinct term, not one per occurrence: the
-# agent fixes a word everywhere at once, so ten hits on "comprehensive" is one
-# action, not ten. These cap the grouped lines and the locations shown per line.
+# Findings are grouped one line per distinct term, not one per occurrence: the agent fixes a word everywhere at once, so
+# ten hits on "comprehensive" is one action, not ten. These cap the grouped lines and the locations shown per line.
 FILLER_LIST_MAX = 10
 FILLER_LOCATIONS_MAX = 6
 
 _INLINE_CODE = re.compile(r"`[^`\n]*`")
 
 
+def _blank_inline_code(line: str) -> str:
+    """Inline code blanked to equal-length spaces, so a term inside backticks is
+    not matched while every offset into the result still maps onto the raw line."""
+    return _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), line)
+
+
 def _filler_scan(line: str) -> str:
     """The text the filler rules match against: one line stripped, with inline
-    code blanked to equal-length spaces so sentence boundaries either side of a
-    span stay intact and offsets into the result map back onto the line.
+    code blanked, so sentence boundaries either side of a span stay intact.
 
     Shared with anything that needs to place a finding rather than just count it
     - a caller that rebuilt this preprocessing itself would drift silently the
     first time a step is added here.
     """
-    return _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), line.strip())
+    return _blank_inline_code(line.strip())
 
 
 def _filler(skill_dir: Path) -> list[tuple[str, str, int, str]]:
@@ -545,6 +554,81 @@ def _filler(skill_dir: Path) -> list[tuple[str, str, int, str]]:
                 for hit in pattern.finditer(scan):
                     found.append((category, str(rel), lineno, hit.group(0).strip()))
     return found
+
+
+def _bold(skill_dir: Path) -> dict | None:
+    """Mid-sentence bold across a skill's referenced Markdown, or None under the gates.
+
+    Returns the rate per 1000 words, the band, the spans, and the phrases ranked
+    by repetition. Spans are (relative path, 1-based line, start column, end
+    column, phrase) against the raw line, so the HTML report marks the ones this
+    counted rather than searching the text again and finding the exempt ones too.
+
+    Table rows are skipped entirely, matching how _structure already classes them:
+    a `|` row is structured data, and a trailing badge in a cell ("**macOS only**")
+    is labelling rather than emphasis inside a sentence. Counting them flagged
+    reference tables of keybindings and config options - the densest true
+    negatives in the corpus this was calibrated against.
+
+    Words are counted over the same lines the spans come from. A denominator that
+    included fenced code and tables would hide the habit in a script-heavy skill.
+    """
+    spans: list[tuple[str, int, int, int, str]] = []
+    words = 0
+    skill_root = Path(skill_dir).resolve()
+    for path in referenced_md_files(skill_dir):
+        text = path.read_text(encoding="utf-8-sig", errors="ignore")
+        match = _FRONTMATTER_RE.match(text)
+        body = text[match.end():] if match else text
+        first_line = (text[: match.end()].count("\n") + 1) if match else 1
+        rel = path.relative_to(skill_root) if path.is_relative_to(skill_root) else path
+        fence: str | None = None
+        for lineno, line in enumerate(body.splitlines(), start=first_line):
+            stripped = line.strip()
+            if fence is not None:
+                if _fence_close(stripped, fence):
+                    fence = None
+                continue
+            if (opened := _fence_open(stripped)) is not None:
+                fence = opened
+                continue
+            if stripped.startswith("|"):
+                continue
+            scan = _blank_inline_code(line)
+            words += len(scan.split())
+            for hit in BOLD.finditer(scan):
+                if BOLD_OPENS.fullmatch(scan[: hit.start()]):
+                    continue
+                # The phrase is read off the raw line: blanking is length-preserving, so the offsets hold, and the
+                # report shows the backticked identifier rather than the gap left where it was blanked out.
+                inner = hit.span(1) if hit.group(1) is not None else hit.span(2)
+                spans.append((str(rel), lineno, hit.start(), hit.end(),
+                              line[inner[0]:inner[1]].strip()))
+
+    if words < BOLD_SHORT or len(spans) < BOLD_LEAST:
+        return None
+    rate = 1000 * len(spans) / words
+    if rate < BOLD_RATE:
+        return None
+    return {
+        "rate": rate,
+        "total": len(spans),
+        "words": words,
+        "band": "ABUSED" if rate >= BOLD_ABUSED else "SLOPPY",
+        "spans": spans,
+        "where": sorted({(rel, lineno) for rel, lineno, _s, _e, _p in spans}),
+        "worst": Counter(p.lower() for *_at, p in spans).most_common(BOLD_LIST_MAX),
+    }
+
+
+def _bold_listing(stats: dict) -> list[str]:
+    """The bold finding as report lines: the band, then the phrases behind it."""
+    spots = list(dict.fromkeys(f"{rel}:{lineno}" for rel, lineno in stats["where"]))
+    shown = ", ".join(spots[:FILLER_LOCATIONS_MAX])
+    if len(spots) > FILLER_LOCATIONS_MAX:
+        shown += f", +{len(spots) - FILLER_LOCATIONS_MAX} more"
+    phrases = ", ".join(f'"{w}" x{n}' if n > 1 else f'"{w}"' for w, n in stats["worst"])
+    return [f"    {shown}", f"    bolded: {phrases}"]
 
 
 def _filler_listing(group: list[tuple[str, str, int, str]]) -> list[str]:
@@ -587,10 +671,11 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
     budget_lines, rating, advice, driver_is_main, within_budget = _budget(skill_dir, use_tiktoken)
     pct, skill_blobs, ref_blobs, long_code = _structure(skill_dir)
     filler = _filler(skill_dir)
+    emphasis = _bold(skill_dir)
 
     facts: list[str] = []
-    # A reference driving the rating is a branch-loaded cost, so its cure belongs
-    # under SIGNALS - FACTS is labelled always-loaded.
+    # A reference driving the rating is a branch-loaded cost, so its cure belongs under SIGNALS - FACTS is labelled
+    # always-loaded.
     if advice and driver_is_main:
         facts.append(f"  {advice}")
     if skill_blobs:
@@ -619,6 +704,14 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
             f"  Lexical no-ops ({len(filler)}) - cut the word or state the claim plainly:"
         )
         signals.extend(_filler_listing(filler))
+    if emphasis:
+        signals.append(
+            f"  Bold {emphasis['band']} ({emphasis['rate']:.1f} mid-sentence bolds per "
+            f"1000 words, sloppy over {BOLD_RATE:.0f}, abused at {BOLD_ABUSED:.0f}); "
+            f"{emphasis['total']} over {emphasis['words']} words - keep bold for the "
+            "lead of a bullet or a label, and let the sentence carry the rest:"
+        )
+        signals.extend(_bold_listing(emphasis))
 
     out = list(budget_lines)
     if facts:
@@ -636,7 +729,7 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
             "list item, quote, table row); shrink by deleting words, not by reshaping."
         )
     if not facts and not signals:
-        out.append("  No blobs, oversized code blocks, or lexical no-ops found.")
+        out.append("  No blobs, oversized code blocks, lexical no-ops, or bold abuse found.")
     return "\n".join(out), rating, advice, within_budget
 
 
@@ -657,8 +750,8 @@ def parse_frontmatter(text: str) -> dict:
     return data
 
 
-# Claude Code extension fields documented at code.claude.com/docs/en/skills
-# (verified 2026-07). Valid in Claude Code but outside the cross-vendor spec.
+# Claude Code extension fields documented at code.claude.com/docs/en/skills (verified 2026-07). Valid in Claude Code but
+# outside the cross-vendor spec.
 CLAUDE_CODE_FIELDS = {
     "when_to_use",
     "argument-hint",
@@ -675,6 +768,25 @@ CLAUDE_CODE_FIELDS = {
     "hooks",
     "shell",
 }
+
+
+def skill_description(skill_dir: Path) -> str:
+    """The description from SKILL.md frontmatter, or "" if it cannot be read.
+
+    Needs PyYAML, because the field is regularly a folded scalar (`>-`) running to
+    a dozen lines, and a regex reader gets its word count wrong. Reporting no
+    finding beats reporting a wrong one, so every failure returns "".
+    """
+    if yaml is None:
+        return ""
+    path = Path(skill_dir) / "SKILL.md"
+    if not path.is_file():
+        return ""
+    try:
+        metadata = parse_frontmatter(path.read_text(encoding="utf-8-sig", errors="ignore"))
+    except (yaml.YAMLError, ValueError):
+        return ""
+    return str(metadata.get("description") or "")
 
 
 def _load_skills_ref():
@@ -713,9 +825,8 @@ def lint(skill_dir: Path) -> tuple[list[str], list[str]]:
 
     validator, find_skill_md = _load_skills_ref()
 
-    # Agent Skills spec fields (cross-vendor), sourced from skills-ref's own
-    # allowlist so it tracks the reference library: name, description, license,
-    # allowed-tools, metadata, compatibility.
+    # Agent Skills spec fields (cross-vendor), sourced from skills-ref's own allowlist so it tracks the reference
+    # library: name, description, license, allowed-tools, metadata, compatibility.
     spec_fields = set(validator.ALLOWED_FIELDS)
     known_fields = spec_fields | CLAUDE_CODE_FIELDS
 
@@ -728,8 +839,8 @@ def lint(skill_dir: Path) -> tuple[list[str], list[str]]:
     except (yaml.YAMLError, ValueError) as e:
         return [f"Invalid YAML frontmatter: {e}"], []
 
-    # Unknown fields are warnings, not errors: a typo, or a field newer than this
-    # linter. Either way, surface it without failing the build.
+    # Unknown fields are warnings, not errors: a typo, or a field newer than this linter. Either way, surface it without
+    # failing the build.
     warnings = [
         f"Unrecognised frontmatter field '{field}' "
         "(typo, or newer than this linter knows). "
@@ -737,8 +848,8 @@ def lint(skill_dir: Path) -> tuple[list[str], list[str]]:
         for field in sorted(set(metadata) - known_fields)
     ]
 
-    # Run the spec's real checks as hard errors. Strip non-spec fields first so
-    # skills-ref's own allowlist doesn't re-flag the extensions we just allowed.
+    # Run the spec's real checks as hard errors. Strip non-spec fields first so skills-ref's own allowlist doesn't
+    # re-flag the extensions we just allowed.
     spec_metadata = {k: v for k, v in metadata.items() if k in spec_fields}
     errors = validator.validate_metadata(spec_metadata, skill_dir)
 
@@ -761,14 +872,22 @@ def validate_one(
         return [f"Error: no SKILL.md in {skill_dir}"], False
 
     report_text, rating, advice, within_budget = build_report(skill_dir, use_tiktoken=use_tiktoken)
-    # Token-budget gate on the worst-case load (see _budget): "Poor" fails the
-    # build; "OK" warns via the report's FACTS section. A justified
-    # metadata.skill-lint.max-load-tokens the load fits inside clears both. Ratings and cures
-    # live in the primer's "Validating a Skill" and "Failure Modes" sections.
+    # Token-budget gate on the worst-case load (see _budget): "Poor" fails the build; "OK" warns via the report's FACTS
+    # section. A justified metadata.skill-lint.max-load-tokens the load fits inside clears both. Ratings and cures live
+    # in the primer's "Validating a Skill" and "Failure Modes" sections.
     over_budget = rating == "Poor" and not within_budget
 
     if report_only:
-        return [report_text], not over_budget
+        # The description rule is the primer's own, not the spec's, and needs only PyYAML. Routing it solely through
+        # lint() meant the stdlib path the post-edit hook runs never checked it, so a 119-word description passed
+        # unremarked on every edit - the one finding that costs every agent context on every turn.
+        desc_errors, desc_warnings = description_findings(skill_description(skill_dir))
+        out = [f"Warning: {warning}" for warning in desc_warnings]
+        out.append(report_text)
+        if desc_errors:
+            out.append(f"Validation failed ({len(desc_errors)} error(s)):")
+            out.extend(f"  - {error}" for error in desc_errors)
+        return out, not over_budget and not desc_errors
 
     errors, warnings = lint(skill_dir)
     if over_budget:
@@ -808,8 +927,8 @@ def main() -> None:
     args = parser.parse_args()
     skill_dirs = [Path(d) for d in args.skill_directory]
 
-    # Resolve optional dependencies before the first report prints, so a missing
-    # one fails immediately instead of part-way through a batch.
+    # Resolve optional dependencies before the first report prints, so a missing one fails immediately instead of
+    # part-way through a batch.
     if args.tiktoken:
         _tiktoken_encoding()
     if not args.report_only:

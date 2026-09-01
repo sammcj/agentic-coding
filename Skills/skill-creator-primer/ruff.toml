@@ -1,0 +1,21 @@
+# Scripts run under whatever python3 the agent has, and the --report-only path is
+# stdlib only so the post-edit hook keeps working without a dependency install.
+target-version = "py310"
+
+# Wider than Black's 88. Prose in comments is the bulk of what is written here -
+# a threshold is worth nothing without the calibration behind it - and at 88 an
+# explanation ran to six lines where four say it.
+line-length = 120
+
+[lint]
+# Ruff's default (E4, E7, E9, F) plus the rulesets that earn their keep here.
+# E5 is deliberately absent: the filler rules put one detection pattern on one
+# line, and several of those regexes are longer than any limit worth setting.
+select = ["E4", "E7", "E9", "F", "W", "I", "B", "SIM", "UP", "RUF", "C4", "ISC", "PIE", "FURB"]
+
+ignore = [
+    # printf formatting, deliberate. Most of these sites are HTML templates
+    # carrying five or six positional values, where a tuple after the string
+    # keeps the markup readable in one piece.
+    "UP031",
+]

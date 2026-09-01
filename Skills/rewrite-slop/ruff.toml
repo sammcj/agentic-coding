@@ -1,6 +1,12 @@
 # Scripts are standard library only and run under whatever python3 the agent has.
 target-version = "py310"
 
+# Wider than Black's 88. Prose in comments is the bulk of what is written here,
+# and at 88 an explanation ran to six lines where four say it. E501 is still not
+# selected, because the rule tables put one detection rule on one line and some
+# of those regexes are far longer than any limit worth setting.
+line-length = 120
+
 [lint]
 # Ruff's default (E4, E7, E9, F) plus the rulesets that earn their keep here.
 # E5 is deliberately absent: the rule tables put one detection rule on one line,

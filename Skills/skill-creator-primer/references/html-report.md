@@ -23,4 +23,6 @@ Two things are worth one line each, since the page shows them but makes no call 
 - Which finding you would fix first, and why.
 - Anything the page cannot know: a blob that earns its length, a flagged word that is correct in context, a warning that is a false positive.
 
+Mention the Copy brief button once. It puts the findings on the clipboard as text, each with its reason, for pasting into whichever agent is doing the fixing - which is the point of handing over a page rather than a transcript.
+
 Editing the renderer is a separate job from running it; `scripts/render_report.py`'s module docstring carries what constrains a change to it.

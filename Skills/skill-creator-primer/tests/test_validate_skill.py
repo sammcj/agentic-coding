@@ -19,8 +19,8 @@ sys.path.insert(0, str(SCRIPTS))
 
 import validate_skill as vs  # noqa: E402  # pyright: ignore[reportMissingImports]
 
-# Long enough to clear the 30-word description floor the linter enforces, so
-# fixtures exercise the token/structure paths rather than tripping that check.
+# Long enough to clear the 30-word description floor the linter enforces, so fixtures exercise the token/structure paths
+# rather than tripping that check.
 FIXTURE_DESCRIPTION = (
     "Use this skill when exercising the validator against a synthetic fixture "
     "whose body shape is known in advance, covering the token budget bands, the "
@@ -104,8 +104,8 @@ class BlobDetectionTests(unittest.TestCase):
         _, _, long_code = self.blobs(f"# T\n\n```\n{fence}\n")
         self.assertEqual(len(long_code), 1)
 
-    # Findings carry an inclusive line span so a caller rendering the source can
-    # mark the whole unit. The fixture's frontmatter puts the first body line at 6.
+    # Findings carry an inclusive line span so a caller rendering the source can mark the whole unit. The fixture's
+    # frontmatter puts the first body line at 6.
     def test_wrapped_blob_reports_its_first_and_last_line(self):
         body = "# T\n\n" + "\n".join(["ten short words on this line to build the unit up"] * 12)
         skill_blobs, _, _ = self.blobs(body + "\n")
@@ -215,6 +215,99 @@ class FillerDetectionTests(unittest.TestCase):
         self.assertIn("+2 more terms", out[-1])
 
 
+class BoldDetectionTests(unittest.TestCase):
+    """Bold is a rate, and a rate is only worth reporting when both gates trip.
+    The exemptions carry the weight: a bullet lead and a table badge are labels,
+    and flagging them would fire on well-shaped skills and reference tables."""
+
+    def bold(self, body: str):
+        with tempfile.TemporaryDirectory() as tmp:
+            return vs._bold(build_skill(Path(tmp), body))
+
+    def body(self, count: int, padding: int, line: str = "Line %d carries **phrase %d** mid-sentence.") -> str:
+        lines = "\n\n".join(line % (n, n) for n in range(count))
+        return f"# H\n\n{lines}\n\n{words(padding)}\n"
+
+    def test_mid_sentence_bold_over_both_gates_bands_sloppy(self):
+        stats = self.bold(self.body(vs.BOLD_LEAST, 700))
+        assert stats is not None
+        self.assertEqual(stats["total"], vs.BOLD_LEAST)
+        self.assertEqual(stats["band"], "SLOPPY")
+        self.assertLess(stats["rate"], vs.BOLD_ABUSED)
+
+    def test_a_high_enough_rate_bands_abused(self):
+        stats = self.bold(self.body(24, 700))
+        assert stats is not None
+        self.assertGreaterEqual(stats["rate"], vs.BOLD_ABUSED)
+        self.assertEqual(stats["band"], "ABUSED")
+
+    def test_one_span_short_of_the_count_gate_says_nothing(self):
+        # The rate here is far past SLOPPY; the count gate is what keeps a short skill from banding on a handful of
+        # spans.
+        stats = self.bold(self.body(vs.BOLD_LEAST - 1, 210))
+        self.assertIsNone(stats)
+
+    def test_a_short_skill_says_nothing_however_dense(self):
+        stats = self.bold(self.body(vs.BOLD_LEAST + 4, 10))
+        self.assertIsNone(stats)
+
+    def test_a_bullet_lead_is_exempt_at_any_volume(self):
+        body = "# H\n\n" + "\n".join(
+            "- **Lead %d.** The rest of the bullet is plain." % n for n in range(40)
+        ) + f"\n\n{words(700)}\n"
+        self.assertIsNone(self.bold(body))
+
+    def test_a_bold_line_standing_in_for_a_heading_is_exempt(self):
+        body = "# H\n\n" + "\n\n".join("**Section %d**" % n for n in range(40)) + f"\n\n{words(700)}\n"
+        self.assertIsNone(self.bold(body))
+
+    def test_a_table_badge_is_not_emphasis(self):
+        # Reference tables of options and keybindings carry a trailing badge in a cell ("**macOS only**"); counting
+        # those flagged the cleanest skills in the corpus this was calibrated against.
+        rows = "\n".join("| `opt-%d` | Boolean | Does a thing. **macOS only** |" % n
+                         for n in range(40))
+        self.assertIsNone(self.bold(f"# H\n\n| Option | Type | Notes |\n| - | - | - |\n{rows}\n\n{words(700)}\n"))
+
+    def test_bold_inside_a_fence_is_not_counted(self):
+        fence = "```md\n" + "\n".join("text **bold %d** here" % n for n in range(40)) + "\n```"
+        self.assertIsNone(self.bold(f"# H\n\n{fence}\n\n{words(700)}\n"))
+
+    def test_a_span_locates_the_bold_on_the_raw_line(self):
+        # The report marks by these offsets rather than searching the line, so a drift here puts every mark on the wrong
+        # words.
+        stats = self.bold(self.body(vs.BOLD_LEAST, 700))
+        assert stats is not None
+        rel, lineno, start, end, phrase = stats["spans"][0]
+        line = (Path(rel).name and "Line 0 carries **phrase 0** mid-sentence.")
+        self.assertEqual(rel, "SKILL.md")
+        self.assertEqual(line[start:end], "**phrase 0**")
+        self.assertEqual(phrase, "phrase 0")
+        self.assertGreater(lineno, 1)
+
+    def test_the_phrase_is_read_off_the_raw_line_not_the_blanked_one(self):
+        # Inline code is blanked before matching so a term inside backticks is skipped; reading the phrase back out of
+        # the blanked text would report a run of spaces where the identifier was.
+        stats = self.bold(self.body(vs.BOLD_LEAST, 700,
+                                    "Line %d runs **the `--flag` switch %d** mid-sentence."))
+        assert stats is not None
+        self.assertIn("`--flag`", stats["spans"][0][4])
+
+    def test_the_worst_list_ranks_by_repetition(self):
+        body = ("# H\n\n" + "\n\n".join(
+            ["Text carries **repeated** mid-sentence."] * 5
+            + ["Text carries **once** mid-sentence."]) + f"\n\n{words(700)}\n")
+        stats = self.bold(body)
+        assert stats is not None
+        self.assertEqual(stats["worst"][0], ("repeated", 5))
+
+    def test_the_report_names_the_band_and_the_thresholds(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), self.body(vs.BOLD_LEAST, 700))
+            text, _rating, _advice, _within = vs.build_report(skill_dir)
+        self.assertIn("Bold SLOPPY", text)
+        self.assertIn("abused at %.0f" % vs.BOLD_ABUSED, text)
+
+
 class ListingTests(unittest.TestCase):
     def test_listing_truncates_past_the_cap(self):
         group = [(100, "SKILL.md", n, n + 2, "opening words here") for n in range(vs.BLOB_LIST_MAX + 3)]
@@ -242,8 +335,8 @@ class DescriptionLengthTests(unittest.TestCase):
         self.assertEqual(len(warnings), 1)
 
     def test_a_short_two_sentence_description_is_clean(self):
-        # 20 words is a realistic tight description; warning here would be an
-        # instruction to pad, which is what the floor was lowered to stop.
+        # 20 words is a realistic tight description; warning here would be an instruction to pad, which is what the
+        # floor was lowered to stop.
         self.assertEqual(vs.description_findings(words(20)), ([], []))
 
     def test_no_finding_names_a_length_to_aim_for(self):

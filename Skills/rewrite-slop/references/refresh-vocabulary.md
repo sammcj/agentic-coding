@@ -29,7 +29,7 @@ Function words (`every`, `its`, `never`, `rather`, `half`) rank high by volume a
 
 ## Re-checking the bands
 
-`ELEVATED`, `HEAVY`, `LEAST` and `SHORT` in `check_output.py` were set by scoring the source corpus's own descriptions from opposite ends of its range: at the current values, 0.3% of January 2025 descriptions over 200 words flag against 45.2% of August 2026 ones.
+`ELEVATED`, `SLOPPY`, `LEAST` and `SHORT` in `check_output.py` were set by scoring the source corpus's own descriptions from opposite ends of its range: at the current values, 0.3% of January 2025 descriptions over 200 words flag against 45.2% of August 2026 ones.
 
 Re-derive them the same way after any large vocabulary change, using `data/days/*.jsonl` from the clone (one JSON object per line, `body` is the text, and authors ending `[bot]` or `-bot` are excluded from the source's own counts). Check the result against `resources/*.md`, which should stay silent. Two gates matter: a rate alone flags clean short prose with one marker in it, which is why `LEAST` and `SHORT` exist.
 

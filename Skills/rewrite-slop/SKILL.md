@@ -91,7 +91,7 @@ The defining tells of Claude 4.x output. These rarely appear in genuine human pr
 
 Ranked empirically from GitHub pull request descriptions (louisabraham.github.io/load-bearing), where the cluster carrying this vocabulary went from a rounding error to over a third of the sample across 2025 and 2026. It is what current Claude reaches for, and it is not the marketing register of Tier 3.
 
-Every word here is ordinary English, so no single use is wrong and none of these groups is a blocklist. Concentration is the tell. `check_output.py` prints a density per 1000 words, bands it ELEVATED or HEAVY, and names the group each word came from. Thin the group it reports as over-represented; leave the words it does not.
+Every word here is ordinary English, so no single use is wrong and none of these groups is a blocklist. Concentration is the tell. `check_output.py` prints a density per 1000 words, bands it ELEVATED or SLOPPY, and names the group each word came from. Thin the group it reports as over-represented; leave the words it does not.
 
 - **Assertive adverbs**, claiming a rigour the sentence has not demonstrated: plainly, quietly, genuinely, deliberately, outright, loudly, provably, empirically, vacuously, legitimately, structurally, precisely, demonstrably, identically, adversarially, faithfully, verbatim, merely, squarely. Delete the adverb: if the claim survives intact, it was emphasis, not work.
 - **Absolute negation**: nobody, nothing, nowhere, never, neither, none, no one. One is emphasis. Three in a passage is the register. Keep the one whose scope is real and state the rest positively.
@@ -126,7 +126,9 @@ Every list in this tier matches on meaning, not spelling. Where a word has a Bri
 - Restating the question before answering it, and preamble that arrives before the substance.
 - Paraphrase repetition: a sentence restating its predecessor in different words, or explaining what that sentence already told the reader. Keep the more specific one.
 
-`check_output.py` reports the fixed phrases and flags prose paragraphs of 150 words or more, ten at most. Read each flagged paragraph and cut what carries nothing; a long paragraph that earns its length stays.
+`check_output.py` reports the fixed phrases and flags prose paragraphs of 130 words or more, ten at most. Read each flagged paragraph and cut what carries nothing; a long paragraph that earns its length stays.
+
+It also reports a `dense-run`: three paragraphs of 90 words or more back to back, or two bullets at 70, with no heading or table between them. None is long enough to flag alone, and the stretch still leaves the eye nowhere to rest. Bullets count sooner because a bullet promised to be short.
 
 **Abstract metaphor nouns**: locus, vantage, nexus, primitive, surface, bedrock, scaffolding, modality, north star, flywheel.
 
@@ -210,8 +212,8 @@ Flag only where the word is metaphor and a plainer one fits. Terms of art stay: 
 Most of these come from the consumer claude.ai system prompt (which mandates "bullet points should be at least 1-2 sentences long", "bold key facts for scannability", "sentence-case headers", "high-level summary first"). Heavy in claude.ai output, lighter in API-direct output.
 
 - Bold-header bullets whose label restates the line ("**Performance:** Performance improved by..."). Restatement is the test, not the punctuation: a label followed by new detail stays ("**Performance:** p99 dropped 40ms").
-- Long descriptive bullets (1-2+ sentences each, where terse bullets would do)
-- Bold noun phrases mid-sentence: "the **key tradeoff** is..."
+- Long descriptive bullets (1-2+ sentences each, where terse bullets would do), and several of them in a row: the script reports two 70-word bullets back to back where a paragraph gets three at 90
+- Bold dropped into a running sentence: "the **key tradeoff** is...". Emphasis works by being rare, so bolding everything emphasises nothing. Bold that opens a line is a label and stays: a bullet lead, `**Date:** 2026-09-01`, a bold line standing in for a heading. The script bands the document on a rate, and calls it abused once paragraphs carry two or more.
 - BLUF / TL;DR front-loading: first sentence summarises the entire answer, then expansion follows
 - Triple-backtick fenced blocks for non-code: file paths, single commands, error strings
 - Tables for non-tabular comparisons (pros/cons, "approach A vs B")
@@ -250,6 +252,7 @@ Work from the positive style brief below plus the flagged spans from Phase 2. Do
 - Use straight quotes (`'` and `"`) and standard punctuation. No em dashes, no en dashes, no smart quotes, no decorative unicode.
 - Sentence-case headings.
 - Express information as flowing prose. Reserve bullet lists for genuinely discrete items. Avoid bold-header bullets whose label merely restates the line; a bold lead-in followed by new detail is fine and stays.
+- Let the sentence carry the emphasis rather than the bold. Where a bold sits inside a running sentence, put the emphasised thing where it lands on its own: first, or last, or alone in a short sentence. Keep the bold where a label opens a line, and where the whole document uses it perhaps once or twice.
 - Match the original's meaning and structure. Paragraphs stay paragraphs, sections stay sections, genuine lists stay lists. Change the structure only where the structure is itself the slop: bold-header bullets in flowing prose, a `---` break before every heading, emoji in headers.
 - Length moves one way only. The rewrite is never longer than the input, and never padded to fill space. There is no floor: cutting a bloated input by a third or a half is the correct result, not an overreach. What sets the length is the last sentence that still carries a claim, not a target percentage.
 - Where the original front-loads a TL;DR/BLUF that the original author did not deliberately choose (i.e. it is sysprompt-driven scannability rather than authorial intent), restructure so the answer unfolds naturally.
@@ -289,7 +292,9 @@ Create a task per question below. Answer each by inspecting the rewritten text, 
 - Did I leave any bold-header bullets whose label restates the line that follows (`**X:** X did...`)? A label followed by new detail stays.
 - Are there any "Let me", "I'll", "Happy to", "Let me know if", "I hope this helps", "Perfect!", "Excellent!" remaining?
 - Are there any metaphor tics left ("smoking gun", "load-bearing", "corpus" for an ordinary set of documents)? Replace with what the thing is or does.
-- Does the register line still read ELEVATED or HEAVY? If so, thin the group it names first, working from the words it prints.
+- Does the register line still read ELEVATED or SLOPPY? If so, thin the group it names first, working from the words it prints.
+- Is any `dense-run` still standing? Cut inside it, or put a heading or a break where the argument turns.
+- Does the bold line still read HEAVY or ABUSED? Start with the words it prints as bolded most often: a single word bolded four times is emphasis that has stopped working.
 - Are there filler verbs or marketing adjectives left that the script named? Each is one edit applied everywhere, not one per location.
 - Is there any "honest" or "honestly" left whose removal would not change the meaning?
 - Are there abstract metaphor nouns left (substrate, vector, nexus, primitive, bedrock, scaffolding, north star, flywheel) used as metaphor where a plainer word fits? Literal terms of art stay: embedding vector, attack vector, cryptographic primitive, API surface.

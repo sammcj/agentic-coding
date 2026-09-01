@@ -48,13 +48,11 @@ def skill_name(skill_path: Path) -> str:
 
 def is_activation(tool: str, inp: dict, name: str) -> bool:
     if tool == "Skill":
-        # Match the invoked skill exactly (a leading slash for the command form aside),
-        # not as a substring: skill "review" must not match a call to "code-review".
+        # Match the invoked skill exactly (a leading slash for the command form aside), not as a substring: skill
+        # "review" must not match a call to "code-review".
         invoked = str(inp.get("command") or inp.get("skill") or "").strip().lstrip("/")
         return invoked == name
-    if tool == "Read" and f"/skills/{name}/" in str(inp.get("file_path") or ""):
-        return True
-    return False
+    return tool == "Read" and f"/skills/{name}/" in str(inp.get("file_path") or "")
 
 
 def run_once(query, skill_path, name, model, timeout, within, claude) -> bool:

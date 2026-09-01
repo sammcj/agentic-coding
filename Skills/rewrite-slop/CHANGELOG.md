@@ -4,6 +4,35 @@
 
 ## 2026-09-01
 
+**Dense runs**
+
+- New `dense-run` finding: consecutive units each dense but typically none long enough to be a `long-paragraph`. Three paragraphs at 90 words, or two list items at 70. A heading, fence, table or quote between them ends the run; a blank line does not, since a run of paragraphs is the finding.
+- List items count at a lower floor and after fewer of them. A bullet promises to be short, so a run of 90-word bullets breaks its own contract in a way the same run of paragraphs does not.
+- A blob does not end a run, because the stretch is a wall whether or not one member also overruns; the finding carries the longest member so the two are told apart. In the report the run shades grey around the blob's red rather than replacing it.
+- `Unit` carries whether it is a list item, which `units()` knew and dropped.
+- Flags 2% of the same 413 files.
+
+**Bold, measured**
+
+- New `bold` density check, mechanising a Tier 4 rubric line that had nothing behind it. Emphasis works by being rare, so the finding is a rate rather than a list of spans: mid-sentence bolds per 1000 words, banded HEAVY over 8.0 and ABUSED at 20.0. Both gates trip first, as with `register`, so a short file cannot band on one span.
+- Bold that opens a line is a label and is exempt at any volume, including a bullet lead, `**Date:** 2026-09-01`, a bold line standing in for a heading, and a task-list checkbox. Measured across 413 markdown files on this machine, that split is what separates the habit from ordinary use; the rule flags 8% of them and calls 2% abused.
+- The other road to ABUSED is crowding: three or more reading chunks carrying two bolds each, and a twentieth of the document. A table row counts as a chunk. On the report that prompted this, every one of its 129 mid-sentence bolds sat in a prose table cell, which `units` skips, so paragraphs alone measured zero.
+- Marked in the report in blue rather than on the severity ramp, since no single one of them is the defect, and held together when the row is clicked, which is the only way to see the density the band names. Below the gates nothing is marked at all.
+- `bold_stats` matches the raw text and skips code the way `scan_spans` does. Substituting code away first, as the word count still does, collapses each span to one character and moves every offset after it: the marks landed on words several sentences from the bold they described.
+- Long paragraphs are shaded red rather than grey, so the two block kinds read as findings rather than as one finding and one aside.
+
+**Register bands**
+
+- The register's upper band reads `SLOPPY` rather than `HEAVY`. The bold check keeps its own `HEAVY`, one band under `ABUSED`, so the two scales no longer share a label: a register reading and a bold reading measure different things and sat next to each other in the report saying the same word.
+- Renamed through the threshold constant, the gauge ticks, the band's CSS class and the copied brief, so the report and the text it hands to an agent agree.
+
+**Comment width**
+
+- `ruff.toml` sets `line-length = 120` and the comments and docstrings in `scripts/` are rewrapped to it. Comments are most of what is written in these files, and at Black's 88 an explanation ran to six lines where four say it. E501 stays unselected either way, because the rule tables put one detection rule on one line.
+- Usage blocks, examples and rule tables keep the shape they were given: only paragraphs whose later lines are unindented, unbulleted and not introduced by a colon were reflowed. Both scripts produce byte-identical output to before the rewrap.
+- `render_report.py` reports a missing input file, and an output path it cannot write, as one line each instead of a traceback. The write error names `-o` as the fix, since the default output sits beside the input and that directory is often read-only.
+- The `nbsp` and `private-use` patterns are written as `\uXXXX` escapes. Their literal form is invisible in an editor and does not survive a copy through anything that normalises whitespace; one such round trip had already emptied both character classes, silently disabling the rules.
+
 **Copy brief**
 
 - A button in the report's footer copies the findings as about a page of text: the register band, the heaviest Tier 2 group with the words that put it there, then one line per rule carrying its count, up to six instances, and the reason it is worth changing. Written to be pasted into a coding agent that has the file but not the page, so it opens with what to do and names the file it applies to. Capped at twelve kinds, with the remainder counted rather than dropped silently.

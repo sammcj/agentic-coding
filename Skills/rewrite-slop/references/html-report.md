@@ -42,6 +42,7 @@ Four kinds of mark in the document, because not every finding is a word:
 - Flagged spans underlined and shaded by severity.
 - Long paragraphs shaded grey, prose tables shaded yellow, each labelled in its own margin. What is wrong with these is their extent, so they are shaded rather than underlined, and each is listed once. The rule that reported a wide cell per row buried a 776-line document under 135 identical entries.
 - A `↵` at each hard wrap, since the break is invisible in rendered markdown and reflows the whole paragraph in every later diff. A markdown paragraph renders as one line however it is typed, so every break inside one was put there by hand; the only test is a length floor, which separates a wrap from a deliberately short line.
+- Mid-sentence bold in blue rather than the severity ramp, since no single one of them is the defect. Clicking the row holds all of them at once, which is the only way to see the density the band is naming.
 
 ---
 

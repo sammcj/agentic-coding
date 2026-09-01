@@ -17,10 +17,11 @@ The page reads validate_skill rather than reimplementing it: referenced_md_files
 and estimate_tokens for the bars, _TOKEN_RATINGS and token_rating for the gauge
 and band, _budget for the cure line and the declared ceiling, _structure for the
 blob and code spans, _filler and _filler_scan for the marks and the ranked list,
-and lint for the spec cell. A new threshold or rule reaches the page with no edit
-here. A new *kind* of finding, neither line-span nor term, needs a cell of its own.
+_bold for the emphasis rate and its spans, and lint for the spec cell. A new
+threshold or rule reaches the page with no edit here. A new *kind* of finding,
+neither line-span nor term, needs a cell of its own.
 
-Two contracts hold the page to the detector:
+Three contracts hold the page to the detector:
 
 - _structure returns each unit as (size, path, first line, last line, opening).
   The last line is what lets the page shade a whole unit; drop it and the shading
@@ -29,12 +30,16 @@ Two contracts hold the page to the detector:
   the raw line for the matched text instead would mark occurrences the detector
   excluded: a word inside backticks, or a sentence-initial rule matching
   mid-sentence.
+- _bold hands over its spans already placed, and marked_source marks those and
+  no others. Rescanning the page's text for bold would mark the bullet leads the
+  rate deliberately exempts, and the row would then name a count the document
+  disagrees with. Bold is one row however many spans it covers: it is a rate, so
+  its bar reads against BOLD_ABUSED rather than against the term counts.
 
 Three checks after a change, all of them past what a browser screenshot shows:
 
-- The page's mark count equals the lexical no-op count validate_skill.py
-  --report-only prints for the same skill, except where overlapping rules share
-  a mark.
+- Every mark key (marks carry one per finding, joined by |) is matched by one
+  lexical no-op or one counted bold span for the same skill.
 - Every tag closes, and the shaded line ranges match the text report's numbers.
 - Each cell sits in a single grid column; the panel stacks its cells with flex.
 """
@@ -48,13 +53,14 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+from typing import NamedTuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import validate_skill as vs  # noqa: E402  # pyright: ignore[reportMissingImports]
+import validate_skill as vs  # pyright: ignore[reportMissingImports]
 
-# The gauge tops out past the Poor floor so a badly over-budget skill still has
-# bar left to grow into rather than pinning at full and hiding how far over it is.
+# The gauge tops out past the Poor floor so a badly over-budget skill still has bar left to grow into rather than
+# pinning at full and hiding how far over it is.
 GAUGE_CEILING = int(vs._TOKEN_RATINGS[-1][0] * 1.5)
 
 # What each mark on the document means, since the page is read away from the primer.
@@ -62,7 +68,68 @@ LEGEND = [
     ("filler", "lexical no-op - cut the word"),
     ("blob", f"text unit of {vs.BLOB_WORDS}+ words - compress it"),
     ("code", f"fenced block over {vs.CODE_FENCE_LINES} lines - move it to scripts/"),
+    ("em", "bold mid-sentence - a density, not a defect at the span"),
 ]
+
+# The copied brief is read by an agent with a context budget, so it stays about a page: the kinds worth acting on, with
+# a few instances of each to find them by.
+BRIEF_MAX, BRIEF_EXAMPLES = 12, 6
+
+# A rule name says nothing to someone reading the page without the primer open beside it, and nothing to an agent handed
+# the brief. One line per kind: what it caught, and what to do instead.
+WHY = {
+    "opener": "A discourse marker opening a sentence. It announces a turn the "
+              "sentence already makes. Delete it and start on the claim.",
+    "puffery": "An adjective asserting quality instead of stating it. It survives "
+               "the deletion test nowhere: cut it, or replace it with the measurement.",
+    "filler-verb": "A verb reaching for weight it does not carry. Name the action: "
+                   "'use', 'add', 'read', 'run'.",
+    "negation-antithesis": "A not-X-but-Y contrast. Apply the swap test - if the "
+                           "reversal reads as well, the contrast carries nothing. "
+                           "State the claim directly.",
+    "blob": f"A text unit of {vs.BLOB_WORDS}+ words, in any shape. Long enough to "
+            "bury the instruction inside it, so the agent acts on the prose it "
+            "remembers. Split it into steps, or cut it.",
+    "code": f"A fenced block over {vs.CODE_FENCE_LINES} lines. Scripts belong in "
+            "scripts/ and templates in assets/, where they cost nothing until run.",
+    "bold-emphasis": "Bold dropped into running sentences. Emphasis works by being "
+                     "rare, so when everything is bold nothing is, and the one "
+                     "instruction the skill needed to land stops standing out. "
+                     "Bold that opens a line is a label and is exempt: keep it for "
+                     "a bullet lead, and let the sentence carry the rest.",
+    "load": "Worst-case load is SKILL.md plus the largest reference - what one "
+            "branch firing costs. Move branch-only content into references/, and "
+            "delete lines the agent would obey anyway.",
+    "spec-error": "A violation of the Agent Skills spec. The skill will not load "
+                  "or will fail validation until it is fixed.",
+    "spec-warning": "Valid, but flagged: usually an unrecognised frontmatter field "
+                    "or a description over its word ceiling.",
+}
+
+
+class Finding(NamedTuple):
+    """One entry in the findings list, in the form the page and the brief share.
+
+    Both read this list rather than each walking the validator again, so the
+    brief cannot disagree with the page it was copied from.
+    """
+
+    rule: str  # what fired; also the grouping key in the brief
+    n: int  # how many, counted in `unit`
+    unit: str  # what n counts, so the brief can say "3 text units"
+    example: str  # the term itself, or where the block sits
+    kind: str  # blob | code | filler, which cell shows it
+    what: str  # middle column: the term, or the unit's opening words
+    size: int  # the count as the page prints it: 412w, 14L, 3
+    where: str = ""  # right column: path:line
+    term: str = ""  # selection and search key, terms only
+    goto: str = ""  # anchor id, for rows that scroll the document
+    share: float = 0.0  # bar width 0..1, for a row measured against a threshold
+                        # rather than against the other rows' counts
+
+    @property
+    def why(self):
+        return WHY.get(self.rule, "")
 
 CSS = """
 :root {
@@ -125,9 +192,10 @@ input { width: 100%; border: var(--rule) solid var(--ink); background: var(--gro
 input::placeholder { color: var(--muted); text-transform: uppercase; }
 tr.gone { display: none; }
 
-footer { display: flex; justify-content: space-between;
+footer { display: flex; align-items: center; gap: 14px;
          font: 400 10px var(--mono); letter-spacing: 0.1em; color: var(--muted);
-         padding: 10px 16px; border: var(--rule) solid var(--ink); text-transform: uppercase; }
+         padding: 7px 16px; border: var(--rule) solid var(--ink); text-transform: uppercase; }
+footer .end { margin-left: auto; }
 
 /* the rating, set at the size of the finding it is */
 .band { font: 700 46px/1 var(--grotesk); letter-spacing: -0.02em; }
@@ -147,7 +215,9 @@ footer { display: flex; justify-content: space-between;
 .bar u { text-decoration: none; color: var(--muted); overflow: hidden;
          text-overflow: ellipsis; white-space: nowrap; }
 .bar s { text-decoration: none; height: 13px; background: #d4d4d4; display: block; }
-.bar:first-of-type s { background: var(--accent); }
+/* The accent marks the file to cut. Set explicitly: as `:first-of-type` it
+   matched the band div above these rows and never reached a bar at all. */
+.bar.lead s { background: var(--accent); }
 .bar em { font-style: normal; text-align: right; color: var(--muted); }
 
 table { border-collapse: collapse; width: 100%; font: 400 13px var(--mono); }
@@ -181,6 +251,22 @@ ul.spec li.bad { border-left-color: var(--accent); }
 .pair em { font-style: normal; color: var(--muted); }
 .cut { color: var(--accent); }
 
+/* The caption under the list: the reason for whatever is hovered or chosen. */
+.why { font: 400 12px/1.45 var(--mono); margin: 12px 0 0;
+       border-top: 1px solid #ececec; padding-top: 10px; min-height: 3.2em; }
+.why.idle { color: var(--muted); }
+
+/* Sized to sit on the footer rule beside the date, not to stand over it. */
+button { font: 400 10px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase;
+         border: 1px solid var(--ink); background: var(--ground);
+         color: var(--ink); padding: 4px 9px; cursor: pointer; white-space: nowrap; }
+button:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.done { background: var(--ink); border-color: var(--ink); color: var(--ground); }
+/* The brief, kept hidden as the copy source and revealed only if the clipboard
+   refuses, so there is still something to select by hand. */
+#brief { margin: var(--rule); padding: 14px 16px; border: var(--rule) solid var(--ink); }
+body.spill { overflow: auto; }
+
 .legend { display: flex; gap: 16px; font: 400 11px var(--mono);
           color: var(--muted); margin-top: 12px; flex-wrap: wrap; }
 .key { display: inline-block; width: 22px; height: 11px; margin-right: 5px;
@@ -188,12 +274,14 @@ ul.spec li.bad { border-left-color: var(--accent); }
 .k-filler { background: #ececec; box-shadow: inset 0 -3px 0 var(--accent); }
 .k-blob { background: var(--fill); }
 .k-code { background: #ececec; }
+.k-em { background: #e9eff9; box-shadow: inset 0 -3px 0 #1a4fa0; }
 
 /* the source, one block per line so a flagged unit shades over its whole span */
+/* The heading scrolls with its file. Pinned, it detached from the text it names
+   and read as a stray bar over the document. */
 h3.file { font: 700 11px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase;
           margin: 22px 0 8px; padding: 7px 0; color: var(--ink);
-          border-bottom: var(--rule) solid var(--ink); position: sticky; top: 0;
-          background: var(--ground); z-index: 1; }
+          border-bottom: var(--rule) solid var(--ink); background: var(--ground); }
 h3.file:first-of-type { margin-top: 0; }
 pre { margin: 0; font: 400 13px/1.65 var(--mono); white-space: pre-wrap;
       word-wrap: break-word; }
@@ -203,6 +291,10 @@ pre { margin: 0; font: 400 13px/1.65 var(--mono); white-space: pre-wrap;
 .l.code { background: #f4f4f4; border-left-color: #9a9a9a; }
 mark { background: #ececec; color: inherit; padding: 0 1px; cursor: pointer;
        box-shadow: inset 0 -3px 0 var(--accent); }
+/* Mid-sentence bold is a density, not a defect at the span, so it takes the blue
+   of the file count rather than competing with the accent the no-ops own. */
+mark.em { background: #e9eff9; box-shadow: inset 0 -3px 0 #1a4fa0; }
+tr.pick.em td.n { color: #1a4fa0; }
 /* a chosen term holds; everything else recedes rather than disappears */
 body.sel mark { background: transparent; box-shadow: none; color: #a8a8a8; }
 body.sel mark.on { background: var(--accent); color: #fff; box-shadow: none; }
@@ -214,6 +306,19 @@ body.sel tr.pick.on td { background: var(--fill); }
 
 JS = """
 var body = document.body, sel = null;
+var why = document.getElementById('why'), idle = why.textContent, pinned = '';
+why.classList.add('idle');
+function say(text) {
+  why.textContent = text || pinned || idle;
+  why.classList.toggle('idle', !(text || pinned));
+}
+document.addEventListener('mouseover', function (e) {
+  var el = e.target.closest('[data-why]');
+  if (el) say(el.dataset.why);
+});
+document.addEventListener('mouseout', function (e) {
+  if (e.target.closest('[data-why]')) say('');
+});
 function choose(term) {
   sel = (sel === term) ? null : term;
   body.classList.toggle('sel', sel !== null);
@@ -227,28 +332,64 @@ function choose(term) {
   }
 }
 document.addEventListener('click', function (e) {
-  var goto = e.target.closest('[data-goto]');
-  if (goto) {
-    var line = document.getElementById(goto.dataset.goto);
+  var go = e.target.closest('[data-goto]');
+  if (go) {
+    pinned = go.dataset.why || '';
+    say('');
+    var line = document.getElementById(go.dataset.goto);
     if (line) line.scrollIntoView({block: 'center', behavior: 'smooth'});
     return;
   }
   var el = e.target.closest('[data-term]');
-  if (el) choose(el.dataset.term);
-  else if (sel) choose(sel);
+  // A shared mark's key holds every term that matched it; select by the first,
+  // or the joined key would match nothing.
+  if (el) { pinned = el.dataset.why || ''; say(''); choose(el.dataset.term.split('|')[0]); }
+  else if (sel) { pinned = ''; say(''); choose(sel); }
 });
 document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape' && sel) choose(sel);
+  if (e.key === 'Escape' && sel) { pinned = ''; say(''); choose(sel); }
   else if (e.key === '/' && document.activeElement !== box) { e.preventDefault(); box.focus(); }
 });
 var box = document.getElementById('find');
 box.addEventListener('input', function () {
   var q = box.value.trim().toLowerCase();
+  // Structure rows are pickable but carry no term, so the key may be absent
   document.querySelectorAll('tr.pick').forEach(function (tr) {
-    tr.classList.toggle('gone', q !== '' && tr.dataset.term.indexOf(q) === -1);
+    var key = tr.dataset.term || '';
+    tr.classList.toggle('gone', q !== '' && key.indexOf(q) === -1);
   });
 });
 box.addEventListener('click', function (e) { e.stopPropagation(); });
+
+var copy = document.getElementById('copy'), stash = document.getElementById('brief');
+function flashed(ok) {
+  if (!ok) { stash.hidden = false; body.classList.add('spill'); stash.scrollIntoView(); }
+  copy.textContent = ok ? 'Copied' : 'Copy failed, brief below';
+  copy.classList.add('done');
+  setTimeout(function () {
+    copy.textContent = 'Copy brief';
+    copy.classList.remove('done');
+  }, 1800);
+}
+/* file:// is not a secure context in every browser, so the clipboard API is not
+   always there to call. */
+function bySelection() {
+  var ta = document.createElement('textarea'), ok = false;
+  ta.value = stash.textContent;
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+  document.body.removeChild(ta);
+  flashed(ok);
+}
+copy.addEventListener('click', function (e) {
+  e.stopPropagation();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(stash.textContent).then(function () { flashed(true); },
+                                                          bySelection);
+  } else bySelection();
+});
 """
 
 
@@ -303,16 +444,25 @@ def spec_findings(skill_dir):
     failure: lint() exits the process when skills-ref is absent, and raises a
     plain ImportError when it is present but partial. Both would otherwise lose
     the whole page over one cell.
+
+    The description-length rule is the primer's own, not the spec's, and needs
+    only PyYAML - so it still runs when skills-ref is missing. Routing it solely
+    through lint() meant a 119-word description reported nothing at all on a
+    machine without an optional third-party install, which is the one finding on
+    this page that costs every agent context on every turn.
     """
     if vs.yaml is None:
         return "PyYAML"
     try:
-        # lint() prints its own install hint on the way out; the CLI's stdout is
-        # the report path alone, so the hint is swallowed and restated in the cell.
+        # lint() prints its own install hint on the way out; the CLI's stdout is the report path alone, so the hint is
+        # swallowed and restated in the cell.
         with contextlib.redirect_stdout(io.StringIO()):
             return vs.lint(Path(skill_dir))
     except (SystemExit, ImportError):
-        return "skills-ref"
+        errors, warnings = vs.description_findings(vs.skill_description(skill_dir))
+        warnings.append("Spec checks skipped: skills-ref is not installed, so only the primer's own "
+                        "description rule ran. Re-run under uv run for the rest.")
+        return errors, warnings
 
 
 def gauge(load):
@@ -330,14 +480,14 @@ def gauge(load):
 def verdict(load, sized, advice, ceiling, within_budget):
     rating = vs.token_rating(load)
     main = sized.get("SKILL.md", 0)
-    # Ties break on iteration order, matching how _budget picks its driver file,
-    # so the page and the text report never name different references.
+    # Ties break on iteration order, matching how _budget picks its driver file, so the page and the text report never
+    # name different references.
     refs = [(name, n) for name, n in sized.items() if name != "SKILL.md"]
     biggest = max(refs, key=lambda kv: kv[1], default=("", 0))
     detail = ("SKILL.md %d + largest reference %s %d" % (main, biggest[0], biggest[1])
               if biggest[0] else "SKILL.md %d, no referenced files" % main)
-    # A skill inside a justified ceiling passes the validator's gate, so the band
-    # is set in the passing treatment rather than contradicting its own note.
+    # A skill inside a justified ceiling passes the validator's gate, so the band is set in the passing treatment rather
+    # than contradicting its own note.
     tone = "good" if within_budget else rating.lower()
     out = ['<div class="band %s">%s</div>' % (tone, e(rating.upper())),
            '<div class="rate">%s tokens worst-case load: %s</div>' % (load, e(detail)),
@@ -354,8 +504,9 @@ def files_block(sized):
     if not sized:
         return ""
     top = max(sized.values()) or 1
-    rows = "".join('<div class="bar"><u>%s</u><s style="width:%.1f%%"></s><em>%d</em></div>'
-                   % (e(name), 100.0 * n / top, n) for name, n in sized.items())
+    rows = "".join('<div class="bar%s"><u>%s</u><s style="width:%.1f%%"></s><em>%d</em></div>'
+                   % (" lead" if i == 0 else "", e(name), 100.0 * n / top, n)
+                   for i, (name, n) in enumerate(sized.items()))
     return '<h2 class="sub">Tokens by file</h2>%s' % rows
 
 
@@ -371,21 +522,18 @@ def spec_block(findings):
     return '<ul class="spec">%s</ul>' % "".join(items)
 
 
-def structure_block(pct, blobs, long_code, index_of):
+def structure_block(pct, found):
     """Findings addressed by line span rather than by term: blobs and code fences.
 
     Both live here because neither is a term to rank in the frequency list, and
     each row carries the anchor of the line it starts on so it can be jumped to.
     """
-    def rows_for(group, unit):
-        return "".join(
-            '<tr class="pick" data-goto="%s"><td class="n">%d%s</td><td>%s</td>'
-            '<td class="r">%s:%d</td></tr>'
-            % (anchor(index_of.get(str(rel), 0), start), size, unit,
-               e(" ".join(opening.split()[:9])), e(rel), start)
-            for size, rel, start, _end, opening in group)
-
-    rows = rows_for(blobs, "w") + rows_for(long_code, "L")
+    rows = "".join(
+        '<tr class="pick" data-goto="%s" data-why="%s" title="%s">'
+        '<td class="n">%d%s</td><td>%s</td><td class="r">%s</td></tr>'
+        % (f.goto, e(f.why), e(f.why), f.size, "w" if f.kind == "blob" else "L",
+           e(f.what), e(f.where))
+        for f in found if f.kind in ("blob", "code"))
     head = '<div class="rate">%s of body words in paragraph prose</div>' % (
         "%d%%" % pct if pct is not None else "no body text")
     if not rows:
@@ -404,25 +552,146 @@ def tally(filler):
     return terms
 
 
-def findings_block(filler):
+def collect(blobs, long_code, filler, index_of, emphasis=None):
+    """Every finding as one ranked list: blocks first, then terms by frequency.
+
+    The two panel cells filter this list and the brief groups it, so a finding
+    can never appear on the page in a form the copied text disagrees with.
+
+    Bold is one row however many spans it covers: it is a rate, and a hundred
+    distinct bolded phrases would be a hundred rows in a list meant to name
+    habits. It heads the frequency table for the same reason - it is the one
+    finding there that describes the whole document rather than a word in it.
+    """
+    found = []
+    if emphasis:
+        found.append(Finding(
+            rule="bold-emphasis", n=emphasis["total"], unit="span",
+            # The band leads the example so the brief carries it too, rather than the page and the copied text
+            # disagreeing about how bad it is.
+            example="%s %.1f/1000 words; %s"
+                    % (emphasis["band"], emphasis["rate"],
+                       ", ".join(w for w, _ in emphasis["worst"][:3])),
+            kind="em",
+            what="%s: %.1f mid-sentence bolds per 1000 words (sloppy over %.0f, "
+                 "abused at %.0f)" % (emphasis["band"], emphasis["rate"],
+                                      vs.BOLD_RATE, vs.BOLD_ABUSED),
+            size=emphasis["total"], term="bold-emphasis",
+            where="%s:%d" % emphasis["where"][0],
+            share=min(1.0, emphasis["rate"] / vs.BOLD_ABUSED),
+        ))
+    for kind, group, unit in (("blob", blobs, "text unit"), ("code", long_code, "code block")):
+        for size, rel, start, _end, opening in group:
+            found.append(Finding(
+                rule=kind, n=1, unit=unit, example=f"{rel}:{start}", kind=kind,
+                what=" ".join(opening.split()[:9]), size=size, where=f"{rel}:{start}",
+                goto=anchor(index_of.get(str(rel), 0), start),
+            ))
+    where = {}
+    for _category, rel, line, hit in filler:
+        where.setdefault(term_key(hit), f"{rel}:{line}")
+    ranked = sorted(tally(filler).items(), key=lambda kv: (-kv[1][1], kv[0]))
+    for term, (category, count) in ranked:
+        found.append(Finding(
+            rule=category, n=count, unit="use", example=term, kind="filler",
+            what=term, size=count, where=where.get(term, ""), term=term,
+        ))
+    return found
+
+
+def findings_block(found):
     """Ranked frequency, one row per term: a word is cut everywhere at once.
 
     The bar is drawn in the row it labels rather than as a chart beside it. Two
     views of the same counts would be the duplication the primer objects to.
     """
-    if not filler:
-        return ('<input id="find" hidden><p class="empty">No lexical no-ops found.</p>')
-    ranked = sorted(tally(filler).items(), key=lambda kv: (-kv[1][1], kv[0]))
-    top = ranked[0][1][1]
-    rows = "".join('<tr class="pick" data-term="%s"><td class="n">%d</td>'
+    terms = [f for f in found if f.kind == "filler"]
+    emphasis = [f for f in found if f.kind == "em"]
+    if not terms and not emphasis:
+        return ('<input id="find" hidden><p id="why" class="why" hidden></p>'
+                '<p class="empty">No lexical no-ops or bold abuse found.</p>')
+    # The bold row's bar reads against the abuse threshold, not against the term counts: a rate of 6 and a word used 6
+    # times are not the same measurement, and sharing one scale would let the larger number silently set the other's.
+    rows = "".join('<tr class="pick em" data-term="%s" data-why="%s" title="%s">'
+                   '<td class="n">%d</td>'
                    '<td class="f"><s style="width:%.1f%%"></s></td>'
                    '<td>%s</td><td class="r">%s</td></tr>'
-                   % (e(term), count, 100.0 * count / top, e(term), e(category))
-                   for term, (category, count) in ranked)
+                   % (e(f.term), e(f.why), e(f.why), f.size,
+                      100.0 * f.share, e(f.what), e(f.rule))
+                   for f in emphasis)
+    top = max((f.size for f in terms), default=1)
+    rows += "".join('<tr class="pick" data-term="%s" data-why="%s" title="%s">'
+                    '<td class="n">%d</td>'
+                    '<td class="f"><s style="width:%.1f%%"></s></td>'
+                    '<td>%s</td><td class="r">%s</td></tr>'
+                    % (e(f.term), e(f.why), e(f.why), f.size,
+                       100.0 * f.size / top, e(f.what), e(f.rule))
+                    for f in terms)
     legend = "".join('<span><i class="key k-%s"></i>%s</span>' % (k, e(d)) for k, d in LEGEND)
+    # The caption holds the reason for whatever is hovered or chosen, so why a thing is flagged does not depend on
+    # finding a tooltip.
     return ('<input id="find" placeholder="Search for a term..." autocomplete="off">'
-            '<div class="scroll"><table>%s</table></div><div class="legend">%s</div>'
+            '<div class="scroll"><table>%s</table></div>'
+            '<p id="why" class="why">Hover or click a finding for what it is and why.</p>'
+            '<div class="legend">%s</div>'
             % (rows, legend))
+
+
+def brief(skill_dir, load, sized, ceiling, within_budget, spec, found):
+    """The findings as text, sized to paste into another agent.
+
+    Grouped by rule and carrying each rule's reason. A list of bare rule names
+    leaves the receiving agent guessing, and one rule is one habit to drop
+    however many times it fired.
+
+    Lines are separated by a blank one, never wrapped: the brief is pasted into
+    something that may render it as markdown, where a wrap reflows anyway.
+    """
+    rating = vs.token_rating(load)
+    out = ["Skill report for %s. Load the skill-creator-primer skill, then fix the "
+           "following. Cut words, not behaviour: every instruction the skill carries "
+           "has to survive." % os.path.basename(str(skill_dir)), ""]
+
+    budget = ("Budget: %s. Worst-case load %d tokens (SKILL.md plus the largest "
+              "reference) across %d file(s) that load."
+              % (rating, load, len(sized)))
+    if within_budget:
+        budget += " Within the declared max-load-tokens %d." % ceiling
+    elif rating in ("OK", "Poor"):
+        budget += " " + WHY["load"]
+    out += [budget, ""]
+
+    if isinstance(spec, tuple):
+        errors, warnings = spec
+        if errors or warnings:
+            out.append("Spec: %d error(s), %d warning(s)." % (len(errors), len(warnings)))
+            out += ["- %s" % x for x in list(errors) + list(warnings)]
+        else:
+            out.append("Spec: clean.")
+    else:
+        out.append("Spec: not checked, %s was not installed." % spec)
+    out.append("")
+
+    groups = {}
+    for f in found:
+        n, unit, seen = groups.get(f.rule, (0, f.unit, []))
+        if f.example not in seen and len(seen) < BRIEF_EXAMPLES:
+            seen.append(f.example)
+        groups[f.rule] = (n + f.n, unit, seen)
+
+    if not groups:
+        out.append("Nothing else flagged.")
+        return "\n".join(out)
+
+    out.append("Findings:")
+    for rule, (n, unit, seen) in list(groups.items())[:BRIEF_MAX]:
+        out.append("- %s, %d %s (%s): %s"
+                   % (rule, n, unit if n == 1 else unit + "s", ", ".join(seen),
+                      WHY.get(rule, "")))
+    if len(groups) > BRIEF_MAX:
+        out.append("- and %d further kinds, listed in the report."
+                   % (len(groups) - BRIEF_MAX))
+    return "\n".join(out)
 
 
 def _pair(label, was, now, unit=""):
@@ -461,23 +730,31 @@ def compare_block(baseline, skill_dir, use_tiktoken=False):
     return "".join(out)
 
 
-def marked_source(skill_dir, blobs, long_code, filler):
+def marked_source(skill_dir, blobs, long_code, filler, emphasis=None):
     """Every loadable file, one block per line, flagged spans marked in place."""
     spans = {}
     for kind, group in (("blob", blobs), ("code", long_code)):
         for _size, rel, start, end, _opening in group:
             for n in range(start, end + 1):
                 spans.setdefault((str(rel), n), kind)
-    # Only lines the detector reported are re-scanned for spans, so the page can
-    # never mark a line the text report left out.
+    # Only lines the detector reported are re-scanned for spans, so the page can never mark a line the text report left
+    # out.
     flagged = {(str(rel), lineno) for _category, rel, lineno, _hit in filler}
+    # Bold spans arrive already placed, from the scan that counted them: the page marks the ones the rate is made of,
+    # not every bold it can find, so the exempt bullet leads stay unmarked.
+    bold = {}
+    for rel, lineno, start, end, _phrase in (emphasis or {}).get("spans", ()):
+        bold.setdefault((rel, lineno), []).append(
+            (start, end, "bold-emphasis", "bold-emphasis"))
+        flagged.add((rel, lineno))
 
     out = []
     for index, (rel, path) in enumerate(loadable_files(skill_dir)):
         out.append('<h3 class="file">%s</h3><pre>' % e(rel))
         text = path.read_text(encoding="utf-8-sig", errors="ignore")
         for lineno, line in enumerate(text.splitlines(), start=1):
-            marked = mark_line(line) if (rel, lineno) in flagged else e(line)
+            marked = (mark_line(line, bold.get((rel, lineno), ()))
+                      if (rel, lineno) in flagged else e(line))
             out.append('<span class="l %s" id="%s">%s</span>'
                        % (spans.get((rel, lineno), ""), anchor(index, lineno), marked))
         out.append("</pre>")
@@ -485,7 +762,7 @@ def marked_source(skill_dir, blobs, long_code, filler):
 
 
 def filler_spans(line):
-    """(start, end, term) for every lexical no-op on one raw source line.
+    """(start, end, term, rule) for every lexical no-op on one raw source line.
 
     Runs the detector's own rules over the text the detector scanned, via its
     _filler_scan, then maps each match back onto the raw line. Marking by offset
@@ -496,35 +773,52 @@ def filler_spans(line):
     lead = len(line) - len(line.lstrip())
     scan = vs._filler_scan(line)
     found = []
-    for _category, pattern in vs._FILLER_RULES:
+    for category, pattern in vs._FILLER_RULES:
         for hit in pattern.finditer(scan):
             raw = hit.group(0)
             at = lead + hit.start()
-            found.append((at + len(raw) - len(raw.lstrip()), at + len(raw.rstrip()), raw.strip()))
+            found.append((at + len(raw) - len(raw.lstrip()), at + len(raw.rstrip()),
+                          raw.strip(), category))
     return sorted(found)
 
 
-def mark_line(line):
+def mark_line(line, extra=()):
     """Escape one source line, wrapping each span the detector flagged on it.
+
+    `extra` carries spans placed elsewhere - bold, scanned across the whole skill
+    - in the same (start, end, term, rule) shape, so one pass marks both layers
+    rather than two passes fighting over the same offsets.
 
     Two rules matching overlapping text share one mark, which carries both terms
     so either row in the frequency table still has something to highlight. A row
-    with no mark to reach would fade the whole document and select nothing.
+    with no mark to reach would fade the whole document and select nothing. A
+    bold wrapping a flagged word is exactly that case: one mark, both keys.
+
+    Each mark also carries its rule's reason, so clicking a word in the document
+    answers what is wrong with it without a trip back to the list.
     """
-    spans = filler_spans(line)
+    spans = sorted(list(filler_spans(line)) + list(extra))
     if not spans:
         return e(line)
     kept = []
-    for start, end, term in spans:
+    for start, end, term, rule in spans:
         if kept and start < kept[-1][1]:
+            # The mark covers both, or a bold opening first would cut a longer no-op off at its closing asterisks.
+            kept[-1][1] = max(kept[-1][1], end)
             kept[-1][2].append(term)
+            kept[-1][3].append(rule)
         else:
-            kept.append([start, end, [term]])
+            kept.append([start, end, [term], [rule]])
     out, at = [], 0
-    for start, end, terms in kept:
+    for start, end, terms, rules in kept:
+        why = " ".join(dict.fromkeys(WHY.get(r, "") for r in rules)).strip()
+        # Only a mark that is bold and nothing else takes the bold styling: where a no-op sits inside one, the narrower
+        # finding is the one to fix.
+        cls = "em" if all(r == "bold-emphasis" for r in rules) else ""
         out.append(e(line[at:start]))
-        out.append('<mark data-term="%s">%s</mark>'
-                   % (e("|".join(term_key(t) for t in terms)), e(line[start:end])))
+        out.append('<mark class="%s" data-term="%s" data-why="%s" title="%s">%s</mark>'
+                   % (cls, e("|".join(term_key(t) for t in terms)), e(why), e(why),
+                      e(line[start:end])))
         at = end
     out.append(e(line[at:]))
     return "".join(out)
@@ -537,10 +831,13 @@ def render(skill_dir, against=None, use_tiktoken=False):
     pct, skill_blobs, ref_blobs, long_code = vs._structure(skill_dir)
     blobs = sorted(skill_blobs + ref_blobs, reverse=True)
     filler = vs._filler(skill_dir)
+    emphasis = vs._bold(skill_dir)
     index_of = {rel: i for i, (rel, _path) in enumerate(loadable_files(skill_dir))}
     _lines, _rating, advice, _driver, within_budget = vs._budget(skill_dir, use_tiktoken)
     ceiling, _justified = vs.declared_token_budget(
         (skill_dir / "SKILL.md").read_text(encoding="utf-8-sig", errors="ignore"))
+    spec = spec_findings(skill_dir)
+    found = collect(blobs, long_code, filler, index_of, emphasis)
 
     extra = ""
     if against is not None:
@@ -552,7 +849,8 @@ def render(skill_dir, against=None, use_tiktoken=False):
         for colour, n, label in (
             ("#de301e", "%d" % load, "worst-case load"),
             ("#1a4fa0", "%d" % len(sized), "files that load"),
-            ("#e8b400", "%d" % (len(blobs) + len(long_code) + len(filler)), "findings"),
+            ("#e8b400", "%d" % (len(blobs) + len(long_code) + len(filler)
+                                + len((emphasis or {}).get("spans", ()))), "findings"),
         ))
 
     return """<!doctype html>
@@ -570,11 +868,14 @@ def render(skill_dir, against=None, use_tiktoken=False):
     %(extra)s
     <section class="cell"><h2>Spec</h2>%(spec)s</section>
     <section class="cell"><h2>Structure</h2>%(structure)s</section>
-    <section class="cell grow"><h2>Lexical no-ops by frequency</h2>%(findings)s</section>
+    <section class="cell grow"><h2>Wording and emphasis</h2>%(findings)s</section>
   </div>
   <section class="cell doc"><h2>The skill</h2>%(source)s</section>
-  <footer><span>generated %(when)s</span><span>skill-creator-primer</span></footer>
+  <footer><span>generated %(when)s</span>
+    <button id="copy" data-why="Copies these findings as text, each with its reason, to paste into a coding agent.">Copy brief</button>
+    <span class="end">skill-creator-primer</span></footer>
 </div>
+<pre id="brief" hidden>%(brief)s</pre>
 <script>%(js)s</script>
 """ % {
         "name": e(skill_dir.name),
@@ -583,11 +884,12 @@ def render(skill_dir, against=None, use_tiktoken=False):
         "when": datetime.datetime.now().astimezone().date().isoformat(),
         "verdict": verdict(load, sized, advice, ceiling, within_budget),
         "files": files_block(sized),
-        "spec": spec_block(spec_findings(skill_dir)),
-        "structure": structure_block(pct, blobs, long_code, index_of),
-        "findings": findings_block(filler),
+        "spec": spec_block(spec),
+        "structure": structure_block(pct, found),
+        "findings": findings_block(found),
         "extra": extra,
-        "source": marked_source(skill_dir, blobs, long_code, filler),
+        "source": marked_source(skill_dir, blobs, long_code, filler, emphasis),
+        "brief": e(brief(skill_dir, load, sized, ceiling, within_budget, spec, found)),
     }
 
 

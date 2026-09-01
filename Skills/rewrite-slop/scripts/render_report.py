@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """Render one input's check_output findings as a single self-contained HTML page.
 
-Optional. Nothing in the rewrite phases calls this; it exists for reading a long
-input, or for showing someone else what was flagged and where.
+Optional. Nothing in the rewrite phases calls this; it exists for reading a long input, or for showing someone else what
+was flagged and where.
 
-The board is the one at louisabraham.github.io/load-bearing, borrowed for its
-interaction rather than its content: that page charts a corpus over twenty
-months, which a single document has no axis for. What carries over is clicking a
-term to hold it selected while everything else responds, and light-only Bauhaus
-because a dark ground would invert the premise.
+The board is the one at louisabraham.github.io/load-bearing, borrowed for its interaction rather than its content: that
+page charts a corpus over twenty months, which a single document has no axis for. What carries over is clicking a term
+to hold it selected while everything else responds, and light-only Bauhaus because a dark ground would invert the
+premise.
 
     python3 render_report.py FILE [--against ORIG] [-o OUT]
 """
@@ -36,21 +35,19 @@ LEGEND = [
     ("report", "detected only, you decide"),
 ]
 
-# The copied brief is read by an agent with a context budget, so it stays about
-# a page: the kinds worth acting on, with a few instances of each to find them by.
+# The copied brief is read by an agent with a context budget, so it stays about a page: the kinds worth acting on, with
+# a few instances of each to find them by.
 BRIEF_MAX, BRIEF_EXAMPLES = 12, 6
 
-# Line-level rule names say nothing to someone reading the page without the
-# rubric open beside it.
+# Line-level rule names say nothing to someone reading the page without the rubric open beside it.
 EXPLAIN = {
     "break-before-heading": "--- rule sitting directly above a heading",
     "title-case-heading": "heading Written In Title Case",
     "wide-table-cell": "table cell holding prose",
 }
 
-# One line per rule, saying what it caught and why that is worth changing. The
-# page is read away from the rubric, and a rule name alone leaves the reader to
-# guess whether a hit is a typographic artefact or a habit of thought.
+# One line per rule, saying what it caught and why that is worth changing. The page is read away from the rubric, and a
+# rule name alone leaves the reader to guess whether a hit is a typographic artefact or a habit of thought.
 WHY = {
     "arrow-bullet": "An arrow used as a bullet. Use a list.",
     "chat-residue": "Assistant talk left in the draft. The reader is not in a chat.",
@@ -81,9 +78,8 @@ WHY = {
     "times-sign": "A multiplication sign in prose. Use x.",
     "utm-llm": "A tracking parameter naming the model that wrote this.",
     "weasel-source": "Attribution to nobody. Name the source or drop the claim.",
-    # Tier 2 groups. None of these words is wrong on its own, which is the whole
-    # point of measuring them as a rate, so each line says what the concentration
-    # of them is doing rather than condemning the word.
+    # Tier 2 groups. None of these words is wrong on its own, which is the whole point of measuring them as a rate, so
+    # each line says what the concentration of them is doing rather than condemning the word.
     "code-as-agent": "Code given intent, as though it decides and refuses: \"the check "
                      "refuses\", \"the cache holds\", \"the contract survives\". Occasionally "
                      "apt, tiring in quantity. Say what runs.",
@@ -100,9 +96,21 @@ WHY = {
                   "to describe abstractions.",
     # block and line findings
     "blob": "A paragraph long enough to hide its own argument. Cut or split it.",
+    "dense": "Long paragraphs or bullets back to back, with no heading or table "
+             "between them for the eye to rest on. Usually none is long enough to "
+             "report on its own: %d paragraphs of %d words, or %d bullets of %d, "
+             "since a bullet promised to be short. Cut inside the run, or break it "
+             "where the argument turns."
+             % (co.DENSE_RUN, co.DENSE_WORDS, co.DENSE_LIST_RUN, co.DENSE_LIST_WORDS),
     "table": "A table holding prose. Tables are for structured data.",
     "hard-wrapped": "Line breaks inserted by hand. They reflow the whole paragraph "
                     "in every later diff, and markdown ignores them.",
+    "bold-emphasis": "Bold dropped into running sentences. Emphasis works by being "
+                     "rare, so when everything is bold nothing is. Bold that opens a "
+                     "line is a label and does not count. HEAVY is more than %.0f per "
+                     "1000 words; ABUSED is %.0f, or paragraphs and table rows that "
+                     "carry two bolds each, where neither can stand out."
+                     % (co.BOLD_RATE, co.BOLD_ABUSED),
     "break-before-heading": "A --- above heading after heading is a claude.ai habit.",
     "title-case-heading": "Title case in a heading. Sentence case reads as written, "
                           "not as published.",
@@ -182,7 +190,7 @@ footer .end { margin-left: auto; }
 
 /* the verdict, set at the size of the finding it is */
 .band { font: 700 46px/1 var(--grotesk); letter-spacing: -0.02em; }
-.band.heavy, .band.elevated { color: var(--accent); }
+.band.sloppy, .band.elevated { color: var(--accent); }
 .rate { font: 400 13px var(--mono); color: var(--muted); margin-top: 6px; }
 .gauge { display: flex; height: 22px; border: var(--rule) solid var(--ink);
          margin-top: 14px; position: relative; }
@@ -212,10 +220,14 @@ tr.pick { cursor: pointer; }
 tr.pick:hover td { background: var(--fill); }
 .scroll { flex: 1; min-height: 90px; overflow: auto; }
 
-/* the frequency chart, drawn behind the rows it labels rather than beside them */
-td.f { width: 30%; }
+/* The frequency chart sits in its own narrow column. At 30% it was mostly empty
+   space on every block row, which carries no bar, and squeezed the description
+   it was supposed to sit beside into three words a line. */
+td.f { width: 76px; }
 td.f s { display: block; height: 11px; background: #d4d4d4; text-decoration: none; }
 tr.pick:first-child td.f s { background: var(--accent); }
+/* The description takes whatever the three measured columns leave. */
+td.d { width: 100%; }
 
 /* before and after: two bars to a pair, the original hollow and the rewrite filled */
 .pair { margin-bottom: 12px; font: 400 12px var(--mono); }
@@ -253,13 +265,19 @@ body.spill { overflow: auto; }
 .block::after { content: attr(data-label); position: absolute; right: 0; top: 0;
                 font: 400 10px var(--mono); letter-spacing: 0.08em; color: var(--muted);
                 background: var(--ground); padding-left: 8px; text-transform: uppercase; }
-.block.blob { background: #f4f4f4; }
+/* Light enough that the paragraph inside stays readable: the shade marks the
+   extent, it does not obscure what is in it. */
+.block.blob { background: #fbeceb; border-left-color: #e0a49c; }
+/* Grey rather than red: a stretch of dense units is the lesser finding, and it
+   often contains a blob, which keeps its own red inside this one. */
+.block.dense { background: #f2f2f2; border-left-color: #b9b9b9; }
 .block.table { background: #fbf3d8; border-left-color: #e8b400; }
 .block.flash { animation: flash 1.1s ease-out; }
 @keyframes flash { from { background: var(--fill); border-left-color: var(--accent); } }
 @media (prefers-reduced-motion: reduce) { .block.flash { animation: none; } }
 /* the two block kinds keep their colour where they are listed, too */
-tr.pick.blob td.n { color: var(--ink); }
+tr.pick.blob td.n { color: #b4463a; }
+tr.pick.dense td.n { color: var(--muted); }
 tr.pick.table td.n { color: #a07c00; }
 
 /* The hard wrap, shown where it happens: invisible in rendered markdown, and it
@@ -271,6 +289,9 @@ tr.pick.table td.n { color: #a07c00; }
 mark { background: #ececec; color: inherit; padding: 0 1px; cursor: pointer; }
 mark[data-sev="review"] { box-shadow: inset 0 -3px 0 #9a9a9a; }
 mark[data-sev="report"] { background: var(--fill); box-shadow: inset 0 -3px 0 var(--accent); }
+/* Mid-sentence bold is a density, not a defect at the span, so it takes the
+   blue of the findings count rather than competing with the severity ramp. */
+mark.em { background: #e9eff9; box-shadow: inset 0 -3px 0 #1a4fa0; }
 /* a chosen term holds; everything else recedes rather than disappears */
 body.sel mark { background: transparent; box-shadow: none; color: #a8a8a8; }
 body.sel mark.on { background: var(--accent); color: #fff; box-shadow: none; }
@@ -404,8 +425,7 @@ class Block(NamedTuple):
 def blocks(text):
     """Long paragraphs and prose tables, as ranges to shade.
 
-    Listing a wide table once per row, as the per-line rule did, buried a
-    776-line document under 135 identical entries.
+    Listing a wide table once per row, as the per-line rule did, buried a 776-line document under 135 identical entries.
     """
     at = line_offsets(text)
 
@@ -416,6 +436,11 @@ def blocks(text):
     for words, start, opening, last in co.blobs(text):
         out.append(Block(at[start], end_of(last), "blob", opening,
                          "%dw" % words, "L%d-%d" % (start, last)))
+    for start, last, count, words, longest, listed in co.dense_runs(text):
+        out.append(Block(at[start], end_of(last), "dense",
+                         "%d consecutive long %s, longest %dw"
+                         % (count, "bullets" if listed else "paragraphs", longest),
+                         "%dw" % words, "L%d-%d" % (start, last)))
     for start, last, wide in co.tables(text):
         out.append(Block(at[start], end_of(last), "table",
                          "table, %d prose cell%s" % (wide, "" if wide == 1 else "s"),
@@ -423,11 +448,14 @@ def blocks(text):
     return sorted(out)
 
 
-def marked(text, spans, text_blocks=(), wrap_points=(), ids=None):
+def marked(text, spans, text_blocks=(), wrap_points=(), ids=None, emphasis=()):
     """The input with flagged spans wrapped, blocks shaded and hard wraps shown.
 
-    Built in one pass over sorted cut points so a span inside a shaded block
-    still gets its own mark, rather than one pass per layer fighting the others.
+    Built in one pass over sorted cut points so a span inside a shaded block still gets its own mark, rather than one
+    pass per layer fighting the others.
+
+    Mid-sentence bold is its own layer rather than another entry in `spans`: it shares the marking but not the ranking,
+    since a hundred distinct bolded phrases would be a hundred rows in a list meant to name habits.
     """
     opens = {}
     for i, b in enumerate(text_blocks):
@@ -437,10 +465,16 @@ def marked(text, spans, text_blocks=(), wrap_points=(), ids=None):
              % (b.kind, anchor, e("%s  %s" % (b.measure, b.kind))), b.end))
     wrap_at = set(wrap_points)
 
+    span_at = {s: (en, name, hit, "") for s, en, name, hit in spans}
+    # A bold span holding a flagged word ("**load-bearing**") would nest one mark inside another, which the single pass
+    # cannot close; the rule already has its own row, so the narrower finding keeps the mark.
+    for start, end, body in emphasis:
+        if not any(start < e and s < end for s, e, _, _ in spans):
+            span_at.setdefault(start, (end, "bold-emphasis", body, " em"))
+
     out, at, closing = [], 0, []
     cuts = sorted({0, len(text)} | set(opens) | {b.end for b in text_blocks} | wrap_at
-                  | {s for s, _, _, _ in spans} | {en for _, en, _, _ in spans})
-    span_at = {s: (en, name, hit) for s, en, name, hit in spans}
+                  | set(span_at) | {v[0] for v in span_at.values()})
 
     for cut in cuts:
         out.append(e(text[at:cut]))
@@ -456,9 +490,12 @@ def marked(text, spans, text_blocks=(), wrap_points=(), ids=None):
             # The newline itself stays; the glyph only makes it visible.
             out.append('<i class="wrap" title="hard wrap"></i>')
         if cut in span_at:
-            end, name, hit = span_at[cut]
-            out.append('<mark data-sev="%s" data-term="%s" data-why="%s" title="%s">%s</mark>'
-                       % (SEVERITY.get(name, "report"), e(hit.lower()), e(WHY.get(name, "")),
+            end, name, hit, kind = span_at[cut]
+            term = name if kind else hit.lower()
+            out.append('<mark class="%s" data-sev="%s" data-term="%s" data-why="%s" '
+                       'title="%s">%s</mark>'
+                       % (kind.strip(), SEVERITY.get(name, "report"), e(term),
+                          e(WHY.get(name, "")),
                           e("%s: %s" % (name, WHY.get(name, ""))), e(text[cut:end])))
             at = end
     out.append(e(text[at:]))
@@ -469,12 +506,11 @@ def marked(text, spans, text_blocks=(), wrap_points=(), ids=None):
 def gauge(rate):
     """The three bands as ground, the measurement as a needle on them.
 
-    A filled bar said nothing once the rate passed the end of the scale: at 22.5
-    on a scale to 20 it was a solid block of accent, pinned at 100%. The scale
-    now stretches to hold the value, and the needle is the only accent on it.
+    A filled bar said nothing once the rate passed the end of the scale: at 22.5 on a scale to 20 it was a solid block
+    of accent, pinned at 100%. The scale now stretches to hold the value, and the needle is the only accent on it.
     """
-    full = max(co.HEAVY * 2, rate * 1.08)
-    zones = ((co.ELEVATED, "#ececec"), (co.HEAVY, "#d4d4d4"), (full, "#b9b9b9"))
+    full = max(co.SLOPPY * 2, rate * 1.08)
+    zones = ((co.ELEVATED, "#ececec"), (co.SLOPPY, "#d4d4d4"), (full, "#b9b9b9"))
     bands, at = [], 0.0
     for upto, colour in zones:
         bands.append('<s style="width:%.2f%%;background:%s"></s>'
@@ -482,9 +518,9 @@ def gauge(rate):
         at = upto
     return ('<div class="gauge">%s<b style="left:%.2f%%"></b></div>'
             '<div class="ticks"><span>0</span><span>%g elevated</span>'
-            '<span>%g heavy</span><span>%g</span></div>'
+            '<span>%g sloppy</span><span>%g</span></div>'
             % ("".join(bands), 100.0 * min(rate, full) / full,
-               co.ELEVATED, co.HEAVY, round(full)))
+               co.ELEVATED, co.SLOPPY, round(full)))
 
 
 def verdict(stats, nwords):
@@ -527,8 +563,8 @@ def tally(spans):
 class Finding(NamedTuple):
     """One entry in the findings list, in the form the page and the brief share.
 
-    Both read this list rather than each walking the checker again, so the brief
-    cannot disagree with the page it was copied from.
+    Both read this list rather than each walking the checker again, so the brief cannot disagree with the page it was
+    copied from.
     """
 
     rule: str  # what fired; also the grouping key in the brief
@@ -538,6 +574,7 @@ class Finding(NamedTuple):
     cell: str  # the count as the page prints it: 412w, 3p, 12
     what: str  # middle column
     where: str  # right column
+    note: str = ""  # a band or verdict the count alone does not carry
     term: str = ""  # selection and search key
     goto: str = ""  # block id, for rows that scroll the document
     kind: str = ""  # blob | table, so the row keeps the block's colour
@@ -552,21 +589,34 @@ class Finding(NamedTuple):
 def findings(text, spans, text_blocks, ids):
     """Every finding in one ranked list, blocks above terms.
 
-    Split across two cells, a document whose problem was structure showed two
-    rows under "findings" and eighteen under "structure". They are one list of
-    things to fix, so they are one list.
+    Split across two cells, a document whose problem was structure showed two rows under "findings" and eighteen under
+    "structure". They are one list of things to fix, so they are one list.
 
-    Terms carry a frequency bar in the row they label, rather than a chart
-    beside it: two views of the same counts is the duplication this skill exists
-    to flag. Blocks carry their extent instead, which is what makes them worth
-    fixing.
+    Terms carry a frequency bar in the row they label, rather than a chart beside it: two views of the same counts is
+    the duplication this skill exists to flag. Blocks carry their extent instead, which is what makes them worth fixing.
     """
     out = []
     for i, b in enumerate(text_blocks):
         out.append(Finding(rule=b.kind, n=1,
-                           unit="paragraph" if b.kind == "blob" else "prose table",
+                           unit={"blob": "paragraph", "dense": "run"}.get(
+                               b.kind, "prose table"),
                            example=b.where, cell=b.measure, what=b.label, where=b.where,
                            term=b.label.lower(), goto=ids[i], kind=b.kind, pick=True))
+
+    if (em := co.bold_stats(text)):
+        where = ", ".join("L%d" % n for n in em["lines"][:co.LOCATIONS_MAX])
+        if len(em["lines"]) > co.LOCATIONS_MAX:
+            where += ", +%d" % (len(em["lines"]) - co.LOCATIONS_MAX)
+        out.append(Finding(rule="bold-emphasis", n=em["total"], unit="span",
+                           example=", ".join(w for w, _ in em["worst"][:4]),
+                           cell="%dx" % em["total"],
+                           what="%s: %.1f mid-sentence bolds per 1000 words "
+                                "(heavy over %.0f, abused at %.0f), %d of %d "
+                                "paragraphs and table rows carrying two or more"
+                                % (em["band"], em["rate"], co.BOLD_RATE,
+                                   co.BOLD_ABUSED, em["crowded"], em["units"]),
+                           note=em["band"], where=where,
+                           term="bold-emphasis", pick=True))
 
     points, wrapped, total = co.wraps(text)
     if wrapped:
@@ -576,8 +626,7 @@ def findings(text, spans, text_blocks, ids):
                                 % (total, len(points)),
                            where="hard-wrapped", term="hard-wrapped"))
 
-    # Grouped by rule, like the terms below: five title-case headings are one
-    # habit to drop, not five findings.
+    # Grouped by rule, like the terms below: five title-case headings are one habit to drop, not five findings.
     at_line: dict[str, list[int]] = {}
     for line, name in co.line_checks(text):
         at_line.setdefault(name, []).append(line)
@@ -608,7 +657,7 @@ def _row(f):
         attrs += ' data-term="%s"' % e(f.term)
     bar = '<s style="width:%.1f%%"></s>' % f.bar if f.bar >= 0 else ""
     return ('<tr%s data-why="%s" title="%s"><td class="n">%s</td><td class="f">%s</td>'
-            '<td>%s</td><td class="r">%s</td></tr>'
+            '<td class="d">%s</td><td class="r">%s</td></tr>'
             % (attrs, e(f.why), e(f.why or f.rule), e(f.cell), bar, e(f.what), e(f.where)))
 
 
@@ -618,8 +667,8 @@ def findings_block(found):
     if not rows:
         return '<p class="empty">Nothing flagged.</p>'
     legend = "".join('<span><i class="key k-%s"></i>%s</span>' % (s, e(d)) for s, d in LEGEND)
-    # The caption holds the description of whatever is hovered or chosen, so the
-    # reason a thing is flagged does not depend on finding a tooltip.
+    # The caption holds the description of whatever is hovered or chosen, so the reason a thing is flagged does not
+    # depend on finding a tooltip.
     return ('<input id="find" placeholder="Search for a finding..." autocomplete="off">'
             '<div class="scroll"><table>%s</table></div>'
             '<p id="why" class="why">Hover or click a finding for what it is and why.</p>'
@@ -630,20 +679,19 @@ def findings_block(found):
 def brief(path, stats, nwords, found):
     """The findings as text, sized to paste into another agent.
 
-    Grouped by rule and carrying each rule's reason. A list of bare rule names
-    leaves the receiving agent guessing, and one rule is one habit to drop
-    however many times it fired.
+    Grouped by rule and carrying each rule's reason. A list of bare rule names leaves the receiving agent guessing, and
+    one rule is one habit to drop however many times it fired.
 
-    Lines are separated by a blank one, never wrapped: the brief is pasted into
-    something that may render it as markdown, where a wrap reflows anyway.
+    Lines are separated by a blank one, never wrapped: the brief is pasted into something that may render it as
+    markdown, where a wrap reflows anyway.
     """
     out = ["Slop check of %s. Rewrite to fix the following. Keep the facts and the "
            "meaning, and do not make it longer." % os.path.basename(path), ""]
     if stats:
         group, pairs = stats["groups"][0]
-        out += ["Register: %s. %.1f marker words per 1000 (elevated at %.1f, heavy at "
+        out += ["Register: %s. %.1f marker words per 1000 (elevated at %.1f, sloppy at "
                 "%.1f), %d markers over %d words."
-                % (stats["band"], stats["rate"], co.ELEVATED, co.HEAVY,
+                % (stats["band"], stats["rate"], co.ELEVATED, co.SLOPPY,
                    stats["total"], nwords), "",
                 "Heaviest group: %s, %d hits (%s). %s"
                 % (group, sum(n for _, n in pairs), ", ".join(w for w, _ in pairs[:6]),
@@ -654,10 +702,10 @@ def brief(path, stats, nwords, found):
 
     groups = {}
     for f in found:
-        n, unit, seen = groups.get(f.rule, (0, f.unit, []))
+        n, unit, note, seen = groups.get(f.rule, (0, f.unit, f.note, []))
         if f.example not in seen and len(seen) < BRIEF_EXAMPLES:
             seen.append(f.example)
-        groups[f.rule] = (n + f.n, unit, seen)
+        groups[f.rule] = (n + f.n, unit, note, seen)
 
     out.append("")
     if not groups:
@@ -665,9 +713,10 @@ def brief(path, stats, nwords, found):
         return "\n".join(out)
 
     out.append("Findings:")
-    for rule, (n, unit, seen) in list(groups.items())[:BRIEF_MAX]:
-        out.append("- %s, %d %s (%s): %s"
-                   % (rule, n, unit if n == 1 else unit + "s", ", ".join(seen),
+    for rule, (n, unit, note, seen) in list(groups.items())[:BRIEF_MAX]:
+        out.append("- %s, %d %s%s (%s): %s"
+                   % (rule, n, unit if n == 1 else unit + "s",
+                      ", " + note if note else "", ", ".join(seen),
                       WHY.get(rule, "")))
     if len(groups) > BRIEF_MAX:
         out.append("- and %d further kinds, listed in the report."
@@ -721,10 +770,10 @@ def render(path, text, against=None):
         extra = ('<section class="cell"><h2>Before and after</h2>%s</section>'
                  % compare_block(against, text))
 
-    # Markers rather than distinct terms in the third slot: on a document whose
-    # problem is register rather than vocabulary, "4 flagged spans, 2 terms"
-    # read as a clean bill while the register line underneath said HEAVY.
-    nfindings = len(spans) + len(text_blocks) + len(co.line_checks(text))
+    # Markers rather than distinct terms in the third slot: on a document whose problem is register rather than
+    # vocabulary, "4 flagged spans, 2 terms" read as a clean bill while the register line underneath said SLOPPY.
+    nfindings = len(spans) + len(text_blocks) + len(co.line_checks(text)) + sum(
+        1 for f in found if f.rule in ("hard-wrapped", "bold-emphasis"))
     strip = "".join(
         '<div><i style="background:%s"></i><b>%s</b><u>%s</u></div>' % (colour, e(n), e(label))
         for colour, n, label in (
@@ -765,7 +814,8 @@ def render(path, text, against=None):
         "findings": findings_block(found),
         "brief": e(brief(path, stats, nwords, found)),
         "extra": extra,
-        "text": marked(text, spans, text_blocks, co.wraps(text)[0], ids),
+        "text": marked(text, spans, text_blocks, co.wraps(text)[0], ids,
+                       (co.bold_stats(text) or {}).get("spans", ())),
     }
 
 
@@ -776,16 +826,24 @@ def main():
     ap.add_argument("-o", "--out", help="output path (default: alongside the input)")
     args = ap.parse_args()
 
-    with open(args.file, encoding="utf-8") as fh:
-        text = fh.read()
-    against = None
-    if args.against:
-        with open(args.against, encoding="utf-8") as fh:
-            against = fh.read()
+    try:
+        with open(args.file, encoding="utf-8") as fh:
+            text = fh.read()
+        against = None
+        if args.against:
+            with open(args.against, encoding="utf-8") as fh:
+                against = fh.read()
+    except OSError as err:
+        ap.error("%s: %s" % (err.filename, err.strerror))
 
     out = args.out or os.path.splitext(args.file)[0] + ".slop-report.html"
-    with open(out, "w", encoding="utf-8") as fh:
-        fh.write(render(args.file, text, against))
+    try:
+        with open(out, "w", encoding="utf-8") as fh:
+            fh.write(render(args.file, text, against))
+    except OSError as err:
+        # The default output sits beside the input, which is read-only often enough
+        # that the fix is worth naming rather than leaving to be guessed at.
+        ap.error("cannot write %s: %s. Pass -o to choose another path." % (err.filename, err.strerror))
     print(out)
 
 
