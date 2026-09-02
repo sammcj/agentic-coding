@@ -1,23 +1,44 @@
 {
   "$schema": "./.schemas/settings.schema.json",
-  "terminal": {
-    "showTerminalProgress": true
+  "ayu": {
+    "checkpoint": {
+      "requireGit": true,
+      "exclude": [
+        ".ssh/**",
+        "**/.ssh/**",
+        "**/node_modules/**",
+        "**/.venv/**",
+        ".gnupg/**",
+        ".aws/**",
+        ".config/gh/**",
+        "**/id_rsa*",
+        "**/id_ecdsa*",
+        "**/id_ed25519*",
+        "**/*.pem",
+        "**/*.key",
+        ".rustup/**",
+        ".bun/**",
+        ".local/**",
+        ".npm/**",
+        ".cargo/**",
+        ".claude/**",
+        ".pi/**",
+        ".pi-lens/**",
+        ".agents/**",
+        "go/pkg/**"
+      ],
+      "maxFileMB": 3
+    }
   },
-  "enableInstallTelemetry": false,
-  "theme": "nebula-pulse",
   "compaction": {
     "keepRecentTokens": 30000
   },
-  "showCacheMissNotices": true,
+  "defaultThinkingLevel": "medium",
+  "enableInstallTelemetry": false,
   "npmCommand": [
     "bun",
     "--minimum-release-age=0"
   ],
-  "ayu": {
-    "checkpoint": {
-      "requireGit": true
-    }
-  },
   "packages": [
     "npm:context-mode",
     "npm:pi-markdown-preview",
@@ -35,7 +56,12 @@
     "npm:@mrclrchtr/supi-context",
     "npm:@tintinweb/pi-subagents",
     "npm:remote-pi",
-    "npm:@narumitw/pi-plan-mode"
+    "npm:@narumitw/pi-plan-mode",
+    "npm:@latentminds/pi-quotas"
   ],
-  "defaultThinkingLevel": "medium"
+  "showCacheMissNotices": true,
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "theme": "nebula-pulse"
 }

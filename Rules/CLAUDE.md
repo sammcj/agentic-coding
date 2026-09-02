@@ -139,6 +139,8 @@ Be goal oriented when undertaking significant development tasks: **Define succes
 
 ## Tool Usage
 
+- Favour making targeted edits rather than rewriting entire files
+
 ### CLI Commands
 - Always quote all paths in bash commands
 - When fetching google docs via HTTP, append `export?format=md` to the URL
