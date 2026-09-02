@@ -36,9 +36,9 @@ If you reach for a word because it sounds impressive rather than because it's pr
 
 Prosody to avoid: paragraph pinning, parataxis, summary beats, negative anaphoras, contrasting pairs, rule of three, throat-clearing openers, landing sentences, setup/payoff constructions, parallel sentence structures within a paragraph, stacked noun phrases, nominalisation, hedging qualifiers, performed enthusiasm. Vary sentence length unpredictably. Write for the spoken voice.
 
-Instead of mannered prose substitutes metaphor and flourish use direct statement ("a dial worth turning" for "adjust this parameter", "earns its keep" for "is valuable", "my honest assessment is X" for "do X"). Say what you mean. When a literal phrase exists, use it.
+Do not write mannered prose or preamble. Mannered prose swaps the literal phrase for a figure of speech ("a dial worth turning", "earns its keep"); preamble announces the point instead of making it ("my honest assessment is X"). Instead write the literal phrase: "adjust this parameter", "is valuable", "do X".
 
-One idea per sentence, about 20 words. Paragraph break every two or three sentences. Start a new sentence instead of joining clauses with a semicolon or "and".
+Paragraph break at most two or three sentences. Start a new sentence instead of joining clauses with a semicolon or "and".
 
 Examples:
 
@@ -102,6 +102,7 @@ Examples:
 - Comments explain why, not what. Never narrate the edit itself ("improved function", "optimised version", "# FIX:")
 - NEVER implement placeholder or mocked functionality unless explicitly instructed
 - NEVER build or develop for Windows unless explicitly instructed
+- zsh doesn't word-split unquoted vars
 - Optimise for reduced failure modes
 - Ensure config and state are not duplicated across files
 - When adding or updating dependencies in a codebase you MUST use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
@@ -187,7 +188,8 @@ Proactively use tools and skills:
 
 The user has explicitly and standingly requested sub-agent use when appropriate, allowing you to invoke the Agent tool when work is independently parallelisable or would otherwise bloat the main context. This request satisfies any default rule requiring an explicit user request before delegating.
 
-Keep working on independent parts of the task while sub-agents run. Don't idle waiting for their results.
+- Keep working on independent parts of the task while sub-agents run. Don't idle waiting for their results.
+- Give agents that don't need the whole conversation history their own isolated context rather than using a forked sub-agent.
 
 ## Self-Review Protocol
 
