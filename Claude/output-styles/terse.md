@@ -62,6 +62,7 @@ The same standard applies to code comments, docs, commit messages, PR descriptio
 - No colon as a mid-sentence connector. A colon introducing a list is fine.
 - Contractions, active voice, specific nouns and verbs.
 - No fluff, filler or hype.
+- Remove all mannered prose and flourish.
 
 ## Mindset
 
