@@ -119,7 +119,7 @@ class MarkCountTests(unittest.TestCase):
         self.assertEqual(len(vs._filler(skill_dir)), 2)
         marks = re.findall(r'<mark [^>]*data-term="([^"]+)"', page)
         self.assertEqual(len(marks), 1)
-        rows = re.findall(r'<tr class="pick" data-term="([^"]+)"', page)
+        rows = re.findall(r'<tr class="pick [a-z]+" data-term="([^"]+)"', page)
         for term in rows:
             self.assertIn(term, marks[0].split("|"))
 
@@ -127,13 +127,13 @@ class MarkCountTests(unittest.TestCase):
         page, _ = self.render("# H\n\nA comprehensive line.\n")
         marked = re.search(r'<mark [^>]*data-term="([^"]+)"', page)
         assert marked is not None
-        self.assertIn('<tr class="pick" data-term="%s"' % marked.group(1), page)
+        self.assertIn('<tr class="pick probable" data-term="%s"' % marked.group(1), page)
 
     def test_clean_skill_says_so_and_keeps_the_search_box(self):
         # The page's JS binds unconditionally to #find; dropping the element on a clean skill would break every other
         # interaction on the page.
         page, _ = self.render("# H\n\nA plain line of body text.\n")
-        self.assertIn("No lexical no-ops or bold abuse found.", page)
+        self.assertIn("No lexical no-ops, American spellings, bold abuse or invisible characters found.", page)
         self.assertIn('id="find"', page)
 
 
@@ -369,7 +369,7 @@ class BriefTests(unittest.TestCase):
     def test_brief_counts_agree_with_the_page(self):
         body = "# H\n\n" + BLOB + "\n\nA robust plan.\n"
         text, page = self.brief_of(body)
-        rows = len(re.findall(r'<tr class="pick"', page))
+        rows = len(re.findall(r'<tr class="pick', page))
         listed = len(re.findall(r"^- ", text, re.MULTILINE))
         self.assertEqual(rows, 2)  # one blob, one term
         self.assertEqual(listed, 2)
@@ -450,7 +450,7 @@ class WhyCaptionTests(unittest.TestCase):
     def test_an_american_spelling_is_marked_and_ranked_like_any_term(self):
         page = self.render("# H\n\nNormalize the color before analyzing it.\n")
         self.assertEqual(len(re.findall(r"<mark ", page)), 3)
-        self.assertIn('<tr class="pick" data-term="normalize"', page)
+        self.assertIn('<tr class="pick possible" data-term="normalize"', page)
         self.assertIn("americanism", page)
 
     def test_the_spec_cell_still_checks_the_description_without_skills_ref(self):
@@ -510,14 +510,12 @@ class BoldReportTests(unittest.TestCase):
         # page.
         page, _ = self.render(self.BODY)
         self.assertIn("- **Lead.** An exempt bullet lead.", page)
-        self.assertNotIn('<mark class="em" data-term="bold-emphasis" data-why="'
-                         '%s" title="%s">**Lead.**'
-                         % (rr.WHY["bold-emphasis"], rr.WHY["bold-emphasis"]), page)
+        self.assertNotRegex(page, r'<mark [^>]*data-term="bold-emphasis"[^>]*>\*\*Lead\.\*\*')
 
     def test_the_row_and_the_marks_share_one_selection_key(self):
         page, _ = self.render(self.BODY)
         self.assertIn('<tr class="pick em" data-term="bold-emphasis"', page)
-        self.assertIn('<mark class="em" data-term="bold-emphasis"', page)
+        self.assertIn('<mark class="em" data-conf="" data-term="bold-emphasis"', page)
 
     def test_the_row_names_the_band_and_the_thresholds(self):
         page, _ = self.render(self.BODY)
@@ -558,6 +556,125 @@ class BoldReportTests(unittest.TestCase):
                          + page.split("</style>")[-1])
 
 
+class ConfidenceTests(unittest.TestCase):
+    """One ramp by confidence: possible marks are yellow and ranked last, certain ones red and first."""
+
+    def render(self, body: str) -> str:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return rr.render(build_skill(Path(tmp.name), body))
+
+    def test_a_no_op_is_probable_and_a_spelling_is_possible(self):
+        page = self.render("# H\n\nA comprehensive plan to normalize.\n")
+        self.assertIn('data-conf="probable" data-term="comprehensive"', page)
+        self.assertIn('data-conf="possible" data-term="normalize"', page)
+
+    def test_possible_rows_rank_below_probable_ones_whatever_their_count(self):
+        page = self.render("# H\n\nNormalize the color and the colors. A comprehensive plan.\n")
+        rows = re.findall(r'<tr class="pick ([a-z]+)" data-term="([^"]+)"', page)
+        self.assertEqual(rows[0], ("probable", "comprehensive"))
+        self.assertEqual({c for c, _ in rows[1:]}, {"possible"})
+
+    def test_a_possible_reason_ends_with_its_caveat_everywhere(self):
+        page = self.render("# H\n\nNormalize it.\n")
+        text = html.unescape(re.search(r'<pre id="brief" hidden>(.*?)</pre>', page, re.DOTALL).group(1))
+        self.assertIn("Possible, read before changing:", text)
+        self.assertIn(vs.POSSIBLE["americanism"], text)
+        self.assertNotIn("Findings, fix these:", text)
+        self.assertIn('data-why="%s' % html.escape(rr.WHY["americanism"], quote=True)[:40], page)
+        self.assertIn("Possible only: %s." % html.escape(vs.POSSIBLE["americanism"], quote=True), page)
+
+    def test_the_brief_splits_fixes_from_reads(self):
+        page = self.render("# H\n\nA comprehensive plan to normalize.\n")
+        text = html.unescape(re.search(r'<pre id="brief" hidden>(.*?)</pre>', page, re.DOTALL).group(1))
+        fix, maybe = text.index("Findings, fix these:"), text.index("Possible, read before changing:")
+        self.assertLess(fix, maybe)
+        self.assertLess(text.index("- puffery,"), maybe)
+        self.assertGreater(text.index("- americanism,"), maybe)
+
+    def test_the_strip_counts_possible_findings_apart(self):
+        page = self.render("# H\n\nA comprehensive plan to normalize the color.\n")
+        self.assertIn("<b>1</b><u>findings, 2 possible</u>", page)
+
+    def test_the_legend_is_headed_confidence_with_every_step(self):
+        page = self.render("# H\n\nA comprehensive plan.\n")
+        self.assertIn("<b>Confidence</b>", page)
+        for step in ("possible", "probable", "certain"):
+            self.assertIn('class="key k-%s"' % step, page)
+
+    def test_a_shared_mark_takes_the_higher_confidence(self):
+        body = ("# H\n\n"
+                + "\n\n".join("Line %d carries **phrase %d** mid-sentence." % (n, n) for n in range(vs.BOLD_LEAST))
+                + "\n\n" + "word " * 700 + "\n").replace("**phrase 0**", "**a comprehensive phrase**")
+        page = self.render(body)
+        self.assertRegex(page, r'<mark class="" data-conf="probable" data-term="[^"]*comprehensive[^"]*"')
+
+
+class DenseRunReportTests(unittest.TestCase):
+    PARA = "dense words that stop just short of the blob threshold " * 9
+
+    def render(self, body: str) -> str:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return rr.render(build_skill(Path(tmp.name), body))
+
+    def test_a_run_is_shaded_across_every_unit_and_listed_as_possible(self):
+        page = self.render("# H\n\n" + "\n\n".join([self.PARA] * vs.DENSE_RUN) + "\n")
+        self.assertEqual(shaded(page, "dense"), [8, 9, 10, 11, 12])
+        self.assertRegex(page, r'<tr class="pick dense possible" data-goto="L-0-8"')
+        self.assertIn("3 units, longest 90w:", page)
+
+    def test_a_blob_inside_a_run_keeps_its_own_shade(self):
+        blob = "blob words " * 80
+        page = self.render("# H\n\n" + self.PARA + "\n\n" + blob + "\n\n" + self.PARA + "\n")
+        self.assertEqual(shaded(page, "dense"), [8, 9, 11, 12])
+        self.assertEqual(shaded(page, "blob"), [10])
+
+    def test_a_shaded_line_carries_its_reason(self):
+        page = self.render("# H\n\n" + BLOB + "\n")
+        self.assertRegex(page, r'<span class="l blob" id="L-0-8" data-why="%s'
+                         % re.escape(html.escape(rr.WHY["blob"], quote=True)[:30]))
+
+
+class InvisibleMarkTests(unittest.TestCase):
+    def render(self, body: str) -> str:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return rr.render(build_skill(Path(tmp.name), body))
+
+    def test_the_mark_shows_the_code_point_and_is_certain(self):
+        page = self.render("# H\n\nRun\u00a0this.\n")
+        self.assertIn('<mark class="inv" data-conf="certain" data-term="u+00a0 no-break space"', page)
+        self.assertRegex(page, r'<mark class="inv"[^>]*>U\+00A0</mark>')
+
+    def test_it_ranks_above_every_other_term(self):
+        page = self.render("# H\n\nA comprehensive, comprehensive plan.\u00a0\n")
+        rows = re.findall(r'<tr class="pick ([a-z]+)" data-term="([^"]+)"', page)
+        self.assertEqual(rows[0], ("certain", "u+00a0 no-break space"))
+
+    def test_an_invisible_inside_a_bold_leaves_the_visible_text_alone(self):
+        body = ("# H\n\n"
+                + "\n\n".join("Line %d carries **phrase %d** mid-sentence." % (n, n) for n in range(vs.BOLD_LEAST))
+                + "\n\n" + "word " * 700 + "\n").replace("**phrase 0**", "**bold\u00a0phrase**")
+        page = self.render(body)
+        self.assertIn('data-conf="certain" data-term="bold-emphasis|u+00a0 no-break space"', page)
+        self.assertIn(">**boldU+00A0phrase**</mark>", page)
+        self.assertNotIn("U+002A", page)
+
+    def test_a_leading_bom_shows_its_code_point(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        skill_dir = build_skill(Path(tmp.name), "# H\n\nShort.\n")
+        path = skill_dir / "SKILL.md"
+        path.write_bytes(b"\xef\xbb\xbf" + path.read_bytes())
+        page = rr.render(skill_dir)
+        self.assertRegex(page, r'<mark class="inv" data-conf="certain" data-term="u\+feff byte-order mark"[^>]*>U\+FEFF</mark>')
+
+    def test_it_is_found_inside_a_fence_the_no_ops_skip(self):
+        page = self.render("# H\n\n```\nls\u00a0-la\n```\n")
+        self.assertIn('data-term="u+00a0 no-break space"', page)
+
+
 class CommandLineTests(unittest.TestCase):
     def run_cli(self, *args):
         return subprocess.run(
@@ -592,6 +709,17 @@ class CommandLineTests(unittest.TestCase):
             result = self.run_cli(str(skill_dir), "-o", str(target))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(Path(result.stdout.strip()), (target / "named.skill-report.html").resolve())
+
+    def test_an_unwritable_output_path_is_one_line_not_a_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# H\n\nShort.\n")
+            blocker = Path(tmp) / "file.txt"
+            blocker.write_text("not a directory")
+            result = self.run_cli(str(skill_dir), "-o", str(blocker / "report.html"))
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(len(result.stderr.strip().splitlines()), 1)
+        self.assertIn("cannot write", result.stderr)
+        self.assertIn("Pass -o", result.stderr)
 
     def test_a_directory_without_skill_md_is_refused(self):
         with tempfile.TemporaryDirectory() as tmp:

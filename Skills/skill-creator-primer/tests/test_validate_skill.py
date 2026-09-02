@@ -78,7 +78,7 @@ class ProsePercentageTests(unittest.TestCase):
 class BlobDetectionTests(unittest.TestCase):
     def blobs(self, body: str):
         with tempfile.TemporaryDirectory() as tmp:
-            _, skill_blobs, ref_blobs, long_code = vs._structure(build_skill(Path(tmp), body))
+            _, skill_blobs, ref_blobs, long_code, _dense = vs._structure(build_skill(Path(tmp), body))
             return skill_blobs, ref_blobs, long_code
 
     def test_paragraph_over_threshold_is_a_blob(self):
@@ -275,6 +275,190 @@ class AmericanismTests(unittest.TestCase):
             text, _rating, _advice, _within = vs.build_report(skill_dir)
         self.assertIn("Lexical no-ops (1)", text)
         self.assertIn("American spellings (2)", text)
+
+    def test_the_report_carries_the_caveat_on_the_spelling_line(self):
+        # A possible finding is a read, not a fix, and the agent reading the text report has no page to tell it so.
+        with tempfile.TemporaryDirectory() as tmp:
+            text, *_ = vs.build_report(build_skill(Path(tmp), "# T\n\nNormalize the color.\n"))
+        line = next(x for x in text.splitlines() if "American spellings" in x)
+        self.assertIn("? " + vs.POSSIBLE["americanism"], line)
+
+    def test_every_word_lands_on_the_right_side(self):
+        # The second list is the point: a rule that fires on rigorous, sizing or dialogue costs a lookup every time.
+        # Add to KEEP before widening a pattern.
+        rule = dict(vs._SPELLING_RULES)["americanism"]
+        missed = [w for w in CATCH.split() if not rule.search(w)]
+        false = [w for w in KEEP.split() if rule.search(w)]
+        self.assertEqual(missed, [])
+        self.assertEqual(false, [])
+
+    def test_the_izable_and_izational_suffixes_are_flagged(self):
+        self.assertEqual(self.terms("# T\n\nAn organizational, customizable, parallelizable step.\n"),
+                         ["organizational", "customizable", "parallelizable"])
+
+
+# Words the americanism rule must catch, and words it must not. The exclusions the primer chose on measurement
+# (agent nouns, the -log family, tokenize, program, licence/practice, math, harbor, distill) sit in KEEP.
+CATCH = """
+organize organizes organized organizing organization organizations organizational
+realize realized recognize recognized prioritize prioritized customizable
+normalize serialize sanitize standardization Organization parallelize
+analyze analyzed analyzing paralyzed catalyzed
+color colors colored coloring colorful colorless behavior behavioral behaviors
+favor favors favorite favorites favorable honor honors honorable neighbor neighborhood
+humor flavor flavors rumors vapor armor armory endeavor
+splendor valor savor savory odor candor clamor demeanor fervor parlor tumor
+vigor labor ardor glamor rigor Color Behavior
+center centers centered centering theater fiber fibers liter kilometers
+caliber somber specter scepter luster maneuver maneuvers maneuvering
+defense defenses defenseless offense offenses pretense
+traveled traveling traveler canceled canceling modeled modeling labeled
+labeling signaled signaling fueled totaled counseled counselor marvelous
+jewelry woolen enrollment fulfillment installment skillful willful
+instill enroll fulfills
+aluminum gray grayish mold molded moldy plow plowed smoldering airplane
+aging acknowledgment sizable practicing
+"""
+
+KEEP = """
+size sizes sized sizing resize resized resizing downsize upsize oversize
+capsize prize prizes prized maize baize seize seizes seized seizing assize
+advise advised revise revised surprise comprise compromise exercise
+improvise supervise televise franchise merchandise despise chastise incise
+organise organised realise recognised prioritise customisable normalise
+analyse analysed paralysed catalyse
+colour colours coloured behaviour behavioural favour favourite honour
+neighbour humour flavour harbour rumour vapour armour endeavour splendour
+valour savour odour candour clamour demeanour fervour parlour tumour vigour
+labour ardour glamour rigour
+humorous vigorous glamorous laborious clamorous odorous rigorous
+laboratory laboratories collaborator elaborate major minor senior junior
+prior error mirror doctor actor factor motor sector vector monitor
+centre centres centred theatre fibre litre kilometre calibre sombre spectre
+lustre manoeuvre metre metres meter meters sceptic sceptical
+bluster cluster fluster muster
+catalogue catalogues dialogue dialogues monologue epilogue analogue
+analogous analogy defence offence pretence defensive offensive
+travelled travelling traveller cancelled cancelling modelled modelling
+labelled labelling signalled fuelled totalled counselled counsellor
+marvellous jewellery woollen enrolment fulfilment instalment skilful wilful
+installed installing install fulfilled enrolled distilled instilled
+aluminium grey greyish mould moulded plough ploughed smouldering aeroplane
+ageing acknowledgement maths sizeable practising programs program artifact
+artifacts licence license practice
+analyzer optimizer serializer tokenizer tokenize tokenized dialog dialogs catalog
+cataloged analog math harbor distill Distill
+"""
+
+
+class DenseRunTests(unittest.TestCase):
+    """Consecutive dense units short of a blob: a wall with nowhere to rest."""
+
+    PARA = "dense words that stop just short of the blob threshold " * 9  # 90 words, under the blob line
+    ITEM = "- " + "list item words " * 24  # 72 words
+
+    def runs(self, body: str):
+        with tempfile.TemporaryDirectory() as tmp:
+            return vs._structure(build_skill(Path(tmp), body))[4]
+
+    def test_three_dense_paragraphs_are_a_run(self):
+        body = "# T\n\n" + "\n\n".join([self.PARA] * vs.DENSE_RUN) + "\n"
+        runs = self.runs(body)
+        self.assertEqual(len(runs), 1)
+        size, path, first, last, _opening, count, longest, listed = runs[0]
+        self.assertEqual((path, count, listed), ("SKILL.md", vs.DENSE_RUN, False))
+        self.assertEqual(size, 90 * vs.DENSE_RUN)
+        self.assertEqual(longest, 90)
+        self.assertEqual((first, last), (8, 8 + 2 * (vs.DENSE_RUN - 1)))
+
+    def test_one_fewer_paragraph_is_not_a_run(self):
+        self.assertEqual(self.runs("# T\n\n" + "\n\n".join([self.PARA] * (vs.DENSE_RUN - 1)) + "\n"), [])
+
+    def test_a_paragraph_under_the_floor_is_not_dense(self):
+        short = "word " * (vs.DENSE_WORDS - 1)
+        self.assertEqual(self.runs("# T\n\n" + "\n\n".join([short] * vs.DENSE_RUN) + "\n"), [])
+
+    def test_list_items_run_sooner_and_at_a_lower_floor(self):
+        runs = self.runs("# T\n\n" + "\n".join([self.ITEM] * vs.DENSE_LIST_RUN) + "\n")
+        self.assertEqual(len(runs), 1)
+        self.assertTrue(runs[0][7])
+        self.assertEqual(runs[0][5], vs.DENSE_LIST_RUN)
+
+    def test_a_mixed_run_holds_to_the_paragraph_rule(self):
+        # One paragraph and one list item is not a list run, and two units is under the paragraph count.
+        self.assertEqual(self.runs("# T\n\n" + self.PARA + "\n\n" + self.ITEM + "\n"), [])
+
+    def test_a_mixed_run_of_three_is_reported_as_units(self):
+        body = "# T\n\n" + self.PARA + "\n\n" + self.ITEM + "\n\n" + self.PARA + "\n"
+        runs = self.runs(body)
+        self.assertEqual((len(runs), runs[0][5], runs[0][7]), (1, 3, False))
+        with tempfile.TemporaryDirectory() as tmp:
+            text, *_ = vs.build_report(build_skill(Path(tmp), body))
+        self.assertIn("(3 units, ", text)
+
+    def test_a_heading_a_fence_and_a_table_row_each_end_a_run(self):
+        for wall in ("## Rest", "```\nx\n```", "| a | b |", "> quoted"):
+            body = "# T\n\n" + self.PARA + "\n\n" + wall + "\n\n" + "\n\n".join([self.PARA] * 2) + "\n"
+            self.assertEqual(self.runs(body), [], wall)
+
+    def test_a_blank_line_does_not_end_a_run(self):
+        body = "# T\n\n" + "\n\n\n\n".join([self.PARA] * vs.DENSE_RUN) + "\n"
+        self.assertEqual(len(self.runs(body)), 1)
+
+    def test_a_run_made_only_of_blobs_is_left_to_the_blob_list(self):
+        blob = "blob words " * 75  # 150 words
+        self.assertEqual(self.runs("# T\n\n" + "\n\n".join([blob] * vs.DENSE_RUN) + "\n"), [])
+
+    def test_a_blob_inside_a_run_keeps_the_run_and_names_the_longest(self):
+        blob = "blob words " * 80  # 160 words
+        body = "# T\n\n" + self.PARA + "\n\n" + blob + "\n\n" + self.PARA + "\n"
+        runs = self.runs(body)
+        self.assertEqual(len(runs), 1)
+        self.assertEqual(runs[0][6], 160)
+
+    def test_the_report_lists_runs_under_signals_with_the_caveat(self):
+        body = "# T\n\n" + "\n\n".join([self.PARA] * vs.DENSE_RUN) + "\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            text, *_ = vs.build_report(build_skill(Path(tmp), body))
+        signals = text.split("SIGNALS")[1].split("INFO:")[0]
+        self.assertIn("Dense runs (1)", signals)
+        self.assertIn("? " + vs.POSSIBLE["dense-run"], signals)
+        self.assertRegex(signals, r"SKILL\.md:8-12 \(3 units, 270w, longest 90w\)")
+
+
+class InvisibleCharacterTests(unittest.TestCase):
+    """Characters nobody can see, found wherever they sit - frontmatter and code included."""
+
+    def found(self, body: str, metadata: str = ""):
+        with tempfile.TemporaryDirectory() as tmp:
+            return vs._invisible(build_skill(Path(tmp), body, metadata=metadata))
+
+    def test_a_no_break_space_is_named_and_placed(self):
+        found = self.found("# T\n\nRun\u00a0this.\n")
+        self.assertEqual(found, [("SKILL.md", 8, 3, 4, "U+00A0 no-break space")])
+
+    def test_zero_width_and_private_use_are_found_in_code_and_frontmatter(self):
+        found = self.found("# T\n\n```\nls\u200b-la\n```\n", metadata="x: a\ue000b\n")
+        self.assertEqual([name for *_at, name in found],
+                         ["U+E000 private-use character", "U+200B zero-width space"])
+
+    def test_a_leading_bom_is_reported_from_the_bytes(self):
+        # utf-8-sig strips it on read, and byte 0 is exactly where a BOM lands and breaks a frontmatter parser.
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nShort.\n")
+            path = skill_dir / "SKILL.md"
+            path.write_bytes(b"\xef\xbb\xbf" + path.read_bytes())
+            self.assertEqual(vs._invisible(skill_dir), [("SKILL.md", 1, 0, 0, "U+FEFF byte-order mark")])
+
+    def test_emoji_joiners_are_not_flagged(self):
+        self.assertEqual(self.found("# T\n\nA family \U0001f468\u200d\U0001f469 emoji.\n"), [])
+
+    def test_the_report_lists_them_under_facts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            text, *_ = vs.build_report(build_skill(Path(tmp), "# T\n\nRun\u00a0this\u00a0now.\n"))
+        facts = text.split("FACTS")[1].split("INFO:")[0]
+        self.assertIn("Invisible characters (2)", facts)
+        self.assertIn('[invisible] "u+00a0 no-break space" x2 - SKILL.md:8', facts)
 
 
 class DescriptionEnforcementTests(unittest.TestCase):

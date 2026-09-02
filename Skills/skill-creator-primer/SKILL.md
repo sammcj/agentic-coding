@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-09-01
+  version: 2026-09-02
   skill-lint:
     max-load-tokens: 10000 # primer skill accepted as being larger
 hooks:
@@ -326,6 +326,8 @@ On a valid skill it also prints a token-budget estimate and rating alongside the
 - A skill whose branch test genuinely keeps nearly everything inline can declare `metadata.skill-lint.max-load-tokens: <int>` in its frontmatter, with a trailing `#` comment justifying the ceiling. It caps the worst-case load (SKILL.md plus the largest reference), not SKILL.md alone. Loads within it pass with the ceiling noted and no cure advice; past it the normal bands apply. An undeclared comment voids the ceiling - the justification is the point, so reach for this only after the deletion test has already run.
 - Findings are FACTS (over-long description, over-budget load, blobs in SKILL.md: always-loaded cost, fix them) or SIGNALS (large references, blobs or 10+ line code fences within them: branch-loaded, judge waffle against earned detail). Three or more reference blobs draw a warning - the load rating trusts references to stay tight.
 - A blob is any text unit of 100+ words, any shape (paragraph, list item, quote, table row): prose long enough to bury instructions (see "Buried instructions" in Failure Modes). The blob list feeds the compression pass in the Self-Review Protocol.
+- A dense run is 3+ consecutive units of 90+ words (2+ list items of 70+), not every one a blob: a wall with nowhere to rest. Reported with a `?` caveat, as American spellings are: read before changing, since each unit may carry a distinct instruction.
+- Invisible characters (no-break and zero-width spaces, private-use glyphs, usually pasted from a web page) are FACTS wherever they sit: one in a command or a description breaks it, and no editor shows it.
 - While this primer is active, a PostToolUse hook re-runs the report (`--report-only`, stdlib-only) after every SKILL.md edit, keeping the budget in view across the session.
 
 When the user asks for a skill report, a page, or a visual of the findings, **read `references/html-report.md`** and run the renderer it describes. The text report above covers every other case.

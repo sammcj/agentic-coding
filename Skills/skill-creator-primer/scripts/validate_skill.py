@@ -303,6 +303,15 @@ CODE_FENCE_LINES = 10
 # wall of prose the percentage exists to surface.
 PROSE_UNIT_MIN = 40
 
+# Consecutive units each dense but typically none a blob: three paragraphs at 90 words, or two list items at 70, with
+# nowhere for the eye to rest. A heading, fence, table row or quote between them ends the run; a blank line does not,
+# since a run of paragraphs is the finding. List items count sooner and at a lower floor - a bullet promises to be
+# short. A blob does not end a run (the stretch is a wall either way), so the run carries its longest member and the
+# two are told apart; a run made only of blobs is left to the blob list. Flags 2% of installed skills, most of them
+# runs of list items.
+DENSE_WORDS, DENSE_RUN = 90, 3
+DENSE_LIST_WORDS, DENSE_LIST_RUN = 70, 2
+
 # Bold dropped into a running sentence, which claude.ai's own system prompt asks for outright ("bold key facts for
 # scannability"). Emphasis works by being rare, so this is a rate over the whole load rather than a list of spans to fix
 # one at a time: no single one of them is the defect.
@@ -360,16 +369,43 @@ def declared_token_budget(skill_md_text: str) -> tuple[int | None, bool]:
     return int(found.group(1)), bool(found.group(2) and found.group(2)[1:].strip())
 
 
-def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
+def _dense_runs(seq: list) -> list[tuple[int, str, int, int, str, int, int, bool]]:
+    """Dense runs over one file's unit sequence, where None marks a wall break (heading, fence, table row, quote).
+    Entries are (words, rel path, first line, last line, opening, listed); a run is
+    (words, rel path, first line, last line, opening, unit count, longest unit, all list items)."""
+    out: list[tuple[int, str, int, int, str, int, int, bool]] = []
+    run: list = []
+
+    def flush() -> None:
+        listed = all(u[5] for u in run)
+        # A run made entirely of blobs says nothing the blob list does not; a run with a blob in it is still a wall.
+        if run and len(run) >= (DENSE_LIST_RUN if listed else DENSE_RUN) and any(u[0] < BLOB_WORDS for u in run):
+            out.append((sum(u[0] for u in run), run[0][1], run[0][2], run[-1][3], run[0][4],
+                        len(run), max(u[0] for u in run), listed))
+
+    for u in seq:
+        if u is None or u[0] < (DENSE_LIST_WORDS if u[5] else DENSE_WORDS):
+            flush()
+            run.clear()
+            continue
+        run.append(u)
+    flush()
+    return out
+
+
+def _structure(skill_dir: Path) -> tuple[int | None, list, list, list, list]:
     """Scan a skill's referenced Markdown for prose shape. Returns
     (percent of body words in paragraph prose or None if no body,
-    blobs in SKILL.md, blobs in referenced files, over-length code blocks);
-    blob and code entries are (size, relative path, 1-based first line, 1-based
-    last line, opening text), largest first. The line span is inclusive, so a
-    caller rendering the source can mark the whole unit rather than its opening."""
+    blobs in SKILL.md, blobs in referenced files, over-length code blocks,
+    dense runs); blob and code entries are (size, relative path, 1-based first
+    line, 1-based last line, opening text), largest first, and a dense run is
+    the same five fields followed by (unit count, longest unit, all list items).
+    The line span is inclusive, so a caller rendering the source can mark the
+    whole unit rather than its opening."""
     para_words = struct_words = 0
     units: list[tuple[int, str, int, int, str]] = []  # (words, rel path, first line, last line, opening words)
     long_code: list[tuple[int, str, int, int, str]] = []  # (lines, rel path, first line, last line, first code line)
+    dense: list[tuple[int, str, int, int, str, int, int, bool]] = []
     skill_root = Path(skill_dir).resolve()
     for path in referenced_md_files(skill_dir):
         text = path.read_text(encoding="utf-8-sig", errors="ignore")
@@ -378,10 +414,11 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
         first_line = (text[: match.end()].count("\n") + 1) if match else 1
         rel = path.relative_to(skill_root) if path.is_relative_to(skill_root) else path
         fence: str | None = None  # open fence marker, None outside fences
+        seq: list = []  # this file's units in order, None where a wall breaks, for _dense_runs
         unit = 0  # words in the unit being accumulated
         unit_line = 0
         unit_end = 0  # last line the unit covers, so callers can mark the span
-        unit_is_para = False
+        unit_kind = "para"  # para | list | row, since a run counts paragraphs and list items differently
         unit_open = ""  # first words of the unit, for the report quote
 
         # B023 below is the point of the closure, not a bug: close() reads the unit being accumulated in the enclosing
@@ -394,7 +431,9 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
             nonlocal unit, para_words, struct_words
             if unit:
                 units.append((unit, str(rel), unit_line, unit_end, unit_open))  # noqa: B023
-                if unit_is_para and unit >= PROSE_UNIT_MIN:  # noqa: B023
+                if unit_kind != "row":  # noqa: B023
+                    seq.append((unit, str(rel), unit_line, unit_end, unit_open, unit_kind == "list"))  # noqa: B023
+                if unit_kind == "para" and unit >= PROSE_UNIT_MIN:  # noqa: B023
                     para_words += unit
                 else:
                     struct_words += unit
@@ -418,6 +457,7 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
                 fence = opened
                 fence_start, fence_lines, fence_first = lineno, 0, ""
                 close()
+                seq.append(None)
                 continue
             if not stripped:
                 close()
@@ -425,23 +465,26 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
             words = len(stripped.split())
             if _HEADING.match(stripped):
                 close()
+                seq.append(None)
                 struct_words += words
             elif _LIST_MARKER.match(line):
                 close()
-                unit, unit_line, unit_is_para, unit_open = words, lineno, False, stripped
+                unit, unit_line, unit_kind, unit_open = words, lineno, "list", stripped
                 unit_end = lineno
             elif stripped.startswith(("|", ">")):
                 close()
-                unit, unit_line, unit_is_para, unit_open = words, lineno, False, stripped
+                unit, unit_line, unit_kind, unit_open = words, lineno, "row", stripped
                 unit_end = lineno
                 close()  # one unit per row/quote line
+                seq.append(None)
             else:
                 # a wrapped continuation belongs to its list item, not to prose
                 if unit == 0:
-                    unit_line, unit_is_para, unit_open = lineno, True, stripped
+                    unit_line, unit_kind, unit_open = lineno, "para", stripped
                 unit += words
                 unit_end = lineno
         close()
+        dense.extend(_dense_runs(seq))
         if fence is not None and fence_lines > CODE_FENCE_LINES:
             # unterminated fence: still report it rather than losing it silently
             long_code.append((fence_lines, str(rel), fence_start, lineno, fence_first))
@@ -450,7 +493,7 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list]:
     blobs = sorted((u for u in units if u[0] >= BLOB_WORDS), reverse=True)
     skill_blobs = [b for b in blobs if b[1] == "SKILL.md"]
     ref_blobs = [b for b in blobs if b[1] != "SKILL.md"]
-    return pct, skill_blobs, ref_blobs, sorted(long_code, reverse=True)
+    return pct, skill_blobs, ref_blobs, sorted(long_code, reverse=True), sorted(dense, reverse=True)
 
 
 # Lexical no-ops: words and shapes that spend always-loaded tokens without changing what the agent does, so they fail
@@ -507,14 +550,17 @@ _FILLER_RULES: list[tuple[str, re.Pattern]] = [
 # Americanism is a word to respell, and the report says which is which.
 #
 # The stems are explicit rather than a general \w+ize pattern, which eats "sizes", "prized" and "capsized". Same
-# precision-over-recall rule as the no-ops: deliberately absent are `dialog` (Claude Code's own permission dialog, and
-# the HTML element), `catalog` (names a published thing, e.g. schemastore.org's), `tokenize`/`tokenizer` (spelled -iz-
-# everywhere in ML), `program` (the computing sense is Australian too), and `license`/`practice`, where the correct form
-# turns on noun versus verb and a checker cannot see which.
+# precision-over-recall rule as the no-ops, each measured over the installed skills: deliberately absent are `dialog`
+# (Claude Code's own permission dialog, and the HTML element), `catalog` (names a published thing, e.g.
+# schemastore.org's) and the rest of the -log family with them, `tokenize`/`tokenizer` (spelled -iz- everywhere in ML),
+# `program` (the computing sense is Australian too), `license`/`practice`, where the correct form turns on noun versus
+# verb and a checker cannot see which, `math` (LaTeX math, and a name), `harbor` (the registry, and Safe Harbor) and
+# `distill` (the DeepSeek-R1-Distill model names). tests/test_validate_skill.py holds the words the rule must catch
+# and the words it must not; add to the second list before widening a pattern.
 _IZE_STEMS = (
     r"apolog|author|categor|central|critic|custom|digit|emphas|final|formal|general|ideal|initial|legal|local"
-    r"|maxim|memor|minim|mobil|modern|modular|neutral|normal|optim|organ|parameter|personal|priorit|real|recogn"
-    r"|sanit|serial|special|standard|summar|synchron|util|visual"
+    r"|maxim|memor|minim|mobil|modern|modular|neutral|normal|optim|organ|parallel|parameter|personal|priorit|real"
+    r"|recogn|sanit|serial|special|standard|summar|synchron|util|visual"
 )
 _SPELLING_RULES: list[tuple[str, re.Pattern]] = [
     (
@@ -524,18 +570,23 @@ _SPELLING_RULES: list[tuple[str, re.Pattern]] = [
             # The agent nouns (-izer, -izers, -yzer) are left out on purpose: measured over the corpus they are
             # almost always a component's name carried into prose - kicad's `analyzer` output, an `optimizer`,
             # a `serializer` - where respelling would rename the thing rather than fix the spelling.
-            r"\b(?:re|de|un)?(?:" + _IZE_STEMS + r")iz(?:e|es|ed|ing|ation|ations)\b"
+            r"\b(?:re|de|un)?(?:" + _IZE_STEMS + r")iz(?:e|es|ed|ing|ation|ations|ational|able|ability)\b"
             # the -yse family, which takes no `i`: analyse, paralyse, catalyse
             r"|\b(?:anal|paral|catal)yz(?:e|es|ed|ing)\b"
-            # -our. rigor/vigor/clamor are left out: their -ous forms drop the u in Australian English too
-            r"|\b(?:behavio|colo|favo|hono|labo|neighbo|flavo|humo|armo|rumo|endeavo)"
-            r"r(?:s|ed|ing|al|ally|able|ful|less|ite|ites|scale)?\b"
-            # -ll- before a suffix, which American English single-ls
+            # -our. No -ous suffix: humorous, vigorous and laborious drop the u in Australian English too
+            r"|\b(?:behavio|colo|favo|hono|labo|neighbo|flavo|humo|armo|rumo|endeavo|rigo|vigo|clamo|vapo|odo"
+            r"|cando|splendo|valo|savo|parlo|tumo|ardo|glamo|demeano|fervo)"
+            r"r(?:s|ed|ing|al|ally|able|ably|ful|fully|less|ite|ites|scale|hood|y|ies)?\b"
+            # -ll- before a suffix, which American English single-ls; only the forms that differ, since installed,
+            # fulfilled and enrolled are spelled the same in both
             r"|\b(?:cancel|label|model|travel|signal|fuel|total|marvel|level)(?:ed|ing|er|ers)\b"
-            r"|\bcancelation\b"
-            r"|\b(?:cent|calib|fib)er(?:s|ed|ing)?\b"
-            r"|\b(?:gray|grayscale|maneuver|aluminum|jewelry|defense|offense|judgment|skillful"
-            r"|practicing|practiced)(?:s|es|ed|ing|less)?\b",
+            r"|\bcounsel(?:ed|ing|or|ors)\b"
+            r"|\b(?:cancelation|marvelous(?:ly)?|woolen|enrollments?|fulfillments?|installments?|willful(?:ly)?"
+            r"|instill|enrolls?|fulfills?|skillful(?:ly)?)\b"
+            # -re. No bare `meter`: a parking meter keeps that spelling here
+            r"|\b(?:cent|calib|fib|theat|lit|kilomet|centimet|millimet|millilit|somb|spect|scept|lust)er(?:s|ed|ing)?\b"
+            r"|\b(?:gray(?:ish|scale)?|maneuver|aluminum|jewelry|defense|offense|pretense|judgment|acknowledgment"
+            r"|sizable|aging|airplane|mold|plow|smolder|practicing|practiced)(?:s|es|ed|ing|less|y)?\b",
             re.IGNORECASE,
         ),
     ),
@@ -544,6 +595,53 @@ _SPELLING_RULES: list[tuple[str, re.Pattern]] = [
 # Both tables are scanned in one pass so a term is placed and marked the same way whichever it came from; the report
 # splits them again by category, since the fix differs.
 _ALL_TEXT_RULES = _FILLER_RULES + _SPELLING_RULES
+
+# Rules whose hit is as often right as wrong, keyed by the caveat the reader needs before deciding. The text report
+# carries the caveat on the rule's header line and the HTML page marks the rule `?`, ranks it below the rest and
+# splits it out of the brief; a rule not listed here is a fix.
+POSSIBLE = {
+    "americanism": "right as a proper noun (the Labor Party, the World Health Organization) and in a skill written "
+                   "for an American reader",
+    "dense-run": "earned when each unit carries a distinct instruction; a wall when the units restate one",
+}
+# Rules that cannot be argued with, reported under FACTS and marked red on the page. Everything in neither set is
+# probable: reported, never gated, since a skill may mean the word literally.
+CERTAIN = {"invisible"}
+
+# Characters that render as nothing, or as an ordinary space, and arrive by copy from a web page: a no-break space in
+# a command breaks the command, one in a description breaks the trigger phrase, and no editor shows either. Written as
+# escapes, because the literal form is invisible and does not survive a round trip through anything that normalises
+# whitespace. The joiners U+200C and U+200D are left out: emoji sequences carry them.
+_INVISIBLE = re.compile("[\u00a0\u2007\u202f\u200b\u2060\ufeff\ue000-\uf8ff]")
+_INVISIBLE_NAMES = {
+    0x00A0: "no-break space", 0x2007: "figure space", 0x202F: "narrow no-break space",
+    0x200B: "zero-width space", 0x2060: "word joiner", 0xFEFF: "byte-order mark",
+}
+
+
+def invisible_name(char: str) -> str:
+    """'U+00A0 no-break space', the form the report and the page both print for a character nobody can see."""
+    return "U+%04X %s" % (ord(char), _INVISIBLE_NAMES.get(ord(char), "private-use character"))
+
+
+def _invisible(skill_dir: Path) -> list[tuple[str, int, int, int, str]]:
+    """Invisible characters across a skill's referenced Markdown, frontmatter and fenced code included, since a
+    no-break space does its damage in a command or a description as surely as in prose. Returns
+    (relative path, 1-based line, start column, end column, name) per character, in file order."""
+    found: list[tuple[str, int, int, int, str]] = []
+    skill_root = Path(skill_dir).resolve()
+    for path in referenced_md_files(skill_dir):
+        rel = path.relative_to(skill_root) if path.is_relative_to(skill_root) else path
+        raw = path.read_bytes()
+        # utf-8-sig strips a leading BOM, which is where one lands and what breaks a frontmatter parser, so it is
+        # reported from the bytes as an empty span at the top of the file.
+        if raw.startswith(b"\xef\xbb\xbf"):
+            found.append((str(rel), 1, 0, 0, invisible_name("\ufeff")))
+        text = raw.decode("utf-8-sig", errors="ignore")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            found.extend((str(rel), lineno, hit.start(), hit.end(), invisible_name(hit.group(0)))
+                         for hit in _INVISIBLE.finditer(line))
+    return found
 
 # Findings are grouped one line per distinct term, not one per occurrence: the agent fixes a word everywhere at once, so
 # ten hits on "comprehensive" is one action, not ten. These cap the grouped lines and the locations shown per line.
@@ -699,7 +797,19 @@ def _listing(group: list, unit: str) -> list[str]:
     """Indented finding lines: 'path:line (Nw) "opening words..."'."""
     out = [
         f'    {path}:{lineno} ({size}{unit}) "{" ".join(opening.split()[:8])}..."'
-        for size, path, lineno, _end, opening in group[:BLOB_LIST_MAX]
+        for size, path, lineno, _end, opening, *_ in group[:BLOB_LIST_MAX]
+    ]
+    if len(group) > BLOB_LIST_MAX:
+        out.append(f"    ... +{len(group) - BLOB_LIST_MAX} more")
+    return out
+
+
+def _dense_listing(group: list) -> list[str]:
+    """One line per run: 'path:first-last (3 units, 310w, longest 120w) "opening words..."'."""
+    out = [
+        f'    {path}:{first}-{last} ({count} {"list items" if listed else "units"}, {size}w, '
+        f'longest {longest}w) "{" ".join(opening.split()[:8])}..."'
+        for size, path, first, last, opening, count, longest, listed in group[:BLOB_LIST_MAX]
     ]
     if len(group) > BLOB_LIST_MAX:
         out.append(f"    ... +{len(group) - BLOB_LIST_MAX} more")
@@ -712,11 +822,16 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
     INFO is context. Returns (text, rating, advice); main() enforces the
     rating by exit code (Poor fails, OK warns)."""
     budget_lines, rating, advice, driver_is_main, within_budget = _budget(skill_dir, use_tiktoken)
-    pct, skill_blobs, ref_blobs, long_code = _structure(skill_dir)
+    pct, skill_blobs, ref_blobs, long_code, dense = _structure(skill_dir)
     filler = _filler(skill_dir)
     emphasis = _bold(skill_dir)
+    invisible = _invisible(skill_dir)
 
     facts: list[str] = []
+    # Certain wherever it sits, so it goes under the heading that says fix rather than judge.
+    if invisible:
+        facts.append(f"  Invisible characters ({len(invisible)}) - replace with a plain space, or delete:")
+        facts.extend(_filler_listing([("invisible", rel, lineno, name) for rel, lineno, _s, _e, name in invisible]))
     # A reference driving the rating is a branch-loaded cost, so its cure belongs under SIGNALS - FACTS is labelled
     # always-loaded.
     if advice and driver_is_main:
@@ -742,6 +857,13 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
             "inline scripts belong in scripts/, templates in assets/:"
         )
         signals.extend(_listing(long_code, " lines"))
+    if dense:
+        signals.append(
+            f"  Dense runs ({len(dense)}) - {DENSE_RUN}+ consecutive units of {DENSE_WORDS}+ words, or "
+            f"{DENSE_LIST_RUN}+ list items of {DENSE_LIST_WORDS}+, with nowhere to rest "
+            f"(? {POSSIBLE['dense-run']}):"
+        )
+        signals.extend(_dense_listing(dense))
     # One scan, two findings: a no-op is a word to cut, an Americanism a word to respell.
     no_ops = [f for f in filler if f[0] != "americanism"]
     spellings = [f for f in filler if f[0] == "americanism"]
@@ -752,7 +874,8 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
         signals.extend(_filler_listing(no_ops))
     if spellings:
         signals.append(
-            f"  American spellings ({len(spellings)}) - use the Australian form (-ise, -our, -re, doubled l):"
+            f"  American spellings ({len(spellings)}) - use the Australian form (-ise, -our, -re, doubled l) "
+            f"(? {POSSIBLE['americanism']}):"
         )
         signals.extend(_filler_listing(spellings))
     if emphasis:
@@ -780,7 +903,8 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
             "list item, quote, table row); shrink by deleting words, not by reshaping."
         )
     if not facts and not signals:
-        out.append("  No blobs, oversized code blocks, lexical no-ops, American spellings, or bold abuse found.")
+        out.append("  No blobs, dense runs, oversized code blocks, lexical no-ops, American spellings, bold abuse "
+                   "or invisible characters found.")
     return "\n".join(out), rating, advice, within_budget
 
 

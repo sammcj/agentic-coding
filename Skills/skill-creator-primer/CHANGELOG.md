@@ -2,6 +2,14 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-09-02
+
+- New `dense-run` SIGNAL: 3+ consecutive units of 90+ words, or 2+ list items of 70+. A heading, fence, table row or quote ends a run; a blank line or a blob does not, the run names its longest member, and a run made only of blobs is left to the blob list. `_structure` returns it as a fifth value. Flags 2% of installed skills.
+- Findings carry a confidence. `POSSIBLE` maps a rule to its caveat (`americanism`, `dense-run`); the text report prints it after `?` on the rule's line, and the page marks the rule yellow, prefixes its rows `?`, ranks them last, counts them apart in the strip and splits the brief into "Findings, fix these" and "Possible, read before changing". Invisible characters are certain (red), everything else probable (orange); blobs move from the red tint to orange, bold keeps blue, code grey.
+- New `invisible` FACT: no-break, figure and narrow spaces, zero-width space, word joiner, BOM (including at byte 0) and private-use glyphs, across frontmatter and fences. Marked on the page as the code point. U+200C/D left out for emoji.
+- `americanism` widened on measurement: `-izable`/`-izability`/`-izational`, `parallel`, twenty more `-our` stems, the `-re` family, `pretense`, `counselor`, `enrollment`, `fulfillment`, `installment`, `willful`, `acknowledgment`, `sizable`, `aging`, `airplane`, `mold`, `plow`, `smolder`. Newly excluded: `math`, `harbor`, `distill`. The words the rule must catch and must not now live in `tests/test_validate_skill.py`.
+- Report: shaded lines carry `data-why`; an unwritable `-o` path is one stderr line naming `-o`; the legend is headed Confidence; before-and-after gains a dense-runs pair.
+
 ## 2026-09-01
 
 - New `americanism` check: American spellings flagged against Australian house style, in its own rule table beside the lexical no-ops and reported on its own line, since a no-op is a word to cut and an Americanism a word to respell. Stems are explicit rather than a general `\w+ize` pattern, which eats "sizes", "prized" and "capsized". Flags 48 of 110 installed skills.
