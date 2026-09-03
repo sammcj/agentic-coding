@@ -594,8 +594,9 @@ def verdict(stats, nwords, nfindings, possible):
         what = ("register under %.1f/1000, or fewer than %d markers, or under %d words"
                 % (co.ELEVATED, co.LEAST, co.SHORT))
         if word != "CLEAN":
-            what += "; %d finding%s%s remain" % (nfindings, "" if nfindings == 1 else "s",
-                                                 ", %d possible" % possible if possible else "")
+            what += "; %d finding%s%s remain%s" % (nfindings, "" if nfindings == 1 else "s",
+                                                   ", %d possible" % possible if possible else "",
+                                                   "s" if nfindings + possible == 1 else "")
         return ('<div class="band %s">%s</div><div class="rate">%s</div>%s'
                 % (word.split()[0].lower(), word, what, gauge(0)))
     return ('<div class="band %s">%s</div><div class="rate">%.1f per 1000 words, '
