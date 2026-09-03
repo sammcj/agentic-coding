@@ -107,8 +107,9 @@ Examples:
 - Ensure config and state are not duplicated across files
 - When writing git commits, PRs or issues:
   - Keep your text concise, to the point, avoid preamble and narrative
-  - Be polite but do not add false positivity such as phrasing around "happy to" (as in "happy to test further"), or "if it helps" (as in "if it helps, I can add more tests")
-  - Do not add your own attribution unless requested by the user
+  - Be polite but DO NOT add false positivity such as phrasing around "happy to" (as in "happy to test further"), or "if it helps" (as in "if it helps, I can add more tests")
+  - DO NOT add your own attribution unless requested by the user
+  - NEVER include the claude session URL
 - When adding or updating dependencies in a codebase you MUST use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
 - Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
@@ -156,6 +157,7 @@ Be goal oriented when undertaking significant development tasks: **Define succes
 ## Tool Usage
 
 - The number of tokens used to edit files is best minimised, all else being equal. Therefore, when it will not affect the end result, try to surgically edit a file rather than rewrite the entire thing.
+- In a single Bash call, don't `cd` into a directory and then reference relative paths in later commands (joined by `&&`, `;` or newlines). Either pass absolute paths to each command, or run a lone `cd`-free command with the directory as an argument (`rg pat "/abs/dir/src"`). A plain `cd` on its own, or relative paths without a preceding `cd`, are fine.
 
 ### CLI Commands
 - Always quote all paths in bash commands

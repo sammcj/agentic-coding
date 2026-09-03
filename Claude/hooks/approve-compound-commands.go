@@ -170,7 +170,7 @@ func extractBashPatterns(items []string) []string {
 
 func splitCommand(cmd string) []string {
 	cmd = stripOuterParens(strings.TrimSpace(cmd))
-	parts := compoundOps.Split(cmd, -1)
+	parts := splitOutsideQuotes(cmd)
 	var result []string
 	for _, p := range parts {
 		p = stripOuterParens(strings.TrimSpace(p))
@@ -180,6 +180,60 @@ func splitCommand(cmd string) []string {
 		}
 	}
 	return result
+}
+
+// splitOutsideQuotes splits on &&, ||, |, ; and background & while ignoring
+// operators inside single quotes, double quotes, or after a backslash. A
+// quote-unaware split turned `rg "a|b" f | wc` into garbage parts that never
+// matched an allow rule, so every rg alternation pattern fell through to a
+// prompt. Redirections like 2>&1 are left intact for trailingRedir to strip.
+func splitOutsideQuotes(cmd string) []string {
+	var parts []string
+	var cur strings.Builder
+	inSingle, inDouble, escaped := false, false, false
+	flush := func() {
+		parts = append(parts, cur.String())
+		cur.Reset()
+	}
+	for i := 0; i < len(cmd); i++ {
+		c := cmd[i]
+		switch {
+		case escaped:
+			cur.WriteByte(c)
+			escaped = false
+		case c == '\\' && !inSingle:
+			cur.WriteByte(c)
+			escaped = true
+		case c == '\'' && !inDouble:
+			cur.WriteByte(c)
+			inSingle = !inSingle
+		case c == '"' && !inSingle:
+			cur.WriteByte(c)
+			inDouble = !inDouble
+		case inSingle || inDouble:
+			cur.WriteByte(c)
+		case c == ';':
+			flush()
+		case c == '|':
+			if i+1 < len(cmd) && cmd[i+1] == '|' {
+				i++
+			}
+			flush()
+		case c == '&':
+			if i+1 < len(cmd) && cmd[i+1] == '&' {
+				i++
+				flush()
+			} else if i > 0 && cmd[i-1] == '>' {
+				cur.WriteByte(c)
+			} else {
+				flush()
+			}
+		default:
+			cur.WriteByte(c)
+		}
+	}
+	flush()
+	return parts
 }
 
 // stripOuterParens removes balanced wrapping parentheses.

@@ -12,7 +12,8 @@
   },
   "attribution": {
     "commit": "",
-    "pr": ""
+    "pr": "",
+    "sessionUrl": false
   },
   "permissions": {
     "allow": [
@@ -170,9 +171,10 @@
       "Read(//usr/share/zoneinfo/**)",
       "Read(//var/db/timezone/**)",
       "Read(~/.claude/hooks/**)",
-      "Edit(~/go/pkg/**)",
+      "Read(~/.claude/plugins/**)",
       "Edit(~/.claude/skills/**)",
       "Edit(~/.claude/agents/**)",
+      "Edit(~/go/pkg/**)",
       "WebFetch",
       "WebSearch",
       "Edit(~/.claude/plugins/local-marketplace/**)",
@@ -437,6 +439,8 @@
       "Read(**/Signal/**)",
       "Read(**/vpn/**)",
       "Read(**/VPN/**)",
+      "Read(~/.bun/**)",
+      "Read(~/.npm/**)",
       "Read(//etc/systemd/**)",
       "Read(//Library/Application Support/**)",
       "Read(//Library/LaunchAgents/**)",
@@ -464,10 +468,12 @@
     ],
     "defaultMode": "auto",
     "additionalDirectories": [
-      "../docs/",
-      "~/git",
+      "../docs",
+      "/Users/samm/.bun/install",
+      "/Users/samm/.npm/node_modules",
       "/Users/samm/git",
       "/Users/samm/Downloads",
+      "/Users/samm/.pi/agent/npm",
       "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
       "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Dropbox Import/dotfiles/shell_config"
     ]
