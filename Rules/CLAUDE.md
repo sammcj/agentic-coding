@@ -105,7 +105,10 @@ Examples:
 - zsh doesn't word-split unquoted vars
 - Optimise for reduced failure modes
 - Ensure config and state are not duplicated across files
-- When writing git commits, PRs or issues keep your text concise, to the point, and do not add your own attribution unless requested by the user
+- When writing git commits, PRs or issues:
+  - Keep your text concise, to the point, avoid preamble and narrative
+  - Be polite but do not add false positivity such as phrasing around "happy to" (as in "happy to test further"), or "if it helps" (as in "if it helps, I can add more tests")
+  - Do not add your own attribution unless requested by the user
 - When adding or updating dependencies in a codebase you MUST use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
 - Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments

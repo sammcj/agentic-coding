@@ -5,13 +5,14 @@ Read this only when the user has said "slopsummary", or asked for a report, a pa
 ## Running it
 
 ```
-python3 scripts/render_report.py FILE [--against ORIG] [-o OUT]
+python3 scripts/render_report.py FILE [FILE ...] [--against ORIG] [-o OUT]
 ```
 
-Stdlib only, no network, no build step. It writes one self-contained HTML file and prints the path.
+Stdlib only, no network, no build step. It writes one self-contained HTML file per input and prints each path.
 
 - `FILE` is whichever text the user wants read. If you have just rewritten something and they ask for a report, that is the rewrite, and you pass the original as `--against ORIG` to get the before-and-after block. Same order as `check_output.py --against`.
-- Default output replaces the input's extension with `.slop-report.html`, beside the input. Pass `-o` when that would leave a stray file somewhere the user would not want one.
+- Several files get a page each, in one run. `--against` then compares every one of them to the same original, which suits two candidate rewrites of one draft and nothing else.
+- Default output replaces the input's extension with `.slop-report.html`, beside the input. Pass `-o` when that would leave a stray file somewhere the user would not want one. With several files `-o` names a directory, created if missing.
 - Do not try to open it yourself. `open` and its equivalents are often sandboxed, and a failed launch reads as a failed report.
 
 ## What to hand back

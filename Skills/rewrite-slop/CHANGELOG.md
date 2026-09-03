@@ -2,6 +2,10 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-09-04
+
+- `render_report.py` takes several files, one page each, matching `check_output.py`. With several files `-o` names a directory (created if missing); `--against` compares each to the same original. Missing input files are reported before any page is written.
+
 ## 2026-09-02
 
 Reviewed against fresh Fable 5.1 output (1.6k words, five genres): zero hits on the classic vocabulary, register ELEVATED at 6.3/1000, and the live tells were sentence-shaped (short closers, clipped contrasts, tag clauses, invented anecdotes). Everything below follows from that.

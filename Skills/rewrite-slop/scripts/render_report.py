@@ -9,7 +9,7 @@ page charts a corpus over twenty months, which a single document has no axis for
 to hold it selected while everything else responds, and light-only Bauhaus because a dark ground would invert the
 premise.
 
-    python3 render_report.py FILE [--against ORIG] [-o OUT]
+    python3 render_report.py FILE [FILE ...] [--against ORIG] [-o OUT]
 """
 
 import argparse
@@ -940,29 +940,40 @@ def render(path, text, against=None):
 
 def main():
     ap = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
-    ap.add_argument("file")
-    ap.add_argument("--against", metavar="ORIG", help="original file, for the length comparison")
-    ap.add_argument("-o", "--out", help="output path (default: alongside the input)")
+    ap.add_argument("files", nargs="+", help="text to report on; one page per file")
+    ap.add_argument("--against", metavar="ORIG", help="original file, for the before-and-after block")
+    ap.add_argument("-o", "--out", help="output path; with several files, a directory (default: alongside each input)")
     args = ap.parse_args()
 
+    # Every input is read before any page is written, so a misspelt second file does not leave half a run behind.
     try:
-        with open(args.file, encoding="utf-8") as fh:
-            text = fh.read()
         against = None
         if args.against:
             with open(args.against, encoding="utf-8") as fh:
                 against = fh.read()
+        texts = []
+        for path in args.files:
+            with open(path, encoding="utf-8") as fh:
+                texts.append(fh.read())
     except OSError as err:
         ap.error("%s: %s" % (err.filename, err.strerror))
 
-    out = args.out or os.path.splitext(args.file)[0] + ".slop-report.html"
-    try:
-        with open(out, "w", encoding="utf-8") as fh:
-            fh.write(render(args.file, text, against))
-    except OSError as err:
-        # The default output sits beside the input, which is often read-only.
-        ap.error("cannot write %s: %s. Pass -o to choose another path." % (err.filename, err.strerror))
-    print(out)
+    # One page per input: the page is one document and a panel about it, and a second document has no place on it.
+    many = len(args.files) > 1
+    if many and args.out:
+        os.makedirs(args.out, exist_ok=True)
+    for path, text in zip(args.files, texts, strict=True):
+        if many and args.out:
+            out = os.path.join(args.out, os.path.splitext(os.path.basename(path))[0] + ".slop-report.html")
+        else:
+            out = args.out or os.path.splitext(path)[0] + ".slop-report.html"
+        try:
+            with open(out, "w", encoding="utf-8") as fh:
+                fh.write(render(path, text, against))
+        except OSError as err:
+            # The default output sits beside the input, which is often read-only.
+            ap.error("cannot write %s: %s. Pass -o to choose another path." % (err.filename, err.strerror))
+        print(out)
 
 
 if __name__ == "__main__":
