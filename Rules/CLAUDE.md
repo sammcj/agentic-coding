@@ -21,7 +21,7 @@ Never use these in writing, communication, or documentation:
 - **Marketing adjectives**: comprehensive, robust, best in class, feature rich, production ready, enterprise grade, innovative
 - **Filler verbs**: delve, dive into, leverage, harness, foster, bolster, underscore, reflect, streamline, facilitate, empower
 - **Empty intensifiers**: seamlessly, pivotal, multifaceted, cutting-edge, smoking gun, honest take
-- Other commonly over-used AI terms: corpus, load-bearing
+- Other commonly over-used AI terms: corpus, load-bearing, "it's not X, it's Y", "the code is the contract", "the output is byte identical"
 - Anything else that reads as AI marketing copy or could be deleted without changing meaning
 
 If you reach for a word because it sounds impressive rather than because it's precise, pick a plainer one.

@@ -8,11 +8,11 @@ Read this only when the user has said "slopsummary", or asked for a report, a pa
 python3 scripts/render_report.py FILE [FILE ...] [--against ORIG] [-o OUT]
 ```
 
-Stdlib only, no network, no build step. It writes one self-contained HTML file per input and prints each path.
+Stdlib only, no network, no build step. It writes one self-contained HTML file and prints the path.
 
 - `FILE` is whichever text the user wants read. If you have just rewritten something and they ask for a report, that is the rewrite, and you pass the original as `--against ORIG` to get the before-and-after block. Same order as `check_output.py --against`.
-- Several files get a page each, in one run. `--against` then compares every one of them to the same original, which suits two candidate rewrites of one draft and nothing else.
-- Default output replaces the input's extension with `.slop-report.html`, beside the input. Pass `-o` when that would leave a stray file somewhere the user would not want one. With several files `-o` names a directory, created if missing.
+- Several files share the one page, a tab each. `--against` then compares every one of them to the same original, which suits two candidate rewrites of one draft and nothing else.
+- Default output replaces the input's extension with `.slop-report.html`, beside the input; for several files it is `slop-report.html` beside the first. Pass `-o` when that would leave a stray file somewhere the user would not want one.
 - Do not try to open it yourself. `open` and its equivalents are often sandboxed, and a failed launch reads as a failed report.
 
 ## What to hand back
@@ -28,7 +28,7 @@ If the text renders in a narrow column, the source is hard-wrapped and the page 
 
 ## What is on it
 
-Two columns on one screen. Left, a panel: the verdict (the register band when it has one, MINOR SLOP while anything at all was found, CLEAN only when nothing was), a needle on the calibrated thresholds, one bar per Tier 2 group with the accent on the group to thin, and one searchable list of every finding. Right, the whole input, marked up.
+With several files, a tab strip under the header, one file on screen at a time, each tab carrying its file's verdict; the search box and Copy brief work on the file showing. Below that, two columns on one screen. Left, a panel: the verdict (the register band when it has one, MINOR SLOP while anything at all was found, CLEAN only when nothing was), a needle on the calibrated thresholds, one bar per Tier 2 group with the accent on the group to thin, and one searchable list of every finding. Right, the whole input, marked up.
 
 The findings list is one list on purpose. Long paragraphs, prose tables, hard-wrapping and the line-level findings sit at the top, measured by their extent; the terms follow, ranked by count with a bar in each row. Split into two cells, a document whose problem was structure showed two rows under findings and eighteen under structure.
 

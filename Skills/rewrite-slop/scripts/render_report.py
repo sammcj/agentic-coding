@@ -166,6 +166,8 @@ CSS = """
   --likely: #ffc978; --likely-rule: #e07a0c;
 }
 * { box-sizing: border-box; }
+/* `hidden` alone loses to the display rules below, and the panel is a flex box. */
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; -moz-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { margin: 0; background: var(--ground); color: var(--ink);
        font: 400 16px/1.5 var(--grotesk); -webkit-font-smoothing: antialiased;
@@ -185,13 +187,23 @@ body { margin: 0; background: var(--ground); color: var(--ink);
          min-height: 0; overflow: hidden; }
 .grow { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .doc { min-height: 0; overflow: auto; }
-header, footer { grid-column: 1 / -1; }
+header, footer, .tabs { grid-column: 1 / -1; }
 header { display: flex; align-items: center; justify-content: space-between; gap: 32px; }
 header .stats { flex: 1; max-width: 680px; }
+/* Several files share one board: a tab each, one file on screen at a time, the
+   tab carrying the verdict so the set can be compared without switching. */
+.board.many { grid-template-rows: auto auto minmax(0, 1fr) auto; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px; }
+.tabs button { text-transform: none; letter-spacing: 0; font-size: 12px; }
+.tabs button em { font-style: normal; margin-left: 8px; color: var(--muted);
+                  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.tabs button em.sloppy, .tabs button em.elevated { color: var(--accent); }
+.tabs button.on, .tabs button:hover { background: var(--ink); border-color: var(--ink); color: #fff; }
+.tabs button.on em, .tabs button:hover em { color: #fff; opacity: 0.7; }
 
 @media (max-width: 900px) {
   body { overflow: auto; }
-  .board { grid-template-columns: 1fr; grid-template-rows: none; height: auto; }
+  .board, .board.many { grid-template-columns: 1fr; grid-template-rows: none; height: auto; }
   .panel, .doc, .scroll { overflow: visible; }
   .grow { flex: none; }
   header { display: block; }
@@ -301,7 +313,7 @@ pre { margin: 0; font: 400 13px/1.65 var(--mono); white-space: pre-wrap;
       word-wrap: break-word; }
 /* The brief, kept hidden as the copy source and revealed only if the clipboard
    refuses, so there is still something to select by hand. */
-#brief { margin: var(--rule); padding: 14px 16px; border: var(--rule) solid var(--ink); }
+.brief { margin: var(--rule); padding: 14px 16px; border: var(--rule) solid var(--ink); }
 body.spill { overflow: auto; }
 /* A block finding is shaded rather than underlined, and named in its own margin,
    because what is wrong with it is its extent. */
@@ -349,12 +361,28 @@ body.sel tr.pick.on td { background: var(--fill); }
 """
 
 JS = """
-var body = document.body, sel = null;
-var why = document.getElementById('why'), idle = why.textContent, pinned = '';
-why.classList.add('idle');
+var body = document.body, sel = null, cur = '0', pinned = '';
+var idle = (document.querySelector('.why') || {}).textContent || '';
+/* Everything about one file carries its index, so the file on screen is a
+   selector prefix and a switch is one pass over the page. */
+function q(s) { return document.querySelector('[data-file="' + cur + '"] ' + s); }
+function brief() { return document.querySelector('.brief[data-brief="' + cur + '"]'); }
 function say(text) {
+  var why = q('.why');
+  if (!why) return;
   why.textContent = text || pinned || idle;
   why.classList.toggle('idle', !(text || pinned));
+}
+say('');
+function show(i) {
+  if (sel) choose(sel);
+  cur = i;
+  pinned = '';
+  document.querySelectorAll('[data-file]').forEach(function (el) { el.hidden = el.dataset.file !== i; });
+  document.querySelectorAll('[data-tab]').forEach(function (el) { el.classList.toggle('on', el.dataset.tab === i); });
+  document.querySelectorAll('.brief').forEach(function (el) { el.hidden = true; });
+  body.classList.remove('spill');
+  say('');
 }
 document.addEventListener('mouseover', function (e) {
   var el = e.target.closest('[data-why]');
@@ -370,11 +398,13 @@ function choose(term) {
     el.classList.toggle('on', sel !== null && el.dataset.term === sel);
   });
   if (sel) {
-    var first = document.querySelector('mark.on');
+    var first = q('mark.on');
     if (first) first.scrollIntoView({block: 'center', behavior: 'smooth'});
   }
 }
 document.addEventListener('click', function (e) {
+  var tab = e.target.closest('[data-tab]');
+  if (tab) { show(tab.dataset.tab); return; }
   var go = e.target.closest('[data-goto]');
   if (go) {
     pinned = go.dataset.why || '';
@@ -400,20 +430,24 @@ document.addEventListener('click', function (e) {
   }
 });
 document.addEventListener('keydown', function (e) {
+  var box = q('.find');
   if (e.key === 'Escape' && sel) choose(sel);
-  else if (e.key === '/' && document.activeElement !== box) { e.preventDefault(); box.focus(); }
+  else if (e.key === '/' && box && document.activeElement !== box) { e.preventDefault(); box.focus(); }
 });
-var box = document.getElementById('find');
-box.addEventListener('input', function () {
-  var q = box.value.trim().toLowerCase();
-  document.querySelectorAll('tr.pick').forEach(function (tr) {
-    tr.classList.toggle('gone', q !== '' && tr.dataset.term.indexOf(q) === -1);
+document.querySelectorAll('.find').forEach(function (box) {
+  var rows = box.parentNode.querySelectorAll('tr.pick');
+  box.addEventListener('input', function () {
+    var want = box.value.trim().toLowerCase();
+    rows.forEach(function (tr) {
+      tr.classList.toggle('gone', want !== '' && tr.dataset.term.indexOf(want) === -1);
+    });
   });
+  box.addEventListener('click', function (e) { e.stopPropagation(); });
 });
-box.addEventListener('click', function (e) { e.stopPropagation(); });
 
-var copy = document.getElementById('copy'), stash = document.getElementById('brief');
+var copy = document.getElementById('copy');
 function flashed(ok) {
+  var stash = brief();
   if (!ok) { stash.hidden = false; body.classList.add('spill'); stash.scrollIntoView(); }
   copy.textContent = ok ? 'Copied' : 'Copy failed, brief below';
   copy.classList.add('done');
@@ -426,7 +460,7 @@ function flashed(ok) {
    always there to call. */
 function bySelection() {
   var ta = document.createElement('textarea'), ok = false;
-  ta.value = stash.textContent;
+  ta.value = brief().textContent;
   ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
   document.body.appendChild(ta);
   ta.select();
@@ -437,7 +471,7 @@ function bySelection() {
 copy.addEventListener('click', function (e) {
   e.stopPropagation();
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(stash.textContent).then(function () { flashed(true); },
+    navigator.clipboard.writeText(brief().textContent).then(function () { flashed(true); },
                                                           bySelection);
   } else bySelection();
 });
@@ -772,9 +806,9 @@ def findings_block(found):
         '<span><i class="key k-%s"></i>%s, %s</span>' % (s, s, e(d)) for s, d in LEGEND)
     # The caption holds the description of whatever is hovered or chosen, so the reason a thing is flagged does not
     # depend on finding a tooltip.
-    return ('<input id="find" placeholder="Search for a finding..." autocomplete="off">'
+    return ('<input class="find" placeholder="Search for a finding..." autocomplete="off">'
             '<div class="scroll"><table>%s</table></div>'
-            '<p id="why" class="why">Hover or click a finding for what it is and why.</p>'
+            '<p class="why">Hover or click a finding for what it is and why.</p>'
             '<div class="legend">%s</div>'
             % ("".join(rows), legend))
 
@@ -874,12 +908,13 @@ def compare_block(orig, new):
     return "".join(out)
 
 
-def render(path, text, against=None):
+def page(path, text, against, prefix):
+    """One file's share of the board: everything that is about the file rather than the run."""
     spans = all_spans(text)
     stats = co.register_stats(text)
     nwords = len(text.split())
     text_blocks = blocks(text)
-    ids = ["b%d" % i for i in range(len(text_blocks))]
+    ids = ["%sb%d" % (prefix, i) for i in range(len(text_blocks))]
     found = findings(text, spans, text_blocks, ids)
 
     extra = ""
@@ -901,33 +936,10 @@ def render(path, text, against=None):
             ("#e8b400", "%d" % (stats["total"] if stats else 0), "register markers"),
         ))
 
-    return """<!doctype html>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>slop report: %(name)s</title>
-<style>%(css)s</style>
-<div class="board">
-  <header class="cell">
-    <h1>The <span>slop</span> in %(name)s</h1>
-    <div class="stats">%(strip)s</div>
-  </header>
-  <div class="panel">
-    <section class="cell"><h2>Verdict</h2>%(verdict)s%(groups)s</section>
-    %(extra)s
-    <section class="cell grow"><h2>Findings</h2>%(findings)s</section>
-  </div>
-  <section class="cell doc"><h2>The text</h2><pre>%(text)s</pre></section>
-  <footer><span>generated %(when)s</span>
-    <button id="copy" data-why="Copies these findings as text, each with its reason, to paste into a coding agent.">Copy brief</button>
-    <span class="end">rewrite-slop</span></footer>
-</div>
-<pre id="brief" hidden>%(brief)s</pre>
-<script>%(js)s</script>
-""" % {
+    return {
         "name": e(os.path.basename(path)),
-        "css": CSS, "js": JS,
+        "band": headline(stats, nfindings, maybe),
         "strip": strip,
-        "when": datetime.datetime.now().astimezone().date().isoformat(),
         "verdict": verdict(stats, nwords, nfindings, maybe),
         "groups": groups_block(stats),
         "findings": findings_block(found),
@@ -938,42 +950,90 @@ def render(path, text, against=None):
     }
 
 
+def render(inputs, against=None):
+    """One board for every (path, text) given.
+
+    Several files share the page rather than getting one each: a tab per file, one on screen at a time, the tab
+    carrying the verdict so the set reads at a glance. Merging the texts was the other way, and it has no honest
+    register: a rate over three documents describes none of them.
+    """
+    pages = [page(path, text, against, "f%d" % i) for i, (path, text) in enumerate(inputs)]
+    many = len(pages) > 1
+
+    def each(fmt):
+        return "".join(fmt % dict(p, i=i, hide=" hidden" if i else "") for i, p in enumerate(pages))
+
+    tabs = ""
+    if many:
+        tabs = '<nav class="cell tabs">%s</nav>' % "".join(
+            '<button data-tab="%d"%s>%s<em class="%s">%s</em></button>'
+            % (i, ' class="on"' if i == 0 else "", p["name"], p["band"].split()[0].lower(), p["band"])
+            for i, p in enumerate(pages))
+
+    return """<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>slop report: %(title)s</title>
+<style>%(css)s</style>
+<div class="board%(many)s">
+  <header class="cell">
+    <h1>The <span>slop</span> in %(title)s</h1>
+    %(strips)s
+  </header>
+  %(tabs)s
+  %(files)s
+  <footer><span>generated %(when)s</span>
+    <button id="copy" data-why="Copies these findings as text, each with its reason, to paste into a coding agent.">Copy brief</button>
+    <span class="end">rewrite-slop</span></footer>
+</div>
+%(briefs)s
+<script>%(js)s</script>
+""" % {
+        "title": "%d files" % len(pages) if many else pages[0]["name"],
+        "many": " many" if many else "",
+        "css": CSS, "js": JS,
+        "when": datetime.datetime.now().astimezone().date().isoformat(),
+        "strips": each('<div class="stats" data-file="%(i)d"%(hide)s>%(strip)s</div>'),
+        "tabs": tabs,
+        "files": each('<div class="panel" data-file="%(i)d"%(hide)s>'
+                      '<section class="cell"><h2>Verdict</h2>%(verdict)s%(groups)s</section>%(extra)s'
+                      '<section class="cell grow"><h2>Findings</h2>%(findings)s</section></div>'
+                      '<section class="cell doc" data-file="%(i)d"%(hide)s><h2>The text</h2><pre>%(text)s</pre></section>'),
+        "briefs": each('<pre class="brief" data-brief="%(i)d" hidden>%(brief)s</pre>'),
+    }
+
+
 def main():
     ap = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
-    ap.add_argument("files", nargs="+", help="text to report on; one page per file")
+    ap.add_argument("files", nargs="+", help="text to report on; several share one page, a tab each")
     ap.add_argument("--against", metavar="ORIG", help="original file, for the before-and-after block")
-    ap.add_argument("-o", "--out", help="output path; with several files, a directory (default: alongside each input)")
+    ap.add_argument("-o", "--out", help="output path (default: alongside the input; slop-report.html "
+                                        "beside the first of several)")
     args = ap.parse_args()
 
-    # Every input is read before any page is written, so a misspelt second file does not leave half a run behind.
     try:
         against = None
         if args.against:
             with open(args.against, encoding="utf-8") as fh:
                 against = fh.read()
-        texts = []
+        inputs = []
         for path in args.files:
             with open(path, encoding="utf-8") as fh:
-                texts.append(fh.read())
+                inputs.append((path, fh.read()))
     except OSError as err:
         ap.error("%s: %s" % (err.filename, err.strerror))
 
-    # One page per input: the page is one document and a panel about it, and a second document has no place on it.
-    many = len(args.files) > 1
-    if many and args.out:
-        os.makedirs(args.out, exist_ok=True)
-    for path, text in zip(args.files, texts, strict=True):
-        if many and args.out:
-            out = os.path.join(args.out, os.path.splitext(os.path.basename(path))[0] + ".slop-report.html")
-        else:
-            out = args.out or os.path.splitext(path)[0] + ".slop-report.html"
-        try:
-            with open(out, "w", encoding="utf-8") as fh:
-                fh.write(render(path, text, against))
-        except OSError as err:
-            # The default output sits beside the input, which is often read-only.
-            ap.error("cannot write %s: %s. Pass -o to choose another path." % (err.filename, err.strerror))
-        print(out)
+    if len(inputs) > 1:
+        out = args.out or os.path.join(os.path.dirname(args.files[0]), "slop-report.html")
+    else:
+        out = args.out or os.path.splitext(args.files[0])[0] + ".slop-report.html"
+    try:
+        with open(out, "w", encoding="utf-8") as fh:
+            fh.write(render(inputs, against))
+    except OSError as err:
+        # The default output sits beside the input, which is often read-only.
+        ap.error("cannot write %s: %s. Pass -o to choose another path." % (err.filename, err.strerror))
+    print(out)
 
 
 if __name__ == "__main__":

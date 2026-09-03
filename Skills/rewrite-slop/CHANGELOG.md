@@ -4,7 +4,7 @@
 
 ## 2026-09-04
 
-- `render_report.py` takes several files, one page each, matching `check_output.py`. With several files `-o` names a directory (created if missing); `--against` compares each to the same original. Missing input files are reported before any page is written.
+- `render_report.py` takes several files on one page: a tab per file under the header carrying its verdict, one file on screen at a time, search and Copy brief scoped to it. Default output for several is `slop-report.html` beside the first input; `--against` compares each to the same original. `render()` now takes a list of (path, text), with the per-file work in `page()`. Fixed a latent script error on a page with nothing flagged (the caption element it reached for did not exist).
 
 ## 2026-09-02
 
