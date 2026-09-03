@@ -27,7 +27,7 @@ If the text renders in a narrow column, the source is hard-wrapped and the page 
 
 ## What is on it
 
-Two columns on one screen. Left, a panel: the register band, a needle on the calibrated thresholds, one bar per Tier 2 group with the accent on the group to thin, and one searchable list of every finding. Right, the whole input, marked up.
+Two columns on one screen. Left, a panel: the verdict (the register band when it has one, MINOR SLOP while anything at all was found, CLEAN only when nothing was), a needle on the calibrated thresholds, one bar per Tier 2 group with the accent on the group to thin, and one searchable list of every finding. Right, the whole input, marked up.
 
 The findings list is one list on purpose. Long paragraphs, prose tables, hard-wrapping and the line-level findings sit at the top, measured by their extent; the terms follow, ranked by count with a bar in each row. Split into two cells, a document whose problem was structure showed two rows under findings and eighteen under structure.
 

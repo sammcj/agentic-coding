@@ -37,6 +37,7 @@ Reviewed against fresh Fable 5.1 output (1.6k words, five genres): zero hits on 
 - Marks cannot nest in the single-pass marker, and a landing sentence can hold a chat-residue phrase: probable spans are placed first and a possible span overlapping one is not marked, keeping its row. Landing sentences select as one term, so the habit row and each closer's row hold all of them, as bold does.
 - Unjoined paragraphs are shaded only once banded, and listed once as the aggregate row rather than once per block; the findings count in the strip excludes possible spans and those blocks, so it agrees with the text tally.
 - Before and after, shown only with `--against`, is one small table of figures with a delta column instead of five pairs of bars, with the added specifics listed under it.
+- The headline is a verdict, and the cell is named so: the register band when it has one, MINOR SLOP (orange) while any finding remains, possible ones included, and CLEAN only when nothing was found. A register below its gate said CLEAN above a page of findings. The brief opens with the same word.
 
 **Vocabulary**
 

@@ -6,40 +6,7 @@
 # ]
 # requires-python = ">=3.11"
 # ///
-"""
-Validate a skill against the Agent Skills specification.
-
-Uses the official skills-ref reference library for the actual spec checks
-(https://github.com/agentskills/agentskills/tree/main/skills-ref), with two
-deliberate adaptations for how skills are authored in practice:
-
-1. Frontmatter is parsed with standard PyYAML, not skills-ref's StrictYAML loader.
-   StrictYAML rejects flow-style arrays ("allowed-tools: [Read]") on style grounds,
-   but those are valid YAML, valid per the spec, and exactly what the real consumers
-   (Claude Code, Copilot) accept and what this repo's generator emits. PyYAML matches
-   the real loaders, so a compliant skill no longer fails on a style preference.
-
-2. skills-ref's field allowlist only knows the six Agent Skills spec fields, so it
-   errors on every Claude Code extension field (argument-hint, model, when_to_use, ...)
-   and goes stale as Claude Code adds more. So we run the spec's real checks (name,
-   description, compatibility, dir match) as hard errors via validator.validate_metadata,
-   and downgrade unknown-field detection to a WARNING: documented extensions pass clean,
-   newer/community fields don't block, and typos still surface as a visible warning.
-
-3. The primer's description length rule is enforced on top of the spec checks:
-   a warning over the 55-word ceiling, a hard error over 65.
-
-Field list verified against the official docs:
-https://code.claude.com/docs/en/skills#frontmatter-reference
-
-On a valid skill it also prints a token-budget estimate across the Markdown that
-SKILL.md references (transitively), using the chars/N heuristic below; pass
---tiktoken to count with the real tokeniser instead.
-
-Several skill directories can be passed at once. Validation is serial: the work
-is GIL-bound regex over small files (~200ms for a 60-skill corpus), and a thread
-pool measured 50% slower.
-"""
+"""Validate skills against the Agent Skills specification via skills-ref (https://github.com/agentskills/agentskills) and report their token budget and structure."""
 
 import argparse
 import re
@@ -911,6 +878,10 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
 def parse_frontmatter(text: str) -> dict:
     """Parse a SKILL.md's leading YAML frontmatter with a standard YAML loader.
 
+    PyYAML rather than skills-ref's StrictYAML: StrictYAML rejects flow-style arrays
+    ("allowed-tools: [Read]") on style grounds, while the real loaders (Claude Code,
+    Copilot) accept them.
+
     Raises ValueError if there is no frontmatter block or it is not a mapping, and
     propagates yaml.YAMLError for malformed YAML (e.g. an unquoted description with a
     bare colon, which is a genuine error the real loaders would also reject).
@@ -1099,8 +1070,13 @@ def main() -> None:
         "checks; stdlib-only, so it runs with plain python3 (used by the "
         "post-edit hook)",
     )
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(2)
     args = parser.parse_args()
-    skill_dirs = [Path(d) for d in args.skill_directory]
+    # Resolved so `.` works: skills-ref matches the directory basename against the skill name, and Path(".") has none.
+    # Report headers echo the argument as given so a batch reads back in the caller's own terms.
+    skill_dirs = [(d, Path(d).resolve()) for d in args.skill_directory]
 
     # Resolve optional dependencies before the first report prints, so a missing one fails immediately instead of
     # part-way through a batch.
@@ -1112,12 +1088,14 @@ def main() -> None:
 
     failures = 0
     multi = len(skill_dirs) > 1
-    for skill_dir in skill_dirs:
+    # Serial on purpose: GIL-bound regex over small files (~200ms for a 60-skill corpus); a thread pool measured 50%
+    # slower.
+    for given, skill_dir in skill_dirs:
         lines, ok = validate_one(
             skill_dir, use_tiktoken=args.tiktoken, report_only=args.report_only
         )
         if multi:
-            print(f"=== {skill_dir} ===")
+            print(f"=== {given} ===")
         print("\n".join(lines))
         if multi:
             print()

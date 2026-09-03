@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
-"""PostToolUse hook for the skill-creator-primer.
-
-After any Edit/Write to a skill's Markdown (SKILL.md or a reference under a directory holding one)
-while the primer is active, run validate_skill.py --report-only on that skill and inject the
-token-budget and structure report back into the model's context. This is the mechanical replacement
-for the user nudging "reduce the word count": the measurement re-enters context on every edit with
-no model discipline required. References are included because the load rating is driven by the
-largest reference - editing one is exactly when feedback is needed.
-
-Stdlib-only and always exits 0 - a broken report must never block an edit.
-"""
+"""PostToolUse hook: after an Edit/Write to a skill's SKILL.md or a reference, return validate_skill.py's --report-only output as additionalContext so the token budget re-enters the model's context on every edit."""
 
 import json
 import subprocess
@@ -27,6 +17,8 @@ def main() -> None:
     edited = Path(file_path)
     if edited.suffix.lower() != ".md" or edited.name.lower() in IGNORED_MD_BASENAMES:
         return
+    # Any .md under a skill counts, not only SKILL.md: the load rating is driven by the largest reference, so editing
+    # one is exactly when feedback is needed.
     skill_dir = next((p for p in edited.parents if (p / "SKILL.md").is_file()), None)
     if skill_dir is None:
         return

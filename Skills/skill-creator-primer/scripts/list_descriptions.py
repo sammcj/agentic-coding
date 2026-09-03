@@ -1,23 +1,13 @@
 #!/usr/bin/env python3
-"""List every skill's directory, name, and description.
+"""List each skill's directory, name and description one level under a root, read from its SKILL.md frontmatter."""
 
-Lists each skill one directory deep under a root - matching ``<root>/*/SKILL.md`` only - and
-prints its directory, name, and description, read from the YAML frontmatter. A nested SKILL.md
-in a subfolder (for example ``<root>/some-skill/references/SKILL.md``) is deliberately ignored,
-so example or reference copies are not mistaken for real skills. Standard library only, so it
-runs anywhere python3 is available - no PyYAML, ripgrep, or yq needed.
-
-Descriptions in this ecosystem are single-line, so a line-oriented read is enough; this is a
-listing aid for a human/agent review, not a strict parser.
-
-Usage:
-    python3 list_descriptions.py [root]
-"""
-
+import argparse
 import re
 import sys
 from pathlib import Path
 
+# A line-oriented read rather than a YAML parser: descriptions in this ecosystem are single-line, and this is a listing
+# aid for review, not a strict parser. Keeps the script stdlib-only.
 _FRONTMATTER = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
 
 
@@ -33,8 +23,12 @@ def _field(block, key):
     return value
 
 
-def main(argv):
-    root = Path(argv[1]) if len(argv) > 1 else Path(".")
+def main(argv=None):
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument(
+        "root", nargs="?", default=".", help="directory holding <skill>/SKILL.md entries (default: %(default)s)"
+    )
+    root = Path(p.parse_args(argv).root)
     # One directory deep only: <root>/*/SKILL.md, never a nested references/examples copy.
     files = sorted(root.glob("*/SKILL.md"))
     if not files:
@@ -56,4 +50,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv))
+    raise SystemExit(main())

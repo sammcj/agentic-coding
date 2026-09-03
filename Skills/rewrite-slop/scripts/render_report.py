@@ -232,6 +232,7 @@ footer .end { margin-left: auto; }
 /* the verdict, set at the size of the finding it is */
 .band { font: 700 46px/1 var(--grotesk); letter-spacing: -0.02em; }
 .band.sloppy, .band.elevated { color: var(--accent); }
+.band.minor { color: var(--likely-rule); }
 .rate { font: 400 13px var(--mono); color: var(--muted); margin-top: 6px; }
 .gauge { display: flex; height: 22px; border: var(--rule) solid var(--ink);
          margin-top: 14px; position: relative; }
@@ -579,15 +580,27 @@ def gauge(rate):
                co.ELEVATED, co.SLOPPY, round(full)))
 
 
-def verdict(stats, nwords):
+def headline(stats, nfindings, possible):
+    """The document's verdict: the register band when it has one, else MINOR SLOP while anything at all was found,
+    and CLEAN only when nothing was. A register below its gate said CLEAN over a page of findings."""
+    if stats:
+        return stats["band"]
+    return "MINOR SLOP" if nfindings or possible else "CLEAN"
+
+
+def verdict(stats, nwords, nfindings, possible):
+    word = headline(stats, nfindings, possible)
     if not stats:
-        return ('<div class="band">CLEAN</div><div class="rate">'
-                'under %.1f/1000, or fewer than %d markers, or under %d words</div>%s'
-                % (co.ELEVATED, co.LEAST, co.SHORT, gauge(0)))
+        what = ("register under %.1f/1000, or fewer than %d markers, or under %d words"
+                % (co.ELEVATED, co.LEAST, co.SHORT))
+        if word != "CLEAN":
+            what += "; %d finding%s%s remain" % (nfindings, "" if nfindings == 1 else "s",
+                                                 ", %d possible" % possible if possible else "")
+        return ('<div class="band %s">%s</div><div class="rate">%s</div>%s'
+                % (word.split()[0].lower(), word, what, gauge(0)))
     return ('<div class="band %s">%s</div><div class="rate">%.1f per 1000 words, '
             '%d markers over %d</div>%s'
-            % (stats["band"].lower(), stats["band"], stats["rate"],
-               stats["total"], nwords, gauge(stats["rate"])))
+            % (word.lower(), word, stats["rate"], stats["total"], nwords, gauge(stats["rate"])))
 
 
 def groups_block(stats):
@@ -786,8 +799,9 @@ def brief(path, stats, nwords, found):
                 % (group, sum(n for _, n in pairs), ", ".join(w for w, _ in pairs[:6]),
                    WHY.get(group, ""))]
     else:
-        out.append("Register: clean, under %.1f marker words per 1000 over %d words."
-                   % (co.ELEVATED, nwords))
+        out.append("Verdict: %s. Register under %.1f marker words per 1000 over %d words."
+                   % (headline(stats, sum(1 for f in found if not f.possible),
+                               sum(1 for f in found if f.possible)), co.ELEVATED, nwords))
 
     groups: dict[str, tuple] = {}
     for f in found:
@@ -897,7 +911,7 @@ def render(path, text, against=None):
     <div class="stats">%(strip)s</div>
   </header>
   <div class="panel">
-    <section class="cell"><h2>Register</h2>%(verdict)s%(groups)s</section>
+    <section class="cell"><h2>Verdict</h2>%(verdict)s%(groups)s</section>
     %(extra)s
     <section class="cell grow"><h2>Findings</h2>%(findings)s</section>
   </div>
@@ -913,7 +927,7 @@ def render(path, text, against=None):
         "css": CSS, "js": JS,
         "strip": strip,
         "when": datetime.datetime.now().astimezone().date().isoformat(),
-        "verdict": verdict(stats, nwords),
+        "verdict": verdict(stats, nwords, nfindings, maybe),
         "groups": groups_block(stats),
         "findings": findings_block(found),
         "brief": e(brief(path, stats, nwords, found)),

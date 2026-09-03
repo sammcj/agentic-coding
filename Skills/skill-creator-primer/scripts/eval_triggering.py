@@ -1,25 +1,5 @@
 #!/usr/bin/env python3
-"""Measure whether a skill activates on a set of eval queries.
-
-Differs from the skill-creator harness in two ways that matter for skills that
-do real work through tools:
-
-- It installs the actual skill (SKILL.md plus references) into a scratch
-  project, rather than testing a thin command proxy that triggers worse.
-- A trigger counts when the skill activates within the first N tool calls, not
-  only when it is the very first action. For a tool-using task the skill
-  legitimately fires after an initial Read or Bash; what matters is that it
-  activates early.
-
-It drives `claude -p` with --setting-sources project, which drops user-global
-SessionStart hooks (they otherwise suppress skill activation) while keeping
-keychain auth. Run outside any command sandbox: claude/node need network.
-
-Usage:
-  eval_triggering.py --eval-set FILE --skill-path DIR [--within N] [--runs N]
-                     [--model ID] [--workers N] [--timeout SECONDS]
-                     [--only SUBSTRING]...
-"""
+"""Measure how often a skill activates on a set of eval queries, by driving `claude -p` in a scratch project holding the real skill."""
 
 import argparse
 import json
@@ -65,6 +45,9 @@ def run_once(query, skill_path, name, model, timeout, within, claude) -> bool:
         dest = proj / ".claude" / "skills" / name
         dest.parent.mkdir(parents=True)
         shutil.copytree(skill_path, dest)
+        # --setting-sources project drops user-global SessionStart hooks, which otherwise steer the child away from
+        # consulting skills and flatten every query to a non-trigger, while keeping keychain auth. --bare or a
+        # redirected CLAUDE_CONFIG_DIR would also drop the hooks but force auth onto ANTHROPIC_API_KEY.
         cmd = [
             claude,
             "-p",
@@ -133,16 +116,37 @@ def select_cases(cases, substrings):
 
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--eval-set", required=True)
-    p.add_argument("--skill-path", required=True)
-    p.add_argument(
-        "--within", type=int, default=3, help="trigger if skill fires within first N tool calls"
+    p = argparse.ArgumentParser(
+        description=__doc__,
+        epilog="Run outside any command sandbox: claude and node need network. Each run is killed as soon as the "
+        "activation decision is made and its scratch project deleted.",
     )
-    p.add_argument("--runs", type=int, default=3)
-    p.add_argument("--model", default=None)
-    p.add_argument("--workers", type=int, default=8)
-    p.add_argument("--timeout", type=int, default=150)
+    p.add_argument(
+        "--eval-set", required=True, metavar="FILE",
+        help='JSON array of {"query": str, "should_trigger": bool} cases',
+    )
+    p.add_argument("--skill-path", required=True, metavar="DIR", help="skill directory (holds SKILL.md)")
+    p.add_argument(
+        "--within", type=int, default=3, metavar="N",
+        help="count a trigger when the skill activates within the first N tool calls; a tool-using task "
+        "legitimately opens with a Read or Bash before consulting a skill (default %(default)s)",
+    )
+    p.add_argument(
+        "--runs", type=int, default=3, metavar="N",
+        help="runs per query; a should-trigger query passes when it fires in at least half, a should-not in fewer "
+        "(default %(default)s; raise for a stabler read)",
+    )
+    p.add_argument(
+        "--model", default=None, metavar="ID",
+        help="model for the child sessions; prefer a mid-range one (e.g. Claude Sonnet): the strongest reasons its "
+        "way to the right skill despite a weak description, the weakest misroutes in ways typical sessions won't "
+        "(default: the user's configured model)",
+    )
+    p.add_argument("--workers", type=int, default=8, metavar="N", help="concurrent claude sessions (default %(default)s)")
+    p.add_argument(
+        "--timeout", type=int, default=150, metavar="SECONDS",
+        help="kill a run that has not decided by then and count it as not fired (default %(default)s)",
+    )
     p.add_argument(
         "--only",
         action="append",
@@ -150,6 +154,9 @@ def main():
         help="run only cases whose query contains SUBSTRING (case-insensitive); "
         "repeatable, a case matching ANY is included",
     )
+    if len(sys.argv) == 1:
+        p.print_help()
+        sys.exit(2)
     args = p.parse_args()
 
     skill_path = Path(args.skill_path).resolve()

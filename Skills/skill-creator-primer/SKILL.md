@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-09-02
+  version: 2026-09-03
   skill-lint:
     max-load-tokens: 10000 # primer skill accepted as being larger
 hooks:
@@ -120,10 +120,10 @@ Two skills conflict when an agent, reading both descriptions, cannot reliably te
 To compare a new or edited description against a set of skills, list each skill's directory, name, and description:
 
 ```bash
-python3 scripts/list_descriptions.py path/to/skills
+python3 <skill-creator-primer>/scripts/list_descriptions.py <skills-root>
 ```
 
-The script is stdlib-only Python (no PyYAML, ripgrep, or yq), so it runs anywhere. Group skills sharing a verb or object (create/edit, diagram, review, test), then compare pairwise for shared intent without a disambiguator - not merely shared words.
+Group skills sharing a verb or object (create/edit, diagram, review, test), then compare pairwise for shared intent without a disambiguator - not merely shared words.
 
 A pair is ACCEPTABLE when a clear disambiguator is present in the trigger:
 
@@ -173,6 +173,7 @@ Think of the agent exploring a path: a narrow bridge with cliffs needs guardrail
 
 - **Don't state the obvious.** the agent already knows a lot about coding and has default opinions. Focus skill content on information that pushes the agent out of its normal way of thinking. If the agent would reliably do the right thing without your skill, that content is wasting tokens.
 - **Knowing is not doing.** The test for cutting is not "does the agent know this?" but "would the agent reliably do this, in this order, every time, without being told?" Cut declarative knowledge that lives in training data (well-known APIs, design patterns, standard syntax) - it's recalled reliably. Keep required workflow: the agent may know each step yet still default to its own approach or skip the sequence unless the skill commits it. Enforcement, ordering constraints, gates, and checklists earn their tokens by changing what the agent _does_, not teaching it something new.
+- **Don't pre-document a tool's failures.** Listing a validator's error codes so the agent can avoid them makes the skill responsible for the validator's changelog, and a partial list is worse than none - the agent reads the gaps as "not checked". Ship the run-and-read loop instead. When failures are expensive enough that pre-empting them is tempting, the fix is in the tool: add a mode that reports what is still owed, so the agent can ask instead of being told.
 - **Build a Gotchas section.** The highest-signal content in any skill is a Gotchas section listing common failure points the agent hits when using the skill. Build this up from real failures over time. A good Gotchas section often delivers more value than pages of general instructions.
 
 ### Structuring the skill
@@ -198,6 +199,8 @@ When a skill bundles scripts:
 
 - **Solve, don't punt.** Handle error conditions in the script rather than failing and leaving the agent to improvise. A script that creates a missing file or falls back to a sensible default is more reliable than one that throws.
 - **No voodoo constants.** Justify and document config values in a comment. If you can't explain why a timeout is 30s, the agent can't either.
+- **One-line header.** A script's name, `--help` and code already say what it does; an opening comment block restating them is duplication that costs every reader. One line of purpose at the top; put the why (a non-obvious constraint, a chosen constant) beside the line it explains.
+- **Put usage in `--help`, not the skill.** Give scripts named arguments and a `--help` that explains each one; the skill names the script and when to run it, and the agent reads `--help` for the rest. Argument prose in SKILL.md is always loaded and goes stale the first time the script changes.
 - **State execution intent.** Make clear whether to run the script ("Run `extract_fields.py` to pull form fields") or read it as reference ("See `extract_fields.py` for the extraction algorithm"). Execution is usually preferred.
 - **Lean on the standard library**; declare real deps inline. A stdlib-only script runs anywhere with no setup, so prefer it. When a script genuinely needs a third-party package, run it with `uv` and declare the dependency in [PEP-723](https://peps.python.org/pep-0723/) inline metadata at the top of the script, so the dependency travels with the file.
 
@@ -288,7 +291,7 @@ These are Claude Code-specific fields not covered by the Agent Skills spec. Only
 
 - `argument-hint`: Hint shown during autocomplete for expected arguments, e.g. `[issue-number]` or `[filename] [format]`. Only include if the skill accepts arguments
 - `arguments`: Named positional arguments for `$name` substitution in the skill body. Accepts a space-separated string or a YAML list; names map to positions in order. Only include if the skill uses named substitutions
-- `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-opus-4-7"`. Only include if the user requests it
+- `model`: Override the model. Set to `"inherit"` (default) or a specific model ID like `"claude-sonnet-5"`. Only include if the user requests it
 - `effort`: Override effort level when the skill is active. Options: `low`, `medium`, `high`, `xhigh`, `max`. Only include if the user requests it
 - `context`: Set to `"fork"` to run in a forked sub-agent context. Useful for skills with extensive exploration or large outputs. Only include if the user requests it
 - `disable-model-invocation`: Set to `true` to prevent Claude from auto-loading the skill. Use for side-effect workflows the user should trigger manually. Choose this mode deliberately per "Invocation mode is a trade-off" above (and Self-Review step 6), not only on user request
@@ -296,7 +299,7 @@ These are Claude Code-specific fields not covered by the Agent Skills spec. Only
 - `agent`: Subagent type used when `context: "fork"` is set (defaults to general-purpose); has no effect without it. Only include if the user requests it
 - `paths`: Glob patterns that limit when the skill activates. Only include if the skill is scoped to particular files or directories
 - `hooks`: Hooks scoped to this skill's lifecycle. Only include if the skill needs a hook while active
-- `shell`: Shell used for inline `` !`command` `` blocks (`bash` or `powershell`). Only include if the skill uses them
+- `shell`: Shell used for inline bang-backtick command blocks (`bash` or `powershell`). Only include if the skill uses them
 - `allowed-tools`: Space-delimited pre-approved tools. Scope where possible, e.g. `"Read Write Bash(uv run scripts/*.py *) Grep WebFetch(domain:code.claude.com)"` (don't use the deprecated `:` syntax, e.g. `Bash(command:*)`, instead use `Bash(command *)`)
 - `disallowed-tools`: Tools removed from the available pool while the skill is active (clears on the next user message). Use for autonomous skills that must never call a tool, e.g. `AskUserQuestion` in a background loop. Only include if the user requests it
 - `when_to_use`: Do not use.
@@ -305,13 +308,11 @@ These are Claude Code-specific fields not covered by the Agent Skills spec. Only
 
 ## Validating a Skill
 
-Validate against the official Agent Skills specification with the bundled `scripts/validate_skill.py` (resolve it from this skill's `scripts/` directory). It does not run automatically - invoke it against a skill when you want a check or a measurement:
+Validate against the official Agent Skills specification with the bundled `validate_skill.py`. Spec checks run only when invoked; while the primer is active, a PostToolUse hook re-runs the token report (`--report-only`) after every edit to a skill's SKILL.md or references:
 
 ```bash
 uv run <skill-creator-primer>/scripts/validate_skill.py <skill-dir> [<skill-dir> ...]
 ```
-
-Pass a real path, not `.` (skills-ref matches the directory's basename against the skill name, and `.` resolves to an empty basename).
 
 Several skills can be passed at once: each report is headed by its path, with a pass count at the end. The exit code fails if any skill fails.
 
@@ -328,7 +329,6 @@ On a valid skill it also prints a token-budget estimate and rating alongside the
 - A blob is any text unit of 100+ words, any shape (paragraph, list item, quote, table row): prose long enough to bury instructions (see "Buried instructions" in Failure Modes). The blob list feeds the compression pass in the Self-Review Protocol.
 - A dense run is 3+ consecutive units of 90+ words (2+ list items of 70+), not every one a blob: a wall with nowhere to rest. Reported with a `?` caveat, as American spellings are: read before changing, since each unit may carry a distinct instruction.
 - Invisible characters (no-break and zero-width spaces, private-use glyphs, usually pasted from a web page) are FACTS wherever they sit: one in a command or a description breaks it, and no editor shows it.
-- While this primer is active, a PostToolUse hook re-runs the report (`--report-only`, stdlib-only) after every SKILL.md edit, keeping the budget in view across the session.
 
 When the user asks for a skill report, a page, or a visual of the findings, **read `references/html-report.md`** and run the renderer it describes. The text report above covers every other case.
 
@@ -345,9 +345,10 @@ The official docs at https://code.claude.com/docs/en/skills#frontmatter-referenc
 Diagnose an oversized or unreliable skill against these modes and apply the cure.
 
 - **Premature completion** - ending a step before it's done. Cure: sharpen the completion criterion, then hide later steps (see `references/steering.md`).
-- **Duplication** - the same meaning in more than one place, including restating a source the text cites as authoritative. Cure: one source of truth per step and per reference item.
+- **Duplication** - the same meaning in more than one place: within SKILL.md, between it and a reference, or between the text and a script's `--help` or header, including restating a source the text cites as authoritative. Cure: one source of truth per step and per reference item.
 - **Sediment** - stale layers that accumulate because adding feels safer than deleting. Cure: a pruning discipline - restructure into branches, then delete what no branch needs.
 - **Sprawl** - simply too long, even when every line is live and unique. Cure: progressive disclosure - split by branch (the branch test under "How Skills Actually Work") or into a separate sequenced skill.
+- **Tool compensation** - prose standing in for a missing tool mode; the usual root cause of a bloated skill. A tool that only judges the finished artefact forces the skill to describe the whole artefact up front. One that can report progress against a partial artefact needs the skill to describe only the judgement the agent supplies. Cure: add the reporting mode to the tool, then delete the prose it replaces. Check for this before compressing a long skill.
 - **No-op** - a line the model already obeys by default; a relevant line can still be a no-op. Model-relative - test by running the skill. Cure: a stronger leading word, or deletion (apply the deletion test).
 - **Buried instructions** - instructions or logic carried in paragraph prose or oversized list items, in the body or in description/frontmatter/schema fields. Cure: convert per "Structure over prose" (Skill Writing Tips); the validator's blob list locates offenders.
 - **Fossilised diff** - the body narrates its own history: ticket IDs, amendment notes, superseded mechanisms, rationale addressed to a reviewer. Cure: state current behaviour only, readable to an agent that never saw a prior version; provenance lives in the changelog and git.
@@ -358,10 +359,10 @@ When a skill spans 3+ references, fan the per-file read-only passes out to paral
 
 After creating or updating a skill, you **MUST** always perform a critical self-review using the primer. **Create and complete tasks / TODOs for each of the following**:
 
-1. Check for duplicated information across SKILL.md and reference files
+1. Check for duplicated information within SKILL.md, across SKILL.md and reference files, and between the text and the scripts (a script's `--help`, docstring and header comment are places too). Keep one copy, in the place that is loaded latest, and point to it.
 2. Remove low-value prose and filler. Apply the **deletion test**: cut the passage; if the agent's behaviour wouldn't change, it's a no-op - leave it deleted (see "Failure Modes"). For a contrast pair ("not X, it's Y"), apply the **swap test**: if reversing it reads as well, the contrast carries nothing - state the claim directly.
 3. Thin the language - make important information prominent while reducing word count.
-4. Run the validator (see "Validating a Skill"); at an OK or Poor rating, run a compression pass:
+4. Run the validator (see "Validating a Skill"); at an OK or Poor rating, first rule out "Tool compensation" (Failure Modes), then run a compression pass:
    - Extract a checklist of every rule, step, and gotcha from the current draft.
    - Dispatch a fresh-context sub-agent (never the drafting context - it's attached to its own prose) to rewrite at ~75% (OK) or ~60% (Poor) of the word count, converting instruction-bearing paragraphs into steps and bullets, deleting provenance and justification riders, and returning only the rewrite. Prefer a `compression-editor` agent when the environment defines one.
    - Accept the rewrite only after verifying every checklist item survives; one round is the default. State the token delta in your change summary.

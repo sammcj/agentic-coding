@@ -8,11 +8,13 @@ PyYAML is absent rather than failing.
 Run: python3 -m unittest discover -s tests -v
 """
 
+import os
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS))
@@ -926,6 +928,34 @@ class LintTests(unittest.TestCase):
     def test_flow_style_allowed_tools_parses(self):
         errors, _ = self.lint(FIXTURE_DESCRIPTION, extra="allowed-tools: [Read, Write]\n")
         self.assertEqual(errors, [])
+
+
+class MainPathTests(unittest.TestCase):
+    """`.` must validate: skills-ref matches the directory basename against the
+    skill name, and an unresolved Path(".") has no basename."""
+
+    def test_relative_dot_is_resolved_before_validation(self):
+        seen = []
+
+        def fake_validate_one(skill_dir, **kwargs):
+            seen.append(skill_dir)
+            return ["ok"], True
+
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "A line.\n")
+            cwd = os.getcwd()
+            os.chdir(skill_dir)
+            try:
+                with mock.patch.object(vs, "validate_one", fake_validate_one), mock.patch.object(
+                    sys, "argv", ["validate_skill.py", ".", "--report-only"]
+                ):
+                    with self.assertRaises(SystemExit) as ctx:
+                        vs.main()
+            finally:
+                os.chdir(cwd)
+        self.assertEqual(ctx.exception.code, 0)
+        self.assertTrue(seen[0].is_absolute())
+        self.assertEqual(seen[0].name, "fixture")
 
 
 class RealSkillTests(unittest.TestCase):

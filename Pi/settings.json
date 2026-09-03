@@ -10,6 +10,8 @@
         "**/.venv/**",
         ".gnupg/**",
         ".aws/**",
+        ".graphify-out/**",
+        "graphify-out/**",
         ".config/gh/**",
         "**/id_rsa*",
         "**/id_ecdsa*",
@@ -42,9 +44,6 @@
   "packages": [
     "npm:context-mode",
     "npm:pi-markdown-preview",
-    "npm:@juicesharp/rpiv-ask-user-question",
-    "npm:@juicesharp/rpiv-todo",
-    "npm:pi-lens",
     "npm:@ayulab/pi-rewind",
     "npm:@gotgenes/pi-permission-system",
     "npm:@the-forge-flow/security-harness-pi",
@@ -53,11 +52,10 @@
     "npm:cc-safety-net",
     "npm:@ff-labs/pi-fff",
     "npm:pi-local-agents-only",
-    "npm:@mrclrchtr/supi-context",
-    "npm:@tintinweb/pi-subagents",
-    "npm:remote-pi",
     "npm:@narumitw/pi-plan-mode",
-    "npm:@latentminds/pi-quotas"
+    "npm:pi-mcp-adapter",
+    "npm:pi-context-view",
+    "npm:@mrclrchtr/supi-ask-user"
   ],
   "showCacheMissNotices": true,
   "terminal": {

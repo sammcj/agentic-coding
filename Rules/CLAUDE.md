@@ -105,6 +105,7 @@ Examples:
 - zsh doesn't word-split unquoted vars
 - Optimise for reduced failure modes
 - Ensure config and state are not duplicated across files
+- When writing git commits, PRs or issues keep your text concise, to the point, and do not add your own attribution unless requested by the user
 - When adding or updating dependencies in a codebase you MUST use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
 - Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments

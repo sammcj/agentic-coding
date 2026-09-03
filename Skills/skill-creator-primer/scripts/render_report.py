@@ -5,24 +5,10 @@
 # ///
 """Render one skill's validate_skill findings as a single self-contained HTML page.
 
-Optional. Nothing in the primer's workflow calls this; it exists for reading a
-large skill, or for showing someone else what was flagged and where.
-
-    uv run render_report.py SKILL_DIR [--against OTHER_DIR] [-o OUT]
-
-Every cell but one is stdlib-only and needs no network: run it with plain python3
-and the spec cell says which dependency is missing instead of failing the render.
-
-The page reads validate_skill rather than reimplementing it: referenced_md_files
-and estimate_tokens for the bars, _TOKEN_RATINGS and token_rating for the gauge
-and band, _budget for the cure line and the declared ceiling, _structure for the
-blob and code spans, _filler and _filler_scan for the marks and the ranked list,
-_bold for the emphasis rate and its spans, _invisible for the characters nobody
-can see, POSSIBLE for which rules carry a caveat, and lint for the spec cell. A
-new threshold or rule reaches the page with no edit here. A new *kind* of
-finding, neither line-span nor term, needs a cell of its own.
-
-Three contracts hold the page to the detector:
+The page reads validate_skill rather than reimplementing it, so a new threshold
+or rule reaches the page with no edit here; a new *kind* of finding, neither
+line-span nor term, needs a cell of its own. Three contracts hold the page to
+the detector:
 
 - _structure returns each unit as (size, path, first line, last line, opening),
   and a dense run as the same five fields plus (count, longest, listed). The

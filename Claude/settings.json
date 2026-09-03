@@ -3,6 +3,7 @@
   "env": {
     "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "1",
     "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "380000",
+    "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "500000",
     "CLAUDE_CODE_DISABLE_MOUSE": "1",
     "ENABLE_PROMPT_CACHING_1H": "1",
     "CLAUDE_CODE_WORKFLOWS": "1",
@@ -309,7 +310,6 @@
       "Bash(su *)",
       "Bash(sudo *)",
       "Bash(vmmap *)",
-      "Read(.vscode/**)",
       "Read(**/.secrets/**)",
       "Read(**/@trezor/**)",
       "Read(**/*.keychain)",
@@ -425,12 +425,11 @@
       "Read(**/*credential*)",
       "Read(**/*id_ed25519*)",
       "Read(**/*id_rsa*)",
-      "Read(**/*secret*/**)",
-      "Read(**/Biome/**)",
+      "Read(~/Library/*secret*/**)",
+      "Read(~/Library/Biome/**)",
       "Read(**/com~apple~CloudDocs/Backups/**)",
       "Read(**/credentials.json)",
-      "Read(**/health/**)",
-      "Read(**/Health/**)",
+      "Read(~/Library/Health/**)",
       "Read(**/iMessage/**)",
       "Read(**/LaunchAgents/**)",
       "Read(**/LaunchDaemons/**)",
@@ -466,6 +465,7 @@
     "defaultMode": "auto",
     "additionalDirectories": [
       "../docs/",
+      "~/git",
       "/Users/samm/git",
       "/Users/samm/Downloads",
       "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
@@ -528,6 +528,7 @@
       }
     ]
   },
+  "enableArtifact": false,
   "statusLine": {
     "type": "command",
     "command": "/Users/samm/git/claude-statusline/claude-statusline prompt"
@@ -770,7 +771,8 @@
   "autoMode": {
     "allow": [
       "$defaults",
-      "If the user has explicitly requested the agent does a git push: allow pushing to a non-main branch"
+      "If the user has explicitly requested the agent does a git push: allow pushing to a non-main branch",
+      "allow using context-mode's mcp__plugin_context-mode_context-mode__ctx_execute and mcp__plugin_context-mode_context-mode__ctx_execute_file tools when their arguments appear safe"
     ],
     "soft_deny": [
       "$defaults",
@@ -785,6 +787,5 @@
       "$defaults",
       "Never expose the users real email address publicly"
     ]
-  },
-  "enableArtifact": false
+  }
 }

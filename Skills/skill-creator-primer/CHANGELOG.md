@@ -2,6 +2,18 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-09-03
+
+- Selecting content: don't pre-document a tool's failures; ship the run-and-read loop, and when pre-empting is tempting, give the tool a mode that reports what is still owed.
+- Writing Scripts: usage lives in the script's `--help` and named arguments; the skill names the script and when to run it.
+- Duplication now names text-to-script copies (a script's `--help`, docstring, header); Self-Review step 1 checks within SKILL.md, across references and against scripts, keeping one copy in the latest-loaded place.
+- Writing Scripts: one-line header; a comment block restating what the name, `--help` and code say is duplication.
+- `validate_skill.py` resolves its arguments, so `.` validates (test added); the "pass a real path" workaround line is gone from SKILL.md. Scripts with required arguments print full `--help` when run bare.
+- `eval_triggering.py` args carry `help=` (pass bar, `--within` rationale, mid-range `--model` guidance); `trigger-evals.md` drops what `--help` and the script now say, including the `--setting-sources` subsection (now a comment beside the command it explains).
+- Script headers cut to one line (validator, eval runner, hook, lister); the why moved beside the code it explains. `render_report.py` keeps only its cross-cutting contracts.
+- SKILL.md fixes: the `shell` field line no longer contains a literal bang-backtick block (the loader was executing it); one accurate line on when spec checks and the PostToolUse token report run; stale `model` example replaced; all bundled-script paths use the `<skill-creator-primer>/scripts/` form. `html-report.md` loses its `--tiktoken` and "hand back the path" duplicates.
+- New failure mode `Tool compensation`: prose standing in for a missing tool mode. Self-Review step 4 rules it out before the compression pass.
+
 ## 2026-09-02
 
 - New `dense-run` SIGNAL: 3+ consecutive units of 90+ words, or 2+ list items of 70+. A heading, fence, table row or quote ends a run; a blank line or a blob does not, the run names its longest member, and a run made only of blobs is left to the blob list. `_structure` returns it as a fifth value. Flags 2% of installed skills.
