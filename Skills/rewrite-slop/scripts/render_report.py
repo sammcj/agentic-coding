@@ -86,6 +86,7 @@ WHY = {
     "marketing-adjective": "Praise in place of a fact. State what it does.",
     "math-unicode": "Unicode maths characters used as bold or italic. Use markdown.",
     "metaphor-tic": "A figure this model reaches for by habit rather than by fit.",
+    "byte-identical": "\"Byte-identical\" more than once. Say it once, or say what was compared.",
     "nbsp": "A non-breaking space where an ordinary one belongs.",
     "negation-antithesis": "\"Not X, it's Y\". Reversing it reads as well, so it carries "
                            "no information. Make the positive claim.",

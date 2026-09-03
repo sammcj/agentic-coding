@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-09-03
+  version: 2026-09-04
   skill-lint:
     max-load-tokens: 10000 # primer skill accepted as being larger
 hooks:
@@ -323,7 +323,7 @@ On a valid skill it also prints a token-budget estimate and rating alongside the
 - OK: 9k-12k tokens
 - Poor: 12k+ tokens
 
-- The rating judges the worst-case load (SKILL.md + largest single reference - a lower bound on one branch firing; a branch chaining several references costs more), not the corpus total, so progressive disclosure isn't penalised. Enforced by exit code - Poor fails, OK warns, the message naming the driving file.
+- The rating judges the worst-case load (SKILL.md + largest single reference - a lower bound on one branch firing; a branch chaining several references costs more), not the total across all files, so progressive disclosure isn't penalised. Enforced by exit code - Poor fails, OK warns, the message naming the driving file.
 - A skill whose branch test genuinely keeps nearly everything inline can declare `metadata.skill-lint.max-load-tokens: <int>` in its frontmatter, with a trailing `#` comment justifying the ceiling. It caps the worst-case load (SKILL.md plus the largest reference), not SKILL.md alone. Loads within it pass with the ceiling noted and no cure advice; past it the normal bands apply. An undeclared comment voids the ceiling - the justification is the point, so reach for this only after the deletion test has already run.
 - Findings are FACTS (over-long description, over-budget load, blobs in SKILL.md: always-loaded cost, fix them) or SIGNALS (large references, blobs or 10+ line code fences within them: branch-loaded, judge waffle against earned detail). Three or more reference blobs draw a warning - the load rating trusts references to stay tight.
 - A blob is any text unit of 100+ words, any shape (paragraph, list item, quote, table row): prose long enough to bury instructions (see "Buried instructions" in Failure Modes). The blob list feeds the compression pass in the Self-Review Protocol.

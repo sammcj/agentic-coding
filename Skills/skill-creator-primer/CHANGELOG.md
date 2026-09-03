@@ -2,6 +2,10 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-09-04
+
+- `validate_skill.py`: new `metaphor-tic` filler category (smoking gun, load-bearing, honest take moved out of `puffery`, plus "corpus" and "X is the contract"); `byte-identical` reported only from the second use across the skill (`_FILLER_FLOOR`). `render_report.py` carries both in `WHY`. SKILL.md no longer says "corpus total".
+
 ## 2026-09-03
 
 - Selecting content: don't pre-document a tool's failures; ship the run-and-read loop, and when pre-empting is tempting, give the tool a mode that reports what is still owed.

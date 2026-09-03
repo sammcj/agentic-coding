@@ -142,6 +142,10 @@ REPORT = [
     ("chat-residue", r"\b(?:Let me|I['’]ll help you|I hope this helps|Let me know if|Happy to|I['’]d be happy to|Feel free to|Would you like me to)\b|\b(?:Perfect|Excellent|Great question)!", None),
     # "Nothing collapses." is the landing sentence at its most reflexive: a two-word profundity beat after an argument.
     ("metaphor-tic", r"(?i)\b(?:smoking[- ]gun|load[- ]bearing|nothing collapses)\b", None),
+    # "the code is the contract": the copula shape only, so a legal or API contract in ordinary use is left alone.
+    ("metaphor-tic", r"(?i)\b(?:is|are|was|were|becomes?|remains?|as) the contract\b", None),
+    # One use is a claim about a build. The tic is reaching for it again; REPEATED sets the floor.
+    ("byte-identical", r"(?i)\b(?:byte|bit)[- ]identical\b|\bbyte[- ]for[- ]byte\b", None),
     # Literal in linguistics and NLP, inflation everywhere else. Its own name so POSSIBLE can carry that caveat without
     # softening the two above.
     ("corpus-noun", r"(?i)\bcorp(?:us|ora)\b", None),
@@ -203,6 +207,10 @@ POSSIBLE = {
     "tag-clause": "', and we should' is speech register; count it only alongside other tells",
     "anaphora": "deliberate in rhetoric and lists of parallel facts; the tell is three sentences that did not need it",
 }
+
+# Rules that are a finding only from the Nth hit in one document, by rule name. Below the floor the hits are dropped
+# in scan_spans, so every consumer (the text report, the HTML page) sees the same set.
+REPEATED = {"byte-identical": 2}
 
 # Ranked at louisabraham.github.io/load-bearing. Group names match the Tier 2 headings in SKILL.md, so `register` can
 # name the over-represented group. Concentration is the signal, so this is a density, not a match list. See
@@ -371,7 +379,10 @@ def scan_spans(text, *rulesets):
         if any(a <= off and end <= b for a, (b, _, _) in seen.items() if a != off):
             continue
         out.append((off, end, name, hit))
-    return out
+    tally = {}
+    for _, _, name, _ in out:
+        tally[name] = tally.get(name, 0) + 1
+    return [s for s in out if tally[s[2]] >= REPEATED.get(s[2], 1)]
 
 
 def scan(text, *rulesets):

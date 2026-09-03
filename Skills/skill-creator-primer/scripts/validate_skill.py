@@ -486,10 +486,22 @@ _FILLER_RULES: list[tuple[str, re.Pattern]] = [
         re.compile(
             r"\b(?:comprehensive|robust|seamless(?:ly)?|pivotal|multifaceted|cutting[- ]edge"
             r"|best[- ]in[- ]class|feature[- ]rich|production[- ]ready|enterprise[- ]grade"
-            r"|groundbreaking|innovative|smoking gun|load[- ]bearing|honest take)\b",
+            r"|groundbreaking|innovative)\b",
             re.IGNORECASE,
         ),
     ),
+    (
+        "metaphor-tic",
+        re.compile(
+            # "the contract" only after a copula, so a legal or API contract in ordinary use is left alone. "corpus" is
+            # literal in linguistics and NLP; a skill about anything else has documents.
+            r"\b(?:smoking[- ]gun|load[- ]bearing|honest take|corp(?:us|ora)"
+            r"|(?:is|are|was|were|becomes?|remains?|as) the contract)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    # A finding only from the second use across the skill (_FILLER_FLOOR): once is a claim about a build.
+    ("byte-identical", re.compile(r"\b(?:byte|bit)[- ]identical\b|\bbyte[- ]for[- ]byte\b", re.IGNORECASE)),
     (
         "filler-verb",
         re.compile(
@@ -562,6 +574,9 @@ _SPELLING_RULES: list[tuple[str, re.Pattern]] = [
 # Both tables are scanned in one pass so a term is placed and marked the same way whichever it came from; the report
 # splits them again by category, since the fix differs.
 _ALL_TEXT_RULES = _FILLER_RULES + _SPELLING_RULES
+
+# Categories reported only from the Nth hit across the skill's referenced Markdown.
+_FILLER_FLOOR = {"byte-identical": 2}
 
 # Rules whose hit is as often right as wrong, keyed by the caveat the reader needs before deciding. The text report
 # carries the caveat on the rule's header line and the HTML page marks the rule `?`, ranks it below the rest and
@@ -661,7 +676,10 @@ def _filler(skill_dir: Path) -> list[tuple[str, str, int, str]]:
             for category, pattern in _ALL_TEXT_RULES:
                 for hit in pattern.finditer(scan):
                     found.append((category, str(rel), lineno, hit.group(0).strip()))
-    return found
+    tally: dict[str, int] = {}
+    for category, *_ in found:
+        tally[category] = tally.get(category, 0) + 1
+    return [f for f in found if tally[f[0]] >= _FILLER_FLOOR.get(f[0], 1)]
 
 
 def _bold(skill_dir: Path) -> dict | None:

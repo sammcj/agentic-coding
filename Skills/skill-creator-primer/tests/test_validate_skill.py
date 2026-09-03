@@ -145,6 +145,20 @@ class FillerDetectionTests(unittest.TestCase):
     def test_puffery_adjective_is_flagged(self):
         self.assertEqual(self.categories("# T\n\nWrite a comprehensive report.\n"), ["puffery"])
 
+    def test_metaphor_tic_is_flagged(self):
+        self.assertEqual(
+            self.categories("# T\n\nThe schema is the contract. Scan the corpus for the smoking gun.\n"),
+            ["metaphor-tic"] * 3,
+        )
+
+    def test_literal_contract_is_not_flagged(self):
+        self.assertEqual(self.categories("# T\n\nRead the contract before signing.\n"), [])
+
+    def test_byte_identical_is_flagged_from_the_second_use(self):
+        once = "The output is byte-identical to the last build."
+        self.assertEqual(self.categories(f"# T\n\n{once}\n"), [])
+        self.assertEqual(self.categories(f"# T\n\n{once}\n\n{once}\n"), ["byte-identical"] * 2)
+
     def test_filler_verb_is_flagged(self):
         self.assertEqual(self.categories("# T\n\nLeverage the cache for speed.\n"), ["filler-verb"])
 

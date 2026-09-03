@@ -26,7 +26,8 @@ DEFAULT_DATA = os.path.expanduser("~/git/load-bearing/analysis.js")
 
 # Words deliberately excluded during curation: ordinary function words the density
 # cannot use, and CI/testing jargon that lifts on the corpus's subject matter
-# rather than on style. Listed so a refresh does not keep re-proposing them.
+# rather than on style, or that check_output.py already reports by pattern (corpus, byte-identical). Listed so a
+# refresh does not keep re-proposing them.
 DECLINED = frozenset("""
 ever alone rather half whole its every two three own against exactly worth held
 stays leaves lives asked caught told says said dropped shipped worse worst cheap

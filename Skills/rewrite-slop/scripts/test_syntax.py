@@ -172,6 +172,22 @@ def main():
     if "metaphor-tic" not in hits:
         print("MISSED  metaphor-tic on 'Nothing collapses.'")
         wrong += 1
+    hits = {n for _, n, _ in co.scan("The schema is the contract between the two services.", co.REPORT)}
+    if "metaphor-tic" not in hits:
+        print("MISSED  metaphor-tic on 'is the contract'")
+        wrong += 1
+    hits = {n for _, n, _ in co.scan("She signed the contract on Monday.", co.REPORT)}
+    if "metaphor-tic" in hits:
+        print("FALSE   metaphor-tic on a literal contract")
+        wrong += 1
+    # byte-identical: the first use is a claim, the second is the habit.
+    once = "The output is byte-identical to the previous build."
+    if "byte-identical" in {n for _, n, _ in co.scan(once, co.REPORT)}:
+        print("FALSE   byte-identical on a single use")
+        wrong += 1
+    if "byte-identical" not in {n for _, n, _ in co.scan(once + " The archive is byte for byte the same.", co.REPORT)}:
+        print("MISSED  byte-identical on the second use")
+        wrong += 1
     # "earns" weighs double in the register rate and is never a finding on its own.
     base = "The change is small and the tests already cover the path the reader will take through it. " * 12
     plain = co.register_stats(base + "It earns a ticket. " * 3)

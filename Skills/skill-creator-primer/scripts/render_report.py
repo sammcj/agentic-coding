@@ -101,6 +101,8 @@ WHY = {
                "the deletion test nowhere: cut it, or replace it with the measurement.",
     "filler-verb": "A verb reaching for weight it does not carry. Name the action: "
                    "'use', 'add', 'read', 'run'.",
+    "metaphor-tic": "A figure the model reaches for by habit. Say what the thing is or does.",
+    "byte-identical": "\"Byte-identical\" more than once. Say it once, or say what was compared.",
     "negation-antithesis": "A not-X-but-Y contrast. Apply the swap test - if the "
                            "reversal reads as well, the contrast carries nothing. "
                            "State the claim directly.",

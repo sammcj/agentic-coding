@@ -86,7 +86,7 @@ The defining tells of Claude 4.x output. These rarely appear in genuine human pr
 - Parenthetical hedging asides: "(or, more precisely, ...)", "(and, increasingly, ...)"
 - Progress-update meta-narration in long-form: "Let me mark X as complete", "Now I'll examine"
 - False intimacy openers preceding the obvious: "Here's the thing:", "Let's be honest:", "The truth is"
-- Claude metaphor tics: "smoking gun" / "smoking-gun" (dramatising a finding), "load-bearing" / "load bearing", "Nothing collapses." as a closing beat, and "corpus" for any body of text that is not a linguistics or NLP dataset (say "the documents", "the transcripts", "these 400 emails")
+- Claude metaphor tics: "smoking gun" / "smoking-gun" (dramatising a finding), "load-bearing" / "load bearing", "Nothing collapses." as a closing beat, "corpus" for any body of text that is not a linguistics or NLP dataset (say "the documents", "the transcripts", "these 400 emails"), "X is the contract" ("the code is the contract", "the schema is the contract"), and "byte-identical" more than once in a document (the first use is a claim, the second is the habit)
 
 ### Tier 2: Claude's current register
 
@@ -298,7 +298,7 @@ Create a task per question below. Answer each by inspecting the rewritten text, 
 - Are there any "Despite [positive], [subject] faces challenges" pivots?
 - Did I leave any bold-header bullets whose label restates the line that follows (`**X:** X did...`)? A label followed by new detail stays.
 - Are there any "Let me", "I'll", "Happy to", "Let me know if", "I hope this helps", "Perfect!", "Excellent!" remaining?
-- Are there any metaphor tics left ("smoking gun", "load-bearing", "corpus" for an ordinary set of documents)? Replace with what the thing is or does.
+- Are there any metaphor tics left ("smoking gun", "load-bearing", "is the contract", "corpus" for an ordinary set of documents, a second "byte-identical")? Replace with what the thing is or does.
 - Does the register line still read ELEVATED or SLOPPY? If so, thin the group it names first, working from the words it prints.
 - Is any `dense-run` still standing? Cut inside it, or put a heading or a break where the argument turns.
 - Does the bold line still read HEAVY or ABUSED? Start with the words it prints as bolded most often: a single word bolded four times is emphasis that has stopped working.
