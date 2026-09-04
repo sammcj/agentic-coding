@@ -1,5 +1,9 @@
 import type { AssistantMessage } from "@earendil-works/pi-ai";
-import type { ExtensionAPI, ThemeColor } from "@earendil-works/pi-coding-agent";
+import type {
+	ExtensionAPI,
+	ExtensionContext,
+	ThemeColor,
+} from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 
 type SubagentUsage = { input?: number; output?: number; cost?: number };
@@ -58,142 +62,154 @@ const LEVEL_COLORS: Record<string, ThemeColor> = {
 };
 
 export default function (pi: ExtensionAPI) {
-	pi.on("session_start", async (_event, ctx) => {
-		// Seed from the session's real level rather than a literal. Nothing fires
-		// thinking_level_select at startup, so a hardcoded start value displayed that level
-		// on every launch no matter what the model or settings actually resolved to.
-		let thinkingLevel: string = ctx.thinkingLevel ?? "off";
+	// Handlers are registered once at extension load, and the per-session state below
+	// is reset in session_start rather than recreated in a fresh closure per session.
+	let thinkingLevel = "off";
 
-		pi.on("thinking_level_select", async (event) => {
-			thinkingLevel = event.level;
-		});
+	// Tokens/sec measured across the model generation time only, not the
+	// full agent loop. Confirmation prompts, tool execution, and other
+	// non-generation time is tracked and excluded from the elapsed time.
+	let lastSpeed: number | null = null;
+	let windowStart: number | null = null;
+	let windowStartIndex = 0;
+	// Cumulative tool execution time during the current agent loop.
+	// Measured as the union of all tool call intervals, so concurrent
+	// tool calls don't double-count overlapping wall-clock time.
+	// Subtracted from elapsed time so t/s reflects model decode rate.
+	let toolWaitMs = 0;
+	// Number of currently-inflight tool calls.
+	let activeToolCalls = 0;
+	// When the first tool in a batch started (only valid when activeToolCalls > 0).
+	let toolBatchStart = 0;
+	// Set by the footer factory so events can repaint the footer.
+	let triggerRender: (() => void) | null = null;
 
-		// Tokens/sec measured across the model generation time only, not the
-		// full agent loop. Confirmation prompts, tool execution, and other
-		// non-generation time is tracked and excluded from the elapsed time.
-		let lastSpeed: number | null = null;
-		let windowStart: number | null = null;
-		let windowStartIndex = 0;
-		// Cumulative tool execution time during the current agent loop.
-		// Measured as the union of all tool call intervals, so concurrent
-		// tool calls don't double-count overlapping wall-clock time.
-		// Subtracted from elapsed time so t/s reflects model decode rate.
-		let toolWaitMs = 0;
-		// Number of currently-inflight tool calls.
-		let activeToolCalls = 0;
-		// When the first tool in a batch started (only valid when activeToolCalls > 0).
-		let toolBatchStart = 0;
-		// Set by the footer factory so events can repaint the footer.
-		let triggerRender: (() => void) | null = null;
+	// Cumulative token/cost totals. Recomputed when a message finalises
+	// (message_end / agent_end), not on every repaint — bounds the O(branch)
+	// scan to actual content changes. NOTE: footerData.onBranchChange is the
+	// git branch, not the message branch, so it can't drive this.
+	let totals = { input: 0, output: 0, cost: 0 };
 
-		// Cumulative token/cost totals. Recomputed when a message finalises
-		// (message_end / agent_end), not on every repaint — bounds the O(branch)
-		// scan to actual content changes. NOTE: footerData.onBranchChange is the
-		// git branch, not the message branch, so it can't drive this.
-		let totals = { input: 0, output: 0, cost: 0 };
-		const recomputeTotals = () => {
-			let input = 0,
-				output = 0,
-				cost = 0;
-			for (const e of ctx.sessionManager.getBranch()) {
-				if (e.type === "message" && e.message.role === "assistant") {
-					const m = e.message as AssistantMessage;
-					input += m.usage.input;
-					output += m.usage.output;
-					cost += m.usage.cost.total;
-				}
-				// Subagent usage from slash-command results
-				if (
-					e.type === "custom_message" &&
-					e.customType === "subagent-slash-result"
-				) {
-					const details = e.details as {
-						result?: {
-							details?: { results?: Array<{ usage?: SubagentUsage }> };
-						};
+	pi.on("thinking_level_select", async (event) => {
+		thinkingLevel = event.level;
+	});
+
+	const recomputeTotals = (ctx: ExtensionContext) => {
+		let input = 0,
+			output = 0,
+			cost = 0;
+		for (const e of ctx.sessionManager.getBranch()) {
+			if (e.type === "message" && e.message.role === "assistant") {
+				const m = e.message as AssistantMessage;
+				input += m.usage.input;
+				output += m.usage.output;
+				cost += m.usage.cost.total;
+			}
+			// Subagent usage from slash-command results
+			if (
+				e.type === "custom_message" &&
+				e.customType === "subagent-slash-result"
+			) {
+				const details = e.details as {
+					result?: {
+						details?: { results?: Array<{ usage?: SubagentUsage }> };
 					};
-					for (const r of details?.result?.details?.results ?? []) {
-						input += r.usage?.input ?? 0;
-						output += r.usage?.output ?? 0;
-						cost += r.usage?.cost ?? 0;
-					}
-				}
-				// Subagent usage from `subagent` tool results
-				for (const r of subagentResults(e)) {
+				};
+				for (const r of details?.result?.details?.results ?? []) {
 					input += r.usage?.input ?? 0;
 					output += r.usage?.output ?? 0;
 					cost += r.usage?.cost ?? 0;
 				}
 			}
-			totals = { input, output, cost };
-		};
-		recomputeTotals();
-
-		// Track tool execution time as union of active intervals.
-		// When at least one tool is running, the clock ticks for tool wait.
-		// Concurrent tools share the same wall-clock → no double-counting.
-		// Sub-agents are excluded: they do model inference, not tool I/O.
-		pi.on("tool_call", async (event) => {
-			if (event.toolName === "subagent") return;
-			if (activeToolCalls === 0) toolBatchStart = Date.now();
-			activeToolCalls++;
-		});
-
-		pi.on("tool_result", async (event) => {
-			if (event.toolName === "subagent") return;
-			activeToolCalls--;
-			if (activeToolCalls === 0 && toolBatchStart !== 0) {
-				toolWaitMs += Date.now() - toolBatchStart;
+			// Subagent usage from `subagent` tool results
+			for (const r of subagentResults(e)) {
+				input += r.usage?.input ?? 0;
+				output += r.usage?.output ?? 0;
+				cost += r.usage?.cost ?? 0;
 			}
-		});
+		}
+		totals = { input, output, cost };
+	};
 
-		pi.on("agent_start", async () => {
-			windowStart = Date.now();
-			windowStartIndex = ctx.sessionManager.getBranch().length;
-			toolWaitMs = 0;
-			activeToolCalls = 0;
-			toolBatchStart = 0;
-		});
+	// Track tool execution time as union of active intervals.
+	// When at least one tool is running, the clock ticks for tool wait.
+	// Concurrent tools share the same wall-clock → no double-counting.
+	// Sub-agents are excluded: they do model inference, not tool I/O.
+	pi.on("tool_call", async (event) => {
+		if (event.toolName === "subagent") return;
+		if (activeToolCalls === 0) toolBatchStart = Date.now();
+		activeToolCalls++;
+	});
 
-		pi.on("agent_end", async () => {
-			if (windowStart !== null) {
-				const branch = ctx.sessionManager.getBranch();
-				let output = 0;
-				for (let i = windowStartIndex; i < branch.length; i++) {
-					output += entryOutputTokens(branch[i]);
-				}
-				// Account for any inflight tool calls that never received a
-				// tool_result (should be rare, but safety first).
-				const now = Date.now();
-				if (activeToolCalls > 0 && toolBatchStart !== 0) {
-					toolWaitMs += now - toolBatchStart;
-				}
+	pi.on("tool_result", async (event) => {
+		if (event.toolName === "subagent") return;
+		activeToolCalls--;
+		if (activeToolCalls === 0 && toolBatchStart !== 0) {
+			toolWaitMs += Date.now() - toolBatchStart;
+		}
+	});
 
-				const wallElapsed = (now - windowStart) / 1000;
-				// Subtract tool execution time (confirmations, bash, file I/O, etc.)
-				// so the t/s reflects model generation speed only.
-				const elapsed = wallElapsed - toolWaitMs / 1000;
-				// Skip if elapsed is unreasonably small (e.g. restored from session).
-				// Aggregate throughput: concurrent subagents push this above any single
-				// decode rate, which is the intended reading. Async/detached runs return
-				// after agent_end and are not counted.
-				if (elapsed > 0.5 && output > 0) {
-					lastSpeed = Math.round(output / elapsed);
-				}
-				windowStart = null;
+	pi.on("agent_start", async (_event, ctx) => {
+		windowStart = Date.now();
+		windowStartIndex = ctx.sessionManager.getBranch().length;
+		toolWaitMs = 0;
+		activeToolCalls = 0;
+		toolBatchStart = 0;
+	});
+
+	pi.on("agent_end", async (_event, ctx) => {
+		if (windowStart !== null) {
+			const branch = ctx.sessionManager.getBranch();
+			let output = 0;
+			for (let i = windowStartIndex; i < branch.length; i++) {
+				output += entryOutputTokens(branch[i]);
 			}
-			// Catch-all: by loop end every message (incl. subagent tool results) is
-			// in the branch, so totals are guaranteed fresh here.
-			recomputeTotals();
-			triggerRender?.();
-		});
+			// Account for any inflight tool calls that never received a
+			// tool_result (should be rare, but safety first).
+			const now = Date.now();
+			if (activeToolCalls > 0 && toolBatchStart !== 0) {
+				toolWaitMs += now - toolBatchStart;
+			}
 
-		// Refresh cumulative totals as each message finalises (assistant turn,
-		// tool result, or custom message all emit message_end), then repaint.
-		pi.on("message_end", async () => {
-			recomputeTotals();
-			triggerRender?.();
-		});
+			const wallElapsed = (now - windowStart) / 1000;
+			// Subtract tool execution time (confirmations, bash, file I/O, etc.)
+			// so the t/s reflects model generation speed only.
+			const elapsed = wallElapsed - toolWaitMs / 1000;
+			// Skip if elapsed is unreasonably small (e.g. restored from session).
+			// Aggregate throughput: concurrent subagents push this above any single
+			// decode rate, which is the intended reading. Async/detached runs return
+			// after agent_end and are not counted.
+			if (elapsed > 0.5 && output > 0) {
+				lastSpeed = Math.round(output / elapsed);
+			}
+			windowStart = null;
+		}
+		// Catch-all: by loop end every message (incl. subagent tool results) is
+		// in the branch, so totals are guaranteed fresh here.
+		recomputeTotals(ctx);
+		triggerRender?.();
+	});
+
+	// Refresh cumulative totals as each message finalises (assistant turn,
+	// tool result, or custom message all emit message_end), then repaint.
+	pi.on("message_end", async (_event, ctx) => {
+		recomputeTotals(ctx);
+		triggerRender?.();
+	});
+
+	pi.on("session_start", async (_event, ctx) => {
+		// Per-session state, previously implicit in a fresh closure per session_start.
+		// Seed the level from the session's real value rather than a literal. Nothing
+		// fires thinking_level_select at startup, so a hardcoded start value displayed
+		// that level on every launch no matter what the model or settings resolved to.
+		thinkingLevel = ctx.thinkingLevel ?? "off";
+		lastSpeed = null;
+		windowStart = null;
+		windowStartIndex = 0;
+		toolWaitMs = 0;
+		activeToolCalls = 0;
+		toolBatchStart = 0;
+		recomputeTotals(ctx);
 
 		ctx.ui.setFooter((tui, theme, footerData) => {
 			// onBranchChange = git branch change; repaint so the git segment updates.

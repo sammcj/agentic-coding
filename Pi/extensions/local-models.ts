@@ -102,9 +102,19 @@ async function fetchJson(url: string, apiKey: string | undefined, timeoutMs: num
   }
 }
 
-async function checkEndpoint(url: string, apiKey?: string): Promise<boolean> {
-  return (await fetchJson(`${url}/models`, apiKey, 5000)) !== null
-}
+/**
+ * Provider registration has to finish inside the extension factory (pi resolves the
+ * startup model and `--list-models` before any session event), so every probe made
+ * during load blocks the TUI. An endpoint that accepts SYNs but never answers is
+ * capped here rather than at the 8s discovery budget.
+ */
+const STARTUP_PROBE_TIMEOUT_MS = 2000
+
+/** Budget for the follow-up /api/v0/models and /props calls, once /models has answered. */
+const SECONDARY_PROBE_TIMEOUT_MS = 5000
+
+/** Interactive probe budget: nothing is blocking on startup, so allow the full discovery time. */
+const INTERACTIVE_PROBE_TIMEOUT_MS = 8000
 
 // ─── Model discovery ─────────────────────────────────────────────────────────
 
@@ -190,17 +200,36 @@ export function parseModelEntry(raw: any): DiscoveredModel | null {
   }
 }
 
-export async function fetchModelsFromEndpoint(url: string, apiKey?: string): Promise<DiscoveredModel[]> {
-  const payload = await fetchJson(`${url}/models`, apiKey, 8000)
+export type EndpointProbe = {
+  /** The server answered /models with JSON. Distinguishes "serving nothing" from "down". */
+  reachable: boolean
+  models: DiscoveredModel[]
+}
+
+/**
+ * One /models request answers both reachability and discovery. Asking twice doubled the
+ * wait on an endpoint that never answers, which is exactly the case the timeout exists for.
+ */
+export async function probeEndpoint(
+  url: string,
+  apiKey?: string,
+  timeoutMs = 8000,
+): Promise<EndpointProbe> {
+  const payload = await fetchJson(`${url}/models`, apiKey, timeoutMs)
+  if (payload === null) return { reachable: false, models: [] }
+
+  // Independent of the primary budget: at the 2s startup cap a derived timeout collapsed
+  // to 2s and made llama.cpp's /props probe time out, falling back to n_ctx_train.
+  const secondaryTimeoutMs = SECONDARY_PROBE_TIMEOUT_MS
   const raw: unknown[] = Array.isArray(payload?.data) ? payload.data : []
   const models: DiscoveredModel[] = raw
     .map(parseModelEntry)
     .filter((m): m is DiscoveredModel => m !== null)
-  if (models.length === 0) return []
+  if (models.length === 0) return { reachable: true, models }
 
   // LM Studio's OpenAI surface omits capacity entirely; its native API carries it.
   if (url.endsWith("/v1") && models.some((m) => m.contextWindow === undefined)) {
-    const native = await fetchJson(`${url.slice(0, -3)}/api/v0/models`, apiKey, 5000)
+    const native = await fetchJson(`${url.slice(0, -3)}/api/v0/models`, apiKey, secondaryTimeoutMs)
     const byId = new Map<string, DiscoveredModel>()
     for (const entry of Array.isArray(native?.data) ? native.data : []) {
       const parsed = parseModelEntry(entry)
@@ -219,7 +248,7 @@ export async function fetchModelsFromEndpoint(url: string, apiKey?: string): Pro
   // n_ctx_train is the *training* context, so read the served size off /props instead and
   // keep the training value only as the ceiling.
   if (url.endsWith("/v1") && raw.some((e: any) => positive(e?.meta?.n_ctx_train))) {
-    const props = await fetchJson(`${url.slice(0, -3)}/props`, apiKey, 5000)
+    const props = await fetchJson(`${url.slice(0, -3)}/props`, apiKey, secondaryTimeoutMs)
     const served = positive(props?.default_generation_settings?.n_ctx)
     for (const m of models) {
       if (m.contextWindow !== undefined) continue
@@ -227,7 +256,15 @@ export async function fetchModelsFromEndpoint(url: string, apiKey?: string): Pro
       m.contextWindow = served && trained ? Math.min(served, trained) : (served ?? trained)
     }
   }
-  return models
+  return { reachable: true, models }
+}
+
+export async function fetchModelsFromEndpoint(
+  url: string,
+  apiKey?: string,
+  timeoutMs?: number,
+): Promise<DiscoveredModel[]> {
+  return (await probeEndpoint(url, apiKey, timeoutMs)).models
 }
 
 // ─── Reasoning capability ────────────────────────────────────────────────────
@@ -426,11 +463,11 @@ let onEndpointStatusChange: (() => void) | undefined
  * Each endpoint repaints as it settles rather than at the end of the sweep, so a slow
  * or unreachable one never holds up the others.
  */
-async function registerKnownEndpoints(pi: ExtensionAPI): Promise<void> {
+async function registerKnownEndpoints(pi: ExtensionAPI, timeoutMs: number): Promise<void> {
   await Promise.all(
     endpoints.map(async (ep) => {
-      const models = await fetchModelsFromEndpoint(ep.baseUrl, ep.apiKey)
-      ep.status = models.length > 0 ? "up" : (await checkEndpoint(ep.baseUrl, ep.apiKey)) ? "up" : "down"
+      const { reachable, models } = await probeEndpoint(ep.baseUrl, ep.apiKey, timeoutMs)
+      ep.status = reachable ? "up" : "down"
       // Drop the provider when an endpoint goes away, or /model keeps offering models
       // that nothing is serving. Unregistering an unknown provider is a no-op.
       if (models.length > 0) registerLocalProvider(pi, ep, models)
@@ -509,7 +546,7 @@ export default async function (pi: ExtensionAPI) {
   // default/scoped model list. Registering in session_start is too late for
   // startup model resolution and `pi --list-models`.
   loadEndpoints()
-  await registerKnownEndpoints(pi)
+  await registerKnownEndpoints(pi, STARTUP_PROBE_TIMEOUT_MS)
 
   // ─── /local-models command ──────────────────────────────────────────────
 
@@ -520,7 +557,9 @@ export default async function (pi: ExtensionAPI) {
       // flips from 🟡 to its real status as the probe lands. Awaiting here meant the
       // command blocked on the slowest endpoint before anything appeared.
       for (const ep of endpoints) ep.status = "checking"
-      registerKnownEndpoints(pi).catch((e) => console.error("local-models: endpoint probe failed:", e))
+      registerKnownEndpoints(pi, INTERACTIVE_PROBE_TIMEOUT_MS).catch((e) =>
+        console.error("local-models: endpoint probe failed:", e),
+      )
 
       await showEndpointsList(pi, ctx)
     },
@@ -682,13 +721,11 @@ async function showAddEndpoint(pi: ExtensionAPI, ctx: any): Promise<void> {
   ctx.ui.notify(`Connecting to ${baseUrl}...`, "info")
 
   // Check endpoint and discover models
-  const isUp = await checkEndpoint(baseUrl, apiKey)
+  const { reachable: isUp, models } = await probeEndpoint(baseUrl, apiKey)
   if (!isUp) {
     const retry = await ctx.ui.confirm("Connection failed", `Could not reach ${baseUrl}. Add anyway?`)
     if (!retry) return
   }
-
-  const models = isUp ? await fetchModelsFromEndpoint(baseUrl, apiKey) : []
 
   const endpoint: LocalEndpoint = {
     id: generateUniqueEndpointId(baseUrl),
@@ -828,7 +865,7 @@ async function refreshAllEndpoints(pi: ExtensionAPI, repaint: () => void): Promi
     ep.status = "checking"
   }
   repaint()
-  await registerKnownEndpoints(pi)
+  await registerKnownEndpoints(pi, INTERACTIVE_PROBE_TIMEOUT_MS)
 }
 
 // ─── TUI: Remove endpoint ────────────────────────────────────────────────────

@@ -2,7 +2,6 @@
   "$schema": "./.schemas/settings.schema.json",
   "ayu": {
     "checkpoint": {
-      "requireGit": true,
       "exclude": [
         ".ssh/**",
         "**/.ssh/**",
@@ -46,12 +45,10 @@
     "npm:pi-markdown-preview",
     "npm:@ayulab/pi-rewind",
     "npm:@gotgenes/pi-permission-system",
-    "npm:@the-forge-flow/security-harness-pi",
     "npm:pi-sandbox",
     "npm:pi-web-access",
     "npm:cc-safety-net",
     "npm:@ff-labs/pi-fff",
-    "npm:pi-local-agents-only",
     "npm:@narumitw/pi-plan-mode",
     "npm:pi-mcp-adapter",
     "npm:pi-context-view",

@@ -18,3 +18,10 @@ run-history.jsonl
 *.bak*
 **/fixtures/
 diagnostics/captures/
+web-search-config.json
+extensions/pi-permission-system/logs/
+mcp-cache.json
+mcp-npx-cache.json
+mcp-onboarding.json
+models-store.json
+little-coder-prompt-history.json
