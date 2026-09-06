@@ -68,7 +68,7 @@ For anything the sections below do not cover.
 
 Under the user's project root:
 
-**raw/** - Immutable source material, the source of truth. Read, never modify. Topic subdirectories, e.g. `raw/machine-learning/`.
+**raw/** - Source material, the source of truth. Immutable means never edited after capture, not that it must be the unfiltered original: a `raw/` file is either a verbatim copy or a reviewed distilled extract of a verbose source (`fidelity: distilled`, `references/distilled-ingest.md`). Once written, either is read, never modified. Topic subdirectories, e.g. `raw/machine-learning/`.
 
 **wiki/** - Compiled articles you own. One level of topic subdirectories only: `wiki/<topic>/<article>.md`. Four special files:
 - `wiki/README.md` - orientation for anyone opening the wiki without this skill. Mostly static; created at init.
@@ -159,7 +159,9 @@ Decide before fetching; it sets what lands in `raw/`.
 - **Verbatim (default)** - a faithful copy, the immutable ground truth Audit checks against. Use it unless the user asks otherwise.
 - **Distilled** - high-signal content only, filler removed. Choose it when the user asks for "the valuable content", "the high-signal parts", "the useful bits", "just the signal", "the key points", "what matters" or similar. Follow `references/distilled-ingest.md`, which distils by _removing_ filler rather than generalising specifics away, and ends in a mandatory separate-sub-agent review so nothing load-bearing is cut.
 
-Pick one mode per source. A rich format (a docx transcript, a PDF) does not decide it: convert to markdown first, then keep or distil per the chosen mode. If a long, noisy source carries no instruction either way, ask rather than defaulting to a verbatim dump.
+Pick one mode per source. A rich format (a docx transcript, a PDF) does not decide it: convert to markdown first, then keep or distil per the chosen mode.
+
+**Offer to distil a large, noisy source; never dump one verbatim by default.** When the source is long and low-density - a meeting transcript, a chat export, interview notes, a sprawling thread - and no mode was named, offer the choice before writing to `raw/`. Say what distilling does: keep the signal, retain all intent, meaning and potentially useful context, summarise and deduplicate but stay faithful to the original. Name the trade in the same breath - Audit can no longer check back to the discarded original - then let the user pick.
 
 **Compile only from `raw/`.** Land every source as markdown in `raw/` before compiling, never straight from a live URL or an external path (a temp file vanishes, a URL changes; the Raw link must persist). A markdown file already in `raw/` compiles directly.
 

@@ -106,7 +106,7 @@ Examples:
 - Optimise for reduced failure modes
 - Ensure config and state are not duplicated across files
 - When writing git commits, PRs or issues:
-  - Keep your text concise, to the point, avoid preamble and narrative
+  - Descriptions and comments should be a tight, to the point, TLDR style, not a detailed narrative of your work, get the point across in a few bullet points or words. Avoid preamble and narrative
   - Be polite but DO NOT add false positivity such as phrasing around "happy to" (as in "happy to test further"), or "if it helps" (as in "if it helps, I can add more tests")
   - DO NOT add your own attribution unless requested by the user
   - NEVER include the claude session URL
@@ -114,7 +114,6 @@ Examples:
 - Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
 - Leave the code you're changing better than you found it, but don't extend that to unrelated code
-- When requested to raise a PR, the PRs description should be a tight TLDR style, not a detailed narrative of your work, get the point across in a few bullet points or words
 - When designing config file handling, if using JSON prefer JSON5 as it supports comments and trailing commas
 
 ### Foundational Thinking
@@ -163,6 +162,7 @@ Be goal oriented when undertaking significant development tasks: **Define succes
 - Always quote all paths in bash commands
 - When fetching google docs via HTTP, append `export?format=md` to the URL
 - If you have the context-mode tool: to read a web page **in full**, don't use WebFetch or bare `curl|head` (denied/redirected). Use `ctx_execute` with `fetch`, or `curl -sL` to a file then Read; for docs sites append `.md` to the URL. Use `ctx_fetch_and_index` + `ctx_search` only to _query_ a page, not to read it whole
+- When requested to perform a git push, do so outside the sandbox
 - When fetching from the official Anthropic docs site append .md to the URL and fetch that, provides clean markdown
 - NEVER run `kill` or `pkill` commands without knowing for _certain_ the process and PID you're targeting is relating to your task only and will not cause other processes to exit
 - Stopping a service or process you started: capture its PID at launch (`SRV=$!`) and `kill "$SRV"`. Never `killall`/`pkill`/`kill $(pgrep -f ...)` by process name - name matching hits unrelated processes (browsers, editors, other agents)

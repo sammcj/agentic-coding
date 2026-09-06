@@ -6,6 +6,8 @@ How to extract the valuable content from a verbose external source - a meeting t
 
 Use it when all three hold: the source lives outside the wiki (a file the user names, a paste, a link), it is verbose enough that keeping it verbatim is not worth it, and the user wants the valuable content extracted rather than the source preserved. Typical phrasing is "extract the useful content from this transcript and add it to the wiki".
 
+The third condition is also met when the user accepts the offer SKILL.md requires you to make on a large, noisy source (a transcript, a chat export, interview notes) that arrived with no mode named. Make that offer before anything lands in `raw/`; a verbatim dump is not the fallback for a source like that.
+
 - If the user wants the full source kept faithfully, use `references/high-fidelity-ingest.md` instead: same atom discipline, but the verbatim source stays in `raw/`.
 - If the source is a rich format (PDF, slides, docx), convert it to markdown first per `references/rich-format-ingest.md`, then distil that markdown.
 

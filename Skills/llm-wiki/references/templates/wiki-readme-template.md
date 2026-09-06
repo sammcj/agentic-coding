@@ -8,7 +8,7 @@ A personal knowledge base of plain markdown, built and maintained with the llm-w
 
 ## Structure
 
-- `raw/<topic>/` - immutable source material, one markdown file per source. Read, never edited after capture.
+- `raw/<topic>/` - source material, one markdown file per source. Read, never edited after capture. A file is either a verbatim copy of its source or a reviewed distilled extract of a verbose one (marked `fidelity: distilled` in its frontmatter).
 - `wiki/<topic>/<article>.md` - compiled articles, distilled from `raw/` and owned by whoever maintains the wiki.
 - `wiki/index.md` - the catalogue: one bullet per article, grouped by topic. Start here.
 - `wiki/log.md` - append-only history of ingests, queries, lints, and audits (recent activity kept; full history in git).
