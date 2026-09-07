@@ -157,6 +157,9 @@ Be goal oriented when undertaking significant development tasks: **Define succes
 
 - The number of tokens used to edit files is best minimised, all else being equal. Therefore, when it will not affect the end result, try to surgically edit a file rather than rewrite the entire thing.
 - In a single Bash call, don't `cd` into a directory and then reference relative paths in later commands (joined by `&&`, `;` or newlines). Either pass absolute paths to each command, or run a lone `cd`-free command with the directory as an argument (`rg pat "/abs/dir/src"`). A plain `cd` on its own, or relative paths without a preceding `cd`, are fine.
+- Bash output must be bounded. Every command that can emit an unknown number of lines pipes to `head`/`tail`, uses a count flag (`-n`, `-m`, `--max-count`), or redirects to a file. Never emit a whole file or an unbounded diff into the conversation.
+- Read a file without `limit` only when you are about to Edit it. To understand or search a file, read a line range or process it in the sandbox.
+- Build and test output goes to a file, not the conversation. Read back only the failures.
 
 ### CLI Commands
 - Always quote all paths in bash commands

@@ -706,6 +706,7 @@
         "*.ru",
         "*.cn"
       ],
+      "tlsTerminate": {},
       "allowLocalBinding": true
     },
     "filesystem": {
@@ -754,6 +755,31 @@
         ".",
         "/usr/share/zoneinfo",
         "/var/db/timezone"
+      ]
+    },
+    "credentials": {
+      "files": [
+        {
+          "path": "~/.aws/credentials",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.ssh",
+          "mode": "deny"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "GH_TOKEN",
+          "mode": "mask",
+          "injectHosts": [
+            "api.github.com"
+          ]
+        },
+        {
+          "name": "NPM_TOKEN",
+          "mode": "mask"
+        }
       ]
     },
     "enableWeakerNetworkIsolation": true,
