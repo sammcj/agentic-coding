@@ -58,4 +58,10 @@ Report findings; do not auto-fix.
 - No root `CLAUDE.md`, so an agent working in the wiki repo gets no project-memory orientation towards the wiki's SKILL.md or the llm-wiki skill - or one still carrying a `{...}` template placeholder. Offer to create it from `references/templates/wiki-claude-md-template.md`.
 
   For both files: report and offer, never auto-create - naming and describing them for the wiki's subject is judgement. **Before creating either file you MUST read `references/init.md` and follow it** - it carries the `<subject>-llm-wiki` naming rule, the describe-from-content rule, and the query-only boundary that the templates alone do not state.
+- No Scope block in the root `CLAUDE.md`, or one still carrying `{...}` placeholders. Offer to settle it with the user and fill it in (`references/scoping.md`); never infer a scope from the article set and write it in unasked.
+- **Scope drift**, on a team wiki only (`Mode: team` in the Scope block). Report, never act. Two signals:
+  - The horizon has passed, or the review date it names is behind us. Say so and ask whether the wiki still has the right shape.
+  - The topic set has spread well past what `In scope` describes - typically several topic directories, or a run of recent index entries, that the block does not cover. Name the specific out-of-scope topics rather than reporting a count; a wiki with many topics inside its declared scope is healthy.
+
+  Both are prompts for a decision the user owns: widen the scope, split into a separate wiki, or wind this one up. A solo wiki has no drift check - `ongoing` is a valid horizon and accumulation is the point.
 - No wiki `.gitignore`, or one that does not exclude `local/`, when the wiki is a git repo or `local/` exists. Offer to write or amend from `references/templates/wiki-gitignore-template.md`; merging the single `local/` line into a user-maintained file is safe once confirmed, but leave the rest of their ignore rules alone.

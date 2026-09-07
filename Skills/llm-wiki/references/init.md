@@ -2,6 +2,12 @@
 
 Triggers on the first Ingest into a directory with no `wiki/`. Check whether `raw/` and `wiki/` exist. Create only what is missing; never overwrite an existing file.
 
+## Step 0: settle the scope
+
+**Before creating any file you MUST read `references/scoping.md` and follow its "At init" steps.** It decides whether an llm-wiki is the right tool here and produces the scope block the rest of the wiki is bound by.
+
+In short: work out whether this is a personal or a team wiki (infer it; ask only if unclear). A solo wiki needs a confirmed purpose and boundary and can run indefinitely. A team wiki also gets pointed at the llm-wiki README's "Intended use and scope" section, a one-line summary of the no-go cases, and a confirmed horizon before anything is written. Carry the answers into the `CLAUDE.md` scope block below.
+
 ## Files to create
 
 - `raw/` - directory, with a `.gitkeep`.
@@ -29,3 +35,5 @@ This file lets an agent load the wiki as an Agent Skill and *query* it without t
 Project memory: an agent auto-loads it whenever the wiki repo is its working directory, no skill required. It complements the root SKILL.md - SKILL.md loads by description match, CLAUDE.md by location, so CLAUDE.md is the entry point for an agent working *inside* the wiki.
 
 Keep it tiny: state what the repo is, point the agent at the root SKILL.md to learn how to interface with the wiki, and tell it to activate the **llm-wiki** skill if available (otherwise treat the wiki as read-only and route writes through it). It defers the query steps to SKILL.md rather than repeating them. Template: `references/templates/wiki-claude-md-template.md`. Created once, never overwritten; lint reports a missing one and offers to add it.
+
+It also carries the **scope block** from step 0 - mode, purpose, in scope, out of scope, horizon - and, on a team wiki, the rule that no personal information about people outside the organisation enters `raw/` or `wiki/`. This is the canonical home for the scope: `wiki/README.md` and the root `SKILL.md` point at it and must not restate it.

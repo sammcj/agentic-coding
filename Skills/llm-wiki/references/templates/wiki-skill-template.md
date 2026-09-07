@@ -17,6 +17,8 @@ Maintenance and deeper analysis - ingesting sources, superseding stale knowledge
 
 {One or two lines on scope: the topics covered and, if relevant, who it is for. Keep this short and point at the index for the live catalogue, rather than duplicating it.}
 
+The wiki's declared scope - what belongs here and what does not - is the Scope block in `CLAUDE.md`. Read it before treating a question as in-bounds.
+
 ## How to query
 
 1. Read `wiki/index.md` - the catalogue, grouped by topic. Start here to find relevant articles.

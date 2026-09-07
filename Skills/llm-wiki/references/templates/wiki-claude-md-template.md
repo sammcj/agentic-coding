@@ -8,6 +8,20 @@ To work with it, start by reading `SKILL.md` in this directory - it explains how
 
 **If the `llm-wiki` skill is available and not already active, activate it.** It owns the workflow for every change to the wiki - ingesting sources, superseding stale knowledge, linting, auditing - and keeps the format consistent. Without it, treat the wiki as read-only and do not hand-edit articles outside the `wiki/README.md` conventions. `raw/` is immutable source material.
 
+## Scope
+
+{Settled at init per the llm-wiki skill's `references/scoping.md`. This block is canonical - `wiki/README.md` and the root `SKILL.md` point here rather than restating it. Delete this note once filled.}
+
+- **Mode**: {personal | team}
+- **Purpose**: {one line on what this wiki is for}
+- **In scope**: {the subjects and sources that belong here}
+- **Out of scope**: {what does not belong, in plain terms}
+- **Horizon**: {`ongoing` for a personal wiki; for a team wiki, what ends it or triggers a review, e.g. "until the platform migration ships", "review 2026-12"}
+
+Check an incoming source against this before ingesting it. A source outside the scope is a conversation with the user, not a judgement call to make silently. If the wiki has genuinely outgrown this block, say so and let the user decide whether to widen the scope or start a separate wiki - do not widen it yourself.
+
+{TEAM WIKIS ONLY - delete this paragraph for a personal wiki.} **No personal information about people outside the organisation enters this wiki.** Customers, candidates, and members of the public: no names, contact details or identifiers in `raw/` or `wiki/`. Refer to them by role or a stable non-identifying label. This applies to the source before it lands in `raw/`, not to the article afterwards. If a source is built around such data, stop and ask the user rather than redacting it yourself.
+
 ## General rules
 
 - Always use Australian English spelling.

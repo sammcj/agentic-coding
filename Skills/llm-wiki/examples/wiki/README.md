@@ -6,6 +6,8 @@ type: Reference
 
 A personal knowledge base of plain markdown, built and maintained with the llm-wiki skill (part of https://github.com/sammcj/agentic-coding). It is meant to stay readable and editable without that skill or any other tool: every file is standard markdown with YAML frontmatter and relative links, so it renders on GitHub and opens as an Obsidian vault.
 
+What this wiki covers, and what it deliberately does not, is the Scope block in `CLAUDE.md` at the repo root. That is the one place it is written down.
+
 ## Structure
 
 - `raw/<topic>/` - source material, one markdown file per source. Read, never edited after capture. A file is either a verbatim copy of its source or a reviewed distilled extract of a verbose one (marked `fidelity: distilled` in its frontmatter).

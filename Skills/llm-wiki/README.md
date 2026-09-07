@@ -28,6 +28,43 @@ See [SKILL.md](SKILL.md) for the full specification.
 
 RAG retrieves and re-derives on every question. A wiki accumulates: the cross-references are already there, contradictions are already flagged, and the synthesis reflects everything you have read.
 
+## Intended use and scope
+
+There are two modes, and they tend to have different shelf lives.
+
+- **Personal / solo.** One person, their own sources, their own questions. Long-running is fine.
+- **Work / team.** Best suited to a short or medium term scope: a project, an initiative, a discovery, a migration, a piece of research. Long-term team use is not forbidden, but it needs deciding rather than drifting into.
+
+### Good, maybe, no-go
+
+Good:
+
+- A project or initiative wiki that runs for the life of that work.
+- A solo wiki on a subject you are learning or tracking.
+- A discovery or research phase where sources arrive faster than you can read them.
+- A codebase or system wiki scoped to one system.
+
+Maybe, if you think it through:
+
+- Insight over time from a repeating input - team retros, planning sessions - where the value is the pattern across many sessions rather than any one of them. It works as a long-running team wiki only if the scope stays that narrow input and someone owns it.
+
+No-go:
+
+- A long-term store of knowledge spanning multiple products or teams.
+- Anything external stakeholders are expected to interface with. Generate outputs _from_ the wiki for them - a summary, a report, a document. Do not build something that assumes they will query it, because that means giving them access and expecting them to run an agent.
+
+The test for the last one: if someone who will not run an agent needs to read it, the deliverable is a document. The wiki is at most where that document gets generated.
+
+### The horizon
+
+A team wiki gets a horizon at init - what ends it, or what triggers a review. Plain prose is fine ("until the platform migration ships", "review 2026-12"). A solo wiki's horizon is `ongoing`.
+
+It is not a deletion timer. It is the point at which someone asks whether the wiki is still the right shape, which is the only thing that catches the slow drift from "our project's knowledge" into "our organisation's knowledge". Lint reports that drift on a team wiki; the decision stays yours.
+
+### Work wikis and PII
+
+A team wiki carries a hard rule in its `CLAUDE.md`: no personal information about people outside the organisation - customers, candidates, members of the public - enters `raw/` or `wiki/`. This is stricter than the ordinary secret and PII filter, and it applies to the source before it lands, not to the compiled article afterwards. `raw/` is immutable by design, so the cheapest place to get this right is the only place: on the way in.
+
 ## Architecture
 
 Three layers under one project root, all plain markdown in git. `raw/` is the immutable source of truth the agent reads but never edits. `wiki/` is the compiled knowledge the agent owns. `SKILL.md` is the schema layer that governs every operation, and an optional `local/` sibling holds private notes kept out of git.
@@ -133,6 +170,14 @@ stateDiagram-v2
     Archive --> [*]: point-in-time, never cascaded
 ```
 
+## Ways of working
+
+What makes the difference between a wiki that compounds and one that becomes a folder of notes.
+
+- **Have an agent distil a noisy source instead of dumping it in raw.** A meeting transcript or chat export is mostly filler. Ask the agent to do this for you.
+- **Ask questions, not just add sources.** Querying is what surfaces the contradictions and the gaps. A wiki that is only ever written to never gets tested.
+- **Lint occasionally, audit when it matters.** Lint is cheap and catches broken structure.
+
 ## Design principles
 
 These are the opinions that keep the wiki useful as it grows, and keep it free of infrastructure. They draw on the [community "v2" discussion](https://gist.github.com/rohitg00/2067ab416f7bbe447c1977edaaa681e2) and its comments, taking the parts that hold up and dropping the rest.
@@ -144,9 +189,23 @@ These are the opinions that keep the wiki useful as it grows, and keep it free o
 - **Git is the audit trail.** History and rollback come from version control, not bespoke versioning fields.
 - **Human in the loop.** It acts when you ask. It does not write to the wiki on background automation, because an unreviewed LLM corrupts a knowledge base quietly.
 
-### What it deliberately leaves out
+## Limitations
 
-Embedding or vector search, knowledge-graph databases, numeric confidence scores, automatic forgetting curves, autonomous background writes, and multi-agent sync. Each one either needs infrastructure the personal scale does not justify, or adds precision the model cannot actually back up. The index plus grep handles retrieval into the hundreds of pages; past that, you have outgrown this skill.
+Know these before you build something on top of it.
+
+**What it deliberately leaves out.** Embedding or vector search, knowledge-graph databases, numeric confidence scores, automatic forgetting curves, autonomous background writes, and multi-agent sync. Each one either needs infrastructure the personal scale does not justify, or adds precision the model cannot actually back up.
+
+**Scale.** The index plus grep handles retrieval into the hundreds of pages. Past that, you have outgrown this skill.
+
+**One writer.** Every write goes through one agent at one person's direction. There is no locking, no merge story beyond git's, and no way to stop two people compiling the same source into two different pages. Fine for a solo wiki or a small team working in turns; not a shared platform.
+
+**No access control.** It is a git repo of markdown. Whoever can read the repo can read everything in it, including anything a source dragged in that you did not filter out. Assume no per-page permissions, ever.
+
+**It needs an agent to stay current.** Without the llm-wiki skill installed, the wiki is still readable - plain markdown, no lock-in - but nothing keeps the index, the links and the supersessions consistent. Someone has to own that.
+
+**Compiled knowledge is a reading, not the source.** Articles are the agent's synthesis. `raw/` is what it read, which is why raw is immutable and why Audit exists. A distilled raw weakens that further: the original is gone, so the extract can only be checked once, at ingest.
+
+**It drifts if you let it.** A team wiki scoped to one project will happily grow into a general knowledge store. Lint reports the drift; nothing stops it but you.
 
 ## Install
 
@@ -191,7 +250,7 @@ Auto-fixes index drift, broken links, and frontmatter gaps; reports contradictio
 ```text
 your-project/
 ├── SKILL.md            ← Optional: load the wiki as a query-only Agent Skill
-├── raw/                ← Immutable sources (frontmatter + original text), never edited
+├── raw/                ← Sources (verbatim, or a distilled extract), never edited after capture
 │   └── topic/
 │       └── 2026-04-03-source-article.md
 ├── wiki/               ← Compiled pages the LLM maintains (frontmatter + markdown)

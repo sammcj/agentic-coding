@@ -38,6 +38,7 @@ Everything else is scenario-gated. Match your task against a branch below and re
 
 - Ingesting any source -> `references/ingest.md`
 - No `wiki/` yet, so this ingest initialises one -> `references/init.md`
+- Settling what a new wiki is for, or whether an llm-wiki suits the job at all -> `references/scoping.md`
 - Source is a PDF, Word file, slides, images, or a spreadsheet -> `references/rich-format-ingest.md`
 - User wants the high-signal content rather than the whole source -> `references/distilled-ingest.md`
 - Source is a transcript, chat log, interview notes, or a long noisy article -> `references/high-fidelity-ingest.md`
@@ -68,7 +69,7 @@ For anything the sections below do not cover.
 
 Under the user's project root:
 
-**raw/** - Source material, the source of truth. Immutable means never edited after capture, not that it must be the unfiltered original: a `raw/` file is either a verbatim copy or a reviewed distilled extract of a verbose source (`fidelity: distilled`, `references/distilled-ingest.md`). Once written, either is read, never modified. Topic subdirectories, e.g. `raw/machine-learning/`.
+**raw/** - Source material, the source of truth. Immutable means never edited after capture, not that it must be the unfiltered original: a `raw/` file is either a verbatim copy or a reviewed distilled extract of a verbose source (`fidelity: distilled`, `references/distilled-ingest.md`) (preferred). Once written, either is read, never modified. Topic subdirectories, e.g. `raw/machine-learning/`.
 
 **wiki/** - Compiled articles you own. One level of topic subdirectories only: `wiki/<topic>/<article>.md`. Four special files:
 - `wiki/README.md` - orientation for anyone opening the wiki without this skill. Mostly static; created at init.
@@ -140,7 +141,7 @@ Entries are grouped by topic and ranked by evidence of demand - which articles r
 
 ### Initialisation
 
-Initialisation triggers only on the first Ingest into a directory with no `wiki/`. **Before creating anything you MUST read `references/init.md` and follow it.**
+Initialisation triggers only on the first Ingest into a directory with no `wiki/`. **Before creating anything you MUST read `references/init.md` and follow it.** It opens with a scoping step (`references/scoping.md`): an llm-wiki suits solo use indefinitely and team use over a project or initiative, but not a long-term store spanning products, nor anything external stakeholders are expected to query. Settle the scope before writing files; it binds every later operation.
 
 If Query or Lint cannot find the wiki structure, check for several wiki subdirectories (each with its own `wiki/` and `raw/`) - a multi-wiki setup of independent llm-wikis side by side, not an uninitialised wiki. Only when neither is present, tell the user: "Run an ingest first to initialise the wiki." Do not auto-create. **Read `references/multiple-wikis.md` before querying or maintaining across several wikis.**
 
@@ -227,7 +228,7 @@ Health checks in two tiers: **deterministic problems are auto-fixed; anything ne
 **Before fixing anything you MUST read `references/lint.md` and follow it** - it enumerates every check in each tier and its fix behaviour. The bullets below index what it covers; they are not the procedure.
 
 - **Deterministic (auto-fix):** index consistency, internal and raw links, frontmatter, See Also, log retention, the wiki skill file's links, concept-map freshness, the gap register, and the `local/` leak guard. Safe to repair without asking.
-- **Heuristic (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, undocumented concepts (propose as `wanted` gaps), open gaps an article now answers, multi-concept articles, drifted archives, low-value concept maps, and a missing root `SKILL.md`, `CLAUDE.md`, or wiki `.gitignore`. Surface them; never auto-fix.
+- **Heuristic (report only):** factual contradictions, supersessions never marked stale, orphan pages, missing cross-references, undocumented concepts (propose as `wanted` gaps), open gaps an article now answers, multi-concept articles, drifted archives, low-value concept maps, a team wiki that has drifted past its declared scope or horizon, and a missing root `SKILL.md`, `CLAUDE.md`, scope block, or wiki `.gitignore`. Surface them; never auto-fix.
 
 Two dependency-free read-only helpers back the deterministic tier, run with `uv`: `scripts/lint_wiki.py <project-root>` for structural findings (frontmatter, index, links, raw, the `local/` leak guard) and `scripts/lint_mermaid.py` for concept-map validity. Run them rather than improvising a shell script; without `uv`, use grep and the file tools and check mermaid by eye. The helpers detect; you apply the fixes.
 

@@ -8,6 +8,16 @@ To work with it, start by reading `SKILL.md` in this directory - it explains how
 
 **If the `llm-wiki` skill is available and not already active, activate it.** It owns the workflow for every change to the wiki - ingesting sources, superseding stale knowledge, linting, auditing - and keeps the format consistent. Without it, treat the wiki as read-only and do not hand-edit articles outside the `wiki/README.md` conventions. `raw/` is immutable source material.
 
+## Scope
+
+- **Mode**: personal
+- **Purpose**: track how transformer architectures scale, and what the cost of attention means in practice.
+- **In scope**: transformer internals, attention cost and efficiency, long-context scaling, and the papers and posts behind them.
+- **Out of scope**: model release news, vendor benchmarks, and anything about running or serving models in production.
+- **Horizon**: ongoing.
+
+Check an incoming source against this before ingesting it. A source outside the scope is a conversation with the user, not a judgement call to make silently. If the wiki has genuinely outgrown this block, say so and let the user decide whether to widen the scope or start a separate wiki - do not widen it yourself.
+
 ## General rules
 
 - Always use Australian English spelling.
