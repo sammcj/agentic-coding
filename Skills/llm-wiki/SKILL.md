@@ -6,7 +6,7 @@ argument-hint: "[ingest | query | lint | audit | critique] [input]"
 
 # LLM Wiki
 
-A personal knowledge base in plain markdown. Sources land in `raw/` (immutable); you compile them into `wiki/` articles you own. Local markdown with YAML frontmatter, readable on GitHub, openable as an Obsidian vault. No servers, no databases, no embeddings.
+A knowledge basein plain markdown. Sources land in `raw/` (immutable); you compile them into `wiki/` articles you own. Local markdown with YAML frontmatter, readable on GitHub, openable as an Obsidian vault. No servers, no databases, no embeddings.
 
 Core idea (Karpathy): the LLM writes and maintains the wiki; the human chooses sources and asks questions. Knowledge is compiled once at ingest.
 

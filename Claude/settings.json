@@ -367,14 +367,6 @@
       "Bash(parted *)",
       "Bash(pipx *)",
       "Bash(printenv *)",
-      "Bash(rm -f -r *)",
-      "Bash(rm -fr *)",
-      "Bash(rm -r -f *)",
-      "Bash(rm -rf *)",
-      "Bash(* rm -f -r *)",
-      "Bash(* rm -fr *)",
-      "Bash(* rm -r -f *)",
-      "Bash(* rm -rf *)",
       "Bash(rsync *)",
       "Bash(scp *)",
       "Bash(ssh *)",
@@ -706,8 +698,8 @@
         "*.ru",
         "*.cn"
       ],
-      "tlsTerminate": {},
-      "allowLocalBinding": true
+      "allowLocalBinding": true,
+      "tlsTerminate": {}
     },
     "filesystem": {
       "allowWrite": [

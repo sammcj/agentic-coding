@@ -8,6 +8,10 @@
 - Any pointers to ./references/*.md must have clear instructions as to when the consuming agent MUST read them (e.g. the scenario when they apply).
 - You do NOT need to add items that were changes to other items within the same date (e.g. if you add "added skill description ..." you don't need to also add "improved skill scription ..." if you did so on the same date)
 
+## Hook command paths
+
+Hooks in `SKILL.md` frontmatter use `$HOME/.claude/skills/skill-creator-primer/scripts/...`. `${CLAUDE_PLUGIN_ROOT}` is only set for plugin-bundled skills, and `${CLAUDE_SKILL_DIR}` expands empty in current Claude Code. Switch to `${CLAUDE_PLUGIN_ROOT}` only if this skill is ever packaged as a plugin.
+
 ## Tests for the bundled scripts
 
 `tests/` holds stdlib `unittest` tests for the scripts in `scripts/`. They are development tooling for this repo - the skill never invokes them, and they stay out of `SKILL.md` so they cost the consuming agent nothing.

@@ -1,6 +1,6 @@
 # LLM Wiki
 
-A self-contained Agent Skill for building and maintaining a personal knowledge base in plain markdown. Your coding agent compiles sources into durable, cross-linked pages, answers questions from them with citations, and keeps the wiki healthy as it grows. No servers, no database, no embeddings. It opens as an Obsidian vault and reads cleanly on GitHub.
+A self-contained Agent Skill for building and maintaining A knowledge basein plain markdown. Your coding agent compiles sources into durable, cross-linked pages, answers questions from them with citations, and keeps the wiki healthy as it grows. No servers, no database, no embeddings. It opens as an Obsidian vault and reads cleanly on GitHub.
 
 Based on [Karpathy's LLM Wiki idea](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), with a design that stays small on purpose.
 
