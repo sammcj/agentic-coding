@@ -17,6 +17,7 @@ Write queries that are self-contained and substantive:
 
 - Put any sample content (a sensitive snippet, a data row) inline - a query that only references an artifact ("here is the PDF") makes the agent go looking for it rather than do the work, so it never reaches the point of consulting a skill.
 - The most valuable negatives are near-misses that a naive keyword match would trip on.
+- Aim for writing between 4 and 6 queries per skill, however more than 6 is fine if they already exist and add genuine value.
 
 ## Running the eval
 
