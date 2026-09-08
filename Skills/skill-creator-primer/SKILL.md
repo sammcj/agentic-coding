@@ -262,6 +262,7 @@ Standardise where bundled files live so skills stay predictable across the toolk
 - `references/` - Markdown the agent reads as reference (the loaded-on-demand layer of progressive disclosure).
 - `scripts/` - executable scripts the agent runs.
 - `assets/` - templates the agent copies or fills in, plus non-text artefacts like SVGs and icons. Prefer referencing these from an external source over committing them; bundled binaries add weight and context overhead with no benefit to the agent.
+- `CHANGELOG.md` - a skill is a non-code project, so date headings (`## YYYY-MM-DD`, newest first), no version numbers. Keeps the skill's history out of the body (see "Fossilised diff"). The update rule goes in both the file's `<!-- AI agents: ... -->` comment and the skill's own `CLAUDE.md`: log reader-visible changes only, one line each, squash same-day edits. If a changelog-setup skill is available, use it.
 - When `references/` spans many sibling domains, give each domain the same file set (e.g. `<domain>/patterns.md`, `<domain>/gotchas.md`, omitting any that would be empty) so the agent knows what exists at the next level without reading an index.
 
 ## What to Not Include in a Skill

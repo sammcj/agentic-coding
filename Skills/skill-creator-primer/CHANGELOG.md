@@ -4,6 +4,7 @@
 
 ## 2026-09-08
 
+- "Bundled File Layout" now covers `CHANGELOG.md`: date headings (skills are non-code projects), history out of the body, update rule in both the file's HTML comment and the skill's `CLAUDE.md`, and use a changelog-setup skill if available.
 - `references/trigger-evals.md`: a skill shipping an eval set must record the resolved run command in its own `CLAUDE.md`, so the runner is discoverable without the primer loaded.
 - New `when-to-use` rule: a "When to use" heading in the body is a certain finding, reported with its whole section span. "When not to use" and "When to use X instead of Y" are exempt. Listed under FACTS in the text report, "Delete first" in the HTML, and shaded in the source preview. SKILL.md adds it to "What to Not Include in a Skill".
 - Description length promoted from a spec-cell line to a certain, top-ranked finding: it now leads FACTS in the text report, gets a "Delete first" row and shades the description's frontmatter lines in the HTML source preview.
