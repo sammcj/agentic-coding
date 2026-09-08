@@ -144,6 +144,9 @@ REPORT = [
     ("metaphor-tic", r"(?i)\b(?:smoking[- ]gun|load[- ]bearing|nothing collapses)\b", None),
     # "the code is the contract": the copula shape only, so a legal or API contract in ordinary use is left alone.
     ("metaphor-tic", r"(?i)\b(?:is|are|was|were|becomes?|remains?|as) the contract\b", None),
+    # "carries the procedure", "carries the verdict": an object doing the agent's work. Also a density marker in
+    # GROUPS; named here so the report can point at the phrase.
+    ("metaphor-tic", r"(?i)\bcarr(?:ies|y|ied|ying) (?:the|a|an|its|their|this|that)\b", None),
     # One use is a claim about a build. The tic is reaching for it again; REPEATED sets the floor.
     ("byte-identical", r"(?i)\b(?:byte|bit)[- ]identical\b|\bbyte[- ]for[- ]byte\b", None),
     # Literal in linguistics and NLP, inflation everywhere else. Its own name so POSSIBLE can carry that caveat without

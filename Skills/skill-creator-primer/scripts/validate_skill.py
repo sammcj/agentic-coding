@@ -494,9 +494,11 @@ _FILLER_RULES: list[tuple[str, re.Pattern]] = [
         "metaphor-tic",
         re.compile(
             # "the contract" only after a copula, so a legal or API contract in ordinary use is left alone. "corpus" is
-            # literal in linguistics and NLP; a skill about anything else has documents.
+            # literal in linguistics and NLP; a skill about anything else has documents. "carries the" is an object
+            # doing the agent's work ("the reference carries the procedure").
             r"\b(?:smoking[- ]gun|load[- ]bearing|honest take|corp(?:us|ora)"
-            r"|(?:is|are|was|were|becomes?|remains?|as) the contract)\b",
+            r"|(?:is|are|was|were|becomes?|remains?|as) the contract"
+            r"|carr(?:ies|y|ied|ying) (?:the|a|an|its|their|this|that))\b",
             re.IGNORECASE,
         ),
     ),
@@ -588,7 +590,7 @@ POSSIBLE = {
 }
 # Rules that cannot be argued with, reported under FACTS and marked red on the page. Everything in neither set is
 # probable: reported, never gated, since a skill may mean the word literally.
-CERTAIN = {"invisible"}
+CERTAIN = {"invisible", "when-to-use", "description-length", "spec-error"}
 
 # Characters that render as nothing, or as an ordinary space, and arrive by copy from a web page: a no-break space in
 # a command breaks the command, one in a description breaks the trigger phrase, and no editor shows either. Written as
@@ -629,6 +631,140 @@ def _invisible(skill_dir: Path) -> list[tuple[str, int, int, int, str]]:
 # ten hits on "comprehensive" is one action, not ten. These cap the grouped lines and the locations shown per line.
 FILLER_LIST_MAX = 10
 FILLER_LOCATIONS_MAX = 6
+
+# A "When to use" section in the body. The body is only read once the description has already fired, so a section
+# telling the agent when to use the skill is guidance for a decision made before the file was opened. It spends
+# always-loaded tokens restating the frontmatter, and the restatement is usually looser than the description it copies.
+# Negative and comparative headings are exempt: "When not to use" and "When to use X instead of Y" narrow a trigger the
+# description could not carry, and are read at the point they still change behaviour.
+_REDUNDANT_HEADING = re.compile(
+    r"^#{1,6}\s+(?:when\s+(?:to|you\s+should|i\s+should)\s+"
+    r"(?:use|apply|invoke|trigger|reach\s+for)|when\s+this\s+skill\s+applies)\b",
+    re.IGNORECASE)
+_HEADING_EXEMPT = re.compile(r"\b(not|never|don'?t|instead|rather|vs\.?|versus)\b", re.IGNORECASE)
+
+
+def _redundant_sections(skill_dir: Path) -> list[tuple[int, str, int, int, str]]:
+    """"When to use" sections across a skill's loadable Markdown, largest first.
+
+    Returns (lines the section spans, relative path, 1-based heading line, 1-based
+    last line, heading text) - the shape the other block findings share, so the
+    report shades the whole section rather than the heading alone. The span is what
+    the finding is about: the cost is the section, not the title on it.
+    """
+    found: list[tuple[int, str, int, int, str]] = []
+    skill_root = Path(skill_dir).resolve()
+    for path in referenced_md_files(skill_dir):
+        text = path.read_text(encoding="utf-8-sig", errors="ignore")
+        match = _FRONTMATTER_RE.match(text)
+        body = text[match.end():] if match else text
+        first_line = (text[: match.end()].count("\n") + 1) if match else 1
+        rel = str(path.relative_to(skill_root) if path.is_relative_to(skill_root) else path)
+        lines = list(enumerate(body.splitlines(), start=first_line))
+        fence: str | None = None
+        open_at: tuple[int, int, str] | None = None  # (heading line, heading depth, heading text)
+        for lineno, line in lines:
+            stripped = line.strip()
+            if fence is not None:
+                if _fence_close(stripped, fence):
+                    fence = None
+                continue
+            if (opened := _fence_open(stripped)) is not None:
+                fence = opened
+                continue
+            if not _HEADING.match(stripped):
+                continue
+            depth = len(stripped) - len(stripped.lstrip("#"))
+            if open_at is not None and depth <= open_at[1]:
+                found.append((lineno - open_at[0], rel, open_at[0], lineno - 1, open_at[2]))
+                open_at = None
+            if (open_at is None and _REDUNDANT_HEADING.match(stripped)
+                    and not _HEADING_EXEMPT.search(stripped)):
+                open_at = (lineno, depth, stripped)
+        if open_at is not None:
+            end = lines[-1][0] if lines else open_at[0]
+            found.append((end - open_at[0] + 1, rel, open_at[0], end, open_at[2]))
+    return sorted(found, reverse=True)
+
+
+# A table cell longer than this is prose, not data. Tables are read as a grid: a sentence in a cell has to be read
+# linearly, so the reader pays the grid's cost and gets none of its benefit, and the row wraps or overflows the moment
+# the column is narrow. Matches rewrite-slop's threshold, since the two tools judge the same shape.
+TABLE_CELL_MAX = 20
+
+
+def _prose_tables(skill_dir: Path) -> list[tuple[int, str, int, int, str]]:
+    """Tables holding a cell over TABLE_CELL_MAX across a skill's loadable Markdown.
+
+    Returns (prose cells, relative path, 1-based first row, 1-based last row,
+    opening row) - the block findings' shape - largest first. One finding per
+    table, not per row: a table full of prose is one decision, and reporting each
+    row would bury a page under identical entries.
+    """
+    found: list[tuple[int, str, int, int, str]] = []
+    skill_root = Path(skill_dir).resolve()
+    rule_row = re.compile(r"^[|\s:-]+$")
+    for path in referenced_md_files(skill_dir):
+        text = path.read_text(encoding="utf-8-sig", errors="ignore")
+        match = _FRONTMATTER_RE.match(text)
+        body = text[match.end():] if match else text
+        first_line = (text[: match.end()].count("\n") + 1) if match else 1
+        rel = str(path.relative_to(skill_root) if path.is_relative_to(skill_root) else path)
+        fence: str | None = None
+        start = end = wide = 0
+        opening = ""
+        for lineno, line in enumerate([*body.splitlines(), ""], start=first_line):
+            stripped = line.strip()
+            if fence is not None:
+                if _fence_close(stripped, fence):
+                    fence = None
+                continue
+            if (opened := _fence_open(stripped)) is not None:
+                fence = opened
+                continue
+            if stripped.startswith("|"):
+                if not start:
+                    start, opening = lineno, stripped
+                end = lineno
+                if not rule_row.fullmatch(stripped):
+                    wide += sum(1 for cell in stripped.strip("|").split("|")
+                                if len(cell.strip()) > TABLE_CELL_MAX)
+            elif start:
+                if wide:
+                    found.append((wide, rel, start, end, opening))
+                start = end = wide = 0
+                opening = ""
+    return sorted(found, reverse=True)
+
+
+def description_span(skill_dir: Path) -> tuple[int, int] | None:
+    """(1-based first line, 1-based last line) of the description in SKILL.md's
+    frontmatter, or None if there is no frontmatter or no description key.
+
+    Read off the raw lines rather than from the parsed mapping, because the report
+    marks the source the reader is looking at, and a folded scalar runs over lines
+    the parser has already joined into one.
+    """
+    path = Path(skill_dir) / "SKILL.md"
+    if not path.is_file():
+        return None
+    text = path.read_text(encoding="utf-8-sig", errors="ignore")
+    match = _FRONTMATTER_RE.match(text)
+    if match is None:
+        return None
+    lines = match.group(1).splitlines()
+    key = re.compile(r"^[A-Za-z_][\w-]*\s*:")
+    for i, line in enumerate(lines):
+        if not line.lower().startswith("description:"):
+            continue
+        end = i
+        for j in range(i + 1, len(lines)):
+            if key.match(lines[j]):
+                break
+            end = j
+        return i + 2, end + 2  # +2: the opening --- line, plus 1-based counting
+    return None
+
 
 _INLINE_CODE = re.compile(r"`[^`\n]*`")
 
@@ -811,8 +947,25 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
     filler = _filler(skill_dir)
     emphasis = _bold(skill_dir)
     invisible = _invisible(skill_dir)
+    redundant = _redundant_sections(skill_dir)
+    prose_tables = _prose_tables(skill_dir)
 
     facts: list[str] = []
+    # The description is the one string loaded on every turn of every session, whether the skill fires or not, so an
+    # over-long one is the most expensive finding the report can carry. It leads FACTS for that reason.
+    desc_errors, desc_warnings = description_findings(skill_description(skill_dir))
+    for line in desc_errors + desc_warnings:
+        facts.append(f"  {line}")
+    # A section answering a question the agent already answered by loading the file. Certain, and first: it is the
+    # cheapest large cut on the page, and it says the skill was written by someone who had not worked out that the
+    # description is what does the deciding.
+    if redundant:
+        facts.append(
+            f"  \"When to use\" sections ({len(redundant)}) - the body only loads after the description "
+            "already fired, so this restates the trigger to an agent that has acted on it. Delete the "
+            "section; move any trigger it names into the description:"
+        )
+        facts.extend(_listing(redundant, " lines"))
     # Certain wherever it sits, so it goes under the heading that says fix rather than judge.
     if invisible:
         facts.append(f"  Invisible characters ({len(invisible)}) - replace with a plain space, or delete:")
@@ -842,6 +995,13 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
             "inline scripts belong in scripts/, templates in assets/:"
         )
         signals.extend(_listing(long_code, " lines"))
+    if prose_tables:
+        signals.append(
+            f"  Prose tables ({len(prose_tables)}) - a cell over {TABLE_CELL_MAX} characters is read "
+            "linearly, so the grid costs a wrap and buys nothing. Use bullets for text, and keep "
+            "tables for short structured values:"
+        )
+        signals.extend(_listing(prose_tables, " prose cells"))
     if dense:
         signals.append(
             f"  Dense runs ({len(dense)}) - {DENSE_RUN}+ consecutive units of {DENSE_WORDS}+ words, or "

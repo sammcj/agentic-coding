@@ -2,9 +2,11 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
-## 2026-09-04
+## 2026-09-08
 
-- New tells: "X is the contract" (copula shape only) joins `metaphor-tic`; `byte-identical` / bit-identical / byte-for-byte is a finding from the second use in a document, via a `REPEATED` floor applied in `scan_spans` so the text and HTML reports agree. Tier 1 and the checklist name both. Tests cover the literal contract and the single use.
+- New tells: "X is the contract" (copula shape only) and "carries the" (an object doing the work) join `metaphor-tic`; `byte-identical` / bit-identical / byte-for-byte is a finding from the second use in a document, via a `REPEATED` floor applied in `scan_spans` so the text and HTML reports agree. Tier 1 and the checklist name both. Tests cover the literal contract and the single use.
+
+## 2026-09-04
 
 - `render_report.py` takes several files on one page: a tab per file under the header carrying its verdict, one file on screen at a time, search and Copy brief scoped to it. Default output for several is `slop-report.html` beside the first input; `--against` compares each to the same original. `render()` now takes a list of (path, text), with the per-file work in `page()`. Fixed a latent script error on a page with nothing flagged (the caption element it reached for did not exist).
 

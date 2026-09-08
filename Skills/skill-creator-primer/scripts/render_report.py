@@ -67,7 +67,6 @@ LEGEND = [
 ]
 KINDS = [
     ("em", "bold mid-sentence - a density, not a defect at the span"),
-    ("code", f"fenced block over {vs.CODE_FENCE_LINES} lines - move it to scripts/"),
 ]
 RANK = {"certain": 0, "probable": 1, "possible": 2}
 
@@ -124,6 +123,11 @@ WHY = {
                  "or delete it.",
     "code": f"A fenced block over {vs.CODE_FENCE_LINES} lines. Scripts belong in "
             "scripts/ and templates in assets/, where they cost nothing until run.",
+    "table": f"A table holding a cell over {vs.TABLE_CELL_MAX} characters. Tables are "
+             "read as a grid, and a sentence in a cell has to be read linearly, so "
+             "the reader pays the grid's cost and gets none of its benefit - and the "
+             "row wraps the moment the column is narrow. Use bullets for the text, "
+             "and keep tables for short structured values.",
     "bold-emphasis": "Bold dropped into running sentences. Emphasis works by being "
                      "rare, so when everything is bold nothing is, and the one "
                      "instruction the skill needed to land stops standing out. "
@@ -136,6 +140,18 @@ WHY = {
                   "or will fail validation until it is fixed.",
     "spec-warning": "Valid, but flagged: usually an unrecognised frontmatter field "
                     "or a description over its word ceiling.",
+    "when-to-use": "A \"When to use\" section in the body. The body is only read "
+                   "once the description has already fired, so the section answers "
+                   "a question the agent settled before it opened the file. Delete "
+                   "it, and move any trigger it names that the description lacks "
+                   "into the description. \"When not to use\" and \"When to use X "
+                   "instead of Y\" are exempt: those still change what happens.",
+    "description-length": "The description is the only part of a skill loaded on "
+                          "every turn of every session, fired or not, so its length "
+                          "is charged to every conversation the user has. Over the "
+                          "ceiling it also triggers worse: the match spreads across "
+                          "padding instead of concentrating on the trigger words. "
+                          "Cut a trigger branch, not the wording around one.",
 }
 
 
@@ -199,13 +215,25 @@ body { margin: 0; background: var(--ground); color: var(--ink);
 .cell { border: var(--rule) solid var(--ink); padding: 14px 16px; min-width: 0; }
 /* The panel does not scroll; the findings cell inside it takes the slack and
    scrolls, so each column shows exactly one scrollbar and the budget stays put. */
+/* The panel itself never scrolls: a scrollbar on the column would put the budget out of sight, which is the figure
+   the page exists to report. Cells take their content height and shrink no further than their own list, which is
+   what scrolls. `flex: 0 1 auto` is the whole trick - shrink when the panel is full, never stretch when it is not,
+   so a short list leaves no gap under itself and a long one steals nothing from the cells above. */
 .panel { display: flex; flex-direction: column; gap: var(--rule);
          min-height: 0; overflow: hidden; }
-.grow { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* :not(.grow) is load-bearing: as a bare `.panel > .cell` this outweighs `.grow` on specificity, pinned the list
+   cells at their full content height, and the panel clipped everything below the first long table. */
+.panel > .cell:not(.grow) { flex: none; }
+/* The floor is what stops the longer list taking the shorter one's cell. Flex shrinks in proportion to basis, so a
+   42-row structure list beside a 2-row wording list left the wording cell at its search box and nothing else. */
+.grow { flex: 0 1 auto; min-height: 170px; display: flex; flex-direction: column; }
 .doc { min-height: 0; overflow: auto; }
 header, footer { grid-column: 1 / -1; }
-header { display: flex; align-items: center; justify-content: space-between; gap: 32px; }
-header .stats { flex: 1; max-width: 680px; }
+/* Wraps rather than overflowing: on a narrow window the title took the full row and pushed the three figures out of
+   the cell, which is the one part of the page that has to be readable at a glance. */
+header { display: flex; align-items: center; justify-content: space-between;
+         gap: 16px 32px; flex-wrap: wrap; }
+header .stats { flex: 1 1 380px; max-width: 680px; }
 
 @media (max-width: 900px) {
   body { overflow: auto; }
@@ -266,23 +294,22 @@ footer .end { margin-left: auto; }
 
 table { border-collapse: collapse; width: 100%; font: 400 13px var(--mono); }
 td { padding: 3px 6px 3px 0; vertical-align: top; border-bottom: 1px solid #ececec; }
-td.n { width: 46px; color: var(--muted); text-align: right; }
+td.n { width: 46px; color: var(--muted); text-align: right; white-space: nowrap; }
 td.r { color: var(--muted); text-align: right; white-space: nowrap; }
 tr.pick { cursor: pointer; }
 tr.pick:hover td { background: var(--fill); }
-.scroll { flex: 1; min-height: 90px; overflow: auto; }
+/* The list is the part of a cell that gives: it takes what its content needs and hands the rest back when the panel
+   is full, so 42 structure rows scroll here rather than pushing the cells under them off the column. */
+.scroll { flex: 1 1 auto; min-height: 0; overflow: auto; }
 
 /* the frequency chart, drawn behind the rows it labels rather than beside them */
 td.f { width: 26%; }
 td.f s { display: block; height: 11px; background: #d4d4d4; text-decoration: none; }
 tr.pick:first-child td.f s { background: var(--accent); }
 
-/* spec findings: errors carry the accent, warnings the grey ramp */
-ul.spec { list-style: none; margin: 0; padding: 0;
-          font: 400 12px/1.5 var(--mono); }
-ul.spec li { padding: 5px 0 5px 9px; border-left: var(--rule) solid #d4d4d4;
-             margin-bottom: 6px; }
-ul.spec li.bad { border-left-color: var(--accent); }
+/* spec findings, listed with the rest: an error takes the certain step, a warning the probable one */
+/* Not clickable: a spec finding names the whole file, so there is nothing to scroll to. */
+tr.pick.spec, tr.pick.specw { cursor: default; }
 
 /* before and after: two bars to a pair, the baseline hollow and the current filled */
 .pair { margin-bottom: 12px; font: 400 12px var(--mono); }
@@ -295,10 +322,14 @@ ul.spec li.bad { border-left-color: var(--accent); }
 .pair em { font-style: normal; color: var(--muted); }
 .cut { color: var(--accent); }
 
-/* The caption under the list: the reason for whatever is hovered or chosen. */
-.why { font: 400 12px/1.45 var(--mono); margin: 12px 0 0;
-       border-top: 1px solid #ececec; padding-top: 10px; min-height: 3.2em; }
-.why.idle { color: var(--muted); }
+/* The caption under the list: the reason for whatever is hovered or chosen. It costs no space until something is
+   hovered - a standing instruction to hover is a row spent explaining the interface rather than the skill. Once
+   opened it holds a fixed height and scrolls, since the reasons run from one line to five and sizing to the text
+   made the whole panel jump on every hover. */
+.why { height: 0; margin: 0; padding: 0; border: 0; overflow: hidden; flex: none;
+       font: 400 12px/1.45 var(--mono); }
+.why.live { height: 5.8em; margin: 12px 0 0; padding-top: 10px;
+            border-top: 1px solid #ececec; overflow: auto; }
 
 /* Sized to sit on the footer rule beside the date, not to stand over it. */
 button { font: 400 10px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase;
@@ -311,8 +342,10 @@ button.done { background: var(--ink); border-color: var(--ink); color: var(--gro
 #brief { margin: var(--rule); padding: 14px 16px; border: var(--rule) solid var(--ink); }
 body.spill { overflow: auto; }
 
-.legend { display: flex; gap: 16px; font: 400 11px var(--mono);
-          color: var(--muted); margin-top: 12px; flex-wrap: wrap; }
+/* flex: none, or the wrapped second row was shrunk away by the column above it and the legend lost half its keys. */
+.legend { display: flex; gap: 8px 16px; font: 400 11px var(--mono);
+          color: var(--muted); margin-top: 12px; flex-wrap: wrap; flex: none; }
+.legend span { white-space: nowrap; }
 .key { display: inline-block; width: 22px; height: 11px; margin-right: 5px;
        vertical-align: -1px; }
 /* The key swatches match the marks; the underline is the same rule in each step's colour and carries no meaning
@@ -320,7 +353,6 @@ body.spill { overflow: auto; }
 .k-possible { background: var(--maybe); box-shadow: inset 0 -3px 0 var(--maybe-rule); }
 .k-probable { background: var(--likely); box-shadow: inset 0 -3px 0 var(--likely-rule); }
 .k-certain { background: var(--fill); box-shadow: inset 0 -3px 0 var(--accent); }
-.k-code { background: #f4f4f4; box-shadow: inset 0 -3px 0 #9a9a9a; }
 .k-em { background: #e9eff9; box-shadow: inset 0 -3px 0 #1a4fa0; }
 .legend b { font-weight: 700; color: var(--ink); letter-spacing: 0.1em; text-transform: uppercase; }
 
@@ -335,14 +367,26 @@ pre { margin: 0; font: 400 13px/1.65 var(--mono); white-space: pre-wrap;
       word-wrap: break-word; }
 .l { display: block; padding: 0 6px; border-left: var(--rule) solid transparent; }
 .l:empty { height: 1.65em; }
-/* Block shades sit on the same ramp as the marks, a shade lighter so the text inside stays readable: a dense run
-   is possible (yellow), a blob probable (orange). A run often contains a blob, which keeps its deeper shade inside
-   it. Code is not on the ramp - a long fence is a placement finding, not a prose one. */
+/* The ramp rewrite-slop uses, shared so a reader moving between the two reports reads one scale: a dense run is
+   possible (yellow); a long paragraph, a prose table and an over-long fence are probable (orange); the two deletable
+   findings are certain (red). A run often contains a blob, which keeps its deeper shade inside it.
+   Every shade is a block of the same weight, so the kind is carried by the margin label rather than by the colour -
+   the earlier pale grey on code was invisible at reading distance and said nothing the label does not. */
 .l.dense { background: #fffbe6; border-left-color: var(--maybe-rule); }
-.l.blob { background: #ffe4bd; border-left-color: var(--likely-rule); }
-.l.code { background: #f4f4f4; border-left-color: #9a9a9a; }
-tr.pick.dense td.n { color: var(--maybe-rule); }
-tr.pick.blob td.n { color: var(--likely-rule); }
+.l.blob, .l.code, .l.table { background: #ffe4bd; border-left-color: var(--likely-rule); }
+.l.redundant, .l.desc { background: #ffdedb; border-left-color: var(--accent); }
+/* The label names the block on its first line, set in the right margin so it never displaces the source. */
+.l.lead { position: relative; }
+.l.lead::after { content: attr(data-label); position: absolute; right: 0; top: 0;
+                 font: 400 10px var(--mono); letter-spacing: 0.08em; color: var(--muted);
+                 background: var(--ground); padding: 0 2px 0 8px; text-transform: uppercase; }
+/* One list ranked worst first, so the row says its step on the ramp rather than its kind: a rule bar down the left
+   in the confidence colour, and the count in the same. The kind is in the row's own text and its reason. */
+tr.pick.possible td.n { color: var(--maybe-rule); box-shadow: inset 3px 0 0 var(--maybe-rule); }
+tr.pick.probable td.n { color: var(--likely-rule); box-shadow: inset 3px 0 0 var(--likely-rule); }
+tr.pick.certain td.n { color: var(--accent); font-weight: 700;
+                       box-shadow: inset 3px 0 0 var(--accent); }
+td.n { padding-left: 9px; }
 mark { color: inherit; padding: 0 1px; cursor: pointer; }
 mark[data-conf="possible"] { background: var(--maybe); box-shadow: inset 0 -3px 0 var(--maybe-rule); }
 mark[data-conf="probable"] { background: var(--likely); box-shadow: inset 0 -3px 0 var(--likely-rule); }
@@ -360,16 +404,23 @@ body.sel mark.on { background: var(--accent); color: #fff; box-shadow: none; }
 body.sel tr.pick { opacity: 0.35; }
 body.sel tr.pick.on { opacity: 1; }
 body.sel tr.pick.on td { background: var(--fill); }
+/* The arrival marker, on either end of the jump: the block scrolled to in the source, or the row traced back to
+   from it. It fades, so the page is not left carrying a second permanent highlight. */
+.flash { animation: flash 1.1s ease-out; }
+@keyframes flash { from { background: var(--fill); border-left-color: var(--accent); } }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } }
+tr.here td { background: var(--fill); box-shadow: inset 2px 0 0 var(--accent); }
 .empty { color: var(--muted); font: 400 13px var(--mono); }
 """
 
 JS = """
 var body = document.body, sel = null;
-var why = document.getElementById('why'), idle = why.textContent, pinned = '';
-why.classList.add('idle');
+var why = document.getElementById('why'), pinned = '';
+/* Opened by the first reason and left open: collapsing it again on every mouseout would move the rows under the
+   cursor, which is the jump the fixed height was there to stop. */
 function say(text) {
-  why.textContent = text || pinned || idle;
-  why.classList.toggle('idle', !(text || pinned));
+  why.textContent = text || pinned;
+  if (why.textContent) why.classList.add('live');
 }
 document.addEventListener('mouseover', function (e) {
   var el = e.target.closest('[data-why]');
@@ -390,13 +441,40 @@ function choose(term) {
     if (first) first.scrollIntoView({block: 'center', behavior: 'smooth'});
   }
 }
+/* Landing is not arriving: on a document of forty orange blocks, scrolling one to the centre says nothing about
+   which one was asked for. The flash names it. Removing the class and reading offsetWidth forces the reflow that
+   lets the animation restart when the same target is picked twice. */
+function land(el) {
+  if (!el) return;
+  el.scrollIntoView({block: 'center', behavior: 'smooth'});
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+}
+function here(row) {
+  document.querySelectorAll('tr.here').forEach(function (el) { el.classList.remove('here'); });
+  if (row) row.classList.add('here');
+}
 document.addEventListener('click', function (e) {
+  // The jump back: a shaded block in the source selects the row that explains it, so a finding read in the document
+  // can be traced to its rule without hunting the list for the matching line number.
+  var backTo = e.target.closest('[data-back]');
+  if (backTo && !e.target.closest('[data-term]')) {
+    var row = document.getElementById(backTo.dataset.back);
+    if (row) {
+      here(row);
+      pinned = row.dataset.why || '';
+      say('');
+      land(row);
+    }
+    return;
+  }
   var go = e.target.closest('[data-goto]');
   if (go) {
     pinned = go.dataset.why || '';
     say('');
-    var line = document.getElementById(go.dataset.goto);
-    if (line) line.scrollIntoView({block: 'center', behavior: 'smooth'});
+    here(go);
+    land(document.getElementById(go.dataset.goto));
     return;
   }
   var el = e.target.closest('[data-term]');
@@ -569,36 +647,88 @@ def files_block(sized):
     return '<h2 class="sub">Tokens by file</h2>%s' % rows
 
 
-def spec_block(findings):
-    if isinstance(findings, str):
-        return ('<p class="empty">Spec checks skipped: %s is not installed. '
-                'Re-run the report with <code>uv run</code> to fill this in.</p>' % e(findings))
-    errors, warnings = findings
-    if not errors and not warnings:
-        return '<p class="empty">No spec errors or warnings.</p>'
-    items = ['<li class="bad">%s</li>' % e(x) for x in errors]
-    items += ["<li>%s</li>" % e(x) for x in warnings]
-    return '<ul class="spec">%s</ul>' % "".join(items)
+def spec_rows(spec, skill_dir):
+    """Spec errors and warnings as findings, so they list where every other
+    finding lists.
 
-
-def structure_block(pct, found):
-    """Findings addressed by line span rather than by term: blobs and code fences.
-
-    Both live here because neither is a term to rank in the frequency list, and
-    each row carries the anchor of the line it starts on so it can be jumped to.
+    A cell of their own said only that they came from a different checker, which
+    is the report's business and not the reader's - and it printed the
+    description-length error a second time, next to the row that already carried
+    it. That row is dropped here, by matching the exact text the same check
+    produced, rather than by sniffing the wording.
     """
-    rows = "".join(
-        '<tr class="pick %s%s" data-goto="%s" data-why="%s" title="%s">'
-        '<td class="n">%d%s</td><td>%s</td><td class="r">%s</td></tr>'
-        % (f.kind, " possible" if f.possible else "", f.goto, e(f.why), e(f.why), f.size,
-           "L" if f.kind == "code" else "w", e(f.what), e(f.where))
-        for f in found if f.kind in ("blob", "code", "dense"))
+    if isinstance(spec, str):
+        return [Finding(rule="spec-warning", n=1, unit="warning", example="dependency",
+                        kind="specw",
+                        what="Spec checks skipped: %s is not installed. Re-run under uv run."
+                             % spec, size=0, where="")]
+    errors, warnings = spec
+    own = set(sum(vs.description_findings(vs.skill_description(skill_dir)), []))
+    out = []
+    for kind, rule, unit, group in (("spec", "spec-error", "error", errors),
+                                    ("specw", "spec-warning", "warning", warnings)):
+        for text in group:
+            if text in own:
+                continue
+            out.append(Finding(rule=rule, n=1, unit=unit, example=text, kind=kind,
+                               what=text, size=0, where=""))
+    return out
+
+
+# One character each, since the count column is fixed-width: a longer suffix wrapped and doubled the row height.
+# L lines, w words, c prose cells. The row's own text and the caption say which is which.
+UNIT_SUFFIX = {"code": "L", "redundant": "L", "desc": "w", "table": "c"}
+
+
+def block_rows(found):
+    """{(kind, "path:line"): row id} over the block findings, in listed order.
+
+    The one key both directions of the jump agree on: the row carries the id and
+    the shaded lines carry it back, so clicking a block in the source lands on the
+    row that explains it without either side recomputing the other's ordering.
+    """
+    # Keyed off `goto`, not the kind: a spec finding has no span, and several of them share an empty `where` that
+    # would collapse into one id and put the same anchor on every row.
+    return {(f.kind, f.where): "R%d" % i
+            for i, f in enumerate(x for x in found if x.kind in BLOCK_RULE and x.goto)}
+
+
+def _span_row(f, rows):
+    # A spec finding has no line to jump to and no measure to print: its count cell carries the severity mark and its
+    # row is not clickable, so a click cannot land nowhere.
+    count = ("%d%s" % (f.size, UNIT_SUFFIX.get(f.kind, "w")) if f.size
+             else ("!" if f.kind == "spec" else "?"))
+    goto = ' data-goto="%s"' % f.goto if f.goto else ""
+    row_id = rows.get((f.kind, f.where), "")
+    # The confidence class, not the kind: the row is ranked and coloured by its step on the ramp, and it is the same
+    # class the frequency table below uses, so one set of rules colours both lists.
+    return ('<tr class="pick %s %s"%s%s data-rule="%s" data-why="%s" title="%s">'
+            '<td class="n">%s</td><td>%s</td><td class="r">%s</td></tr>'
+            % (f.kind, f.conf,
+               ' id="%s"' % row_id if row_id else "", goto,
+               e(BLOCK_RULE.get(f.kind, f.rule)), e(f.why), e(f.why),
+               count, e(f.what), e(f.where)))
+
+
+def structure_block(pct, found, rows):
+    """Every finding that names a place rather than a word, in one list, worst
+    first.
+
+    One list, not one per kind. Splitting it into headed groups spent two rows on
+    saying what the colour already says, and the reader who wants the worst thing
+    on the page had to compare across the groups to find it. The rank is the
+    confidence ramp - certain, then probable, then possible - so the top row is
+    always the one to fix first, whatever kind it happens to be.
+    """
+    ranked = sorted((f for f in found if f.kind in BLOCK_RULE),
+                    key=lambda f: RANK[f.conf or "probable"])  # sorted() is stable: ties keep collect()'s order
     head = '<div class="rate">%s of body words in paragraph prose</div>' % (
         "%d%%" % pct if pct is not None else "no body text")
-    if not rows:
+    if not ranked:
         return head + ('<p class="empty">No text unit at or over %d words, no dense run, no code '
                        'block over %d lines.</p>' % (vs.BLOB_WORDS, vs.CODE_FENCE_LINES))
-    return head + '<h2 class="sub">Units to compress</h2><table>%s</table>' % rows
+    return (head + '<div class="scroll"><table>%s</table></div>'
+            % "".join(_span_row(f, rows) for f in ranked))
 
 
 def tally(filler):
@@ -611,8 +741,15 @@ def tally(filler):
     return terms
 
 
-def collect(blobs, long_code, filler, index_of, emphasis=None, dense=()):
+def collect(blobs, long_code, filler, index_of, emphasis=None, dense=(),
+            redundant=(), description=None, tables=()):
     """Every finding as one ranked list: blocks first, then terms by frequency.
+
+    The description and the "When to use" sections lead, ahead of every other
+    block. Both are certain, and both cost more than anything under them: the
+    description is charged to every session whether the skill fires or not, and a
+    "When to use" section is a whole block of always-loaded text answering a
+    question that was settled before the file was opened.
 
     The two panel cells filter this list and the brief groups it, so a finding
     can never appear on the page in a form the copied text disagrees with.
@@ -627,6 +764,24 @@ def collect(blobs, long_code, filler, index_of, emphasis=None, dense=()):
     finding there that describes the whole document rather than a word in it.
     """
     found = []
+    if description:
+        words, span, over = description
+        found.append(Finding(
+            rule="description-length", n=1, unit="description",
+            example="SKILL.md:%d" % span[0], kind="desc",
+            what="description is %d words, over the %d-word %s"
+                 % (words, over[0], over[1]),
+            size=words, where="SKILL.md:%d" % span[0],
+            goto=anchor(index_of.get("SKILL.md", 0), span[0]),
+            share=min(1.0, words / vs.DESCRIPTION_WORDS_FAIL),
+        ))
+    for lines, rel, start, _end, heading in redundant:
+        found.append(Finding(
+            rule="when-to-use", n=1, unit="section", example=f"{rel}:{start}",
+            kind="redundant", what=" ".join(heading.lstrip("#").split()[:9]),
+            size=lines, where=f"{rel}:{start}",
+            goto=anchor(index_of.get(str(rel), 0), start),
+        ))
     if emphasis:
         found.append(Finding(
             rule="bold-emphasis", n=emphasis["total"], unit="span",
@@ -643,7 +798,8 @@ def collect(blobs, long_code, filler, index_of, emphasis=None, dense=()):
             where="%s:%d" % emphasis["where"][0],
             share=min(1.0, emphasis["rate"] / vs.BOLD_ABUSED),
         ))
-    for kind, group, unit in (("blob", blobs, "text unit"), ("code", long_code, "code block")):
+    for kind, group, unit in (("blob", blobs, "text unit"), ("code", long_code, "code block"),
+                              ("table", tables, "table")):
         for size, rel, start, _end, opening in group:
             found.append(Finding(
                 rule=kind, n=1, unit=unit, example=f"{rel}:{start}", kind=kind,
@@ -706,7 +862,7 @@ def findings_block(found):
     # finding a tooltip.
     return ('<input id="find" placeholder="Search for a term..." autocomplete="off">'
             '<div class="scroll"><table>%s</table></div>'
-            '<p id="why" class="why">Hover or click a finding for what it is and why.</p>'
+            '<p id="why" class="why"></p>'
             '<div class="legend">%s</div>'
             % (rows, legend))
 
@@ -800,29 +956,57 @@ def compare_block(baseline, skill_dir, use_tiktoken=False):
             "dense": len(dense),
             "code": len(long_code),
             "filler": len(vs._filler(Path(target))),
+            "when": len(vs._redundant_sections(Path(target))),
+            "tables": len(vs._prose_tables(Path(target))),
         }
 
     was, now = measure(baseline), measure(skill_dir)
     out = [_pair("worst-case load", was["load"], now["load"]),
            _pair("SKILL.md tokens", was["skill"], now["skill"])]
-    for key, label in (("blobs", "blobs"), ("dense", "dense runs"), ("code", "long code blocks"),
-                       ("filler", "lexical no-ops")):
+    for key, label in (("when", '"when to use" sections'), ("blobs", "blobs"),
+                       ("dense", "dense runs"), ("tables", "prose tables"),
+                       ("code", "long code blocks"), ("filler", "lexical no-ops")):
         if was[key] or now[key]:
             out.append(_pair(label, was[key], now[key]))
     return "".join(out)
 
 
-BLOCK_RULE = {"blob": "blob", "code": "code", "dense": "dense-run"}
+BLOCK_RULE = {"blob": "blob", "code": "code", "dense": "dense-run", "table": "table",
+              "redundant": "when-to-use", "desc": "description-length",
+              # No span in the source: a spec finding names the file. Listed with the rest, never shaded.
+              "spec": "spec-error", "specw": "spec-warning"}
+# What the margin label prints beside each block, since every block now takes a shade from the same ramp and the
+# colour alone no longer says which kind fired.
+BLOCK_LABEL = {"blob": "%dw blob", "code": "%dL code", "dense": "%d units, dense run",
+               "table": "%d prose cells, table", "redundant": '%dL "when to use"',
+               "desc": "%dw description"}
 
 
-def marked_source(skill_dir, blobs, long_code, filler, emphasis=None, dense=(), invisible=()):
+def marked_source(skill_dir, blobs, long_code, filler, emphasis=None, dense=(), invisible=(),
+                  redundant=(), desc_span=None, tables=(), desc_words=0, rows=None):
     """Every loadable file, one block per line, flagged spans marked in place."""
     spans = {}
-    # Blobs are placed before dense runs, so a blob inside a run keeps its own deeper shade.
-    for kind, group in (("blob", blobs), ("code", long_code), ("dense", dense)):
-        for _size, rel, start, end, _opening, *_ in group:
+    labels = {}
+    back = {}  # (rel, line) -> the id of the row that explains this block
+    rows = rows or {}
+    if desc_span:
+        for n in range(desc_span[0], desc_span[1] + 1):
+            spans[("SKILL.md", n)] = "desc"
+            back.setdefault(("SKILL.md", n), rows.get(("desc", "SKILL.md:%d" % desc_span[0]), ""))
+        labels[("SKILL.md", desc_span[0])] = BLOCK_LABEL["desc"] % desc_words
+    # First writer wins the line. A "When to use" section leads, because the whole span is going and a blob marked
+    # inside it would offer to compress text that should not be there at all; blobs then lead dense runs, so a blob
+    # inside a run keeps its own deeper shade.
+    for kind, group in (("redundant", redundant), ("blob", blobs), ("code", long_code),
+                        ("table", tables), ("dense", dense)):
+        for size, rel, start, end, _opening, *rest in group:
+            row = rows.get((kind, "%s:%d" % (rel, start)), "")
             for n in range(start, end + 1):
-                spans.setdefault((str(rel), n), kind)
+                if spans.setdefault((str(rel), n), kind) == kind:
+                    back.setdefault((str(rel), n), row)
+            # A dense run's own measure is its unit count, which trails the tuple; every other kind measures by size.
+            measure = rest[0] if kind == "dense" and rest else size
+            labels.setdefault((str(rel), start), BLOCK_LABEL[kind] % measure)
     # Only lines the detector reported are re-scanned for spans, so the page can never mark a line the text report left
     # out.
     flagged = {(str(rel), lineno) for _category, rel, lineno, _hit in filler}
@@ -845,10 +1029,16 @@ def marked_source(skill_dir, blobs, long_code, filler, emphasis=None, dense=(), 
             marked = (mark_line(line, bold.get((rel, lineno), ()))
                       if (rel, lineno) in flagged else e(line))
             kind = spans.get((rel, lineno), "")
-            # A shaded line carries its reason, so hovering the block answers what is wrong with it as a mark does.
-            why = ' data-why="%s"' % e(WHY[BLOCK_RULE[kind]]) if kind else ""
-            out.append('<span class="l %s" id="%s"%s>%s</span>'
-                       % (kind, anchor(index, lineno), why, marked))
+            # A shaded line names the rule before its reason, so hovering or clicking the block answers "which rule"
+            # as well as "why" - the rule name is what the reader carries back to the primer.
+            why = (' data-why="%s"' % e("%s: %s" % (BLOCK_RULE[kind], WHY[BLOCK_RULE[kind]]))
+                   if kind else "")
+            label = labels.get((rel, lineno)) if kind else None
+            row = back.get((rel, lineno)) if kind else None
+            out.append('<span class="l %s%s" id="%s"%s%s%s>%s</span>'
+                       % (kind, " lead" if label else "", anchor(index, lineno), why,
+                          ' data-label="%s"' % e(label) if label else "",
+                          ' data-back="%s"' % e(row) if row else "", marked))
         out.append("</pre>")
     return "".join(out)
 
@@ -934,6 +1124,17 @@ def render(skill_dir, against=None, use_tiktoken=False):
     filler = vs._filler(skill_dir)
     emphasis = vs._bold(skill_dir)
     invisible = vs._invisible(skill_dir)
+    redundant = vs._redundant_sections(skill_dir)
+    tables = vs._prose_tables(skill_dir)
+    # (words, (first line, last line), (threshold, what the threshold is called)) or None when the description is
+    # inside its ceiling. Reported from the raw source lines so the page can shade the description it is judging.
+    description = None
+    desc_words = vs.description_word_count(vs.skill_description(skill_dir))
+    desc_span = vs.description_span(skill_dir)
+    if desc_span and desc_words > vs.DESCRIPTION_WORDS_WARN:
+        over = ((vs.DESCRIPTION_WORDS_FAIL, "hard cap") if desc_words > vs.DESCRIPTION_WORDS_FAIL
+                else (vs.DESCRIPTION_WORDS_WARN, "ceiling"))
+        description = (desc_words, desc_span, over)
     # Invisible characters join the term list in the filler's shape, so they tally, rank and brief like any term;
     # their marks are placed from the spans, as bold's are.
     hits = filler + [("invisible", rel, lineno, name) for rel, lineno, _s, _e, name in invisible]
@@ -942,7 +1143,9 @@ def render(skill_dir, against=None, use_tiktoken=False):
     ceiling, _justified = vs.declared_token_budget(
         (skill_dir / "SKILL.md").read_text(encoding="utf-8-sig", errors="ignore"))
     spec = spec_findings(skill_dir)
-    found = collect(blobs, long_code, hits, index_of, emphasis, dense)
+    found = spec_rows(spec, skill_dir) + collect(
+        blobs, long_code, hits, index_of, emphasis, dense, redundant, description, tables)
+    rows = block_rows(found)
 
     extra = ""
     if against is not None:
@@ -951,7 +1154,8 @@ def render(skill_dir, against=None, use_tiktoken=False):
 
     # Possible findings are counted apart, as the text report prints them: a page of reads is not a page of defects.
     maybe = sum(f.n for f in found if f.possible)
-    total = (len(blobs) + len(long_code) + len(hits) + len(dense)
+    total = (len(blobs) + len(long_code) + len(hits) + len(dense) + len(redundant) + len(tables)
+             + (1 if description else 0)
              + len((emphasis or {}).get("spans", ())) - maybe)
     strip = "".join(
         '<div><i style="background:%s"></i><b>%s</b><u>%s</u></div>' % (colour, e(n), e(label))
@@ -974,8 +1178,7 @@ def render(skill_dir, against=None, use_tiktoken=False):
   <div class="panel">
     <section class="cell"><h2>Token budget</h2>%(verdict)s%(files)s</section>
     %(extra)s
-    <section class="cell"><h2>Spec</h2>%(spec)s</section>
-    <section class="cell"><h2>Structure</h2>%(structure)s</section>
+    <section class="cell grow"><h2>Structure</h2>%(structure)s</section>
     <section class="cell grow"><h2>Wording and emphasis</h2>%(findings)s</section>
   </div>
   <section class="cell doc"><h2>The skill</h2>%(source)s</section>
@@ -992,11 +1195,12 @@ def render(skill_dir, against=None, use_tiktoken=False):
         "when": datetime.datetime.now().astimezone().date().isoformat(),
         "verdict": verdict(load, sized, advice, ceiling, within_budget),
         "files": files_block(sized),
-        "spec": spec_block(spec),
-        "structure": structure_block(pct, found),
+        "structure": structure_block(pct, found, rows),
         "findings": findings_block(found),
         "extra": extra,
-        "source": marked_source(skill_dir, blobs, long_code, filler, emphasis, dense, invisible),
+        "source": marked_source(skill_dir, blobs, long_code, filler, emphasis, dense, invisible,
+                                redundant, desc_span if description else None, tables, desc_words,
+                                rows),
         "brief": e(brief(skill_dir, load, sized, ceiling, within_budget, spec, found)),
     }
 

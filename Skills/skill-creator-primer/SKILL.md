@@ -2,9 +2,9 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-09-04
+  version: 2026-09-08
   skill-lint:
-    max-load-tokens: 10000 # primer skill accepted as being larger
+    max-load-tokens: 10500 # primer skill accepted as being larger
 hooks:
   PostToolUse:
     - matcher: "Edit|Write"
@@ -104,7 +104,7 @@ The description is the single most important part of a skill to get right. It sh
 **Create a task per item below**, judge each pass/fail; done when all pass. Re-check the set after any edit - one fix can break another (an added clause can blow the word cap):
 
 1. **Be concise.** Skills are for agent consumption; agents need clear, high-signal triggers, not verbose prose.
-2. **Keep it to 1-2 sentences.** The validator's word cap is a ceiling, never a target to fill.
+2. **Keep it to 1-2 sentences.** The validator's word cap is a ceiling, never a target to fill: the description is charged to every turn of every session whether it fires or not, so over-cap outranks anything in the body.
 3. **Descriptions are solely for the agent deciding whether to load the skill.** No instructions for after activation, and no summary of the skill's content or inner workings - a workflow summary invites the agent to act on the summary and skip the skill's branches.
 4. Ensure the description is distinct. It must not be confusable with neighbouring skills - similar names, the same verb/object, or overlapping situational triggers. The co-active set varies per deployment, so distinctiveness comes from a tight, specific trigger; when the neighbours are enumerable, run "Check for Description Trigger Conflicts" below.
 5. Use imperative phrasing. Frame the description as an instruction to the agent: Use this skill when rather than This skill does. The agent is deciding whether to act, so tell it when to act.
@@ -274,6 +274,7 @@ Skills should only contain files that directly support functionality.
 - Context about the creation process itself
 - Fluff, filler, otherwise inconsequential content that doesn't support execution of the skill's function
 - A table of contents or index of the main SKILL.md content
+- A "When to use" section - the body is only read once the description fired, so it answers a settled question. Move its triggers into the description. Keep "When not to use" and "When to use X instead of Y": those still change what happens
 - Content that an agent could easily infer or would know to access without the skill
 - Rich file formats (e.g. zip, pptx, png, pdf etc.) unless they're a template (AI is most efficient with text and tools, bundled file formats add overhead and complexity)
 

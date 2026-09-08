@@ -69,7 +69,8 @@ def shaded(page: str, kind: str) -> list[int]:
     Anchors are keyed by load order; SKILL.md sorts ahead of references/, so a
     fixture's SKILL.md is always file 0.
     """
-    return sorted(int(n) for n in re.findall(r'class="l %s" id="L-0-(\d+)"' % kind, page))
+    # The block's first line also carries `lead`, which holds the margin label.
+    return sorted(int(n) for n in re.findall(r'class="l %s(?: lead)?" id="L-0-(\d+)"' % kind, page))
 
 
 class MarkCountTests(unittest.TestCase):
@@ -621,7 +622,7 @@ class DenseRunReportTests(unittest.TestCase):
     def test_a_run_is_shaded_across_every_unit_and_listed_as_possible(self):
         page = self.render("# H\n\n" + "\n\n".join([self.PARA] * vs.DENSE_RUN) + "\n")
         self.assertEqual(shaded(page, "dense"), [8, 9, 10, 11, 12])
-        self.assertRegex(page, r'<tr class="pick dense possible" data-goto="L-0-8"')
+        self.assertRegex(page, r'<tr class="pick dense possible" id="R\d+" data-goto="L-0-8"')
         self.assertIn("3 units, longest 90w:", page)
 
     def test_a_blob_inside_a_run_keeps_its_own_shade(self):
@@ -632,8 +633,89 @@ class DenseRunReportTests(unittest.TestCase):
 
     def test_a_shaded_line_carries_its_reason(self):
         page = self.render("# H\n\n" + BLOB + "\n")
-        self.assertRegex(page, r'<span class="l blob" id="L-0-8" data-why="%s'
+        # The rule name leads the reason, so the shaded block says which rule fired, not only why it matters.
+        self.assertRegex(page, r'<span class="l blob lead" id="L-0-8" data-why="blob: %s'
                          % re.escape(html.escape(rr.WHY["blob"], quote=True)[:30]))
+
+    def test_the_first_line_of_a_block_carries_a_margin_label(self):
+        page = self.render("# H\n\n" + BLOB + "\n")
+        self.assertRegex(page, r'id="L-0-8"[^>]*data-label="140w blob"')
+        # one label per block, not one per shaded line
+        self.assertEqual(len(re.findall(r'data-label="140w blob"', page)), 1)
+
+
+class JumpTests(unittest.TestCase):
+    """The jump has to work both ways, or a finding read in one pane cannot be
+    found in the other: the row scrolls to the block, and the block traces back
+    to the row that names its rule."""
+
+    def render(self, body: str) -> str:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return rr.render(build_skill(Path(tmp.name), body))
+
+    def test_every_goto_target_exists_on_the_page(self):
+        page = self.render("# H\n\n" + BLOB + "\n\n" + FENCE + "\n")
+        ids = set(re.findall(r'id="(L-\d+-\d+)"', page))
+        gotos = re.findall(r'data-goto="([^"]+)"', page)
+        self.assertTrue(gotos)
+        self.assertEqual([g for g in gotos if g not in ids], [])
+
+    def test_every_shaded_block_traces_back_to_a_real_row(self):
+        page = self.render("# H\n\n" + BLOB + "\n\n" + FENCE + "\n")
+        rows = set(re.findall(r'<tr class="pick[^"]*" id="(R\d+)"', page))
+        backs = set(re.findall(r'data-back="([^"]+)"', page))
+        self.assertTrue(backs)
+        self.assertEqual(backs - rows, set())
+
+    def test_the_back_link_covers_every_line_of_the_block(self):
+        page = self.render("# H\n\n" + BLOB + "\n")
+        shaded_lines = shaded(page, "blob")
+        linked = re.findall(r'class="l blob(?: lead)?" id="L-0-(\d+)"[^>]*data-back=', page)
+        self.assertEqual(sorted(int(n) for n in linked), shaded_lines)
+
+    def test_two_blocks_get_distinct_row_ids(self):
+        page = self.render("# H\n\n" + BLOB + "\n\n" + FENCE + "\n")
+        rows = re.findall(r'<tr class="pick[^"]*" id="(R\d+)"', page)
+        self.assertEqual(len(rows), len(set(rows)))
+        self.assertGreaterEqual(len(rows), 2)
+
+    def test_the_compression_list_scrolls_rather_than_growing(self):
+        # 40-odd structure rows previously squeezed the spec and findings cells out of the panel entirely.
+        page = self.render("# H\n\n" + ((BLOB + "\n\n") * 6))
+        self.assertIn('<div class="scroll"><table>', page)
+        self.assertIn('<section class="cell grow"><h2>Structure</h2>', page)
+        # The list shrinks and scrolls inside its cell; the panel itself never gets a scrollbar.
+        self.assertIn(".panel { display: flex; flex-direction: column; gap: var(--rule);\n"
+                      "         min-height: 0; overflow: hidden; }", page)
+        self.assertIn(".scroll { flex: 1 1 auto; min-height: 0; overflow: auto; }", page)
+        # A cell never stretches past its content, so a short list leaves no gap under itself.
+        self.assertRegex(page, r"\.grow \{ flex: 0 1 auto;")
+        # The no-shrink rule has to exclude the list cells. As a bare `.panel > .cell` it outweighs `.grow` on
+        # specificity, pins them at full content height, and the panel clips everything below the first long table.
+        self.assertNotRegex(page, r"\n\.panel > \.cell \{")
+        self.assertIn(".panel > .cell:not(.grow) { flex: none; }", page)
+
+    def test_the_caption_costs_nothing_until_something_is_hovered(self):
+        # The standing "Hover or click a finding..." line spent a row explaining the interface rather than the skill.
+        page = self.render("# H\n\nA comprehensive line.\n")
+        self.assertNotIn("Hover or click a finding", page)
+        self.assertIn('<p id="why" class="why"></p>', page)
+        # opened by the first reason, then held at a fixed height rather than resizing per hover
+        self.assertRegex(page, r"\.why \{ height: 0;")
+        self.assertRegex(page, r"\.why\.live \{ height: 5\.8em;")
+        self.assertIn("why.classList.add('live')", page)
+
+    def test_the_row_names_its_rule(self):
+        page = self.render("# H\n\n" + FENCE + "\n")
+        self.assertIn('data-rule="code"', page)
+
+    def test_arrival_is_marked_rather_than_only_scrolled(self):
+        page = self.render("# H\n\n" + BLOB + "\n")
+        self.assertIn("@keyframes flash", page)
+        self.assertIn("classList.add('flash')", page)
+        # the reflow that lets the same target flash twice
+        self.assertIn("void el.offsetWidth", page)
 
 
 class InvisibleMarkTests(unittest.TestCase):
@@ -726,6 +808,113 @@ class CommandLineTests(unittest.TestCase):
             result = self.run_cli(tmp)
         self.assertEqual(result.returncode, 2)
         self.assertIn("no SKILL.md", result.stderr)
+
+
+class DeleteFirstTests(unittest.TestCase):
+    """The two certain, deletable findings. Both are shaded on the source and
+    both sit above the compression rows, since neither is a rewrite."""
+
+    def render(self, body: str, description: str | None = None) -> tuple[str, Path]:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        skill_dir = build_skill(Path(tmp.name), body)
+        if description is not None:
+            path = skill_dir / "SKILL.md"
+            path.write_text(
+                re.sub(r"(?m)^description: .*$", "description: " + description,
+                       path.read_text(encoding="utf-8")),
+                encoding="utf-8")
+        return rr.render(skill_dir), skill_dir
+
+    def over_cap(self) -> str:
+        return " ".join(f"trigger{n} phrase" for n in range(vs.DESCRIPTION_WORDS_FAIL))
+
+    def test_when_to_use_section_is_shaded_over_its_whole_span(self):
+        page, _ = self.render("# H\n\n## When to use\n\nUse it for X.\nUse it for Y.\n\n## Go\n\nRun.\n")
+        self.assertEqual(shaded(page, "redundant"), [8, 9, 10, 11, 12])
+
+    def test_when_to_use_section_is_listed_as_certain(self):
+        page, _ = self.render("# H\n\n## When to use\n\nUse it.\n")
+        self.assertIn('class="pick redundant certain"', page)
+
+    def test_when_not_to_use_is_neither_shaded_nor_listed(self):
+        page, _ = self.render("# H\n\n## When not to use\n\nSkip it.\n")
+        self.assertEqual(shaded(page, "redundant"), [])
+        self.assertNotIn('class="pick redundant', page)
+
+    def test_over_cap_description_is_shaded_and_listed(self):
+        page, _ = self.render("# H\n\nRun it.\n", self.over_cap())
+        self.assertEqual(shaded(page, "desc"), [3])
+        self.assertIn('class="pick desc certain"', page)
+        self.assertIn("hard cap", page)
+
+    def test_description_inside_the_ceiling_is_not_shaded(self):
+        page, _ = self.render("# H\n\nRun it.\n")
+        self.assertEqual(shaded(page, "desc"), [])
+        self.assertNotIn('class="pick desc', page)
+
+    def test_the_worst_finding_leads_the_one_ranked_list(self):
+        # One list, no headed groups: a certain finding tops it whatever kind it is, and a possible one sits last.
+        page, _ = self.render("# H\n\n## When to use\n\n" + BLOB + "\n")
+        self.assertNotIn('class="sub">Fix first', page)
+        self.assertNotIn('class="sub">Units to compress', page)
+        kinds = re.findall(r'<tr class="pick \w+ (\w+)"', page.split('<h2>Structure')[1])
+        self.assertEqual(kinds, sorted(kinds, key=lambda c: rr.RANK[c]))
+        self.assertEqual(kinds[0], "certain")
+
+    def test_both_rules_reach_the_brief_with_their_reason(self):
+        page, _ = self.render("# H\n\n## When to use\n\nUse it.\n", self.over_cap())
+        brief = html.unescape(re.search(r'<pre id="brief" hidden>(.*?)</pre>', page, re.S).group(1))
+        self.assertIn("description-length", brief)
+        self.assertIn("when-to-use", brief)
+        self.assertIn("every turn of every session", brief)
+
+    def test_spec_findings_list_with_the_rest_rather_than_in_their_own_cell(self):
+        page, _ = self.render("# H\n\nRun it.\n", self.over_cap())
+        self.assertNotIn("<h2>Spec</h2>", page)
+        self.assertNotIn('<ul class="spec">', page)
+        # The brief is text for another agent and states the spec result in full; the page itself must not print the
+        # description error twice, once as its own row and once as a spec line beside it.
+        visible = page.split('<pre id="brief"')[0]
+        self.assertEqual(len(re.findall(r"the checklist caps it at", visible)), 0)
+        self.assertEqual(len(re.findall(r'class="pick desc certain"', visible)), 1)
+
+    def test_a_spec_row_is_not_clickable_since_it_has_nowhere_to_jump(self):
+        page, _ = self.render("# H\n\nRun it.\n")
+        for row in re.findall(r'<tr class="pick spec[w]? \w+"[^>]*>', page):
+            self.assertNotIn("data-goto", row)
+
+    def test_both_are_certain_rather_than_possible(self):
+        page, _ = self.render("# H\n\n## When to use\n\nUse it.\n", self.over_cap())
+        self.assertNotIn('class="pick redundant possible"', page)
+        self.assertNotIn('class="pick desc possible"', page)
+
+    def test_a_prose_table_is_shaded_and_labelled(self):
+        cell = "a sentence long enough to be prose, not a value"
+        page, _ = self.render("# H\n\n| a | b |\n| --- | --- |\n| %s | x |\n\nAfter.\n" % cell)
+        self.assertEqual(shaded(page, "table"), [8, 9, 10])
+        self.assertIn('data-label="1 prose cells, table"', page)
+        self.assertIn('class="pick table probable"', page)
+        # The count column is fixed-width; a multi-word suffix wrapped and doubled the row height.
+        self.assertIn('<td class="n">1c</td>', page)
+
+    def test_a_table_of_short_values_is_not_shaded(self):
+        page, _ = self.render("# H\n\n| a | b |\n| --- | --- |\n| Read | Write |\n\nAfter.\n")
+        self.assertEqual(shaded(page, "table"), [])
+
+    def test_a_long_fence_shades_on_the_probable_step(self):
+        # The pale grey it used to take was invisible at reading distance; blob, table and code now share the
+        # orange step and are told apart by the margin label.
+        page, _ = self.render("# H\n\n" + FENCE + "\n")
+        self.assertIn(".l.blob, .l.code, .l.table { background: #ffe4bd;", page)
+        self.assertNotIn(".l.code { background: #f4f4f4", page)
+        self.assertIn('data-label="12L code"', page)
+
+    def test_the_page_stays_balanced_with_both_findings(self):
+        page, _ = self.render("# H\n\n## When to use\n\nUse it.\n", self.over_cap())
+        parser = Balance()
+        parser.feed(page)
+        self.assertEqual(parser.mismatched, [])
 
 
 if __name__ == "__main__":

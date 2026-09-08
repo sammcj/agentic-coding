@@ -147,8 +147,8 @@ class FillerDetectionTests(unittest.TestCase):
 
     def test_metaphor_tic_is_flagged(self):
         self.assertEqual(
-            self.categories("# T\n\nThe schema is the contract. Scan the corpus for the smoking gun.\n"),
-            ["metaphor-tic"] * 3,
+            self.categories("# T\n\nThe schema is the contract. Scan the corpus for the smoking gun it carries the weight of.\n"),
+            ["metaphor-tic"] * 4,
         )
 
     def test_literal_contract_is_not_flagged(self):
@@ -970,6 +970,154 @@ class MainPathTests(unittest.TestCase):
         self.assertEqual(ctx.exception.code, 0)
         self.assertTrue(seen[0].is_absolute())
         self.assertEqual(seen[0].name, "fixture")
+
+
+class RedundantSectionTests(unittest.TestCase):
+    """A "When to use" section is a certain finding, so the detector has to be
+    precise: the negative and comparative headings it exempts are the ones that
+    still change behaviour after the file is open."""
+
+    def sections(self, body: str):
+        with tempfile.TemporaryDirectory() as tmp:
+            return vs._redundant_sections(build_skill(Path(tmp), body))
+
+    def test_heading_is_flagged_with_its_whole_span(self):
+        body = "# T\n\n## When to use this skill\n\nUse it for X.\nUse it for Y.\n\n## Steps\n\nGo.\n"
+        found = self.sections(body)
+        self.assertEqual(len(found), 1)
+        lines, rel, start, end, heading = found[0]
+        self.assertEqual(rel, "SKILL.md")
+        self.assertEqual(heading, "## When to use this skill")
+        # heading through the line before the next same-level heading
+        self.assertEqual(end - start + 1, lines)
+        self.assertEqual(lines, 5)
+
+    def test_wording_variants_fire(self):
+        for heading in ("## When to use", "### When you should use this",
+                        "## When to apply this skill", "## When this skill applies",
+                        "## When to reach for it", "## when to invoke"):
+            with self.subTest(heading=heading):
+                self.assertEqual(len(self.sections(f"# T\n\n{heading}\n\nX.\n")), 1)
+
+    def test_negative_and_comparative_headings_are_exempt(self):
+        for heading in ("## When not to use", "## When to use this instead of the other one",
+                        "## When to use X vs Y", "## When to use it, and when never to"):
+            with self.subTest(heading=heading):
+                self.assertEqual(self.sections(f"# T\n\n{heading}\n\nX.\n"), [])
+
+    def test_prose_mentioning_the_phrase_is_not_a_heading(self):
+        self.assertEqual(self.sections("# T\n\nWhen to use this, read the description.\n"), [])
+
+    def test_heading_inside_a_fence_is_not_flagged(self):
+        body = "# T\n\n```md\n## When to use\n\nX.\n```\n"
+        self.assertEqual(self.sections(body), [])
+
+    def test_section_runs_to_end_of_file(self):
+        body = "# T\n\n## When to use\n\nX.\nY.\n"
+        lines, _rel, start, end, _heading = self.sections(body)[0]
+        self.assertEqual((start, end, lines), (8, 11, 4))
+
+    def test_deeper_heading_stays_inside_the_section(self):
+        body = "# T\n\n## When to use\n\n### Triggers\n\nX.\n\n## Steps\n\nGo.\n"
+        self.assertEqual(len(self.sections(body)), 1)
+        self.assertEqual(self.sections(body)[0][0], 6)
+
+    def test_report_lists_it_under_facts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill = build_skill(Path(tmp), "# T\n\n## When to use\n\nX.\n")
+            text = vs.build_report(skill)[0]
+        facts = text.split("FACTS")[1].split("SIGNALS")[0]
+        self.assertIn('"When to use" sections (1)', facts)
+
+    def test_rule_is_certain(self):
+        self.assertIn("when-to-use", vs.CERTAIN)
+        self.assertNotIn("when-to-use", vs.POSSIBLE)
+
+
+class ProseTableTests(unittest.TestCase):
+    """A table is for structured values. Prose in a cell has to be read linearly,
+    so the grid costs a wrap and buys nothing - the same call rewrite-slop makes,
+    at the same cell threshold."""
+
+    def tables(self, body: str):
+        with tempfile.TemporaryDirectory() as tmp:
+            return vs._prose_tables(build_skill(Path(tmp), body))
+
+    def table(self, *cells: str) -> str:
+        rows = "".join("| %s | x |\n" % c for c in cells)
+        return "# T\n\n| a | b |\n| --- | --- |\n" + rows + "\nAfter.\n"
+
+    def test_a_prose_cell_is_flagged_once_for_the_whole_table(self):
+        found = self.tables(self.table("a sentence long enough to be prose, not a value",
+                                       "another sentence that runs past the cell limit"))
+        self.assertEqual(len(found), 1)
+        cells, rel, start, end, _opening = found[0]
+        self.assertEqual((cells, rel), (2, "SKILL.md"))
+        self.assertEqual(end - start + 1, 4)  # header, rule, two body rows
+
+    def test_a_table_of_short_values_is_left_alone(self):
+        self.assertEqual(self.tables(self.table("Read", "Write", "Edit")), [])
+
+    def test_the_separator_row_is_not_counted_as_a_cell(self):
+        long_rule = "# T\n\n| a | b |\n| %s | %s |\n| x | y |\n\nAfter.\n" % ("-" * 40, "-" * 40)
+        self.assertEqual(self.tables(long_rule), [])
+
+    def test_a_table_inside_a_fence_is_not_flagged(self):
+        body = "# T\n\n```md\n| a | b |\n| --- | --- |\n| %s | x |\n```\n" % ("word " * 10)
+        self.assertEqual(self.tables(body), [])
+
+    def test_two_tables_are_two_findings(self):
+        long_cell = "a sentence long enough to count as prose here"
+        body = self.table(long_cell) + "\n" + self.table(long_cell)
+        self.assertEqual(len(self.tables(body)), 2)
+
+    def test_report_lists_it_under_signals(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill = build_skill(Path(tmp), self.table("a sentence long enough to be prose here"))
+            text = vs.build_report(skill)[0]
+        self.assertIn("Prose tables (1)", text.split("SIGNALS")[1])
+
+
+class DescriptionSpanTests(unittest.TestCase):
+    """The report shades the description it is judging, so the span has to cover
+    a folded scalar's continuation lines and stop at the next key."""
+
+    def span(self, frontmatter: str):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill = Path(tmp) / "s"
+            skill.mkdir()
+            (skill / "SKILL.md").write_text(f"---\n{frontmatter}---\n\n# T\n", encoding="utf-8")
+            return vs.description_span(skill)
+
+    def test_single_line_description(self):
+        self.assertEqual(self.span("name: s\ndescription: Use it.\nlicense: MIT\n"), (3, 3))
+
+    def test_folded_scalar_covers_its_continuation_lines(self):
+        self.assertEqual(
+            self.span("name: s\ndescription: >-\n  Use it when\n  something happens.\nlicense: MIT\n"),
+            (3, 5))
+
+    def test_stops_at_the_next_key(self):
+        start, end = self.span("description: >-\n  Use it.\nname: s\nlicense: MIT\n")
+        self.assertEqual((start, end), (2, 3))
+
+    def test_no_description_key(self):
+        self.assertIsNone(self.span("name: s\n"))
+
+    def test_over_cap_description_leads_the_facts_section(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill = build_skill(Path(tmp), "# T\n\nGo.\n")
+            text = (skill / "SKILL.md").read_text(encoding="utf-8")
+            long_desc = " ".join(f"trigger{n} phrase" for n in range(40))
+            (skill / "SKILL.md").write_text(
+                text.replace(FIXTURE_DESCRIPTION, long_desc), encoding="utf-8")
+            report = vs.build_report(skill)[0]
+        facts = report.split("FACTS")[1].split("SIGNALS")[0].strip().splitlines()
+        # facts[0] is the rest of the section heading; the description is the first finding under it
+        self.assertIn("words; the checklist caps it at", facts[1])
+
+    def test_rule_is_certain(self):
+        self.assertIn("description-length", vs.CERTAIN)
 
 
 class RealSkillTests(unittest.TestCase):

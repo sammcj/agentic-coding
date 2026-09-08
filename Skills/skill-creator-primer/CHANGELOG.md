@@ -2,9 +2,21 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
-## 2026-09-04
+## 2026-09-08
 
-- `validate_skill.py`: new `metaphor-tic` filler category (smoking gun, load-bearing, honest take moved out of `puffery`, plus "corpus" and "X is the contract"); `byte-identical` reported only from the second use across the skill (`_FILLER_FLOOR`). `render_report.py` carries both in `WHY`. SKILL.md no longer says "corpus total".
+- New `when-to-use` rule: a "When to use" heading in the body is a certain finding, reported with its whole section span. "When not to use" and "When to use X instead of Y" are exempt. Listed under FACTS in the text report, "Delete first" in the HTML, and shaded in the source preview. SKILL.md adds it to "What to Not Include in a Skill".
+- Description length promoted from a spec-cell line to a certain, top-ranked finding: it now leads FACTS in the text report, gets a "Delete first" row and shades the description's frontmatter lines in the HTML source preview.
+- New `table` rule: a table with a cell over 20 characters is prose in a grid. One finding per table, not per row, at rewrite-slop's `TABLE_CELL_MAX`. Listed under SIGNALS, shaded and labelled in the HTML.
+- HTML source shading now mirrors rewrite-slop's ramp: blob, prose table and over-length fence all take the probable orange (the old `#f4f4f4` grey on code was invisible), and each block carries a margin label naming its kind and measure, as rewrite-slop's `.block::after` does. The `code` legend swatch goes, since colour no longer distinguishes the kinds.
+- The Structure cell is one ranked list, no headed groups: certain, then probable, then possible, each row carrying a rule bar and count in its confidence colour. The "Fix first"/"Units to compress" split spent two rows saying what the colour says, and made the reader compare across groups to find the worst thing on the page.
+- `.grow` cells have a 170px floor, so a 42-row structure list can no longer shrink the wording cell to its search box. Flex shrinks in proportion to basis, which handed the whole panel to whichever list was longer.
+- The Spec cell is gone: its errors and warnings are findings in the same ranked table with the rest, errors on the certain step and warnings on the probable one. A cell of their own only said they came from a different checker, and it printed the description-length error a second time beside the row that already carried it. Spec rows are not clickable - they name the file, not a line.
+- Panel layout: cells take their content height and shrink no further than their own list (`flex: 0 1 auto`), so a long list steals nothing from the cells above and a short one leaves no gap under itself. The panel never scrolls; the lists do. The no-shrink rule is `.panel > .cell:not(.grow)` - bare, it outweighs `.grow` on specificity and clips everything below the first long table.
+- `.why` costs no space until something is hovered - the standing "Hover or click a finding..." line was a row spent explaining the interface. Once opened it holds a fixed height and scrolls, so reasons of one to five lines no longer resize the panel on every hover. The confidence legend is `flex: none`, so its wrapped second row is not shrunk away. The header wraps rather than pushing the three figures out of the cell.
+- The jump between panes works both ways. Clicking a shaded block in the source scrolls to the row that explains it and pins the reason (`data-back` -> row id); previously it did nothing. Row clicks now flash the block on arrival, porting rewrite-slop's `.flash` + `offsetWidth` reflow - scrolling alone said nothing about which of forty orange blocks was picked. Shaded blocks and rows name their rule (`data-rule`, and the reason now reads "blob: ..." rather than starting mid-explanation).
+- Count column suffixes are one character (`L`/`w`/`c`) and `td.n` is `nowrap`: `" cells"` wrapped in the fixed-width column and doubled every table row's height.
+- `max-load-tokens` raised 10000 -> 10500 to fit the two SKILL.md additions above.
+- `validate_skill.py`: new `metaphor-tic` filler category (smoking gun, load-bearing, honest take moved out of `puffery`, plus "corpus", "X is the contract" and "carries the"); `byte-identical` reported only from the second use across the skill (`_FILLER_FLOOR`). `render_report.py` carries both in `WHY`. SKILL.md no longer says "corpus total".
 
 ## 2026-09-03
 
