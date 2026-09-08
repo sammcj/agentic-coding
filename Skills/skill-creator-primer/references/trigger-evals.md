@@ -28,7 +28,7 @@ Run the bundled `<skill-creator-primer>/scripts/eval_triggering.py` outside any 
   --skill-path <skill-dir> --eval-set <skill-dir>/evals/trigger.json
 ```
 
-A skill that ships an eval set must record that command, with the path resolved, in its own `CLAUDE.md`. Without it, anyone opening the skill without this primer loaded has no way to know the runner exists.
+A skill that ships an eval set must record that command in its own `CLAUDE.md`, with `<skill-creator-primer>` expanded to the real path. Without it, anyone opening the skill without this primer loaded has no way to know the runner exists.
 
 While tuning:
 

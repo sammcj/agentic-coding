@@ -24,6 +24,16 @@ After changing any Python under `scripts/`, before you report the work done:
 - Verify a new test actually fails without the fix. A test that passes against the old code is measuring nothing.
 - Keep them runnable with plain `python3`: stdlib only, and skip rather than fail when PyYAML is absent, matching the `--report-only` path's constraint.
 
+## Running this skill's trigger evals
+
+`evals/trigger.json` scores this skill's own description. Run it outside the sandbox (claude and node need network), after any change to the `description` in `SKILL.md`:
+
+```bash
+$HOME/.claude/skills/skill-creator-primer/scripts/eval_triggering.py \
+  --skill-path "$HOME/.claude/skills/skill-creator-primer" \
+  --eval-set "$HOME/.claude/skills/skill-creator-primer/evals/trigger.json"
+```
+
 ## Update CHANGELOG.md after changes
 
 After making any change to this skill (SKILL.md, references, scripts, evals etc.): You MUST update `CHANGELOG.md`:
