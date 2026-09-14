@@ -66,8 +66,8 @@
 +        if self.negative_style is not None:
 +            if not isinstance(self.negative_style, str) or not self.negative_style.strip():
 +                raise TypeError("negative_style must be a nonempty string")
-+            if self.guidance == 1:
-+                raise ValueError("negative_style has no effect unless cfg_scale differs from 1")
++            if self.cfg_scale is None or self.cfg_scale == 1:
++                raise ValueError("negative_style needs an explicit cfg_scale other than 1")
  
      @property
      def guidance(self):

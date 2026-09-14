@@ -152,7 +152,7 @@ def run(args):
     try:
         if args.action == "decode":
             result = decode(args, output, loader)
-            write_json(output / "run.json", result)
+            write_json(output / "run.json", dict(result, wall_seconds=time.perf_counter() - started))
             return int(any(result["truncated"].values()))
         results = []
         with YuE2Pipeline.from_pretrained(**loader) as pipe:

@@ -47,7 +47,11 @@ Release card: Linux, Python 3.10+, 24 GB NVIDIA GPU with BF16. The package insta
 python3.12 -m venv .venv-yue2
 .venv-yue2/bin/python -m pip install \
   git+https://github.com/multimodal-art-projection/YuE.git
-# or: .venv-yue2/bin/python -m pip install /path/to/YuE
+# or, for the negative_style request field (any device), install a patched clone:
+#   git clone https://github.com/multimodal-art-projection/YuE.git
+#   git -C YuE checkout 88da114a67df892af0329472073b96a5ef700b93
+#   git -C YuE apply <skill>/assets/negative-style.patch
+#   .venv-yue2/bin/python -m pip install -e ./YuE
 ```
 
 Current repository code and this skill are Apache 2.0.
@@ -65,12 +69,10 @@ Stock YuE2 runs on MPS unpatched: `device="auto"` picks `cuda`, then `mps`, then
 ```bash
 git clone https://github.com/multimodal-art-projection/YuE.git
 git -C YuE checkout 88da114a67df892af0329472073b96a5ef700b93
-git -C YuE apply <skill>/assets/negative-style.patch     # any device; adds the negative_style request field
-git -C YuE apply <skill>/assets/mps-performance.patch    # Apple Silicon only; apply second
+git -C YuE apply <skill>/assets/negative-style.patch     # optional, as in the YuE2 section
+git -C YuE apply <skill>/assets/mps-performance.patch    # Apple Silicon only; apply after negative-style
 .venv-yue2/bin/python -m pip install -e ./YuE
 ```
-
-`negative-style.patch` does not touch device code: apply it alone on CUDA for `negative_style` (generation-and-covers.md, "Steer away from generic renditions").
 
 - [smcleod/YuE2-3B-int8-ar](https://huggingface.co/smcleod/YuE2-3B-int8-ar) is the same int8 AR scheme saved as a 5.85 GB checkpoint (`--model smcleod/YuE2-3B-int8-ar`). Needs the patch; same speed as runtime `auto`, saves 1.4 GB of download. MPS only; slower than bf16 on CUDA.
 

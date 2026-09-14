@@ -5,7 +5,7 @@
 ## 2026-09-14
 
 - "Steer away from generic renditions" section in generation-and-covers.md; `assets/negative-style.patch` adds a `negative_style` request field (CFG negative branch keeps lyrics and ABC, swaps the style); `run_yue2.py` accepts `negative_style`, `abc_sampling`, `semantic_sampling`
-- `run_yue2.py` records the command line, cwd, model load and wall time; `listen.py` shows them with the per-stage timing under "Generation"
+- `run_yue2.py` records the command line, cwd and wall time (model load time for generate/plan); `listen.py` shows them with the per-stage timing under "Generation"
 - Apple Silicon: MPS section in models-and-setup.md, `assets/mps-performance.patch` (bmm attention, int8 AR linears, `quantization="auto"` default), `run_yue2.py --device` defaults to `auto`
 - Gotcha added: song length follows the planned score; trim ABC and regenerate to control it
 - `listen.py` engraves each score with abcjs and highlights notes as the audio plays (`scripts/score-view.js`); `--no-notation` and `--abcjs` flags

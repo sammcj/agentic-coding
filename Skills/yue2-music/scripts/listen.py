@@ -205,7 +205,7 @@ def copy_case(source, destination, number):
             signature_ok = (name.endswith(".flac") and signature.startswith(b"fLaC")) or (
                 name.endswith(".wav") and signature[:4] in (b"RIFF", b"RF64") and signature[8:12] == b"WAVE")
             if not signature_ok:
-                add_issue(case, f"{name}: container signature is not recognized; player withheld")
+                add_issue(case, f"{name}: container signature is not recognised; player withheld")
             elif "FAILED" in case["native_artifact_checks"].values():
                 add_issue(case, "Player withheld because copied artifacts disagree with the native receipt")
             else:
