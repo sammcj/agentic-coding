@@ -105,6 +105,7 @@
       "Bash(source venv/bin/activate)",
       "Bash(sqlite *)",
       "Bash(sqlite3 *)",
+      "Bash(tmux send-keys -t remote-cli-session *)",
       "Bash(sscache *)",
       "Bash(swift *)",
       "Bash(swiftlint *)",
@@ -368,9 +369,6 @@
       "Bash(pipx *)",
       "Bash(printenv *)",
       "Bash(rsync *)",
-      "Bash(scp *)",
-      "Bash(ssh *)",
-      "Bash(* ssh *)",
       "Bash(tcpdump *)",
       "Bash(* tcpdump *)",
       "Bash(terraform destroy *)",
@@ -559,7 +557,8 @@
     "bento-slides@bento": true,
     "i-have-adhd@i-have-adhd": true,
     "cc-safety-net@cc-marketplace": true,
-    "caveman@caveman": false
+    "caveman@caveman": false,
+    "nono@nolabs-ai": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -783,6 +782,8 @@
       "pnpx ctx7@latest *",
       "tmux-cli",
       "ssh",
+      "rsync",
+      "scp",
       "container",
       "date",
       "gh *",
@@ -800,7 +801,8 @@
     "allow": [
       "$defaults",
       "If the user has explicitly requested the agent does a git push: allow pushing to a non-main branch",
-      "allow using context-mode's mcp__plugin_context-mode_context-mode__ctx_execute and mcp__plugin_context-mode_context-mode__ctx_execute_file tools when their arguments appear safe"
+      "allow using context-mode's mcp__plugin_context-mode_context-mode__ctx_execute and mcp__plugin_context-mode_context-mode__ctx_execute_file tools when their arguments appear safe",
+      "allow ssh, scp, tmux-cli, tmux send-keys to my router, nas, steammachine and home assistant devices when doing work requested by the user"
     ],
     "soft_deny": [
       "$defaults",
@@ -813,7 +815,8 @@
     ],
     "hard_deny": [
       "$defaults",
-      "Never expose the users real email address publicly"
+      "Never expose the users real email address publicly",
+      "Never allow rsync, scp or ssh commands to devices outside of the local network (e.g. the internet)"
     ]
   }
 }

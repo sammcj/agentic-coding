@@ -1,0 +1,360 @@
+--- a/src/yue2/modeling_yue2.py
++++ b/src/yue2/modeling_yue2.py
+@@ -7,6 +7,7 @@
+ from __future__ import annotations
+ 
+ import math
++import os
+ from typing import List, Optional, Tuple, Union
+ 
+ import torch
+@@ -15,11 +16,32 @@
+ from transformers import GenerationMixin, PretrainedConfig, PreTrainedModel
+ from transformers.cache_utils import DynamicCache
+ from transformers.modeling_outputs import CausalLMOutputWithPast
++
++
++def _mps_decode_attention(query, key, value):
++    """Unmasked attention as grouped bmm + softmax + bmm.
++
++    PyTorch's MPS SDPA takes ~1.3 ms per layer for one query against a 10k
++    token cache; the explicit matmul form measured ~0.12 ms with identical
++    output to bf16 precision. Only used for short unmasked queries (decode).
++    """
++    B, H, T, D = query.shape
++    Hk, S = key.shape[1], key.shape[2]
++    groups = H // Hk
++    q = query.reshape(B, Hk, groups * T, D).reshape(B * Hk, groups * T, D)
++    k = key.reshape(B * Hk, S, D)
++    v = value.reshape(B * Hk, S, D)
++    scores = torch.bmm(q, k.transpose(1, 2)) * (D ** -0.5)
++    out = torch.bmm(torch.softmax(scores, -1), v)
++    return out.reshape(B, Hk, groups, T, D).reshape(B, H, T, D)
+ 
+ 
+ def sdpa(query, key, value, *, attn_mask=None, is_causal=False):
+     """Use native grouped-query attention, including a portable MPS fallback."""
+     grouped = query.shape[1] != key.shape[1]
++    if (query.device.type == "mps" and attn_mask is None and not is_causal
++            and query.shape[2] <= 32 and not os.environ.get("YUE2_MPS_SDPA")):
++        return _mps_decode_attention(query, key, value)
+     if grouped and query.device.type == "mps":
+         # PyTorch's MPS attention does not implement enable_gqa on every release.
+         groups = query.shape[1] // key.shape[1]
+--- a/src/yue2/nar.py
++++ b/src/yue2/nar.py
+@@ -6,6 +6,8 @@
+ """
+ from __future__ import annotations
+ 
++import itertools
++import os
+ from contextlib import contextmanager, nullcontext
+ from dataclasses import dataclass
+ from numbers import Integral
+@@ -48,6 +50,25 @@
+             for a, b in ranges]
+ 
+ 
++def _mps_bmm_attention(q, k, v, block=1024):
++    """Non-causal attention as bmm + bf16 softmax + bmm for MPS.
++
++    PyTorch's MPS SDPA kernel tops out near 4 TFLOPS at YuE2's NAR shapes;
++    explicit matmuls with a low-precision softmax measured 3.6x faster.
++    Set YUE2_MPS_SDPA=1 to fall back to the stock SDPA path.
++    """
++    groups = q.shape[1] // k.shape[1]
++    qh = q.transpose(0, 1)
++    khT = k.transpose(0, 1).repeat_interleave(groups, 0).transpose(1, 2)
++    vh = v.transpose(0, 1).repeat_interleave(groups, 0)
++    scale = q.shape[-1] ** -0.5
++    outputs = []
++    for start in range(0, len(q), block):
++        scores = torch.bmm(qh[:, start:start + block], khT) * scale
++        outputs.append(torch.bmm(torch.softmax(scores, -1), vh))
++    return torch.cat(outputs, 1).transpose(0, 1)
++
++
+ def attention(q, k, v, *, causal=False, backend="sdpa", query_chunk_size=None):
+     """Attend [tokens, heads, dim] tensors without materializing a song mask.
+ 
+@@ -67,6 +88,9 @@
+     if query_chunk_size is not None and (isinstance(query_chunk_size, bool) or
+                                         not isinstance(query_chunk_size, Integral) or query_chunk_size < 1):
+         raise ValueError("query_chunk_size must be a positive integer")
++    if (q.device.type == "mps" and not causal and backend == "sdpa"
++            and not os.environ.get("YUE2_MPS_SDPA")):
++        return _mps_bmm_attention(q, k, v, query_chunk_size or 1024)
+     block = query_chunk_size or (len(q) if q.device.type == "cuda" and backend != "math" else 256)
+     query = q.transpose(0, 1).unsqueeze(0)
+     key = k.transpose(0, 1).unsqueeze(0)
+@@ -212,7 +236,8 @@
+     try:
+         if enabled:
+             for module in modules:
+-                device = next(module.parameters()).device
++                # Int8Linear modules hold buffers only, so parameters() alone can be empty.
++                device = next(itertools.chain(module.parameters(), module.buffers())).device
+                 if device.type != "cpu":
+                     module.to(device="cpu")
+                     moved.append((module, device))
+--- a/src/yue2/pipeline.py
++++ b/src/yue2/pipeline.py
+@@ -121,14 +121,14 @@
+ class YuE2Pipeline:
+     def __init__(self, model_dir, vae_dir, *, device="auto", memory_budget_gib=24,
+                  backend="torch", generation_config=None, verify_hashes=True,
+-                 vae_core_frames=None, quantization="none", offload_ar=False, progress=True):
++                 vae_core_frames=None, quantization="auto", offload_ar=False, progress=True):
+         if not isinstance(progress, bool):
+             raise TypeError("progress must be True or False")
+         self.progress = progress
+         if backend not in {"torch", "torch-eager", "vllm"}:
+             raise ValueError("backend must be torch, torch-eager, or vllm")
+-        if quantization not in {"none", "fp8"}:
+-            raise ValueError("quantization must be none or fp8")
++        if quantization not in {"none", "fp8", "int8", "auto"}:
++            raise ValueError("quantization must be none, fp8, int8, or auto")
+         if not 0 < memory_budget_gib:
+             raise ValueError("memory_budget_gib must be positive")
+         if device == "auto":
+@@ -143,6 +143,16 @@
+         torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
+         torch.set_float32_matmul_precision("highest")
+         self.model_dir, self.vae_dir = Path(model_dir), Path(vae_dir)
++        if quantization == "auto":
++            # int8 AR decode measured faster on MPS; CUDA keeps the release preset.
++            quantization = "int8" if self.device.type == "mps" else "none"
++        from .quantization import INT8_CHECKPOINT_METHOD
++        saved_config = json.loads((self.model_dir / "config.json").read_text())
++        self.prequantized = (saved_config.get("quantization_config") or {}).get("method") == INT8_CHECKPOINT_METHOD
++        if self.prequantized:
++            if quantization not in {"int8", "auto"}:
++                raise ValueError(f"This checkpoint carries int8 AR weights; quantization={quantization!r} is unavailable")
++            quantization = "int8"
+         self.backend, self.quantization = backend, quantization
+         self.memory_budget_gib = float(memory_budget_gib)
+         self.vae_core_frames = vae_core_frames if vae_core_frames is not None else (512 if memory_budget_gib <= 12 else 1024)
+@@ -213,12 +223,21 @@
+             if self._model is None:
+                 from .modeling_yue2 import YuE2ForCausalLM
+                 start = time.perf_counter()
+-                self._model = YuE2ForCausalLM.from_pretrained(self.model_dir, local_files_only=True,
+-                              torch_dtype=torch.bfloat16, low_cpu_mem_usage=True).eval()
++                if self.prequantized:
++                    from .quantization import load_int8_ar_checkpoint
++                    self._model = load_int8_ar_checkpoint(self.model_dir, self.device)
++                else:
++                    self._model = YuE2ForCausalLM.from_pretrained(self.model_dir, local_files_only=True,
++                                  torch_dtype=torch.bfloat16, low_cpu_mem_usage=True).eval()
+                 self.load_timing["mot_load_seconds"] = time.perf_counter() - start
+-            if self.quantization == "fp8" and not for_nar:
++            if self.prequantized:
++                pass  # int8 AR weights are baked in; there are no BF16 originals to swap
++            elif self.quantization == "fp8" and not for_nar:
+                 from .quantization import prepare_fp8_ar
+                 prepare_fp8_ar(self._model, self.device)
++            elif self.quantization == "int8" and not for_nar:
++                from .quantization import prepare_int8_ar
++                prepare_int8_ar(self._model, self.device)
+             self._model.to(self.device)
+         return self._model
+ 
+--- a/src/yue2/quantization.py
++++ b/src/yue2/quantization.py
+@@ -6,7 +6,10 @@
+ """
+ from __future__ import annotations
+ 
++import json
+ import re
++from pathlib import Path
++
+ import torch
+ from torch import nn
+ from torch.nn import functional as F
+@@ -54,6 +57,51 @@
+         return self.weight.float() * self.weight_scale
+ 
+ 
++class Int8Linear(nn.Module):
++    """Per-output-channel symmetric int8 weights, BF16 activations and output.
++
++    Decode-sized inputs use ``torch._weight_int8pack_mm`` (MPS/CPU kernels);
++    larger inputs dequantize and run the ordinary GEMM, which measured faster
++    than the packed kernel above a few dozen rows on MPS. CUDA has no packed
++    kernel in torch 2.10 and always takes the dequantized GEMM.
++    """
++    PACKED_MAX_ROWS = 32
++    PACKED_DEVICES = ("mps", "cpu")
++
++    def __init__(self, linear, device):
++        super().__init__()
++        self.in_features, self.out_features = linear.in_features, linear.out_features
++        if linear.weight.device.type == "meta":
++            # Skeleton for a pre-quantized checkpoint; load_state_dict(assign=True) fills it.
++            weight = torch.empty(self.out_features, self.in_features, dtype=torch.int8, device="meta")
++            scale = torch.empty(self.out_features, dtype=torch.bfloat16, device="meta")
++            bias = torch.empty(self.out_features, dtype=torch.bfloat16, device="meta") if linear.bias is not None else None
++        else:
++            source = linear.weight.detach().to(torch.bfloat16)
++            scale = source.abs().amax(1, keepdim=True).clamp_min(1e-8) / 127
++            weight = (source.float() / scale.float()).round().clamp(-128, 127).to(torch.int8).to(device)
++            scale = scale.squeeze(1).to(device)
++            bias = linear.bias.detach().clone().to(device) if linear.bias is not None else None
++        self.register_buffer("weight", weight)
++        self.register_buffer("weight_scale", scale)
++        self.register_buffer("bias", bias)
++
++    def forward(self, value):
++        if value.dtype != torch.bfloat16:
++            raise ValueError("Int8 AR expects BF16 input")
++        rows = value.reshape(-1, self.in_features)
++        if rows.shape[0] <= self.PACKED_MAX_ROWS and value.device.type in self.PACKED_DEVICES:
++            output = torch._weight_int8pack_mm(rows.contiguous(), self.weight, self.weight_scale)
++            if self.bias is not None:
++                output = output + self.bias
++        else:
++            output = F.linear(rows, self.dequantized_weight(), self.bias)
++        return output.reshape(*value.shape[:-1], self.out_features)
++
++    def dequantized_weight(self):
++        return self.weight.to(torch.bfloat16) * self.weight_scale[:, None]
++
++
+ def _replace(model, name, replacement):
+     parent_name, child = name.rsplit(".", 1)
+     setattr(model.get_submodule(parent_name), child, replacement)
+@@ -77,13 +125,35 @@
+         raise ValueError("Experimental FP8 preparation requires the original BF16 AR weights")
+     if any(module.in_features % 16 or module.out_features % 16 for _, module in selected):
+         raise ValueError("FP8 matrix dimensions must be multiples of 16")
++    return _swap_ar_linears(model, selected, FP8Linear, device, "fp8")
++
++
++def prepare_int8_ar(model, device):
++    """Quantize only AR projections/MLPs to int8; embeddings and lm_head stay BF16."""
++    if model is None:
++        raise ValueError("Load the MoT model before preparing int8")
++    device = torch.device(device)
++    if getattr(model, "_yue2_fp8_originals", None):
++        return quantization_status(model)
++    if not hasattr(torch, "_weight_int8pack_mm"):
++        raise RuntimeError("This PyTorch build lacks _weight_int8pack_mm")
++    selected = [(name, module) for name, module in model.named_modules() if AR_LINEAR.fullmatch(name)]
++    if not selected or any(not isinstance(module, nn.Linear) for _, module in selected):
++        raise ValueError("Expected unquantized YuE2 AR Linear layers")
++    if any(module.weight.dtype != torch.bfloat16 for _, module in selected):
++        raise ValueError("Int8 preparation requires the original BF16 AR weights")
++    return _swap_ar_linears(model, selected, Int8Linear, device, "int8")
++
++
++def _swap_ar_linears(model, selected, factory, device, mode):
+     originals = {}
+     # A plain attribute dictionary is intentionally not an nn.ModuleDict:
+     # model.to(cuda) must not move these reference weights back onto the GPU.
+     object.__setattr__(model, "_yue2_fp8_originals", originals)
++    object.__setattr__(model, "_yue2_quant_mode", mode)
+     try:
+         for name, original in selected:
+-            replacement = FP8Linear(original, device)
++            replacement = factory(original, device)
+             originals[name] = original.to("cpu")
+             _replace(model, name, replacement)
+     except BaseException:
+@@ -106,9 +176,80 @@
+     object.__setattr__(model, "_yue2_fp8_originals", {})
+ 
+ 
++INT8_CHECKPOINT_METHOD = "yue2-int8-ar"
++
++
++def load_int8_ar_checkpoint(model_dir, device):
++    """Load a checkpoint written by ``export_int8_ar``: int8 AR linears, everything else BF16.
++
++    No BF16 originals exist, so ``restore_ar`` is a no-op and the NAR prefix
++    prefill also runs through the dequantized AR weights.
++    """
++    from accelerate import init_empty_weights
++    from safetensors.torch import load_file
++    from .modeling_yue2 import YuE2Config, YuE2ForCausalLM
++
++    model_dir = Path(model_dir)
++    raw = json.loads((model_dir / "config.json").read_text())
++    method = (raw.get("quantization_config") or {}).get("method")
++    if method != INT8_CHECKPOINT_METHOD:
++        raise ValueError(f"Expected quantization_config.method {INT8_CHECKPOINT_METHOD!r}, found {method!r}")
++    # PretrainedConfig drops or reinterprets quantization_config, so the raw JSON is checked above.
++    config = YuE2Config.from_pretrained(model_dir)
++    with init_empty_weights():
++        model = YuE2ForCausalLM(config).to(torch.bfloat16)
++    for name, module in [(n, m) for n, m in model.named_modules() if AR_LINEAR.fullmatch(n)]:
++        _replace(model, name, Int8Linear(module, device))
++    state = {}
++    for file in sorted(model_dir.glob("*.safetensors")):
++        state.update(load_file(file, device="cpu"))
++    missing, unexpected = model.load_state_dict(state, strict=False, assign=True)
++    if missing or unexpected:
++        raise ValueError(f"Checkpoint mismatch: missing {list(missing)[:3]}, unexpected {list(unexpected)[:3]}")
++    object.__setattr__(model, "_yue2_fp8_originals", {})
++    object.__setattr__(model, "_yue2_quant_mode", "int8")
++    return model.eval()
++
++
++def export_int8_ar(model, destination, source_dir):
++    """Write ``model`` (after ``prepare_int8_ar``) as a loadable checkpoint directory."""
++    import shutil
++    from safetensors.torch import save_file
++    from .storage import MODEL_FILES, MODEL_LICENSES, sha256_file, write_json
++
++    if quantization_status(model)["mode"] != "int8":
++        raise ValueError("Run prepare_int8_ar before exporting")
++    source_dir, destination = Path(source_dir), Path(destination)
++    destination.mkdir(parents=True, exist_ok=True)
++    for name in sorted(MODEL_FILES - {"config.json", "weights_manifest.json"}):
++        if (source_dir / name).exists() and not name.endswith(".safetensors") and name != "model.safetensors.index.json":
++            shutil.copy2(source_dir / name, destination / name)
++    (destination / "licenses").mkdir(exist_ok=True)
++    for name in sorted(MODEL_LICENSES):
++        if (source_dir / "licenses" / name).exists():
++            shutil.copy2(source_dir / "licenses" / name, destination / "licenses" / name)
++    state = {key: value.detach().contiguous().cpu() for key, value in model.state_dict().items()}
++    save_file(state, destination / "model.safetensors", metadata={"format": "pt"})
++    config = json.loads((source_dir / "config.json").read_text())
++    config["quantization_config"] = {
++        "method": INT8_CHECKPOINT_METHOD, "weight_dtype": "int8", "scale_dtype": "bfloat16",
++        "granularity": "per_output_channel_symmetric", "modules": AR_LINEAR.pattern,
++        "unquantized": ["embed_tokens", "lm_head", "nar_*", "norms", "vae2llm", "llm2vae", "time_embedder"],
++        "source_weights_sha256": json.loads((source_dir / "weights_manifest.json").read_text())["files"],
++    }
++    write_json(destination / "config.json", config)
++    write_json(destination / "weights_manifest.json", {"schema": 1, "files": {
++        "model.safetensors": {"bytes": (destination / "model.safetensors").stat().st_size,
++                              "sha256": sha256_file(destination / "model.safetensors")}}})
++    return destination
++
++
+ def quantization_status(model):
+     originals = getattr(model, "_yue2_fp8_originals", {}) if model is not None else {}
+-    return {"mode": "fp8" if originals else "none", "active_ar_linears": len(originals),
+-            "weight_format": "float8_e4m3fn" if originals else None,
+-            "original_weights": "cpu_bfloat16" if originals else None,
++    active = sum(isinstance(m, (FP8Linear, Int8Linear)) for m in model.modules()) if model is not None else 0
++    mode = getattr(model, "_yue2_quant_mode", "fp8") if active else "none"
++    formats = {"fp8": "float8_e4m3fn", "int8": "int8_per_channel"}
++    return {"mode": mode, "active_ar_linears": active,
++            "weight_format": formats.get(mode),
++            "original_weights": "cpu_bfloat16" if originals else ("none_prequantized" if active else None),
+             "quality_validation": "unvalidated", "performance_validation": "unvalidated"}
+--- a/src/yue2/storage.py
++++ b/src/yue2/storage.py
+@@ -64,6 +64,9 @@
+     if kind == "yue2":
+         from .modeling_yue2 import YuE2Config
+         clean_config = YuE2Config(**config).to_dict()
++        if config.get("quantization_config"):
++            # PretrainedConfig.to_dict drops this key; the int8 loader keys off it.
++            clean_config["quantization_config"] = config["quantization_config"]
+         code_name = "modeling_yue2.py"
+     elif kind == "yue2_vae":
+         from .modeling_vae import YuE2VAEConfig

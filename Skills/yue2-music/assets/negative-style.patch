@@ -1,0 +1,93 @@
+--- a/src/yue2/cli.py
++++ b/src/yue2/cli.py
+@@ -38,7 +38,8 @@
+ 
+ 
+ def request_kwargs(data, base=Path.cwd()):
+-    allowed = {"style", "tags", "lyrics", "cot", "seed", "abc", "cfg_scale", "id", "abc_sampling", "semantic_sampling"}
++    allowed = {"style", "tags", "lyrics", "cot", "seed", "abc", "cfg_scale", "id", "abc_sampling", "semantic_sampling",
++               "negative_style"}
+     metadata = {"lang", "eval_index", "clip_id", "prompt"}
+     unknown = set(data) - allowed - metadata - {"abc_path"}
+     if unknown:
+@@ -93,7 +94,7 @@
+         base = path.parent
+     else:
+         data, base = {}, Path.cwd()
+-    for key in ("id", "style", "cot", "seed", "cfg_scale"):
++    for key in ("id", "style", "cot", "seed", "cfg_scale", "negative_style"):
+         value = getattr(args, key)
+         if value is not None:
+             data[key] = value
+@@ -195,7 +196,7 @@
+         q.add_argument("--device", default="auto")
+         q.add_argument("--budget", type=float, default=24)
+         q.add_argument("--backend", choices=("torch", "torch-eager", "vllm"), default="torch")
+-        q.add_argument("--quantization", choices=("none", "fp8"), default="none")
++        q.add_argument("--quantization", choices=("none", "fp8", "int8", "auto"), default="auto")
+         q.add_argument("--offload-ar", action="store_true")
+         q.add_argument("--offline", action="store_true")
+         q.add_argument("--config")
+@@ -219,6 +220,7 @@
+                 q.add_argument("--abc-file")
+                 q.add_argument("--seed", type=int)
+                 q.add_argument("--cfg-scale", type=float)
++                q.add_argument("--negative-style", help="Style text for the CFG negative branch (needs --cfg-scale != 1)")
+                 q.add_argument("--stage", choices=("plan", "audio"), default="audio")
+     return p
+ 
+--- a/src/yue2/pipeline.py
++++ b/src/yue2/pipeline.py
+@@ -366,7 +366,9 @@
+             overrides["cfg_scale"] = request.guidance
+         return {"generation": config, "overrides": overrides,
+                 "cot": request.cot, "cfg_scale": request.guidance,
+-                "cfg_negative": "instruction_only" if request.cot == "off" else "same_instruction_and_exact_abc",
++                "cfg_negative": ("negative_style_same_lyrics" + ("" if request.cot == "off" else "_and_exact_abc"))
++                                if request.negative_style is not None
++                                else "instruction_only" if request.cot == "off" else "same_instruction_and_exact_abc",
+                 "backend": self.backend, "quantization": self.quantization,
+                 "model_dtype": "bfloat16", "vae_dtype": "float32", "vae_decode": "halo_crop",
+                 "vae_core_frames": self.vae_core_frames, "vae_halo_frames": 16,
+--- a/src/yue2/protocol.py
++++ b/src/yue2/protocol.py
+@@ -86,6 +86,7 @@
+     abc: str | None = None
+     cfg_scale: float | None = None
+     id: str = "song"
++    negative_style: str | None = None
+ 
+     def __post_init__(self):
+         if self.cot not in INSTRUCTIONS:
+@@ -100,6 +101,11 @@
+             raise ValueError("External ABC requires nonempty text and cot=melody/full")
+         if self.cfg_scale is not None and (not math.isfinite(self.cfg_scale) or not 0 <= self.cfg_scale <= 20):
+             raise ValueError("cfg_scale must be finite and in [0,20]")
++        if self.negative_style is not None:
++            if not isinstance(self.negative_style, str) or not self.negative_style.strip():
++                raise TypeError("negative_style must be a nonempty string")
++            if self.guidance == 1:
++                raise ValueError("negative_style has no effect unless cfg_scale differs from 1")
+ 
+     @property
+     def guidance(self):
+@@ -127,9 +133,16 @@
+ 
+ 
+ def negative_prefix(request, tokenizer, abc_ids=None):
+-    base = [EOD] + tokenizer.encode(INSTRUCTIONS[request.cot])
+-    if request.cot == "off":
+-        return base + [MUSIC_START]
++    if request.negative_style is None:
++        base = [EOD] + tokenizer.encode(INSTRUCTIONS[request.cot])
++        if request.cot == "off":
++            return base + [MUSIC_START]
++    else:
++        # Both branches carry the lyrics, so guidance amplifies only the style difference.
++        base = [EOD] + tokenizer.encode(
++            f"{INSTRUCTIONS[request.cot]}\n[Tags]\n{request.negative_style}\n[Lyrics]\n{request.lyrics}\n")
++        if request.cot == "off":
++            return base + [ABC_START, ABC_END, MUSIC_START]
+     if abc_ids is None:
+         raise ValueError("Symbolic CFG must retain the exact positive-branch ABC IDs")
+     abc_ids = list(abc_ids)
