@@ -290,6 +290,10 @@ BOLD = re.compile(r"\*\*(?!\s)((?:[^*]|\*(?!\*))+?)(?<!\s)\*\*|__(?!\s)([^_]+?)(
 # Structure only before the bold: indent, blockquote, list marker, and a task-list checkbox after it, so "- [ ] **Clear
 # audience**:" reads as the bullet lead it is.
 BOLD_OPENS = re.compile(r"[\s>]*(?:(?:[-*+]|\d+[.)])\s*(?:\[[ xX]\]\s*)?)?\s*")
+# The imperative's own stress ("you **do not** run this") is exempt in any case: it lands the instruction rather than
+# picking a phrase out for scannability, and is the one mid-sentence bold this primer itself uses. Compared with
+# trailing punctuation stripped, so "**DO NOT:**" reads the same as "**do not**".
+BOLD_EXEMPT = {"do", "not", "do not"}
 # Both gates trip before anything is said, as with the blob threshold: a rate per 1000 words, and an absolute count so a
 # short file cannot band on one span. Calibrated over 110 installed skills, where 6.0 flags 4% and 12.0 calls 2% abused,
 # and every skill flagged carried the same shape - arbitrary phrases bolded mid-sentence for scannability, not terms of
@@ -864,8 +868,10 @@ def _bold(skill_dir: Path) -> dict | None:
                 # The phrase is read off the raw line: blanking is length-preserving, so the offsets hold, and the
                 # report shows the backticked identifier rather than the gap left where it was blanked out.
                 inner = hit.span(1) if hit.group(1) is not None else hit.span(2)
-                spans.append((str(rel), lineno, hit.start(), hit.end(),
-                              line[inner[0]:inner[1]].strip()))
+                phrase = line[inner[0]:inner[1]].strip()
+                if phrase.lower().rstrip(".:,;!") in BOLD_EXEMPT:
+                    continue
+                spans.append((str(rel), lineno, hit.start(), hit.end(), phrase))
 
     if words < BOLD_SHORT or len(spans) < BOLD_LEAST:
         return None

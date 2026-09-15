@@ -145,7 +145,7 @@ Be goal oriented when undertaking significant development tasks: **Define succes
 
 ## Host Environment
 
-- You are running on macOS 26.x, on the users M5 Max Macbook Pro (128GB)
+- You are running on macOS 27.x, on the users M5 Max Macbook Pro (128GB)
 
 ### Building AI Systems
 

@@ -269,10 +269,16 @@ footer { display: flex; align-items: center; gap: 14px;
          padding: 7px 16px; border: var(--rule) solid var(--ink); text-transform: uppercase; }
 footer .end { margin-left: auto; }
 
-/* the rating, set at the size of the finding it is */
-.band { font: 700 46px/1 var(--grotesk); letter-spacing: -0.02em; }
-.band.ok, .band.poor { color: var(--accent); }
-.rate { font: 400 13px var(--mono); color: var(--muted); margin-top: 6px; }
+/* the verdict, set at the size of the finding it is: the one word the page is read for, so it leads the first cell
+   and the budget rating sits under it as one metric among the cell's others rather than as a grade of its own */
+.verdict { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.verdict b { font: 700 46px/1 var(--grotesk); letter-spacing: -0.02em; }
+.verdict span { font: 400 11px/1.5 var(--mono); letter-spacing: 0.06em; color: var(--muted); }
+.verdict.fails b, .verdict.fix b { color: var(--accent); }
+.verdict.review b { color: var(--likely-rule); }
+.rate .rating { font-weight: 700; color: var(--ink); }
+.rate .rating.ok, .rate .rating.poor { color: var(--accent); }
+.rate { font: 400 13px var(--mono); color: var(--muted); margin-top: 14px; }
 .note { font: 400 12px/1.5 var(--mono); color: var(--ink); margin-top: 10px;
         border-left: var(--rule) solid var(--accent); padding-left: 9px; }
 .gauge { position: relative; height: 22px; border: var(--rule) solid var(--ink); margin-top: 14px; }
@@ -288,7 +294,7 @@ footer .end { margin-left: auto; }
          text-overflow: ellipsis; white-space: nowrap; }
 .bar s { text-decoration: none; height: 13px; background: #d4d4d4; display: block; }
 /* The accent marks the file to cut. Set explicitly: as `:first-of-type` it
-   matched the band div above these rows and never reached a bar at all. */
+   matched the rating div above these rows and never reached a bar at all. */
 .bar.lead s { background: var(--accent); }
 .bar em { font-style: normal; text-align: right; color: var(--muted); }
 
@@ -614,20 +620,80 @@ def gauge(load):
             % (pct, marks, ticks, GAUGE_CEILING))
 
 
+def overall(rating, within_budget, spec, found):
+    """(tier, reasons) for the whole skill, read off the validator's own gates.
+
+    FAILS is what validate_skill exits non-zero on: a spec error or a Poor
+    budget. FIX is its FACTS section - always-loaded cost that is certain or
+    sits in SKILL.md - plus an OK budget, which the validator warns on. REVIEW
+    is anything else that fired: branch-loaded signals to judge, and spec
+    warnings. CLEAN is nothing at all. A justified ceiling passes the budget
+    gate, so it never counts against the tier.
+
+    Reasons are the tier's own evidence, not the whole findings list: the reader
+    sees why the word is what it is, and the strip beside it carries the counts.
+    """
+    errors = spec[0] if isinstance(spec, tuple) else ()
+    over_budget = not within_budget and rating in ("OK", "Poor")
+    reasons = []
+    if errors:
+        reasons.append("%d spec error%s" % (len(errors), "s" if len(errors) > 1 else ""))
+    if over_budget and rating == "Poor":
+        reasons.append("budget Poor")
+    if reasons:
+        return "FAILS", reasons
+
+    by_rule = {}
+    for f in found:
+        by_rule[f.rule] = by_rule.get(f.rule, 0) + f.n
+    skill_blobs = sum(f.n for f in found if f.rule == "blob" and f.where.startswith("SKILL.md:"))
+    if "description-length" in by_rule:
+        reasons.append("description over ceiling")
+    if "when-to-use" in by_rule:
+        n = by_rule["when-to-use"]
+        reasons.append('%d "When to use" section%s' % (n, "s" if n > 1 else ""))
+    if "invisible" in by_rule:
+        n = by_rule["invisible"]
+        reasons.append("%d invisible character%s" % (n, "s" if n > 1 else ""))
+    if skill_blobs:
+        reasons.append("%d blob%s in SKILL.md" % (skill_blobs, "s" if skill_blobs > 1 else ""))
+    if over_budget:
+        reasons.append("budget OK")
+    if reasons:
+        return "FIX", reasons
+
+    # Anything left is a signal: named by kind, since the count is already on the strip.
+    labels = {"blob": "reference blobs", "code": "long code blocks", "table": "prose tables",
+              "dense-run": "dense runs", "bold-emphasis": "bold mid-sentence",
+              "americanism": "American spellings", "spec-warning": "spec warnings"}
+    kinds = []
+    for f in found:
+        label = labels.get(f.rule, "lexical no-ops")
+        if label not in kinds:
+            kinds.append(label)
+    if kinds:
+        return "REVIEW", kinds
+    return "CLEAN", ["spec clean, budget %s, nothing flagged" % rating]
+
+
+def overall_block(tier, reasons):
+    """The verdict in the header: the tier at the size of the finding it is, its evidence under it."""
+    return ('<div class="verdict %s"><b>%s</b><span>%s</span></div>'
+            % (tier.lower(), e(tier), e(", ".join(reasons))))
+
+
 def verdict(load, sized, advice, ceiling, within_budget):
+    """The budget line under the verdict: the rating, the figure behind it, and the gauge.
+
+    One line: the file the load is made of is read off the bars below, so naming
+    it here wrapped the line for nothing.
+    """
     rating = vs.token_rating(load)
-    main = sized.get("SKILL.md", 0)
-    # Ties break on iteration order, matching how _budget picks its driver file, so the page and the text report never
-    # name different references.
-    refs = [(name, n) for name, n in sized.items() if name != "SKILL.md"]
-    biggest = max(refs, key=lambda kv: kv[1], default=("", 0))
-    detail = ("SKILL.md %d + largest reference %s %d" % (main, biggest[0], biggest[1])
-              if biggest[0] else "SKILL.md %d, no referenced files" % main)
-    # A skill inside a justified ceiling passes the validator's gate, so the band is set in the passing treatment rather
-    # than contradicting its own note.
+    # A skill inside a justified ceiling passes the validator's gate, so the rating is set in the passing treatment
+    # rather than contradicting its own note.
     tone = "good" if within_budget else rating.lower()
-    out = ['<div class="band %s">%s</div>' % (tone, e(rating.upper())),
-           '<div class="rate">%s tokens worst-case load: %s</div>' % (load, e(detail)),
+    out = ['<div class="rate"><b class="rating %s">Token budget %s</b> %d tokens worst-case load'
+           '%s</div>' % (tone, e(rating), load, "" if len(sized) > 1 else ", no referenced files"),
            gauge(load)]
     if within_budget:
         out.append('<div class="note">Within the declared max-load-tokens %d.</div>' % ceiling)
@@ -878,9 +944,11 @@ def brief(skill_dir, load, sized, ceiling, within_budget, spec, found):
     something that may render it as markdown, where a wrap reflows anyway.
     """
     rating = vs.token_rating(load)
+    tier, reasons = overall(rating, within_budget, spec, found)
     out = ["Skill report for %s. Load the skill-creator-primer skill, then fix the "
            "following. Cut words, not behaviour: every instruction the skill carries "
-           "has to survive." % os.path.basename(str(skill_dir)), ""]
+           "has to survive." % os.path.basename(str(skill_dir)), "",
+           "Verdict: %s (%s)." % (tier, ", ".join(reasons)), ""]
 
     budget = ("Budget: %s. Worst-case load %d tokens (SKILL.md plus the largest "
               "reference) across %d file(s) that load."
@@ -1176,7 +1244,7 @@ def render(skill_dir, against=None, use_tiktoken=False):
     <div class="stats">%(strip)s</div>
   </header>
   <div class="panel">
-    <section class="cell"><h2>Token budget</h2>%(verdict)s%(files)s</section>
+    <section class="cell"><h2>Verdict</h2>%(overall)s%(verdict)s%(files)s</section>
     %(extra)s
     <section class="cell grow"><h2>Structure</h2>%(structure)s</section>
     <section class="cell grow"><h2>Wording and emphasis</h2>%(findings)s</section>
@@ -1193,6 +1261,7 @@ def render(skill_dir, against=None, use_tiktoken=False):
         "css": CSS, "js": JS,
         "strip": strip,
         "when": datetime.datetime.now().astimezone().date().isoformat(),
+        "overall": overall_block(*overall(vs.token_rating(load), within_budget, spec, found)),
         "verdict": verdict(load, sized, advice, ceiling, within_budget),
         "files": files_block(sized),
         "structure": structure_block(pct, found, rows),

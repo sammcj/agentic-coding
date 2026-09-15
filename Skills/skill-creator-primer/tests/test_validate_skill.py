@@ -563,6 +563,15 @@ class BoldDetectionTests(unittest.TestCase):
         body = "# H\n\n" + "\n\n".join("**Section %d**" % n for n in range(40)) + f"\n\n{words(700)}\n"
         self.assertIsNone(self.bold(body))
 
+    def test_a_bold_do_or_not_is_exempt_whatever_its_case(self):
+        # "do", "not" and "do not" are the imperative's own stress, not a phrase bolded for scannability. Every
+        # variant sits mid-sentence and together they clear both gates, so counting any of them would band SLOPPY.
+        body = "# H\n\n" + "\n\n".join(
+            "Line %d says you **%s** run this mid-sentence." % (n, w)
+            for n, w in enumerate(["do", "DO", "not", "Not", "do not", "DO NOT", "Do Not:", "do not."] * 2)
+        ) + f"\n\n{words(700)}\n"
+        self.assertIsNone(self.bold(body))
+
     def test_a_table_badge_is_not_emphasis(self):
         # Reference tables of options and keybindings carry a trailing badge in a cell ("**macOS only**"); counting
         # those flagged the cleanest skills in the corpus this was calibrated against.
