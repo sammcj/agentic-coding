@@ -554,7 +554,6 @@
     "kicad-happy@kicad-happy": false,
     "playwright@claude-plugins-official": false,
     "session-report@claude-plugins-official": true,
-    "bento-slides@bento": true,
     "i-have-adhd@i-have-adhd": true,
     "cc-safety-net@cc-marketplace": true,
     "caveman@caveman": false,
@@ -621,8 +620,7 @@
       "source": {
         "source": "github",
         "repo": "nyblnet/bento"
-      },
-      "autoUpdate": true
+      }
     },
     "i-have-adhd": {
       "source": {
