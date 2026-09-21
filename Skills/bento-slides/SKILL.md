@@ -104,6 +104,7 @@ Boots the deck in headless Brave/Chrome, optionally loads a document through `lo
 
 Full rules in `references/format-reference.md`. The ones that bite most:
 
+- **Bullets are `<ul><li>` in `html`** (nested `<ul>` for sub-bullets; `<ol>` for numbered). A "•" or "-" glyph typed into the text is inline, so a wrapped line returns under the bullet instead of hanging under the text. Compact `md` bullets produce glyph lines, so a bulleted element uses `html`, not `md`.
 - **Text `html` keeps tags only** (b i u br p div span ul ol li h1 h2 a code strong em s). Every attribute except http(s) `href` is stripped, so inline colour or size needs a separate text element. `$…$` on one line renders as maths; write `\$` for a literal dollar.
 - **Charts:** bar/line `data` plain numbers; pie takes `{name,value}`. `legend` must be an object to render. Chart text defaults to `sans-serif`: set `option.textStyle.fontFamily` to the deck font. `option` is pure JSON with template formatters only.
 - **`present.slideNumber` defaults on**, so a deck with its own `{{page}}` footer shows two numbers.

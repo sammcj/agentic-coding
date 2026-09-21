@@ -16,5 +16,6 @@
 - Gotchas corrected: `{{date:PATTERN}}` pins format, `muted` defaults on, morph swaps content at frame one, builtin fonts need no bytes
 - Gotcha added: role-placed compact elements keep only their content; `fx`, fonts and colours on them are discarded silently
 - Feature map gained `unnumbered` builds, code elements, connectors
+- Gotcha added: bullets are `<ul><li>` in `html`; glyph bullets and `md` bullets wrap badly
 - Animation is now opt-in: static decks by default, all motion guidance moved to `references/motion.md`
 - Added CHANGELOG.md and CLAUDE.md
