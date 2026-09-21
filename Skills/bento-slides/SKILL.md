@@ -39,7 +39,7 @@ Write the **compact** form and let the runtime expand it. The on-disk block must
 2. Run the render check (below) with `--doc doc.json --write "<Topic>.bento.html"`: the real runtime expands the document, reports `dropped` keys and findings, screenshots every page, and writes the full document into the block.
 3. Fix the JSON, re-run.
 
-Schema sources, in order of completeness: https://bento.page/schema/slides.json (every key, generated from the runtime), `references/format-reference.md` (1.0.19 to 1.2.3 additions and runtime rules), https://bento.page/agents.md (element shapes, morph/chart/state/ken-burns recipes; stops at 1.0.18). Start from agents.md's "Minimal valid document": `size` (1280x720) and `theme` are required. Unknown keys are dropped silently by the on-disk path and reported only by `loadDoc`.
+Read before authoring: `references/agents-1.2.3.md` (element shapes, morph/chart/state/ken-burns rules, column arithmetic; a pruned copy of bento.page/agents.md) and `references/format-reference.md` (1.0.19 to 1.2.3 additions and runtime rules). Every key, generated from the runtime: https://bento.page/schema/slides.json. Start from the "Minimal valid document": `size` (1280x720) and `theme` are required. Unknown keys are dropped silently by the on-disk path and reported only by `loadDoc`.
 
 ## Workflow
 
@@ -62,7 +62,7 @@ Create a task per step below, each with its completion criterion, then work them
    - every cover or divider -> at least one ambient motion
    - repeated chrome or logo -> keep its `id` stable across slides so it morphs in place
    - a demo clip, recording or soundbite -> a `media` element
-5. **Author.** Respect one accent colour, at most two typefaces, 96px side margins (right-most x <= 1184). Write speaker notes on each slide. Prefer compact `h:"auto"` for text height; otherwise `window.bento.measure({html, w, fontSize, fontFamily})` via `render_check.mjs --eval`, always passing `fontFamily`.
+5. **Author.** Respect one accent colour, at most two typefaces, 96px side margins (right-most x <= 1184), and the density rules below. Write speaker notes on each slide. Prefer compact `h:"auto"` for text height; otherwise `window.bento.measure({html, w, fontSize, fontFamily})` via `render_check.mjs --eval`, always passing `fontFamily`. When fanning slides out to several agents, the shared spec lists the type scale (title/body/caption px) and the band tier per slide, not only colours and columns.
 6. **Write back** via `render_check.mjs --doc --write`, or return the replacement JSON in a chat context.
 7. **Render check** (below): fix every `dropped` entry, warning and error, then read each PNG. Text overflow, crowded elements and a dropped chart key are invisible in the JSON and obvious on screen.
 8. **Self-audit before finishing:**
@@ -71,9 +71,21 @@ Create a task per step below, each with its completion criterion, then work them
    - [ ] at least one motion moment (ken-burns / loop / count-up / step reveal), especially the cover?
    - [ ] a drill-down that would work better as a state slide?
    - [ ] one accent colour, at most two typefaces, 96px margins?
+   - [ ] no text below 14px, body at 16px or more, captions baked into raster images flagged to the user?
+   - [ ] on content slides, does the content reach the bottom of the band, with slack spread between blocks rather than pooled underneath?
    - [ ] `present:{"slideNumber":false}` if the deck has its own `{{page}}` footer?
    - [ ] speaker notes on every slide?
    - [ ] `render_check.mjs` clean and every PNG reviewed?
+
+## Density rules
+
+Bento's own examples and templates are showcase slides (one headline, one big number). Their title band (`y:72 h:84`, content from `y:208`, 96px bottom margin) leaves 416px of 720 for content. Applied to every slide of a dense deck it wastes the canvas, so pick a tier per slide:
+
+- **Showcase tier** (cover, section divider, one-idea slide): that band and display type (88px headline, 40px+ body).
+- **Content tier** (bullets, tables, charts, comparisons): title ~40px at `y:64`, rule at `y:132`, content from `y:156` to `y:656` (500px), 96px side margins kept.
+- **Type floor:** body 16px or larger, nothing below 14px. Decks are watched over video calls that downscale the canvas, so 13px on 1280 reaches the audience at about 7px. Text baked into a raster image cannot be fixed; flag it during classification (step 3).
+- **Fill the band, then choose the gaps.** The margin rule caps extent; it says nothing about slack. Content on a content slide should reach the band's bottom and right edges, with leftover height distributed between blocks. For a column: measure every block (or use compact `h:"auto"`), sum, then split the remainder across the gaps. Whitespace is a decision, never a residue of a guessed grid.
+- `render_check.mjs` warns `text-too-small` (below 14px) and `low-coverage` (content box under 55% of canvas height on slides with three or more elements). Fix them like validate findings.
 
 ## Render check
 

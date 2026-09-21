@@ -1,6 +1,6 @@
 # Bento slides format reference (1.0.19 to 1.2.3 additions and runtime rules)
 
-Supplements https://bento.page/agents.md, which stops at 1.0.18. Authoritative key list: https://bento.page/schema/slides.json (`window.bento.schema()` in the app).
+Supplements `agents-1.2.3.md`, whose upstream text stops at 1.0.18. Authoritative key list: https://bento.page/schema/slides.json (`window.bento.schema()` in the app).
 
 Contents: Compact form | Elements and fields | Slide, present, theme | Tokens | fx vocabulary | Text html rules | Chart rules | Morph mechanics | window.bento signatures
 

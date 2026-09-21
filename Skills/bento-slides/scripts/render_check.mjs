@@ -23,6 +23,9 @@ Options:
   --eval <js>        Evaluate an expression against the booted deck and print the JSON result,
                      e.g. --eval 'window.bento.measure({html:"Long heading", w:880, fontSize:82, fontFamily:"Fraunces"})'
   --no-shots         Run validate() (and --eval) only, skip present mode and screenshots
+  --min-font <px>    Warn on text below this fontSize (default: 14; decks are shown downscaled over video calls)
+  --min-cover <0-1>  Warn when a slide's content box covers less of the canvas height than this (default: 0.55;
+                     slides with two or fewer elements are treated as covers/dividers and skipped)
   -h, --help         Show this help
 
 Compact JSON (see the skill) is accepted only by loadDoc, never by the on-disk block: author compact, then
@@ -42,7 +45,7 @@ if (args.length === 0 || args.includes("-h") || args.includes("--help")) {
   console.log(HELP);
   process.exit(args.length === 0 ? 1 : 0);
 }
-const VALUE_OPTS = new Set(["--out", "--browser", "--boot-timeout", "--settle", "--eval", "--doc", "--write"]);
+const VALUE_OPTS = new Set(["--out", "--browser", "--boot-timeout", "--settle", "--eval", "--doc", "--write", "--min-font", "--min-cover"]);
 const FLAG_OPTS = new Set(["--no-shots"]);
 const opts = {};
 const positional = [];
@@ -72,6 +75,9 @@ const num = (name, fallback) => {
 const bootTimeout = num("--boot-timeout", 40) * 1000;
 const settle = num("--settle", 1500);
 const shots = !opts["--no-shots"];
+const minFont = num("--min-font", 14);
+const minCover = num("--min-cover", 0.55);
+if (minCover > 1) fail("--min-cover is a fraction of canvas height, 0 to 1");
 const docPath = opts["--doc"] && resolve(opts["--doc"]);
 if (docPath && !existsSync(docPath)) fail(`Document not found: ${docPath}`);
 if (opts["--write"] && !docPath) fail("--write needs --doc. See --help.");
@@ -225,6 +231,31 @@ if (api.includes("validate")) {
 } else {
   console.log(`validate(): not in this runtime (window.bento has: ${api.join(", ")}). Download a fresh Bento_Slides.bento.html from https://bento.page/releases/slides/ and splice the document JSON into its #bento-doc block.`);
 }
+
+// Readability checks validate() does not make: type below the floor, and slides that leave most of the canvas empty.
+// Runs on the loaded doc in the browser so assets never cross the wire.
+const readability = await evaluate(`((minFont, minCover) => {
+  const d = window.bento.doc, W = d.size.width, H = d.size.height, out = [];
+  const hasText = (e) => e.type === "text" && /[^\\s]/.test(String(e.html || "").replace(/<[^>]*>/g, ""));
+  for (const s of d.slides) {
+    const els = (s.elements || []).filter((e) => e.opacity !== 0);
+    for (const e of els) {
+      if (hasText(e) && e.fontSize < minFont) out.push({ code: "text-too-small", slide: s.id, element: e.id, message: "fontSize " + e.fontSize + " is below the " + minFont + "px floor" });
+    }
+    // Full-bleed shapes and images are backdrops, not content; a cover or divider has little to cover with.
+    const content = els.filter((e) => !((e.type === "shape" || e.type === "image") && e.w * e.h >= 0.6 * W * H));
+    if (content.length <= 2) continue;
+    const x0 = Math.min(...content.map((e) => e.x)), y0 = Math.min(...content.map((e) => e.y));
+    const x1 = Math.max(...content.map((e) => e.x + e.w)), y1 = Math.max(...content.map((e) => e.y + e.h));
+    const ch = (y1 - y0) / H, cw = (x1 - x0) / W;
+    if (ch < minCover) out.push({ code: "low-coverage", slide: s.id, message: "content spans " + Math.round(ch * 100) + "% of the height and " + Math.round(cw * 100) + "% of the width (y " + Math.round(y0) + ".." + Math.round(y1) + "); tighten the band or grow the type" });
+  }
+  return out;
+})(${minFont}, ${minCover})`);
+for (const f of readability) {
+  console.log(`  [warning] ${f.code} slide=${f.slide} ${f.element ? `el=${f.element} ` : ""}${f.message}`);
+}
+if (readability.length) console.log(`readability: ${readability.length} warning(s); --min-font and --min-cover adjust the floors`);
 
 if (opts["--eval"]) {
   try {
