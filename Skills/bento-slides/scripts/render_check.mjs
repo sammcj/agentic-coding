@@ -8,7 +8,7 @@ import { pathToFileURL } from "node:url";
 
 const HELP = `Usage: node render_check.mjs <deck.bento.html> [options]
 
-Renders a Bento deck headlessly, prints validate() findings (info severity omitted), and saves one PNG per page.
+Renders a Bento deck headlessly, prints validate() findings (info severity omitted, except collab-secrets-present), and saves one PNG per page.
 Exit code 1 when validate() reports an error-severity finding, present mode does not open, or the deck fails to boot.
 
 Options:
@@ -16,10 +16,17 @@ Options:
   --browser <path>   Chromium-based browser binary (default: first of Brave, Chrome, Chromium found)
   --boot-timeout <s> Seconds to wait for window.bento (default: 40; the splash animation delays boot ~13s)
   --settle <ms>      Pause after each slide change before capture, lets entrance animations finish (default: 1500)
+  --doc <json>       Load this document (full or compact JSON) into the booted deck via window.bento.loadDoc()
+                     before validating; prints the load report (dropped keys, fields expanded, boxes fitted)
+  --write <path>     Write the loaded, fully expanded document back into the deck's #bento-doc block at <path>
+                     (may equal the deck path). Only meaningful with --doc. Strips collab/docId when the input had none.
   --eval <js>        Evaluate an expression against the booted deck and print the JSON result,
-                     e.g. --eval 'window.bento.measure({html:"Long heading", w:880, fontSize:82, lineHeight:1.06})'
+                     e.g. --eval 'window.bento.measure({html:"Long heading", w:880, fontSize:82, fontFamily:"Fraunces"})'
   --no-shots         Run validate() (and --eval) only, skip present mode and screenshots
   -h, --help         Show this help
+
+Compact JSON (see the skill) is accepted only by loadDoc, never by the on-disk block: author compact, then
+--doc doc.json --write deck.bento.html expands it through the real runtime and writes the full document.
 
 Needs Node 22+ (global fetch and WebSocket). No npm dependencies.`;
 
@@ -35,7 +42,7 @@ if (args.length === 0 || args.includes("-h") || args.includes("--help")) {
   console.log(HELP);
   process.exit(args.length === 0 ? 1 : 0);
 }
-const VALUE_OPTS = new Set(["--out", "--browser", "--boot-timeout", "--settle", "--eval"]);
+const VALUE_OPTS = new Set(["--out", "--browser", "--boot-timeout", "--settle", "--eval", "--doc", "--write"]);
 const FLAG_OPTS = new Set(["--no-shots"]);
 const opts = {};
 const positional = [];
@@ -65,6 +72,21 @@ const num = (name, fallback) => {
 const bootTimeout = num("--boot-timeout", 40) * 1000;
 const settle = num("--settle", 1500);
 const shots = !opts["--no-shots"];
+const docPath = opts["--doc"] && resolve(opts["--doc"]);
+if (docPath && !existsSync(docPath)) fail(`Document not found: ${docPath}`);
+if (opts["--write"] && !docPath) fail("--write needs --doc. See --help.");
+const writePath = opts["--write"] && resolve(opts["--write"]);
+if (docPath) {
+  // Refuse a "bento/enc" envelope, since plain JSON written over it destroys the ciphertext.
+  const raw = readFileSync(docPath, "utf8");
+  let head;
+  try { head = JSON.parse(raw); } catch (e) { fail(`--doc is not valid JSON: ${e.message}`); }
+  if (head?.format === "bento/enc") fail("--doc is an encrypted envelope; open it with its password in the app instead");
+}
+const DOC_BLOCK = /(<script type="application\/bento\+json" id="bento-doc">)([\s\S]*?)(<\/script>)/;
+const deckBlock = readFileSync(deck, "utf8").match(DOC_BLOCK);
+if (!deckBlock) fail("No #bento-doc block in the deck; is this a .bento.html file?");
+if (/"format"\s*:\s*"bento\/enc"/.test(deckBlock[2])) fail("This deck is password-encrypted; the app must open it with its password before any edit");
 const outDir = opts["--out"] || join(tmpdir(), "bento-render", basename(deck).replace(/\.bento\.html$/, ""));
 
 const CANDIDATES = [
@@ -146,6 +168,8 @@ const evaluate = async (expression) => {
 };
 await cdp("Page.enable");
 await cdp("Runtime.enable");
+// --window-size is not honoured reliably by headless=new (captures came out 800x541); pin the viewport to the canvas size.
+await cdp("Emulation.setDeviceMetricsOverride", { width: 1280, height: 720, deviceScaleFactor: 1, mobile: false });
 
 // Boot: window.bento appears only after the splash animation.
 const bootDeadline = Date.now() + bootTimeout;
@@ -159,6 +183,27 @@ while (!(await evaluate("Boolean(window.bento && window.bento.doc)"))) {
 await evaluate("document.fonts.ready.then(() => true)");
 const api = await evaluate("Object.keys(window.bento)");
 
+// Load a document through the runtime: compact JSON expands here, and the report names what the gate dropped.
+if (docPath) {
+  if (!api.includes("loadDoc")) fail(`loadDoc not in this runtime (window.bento has: ${api.join(", ")}); download a fresh Bento_Slides.bento.html`);
+  const input = readFileSync(docPath, "utf8");
+  const report = await evaluate(`(() => {
+    const r = window.bento.loadDoc(${JSON.stringify(input)});
+    if (r === false) return false;
+    return r === true ? { legacy: true } : JSON.parse(JSON.stringify(r));
+  })()`);
+  if (report === false) fail("loadDoc rejected the document (not a bento/slides document, or missing format/slides)");
+  if (report.legacy) {
+    console.log("loadDoc: ok (this runtime predates the load report; no dropped-key detail available)");
+  } else {
+    console.log(`loadDoc: ok compact=${Boolean(report.compact)} expanded=${report.expanded ?? 0} fitted=${report.fitted ?? 0} laidOut=${report.laidOut ?? 0} dropped=${(report.dropped || []).length}`);
+    for (const d of report.dropped || []) console.log(`  [dropped] ${d.path}: ${d.reason}`);
+  }
+  // Fonts named by the loaded doc may still be settling; auto heights are refitted on fonts.ready.
+  await evaluate("document.fonts.ready.then(() => true)");
+  await sleep(500);
+}
+
 const info = await evaluate(`(() => {
   const d = window.bento.doc;
   return { title: d.title, slides: d.slides.length, pages: d.slides.filter(s => !s.stateOf).length,
@@ -170,7 +215,8 @@ console.log(`Deck: ${info.title} | ${info.slides} slides (${info.pages} pages, $
 let hasError = false;
 if (api.includes("validate")) {
   const v = await evaluate("JSON.parse(JSON.stringify(window.bento.validate()))");
-  const findings = (v.findings || []).filter((f) => f.severity !== "info");
+  // Info findings are design choices except this one: keys in the file are a leak the agent must surface.
+  const findings = (v.findings || []).filter((f) => f.severity !== "info" || f.code === "collab-secrets-present");
   console.log(`validate(): ok=${v.ok} ${JSON.stringify(v.counts || {})}`);
   for (const f of findings) {
     console.log(`  [${f.severity}] ${f.code} ${f.slide ? `slide=${f.slide} ` : ""}${f.element ? `el=${f.element} ` : ""}${f.message}`);
@@ -186,6 +232,23 @@ if (opts["--eval"]) {
   } catch (e) {
     fail(`--eval failed: ${e.message}`);
   }
+}
+
+// Write the expanded document into the shell. Bypasses window.bento.serialize(), which would stamp the
+// session's freshly minted collab keys into the file.
+if (writePath) {
+  const input = JSON.parse(readFileSync(docPath, "utf8"));
+  const full = await evaluate("JSON.parse(JSON.stringify(window.bento.doc))");
+  if (!("collab" in input)) delete full.collab;
+  if (!("docId" in input)) delete full.docId;
+  const ordered = { $schema: "https://bento.page/schema/slides.json", ...full };
+  const json = JSON.stringify(ordered).replace(/</g, "\\u003c");
+  let shell = readFileSync(deck, "utf8");
+  // A stale first-page preview from an earlier save would show the old slide 1 in file managers; the next app save rewrites it anyway.
+  shell = shell.replace(/<div data-bento-preview[^>]*>[\s\S]*?<script data-bento-preview[^>]*>[\s\S]*?<\/script>/, "");
+  shell = shell.replace(DOC_BLOCK, (_, open, __, close) => `${open}${json}${close}`);
+  writeFileSync(writePath, shell);
+  console.log(`Wrote expanded document (${json.length} bytes) to ${writePath}`);
 }
 
 // Present mode and screenshots
@@ -204,8 +267,8 @@ if (shots) {
     await cdp("Input.dispatchMouseEvent", { type, x: btn.x, y: btn.y, button: "left", clickCount: 1 });
   }
   await sleep(settle);
-  // Present mode requests fullscreen on the stage, which is the one reliable marker that the click landed.
-  if (!(await evaluate("Boolean(document.fullscreenElement)"))) fail("Present mode did not open after clicking Slideshow; the editor chrome may have changed");
+  // The fullscreen request is swallowed when headless denies it, so the overlay element is the marker that the click landed.
+  if (!(await evaluate("Boolean(document.querySelector('.bento-present-overlay') || document.fullscreenElement)"))) fail("Present mode did not open after clicking Slideshow; the editor chrome may have changed");
 
   // Arrow keys skip state slides, so this walks the page count only.
   for (let i = 1; i <= info.pages; i++) {

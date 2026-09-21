@@ -548,7 +548,6 @@
     "tofu-lsp@local-marketplace": false,
     "typescript-lsp@claude-plugins-official": true,
     "yaml-lsp@zircote-lsp": false,
-    "html-slides@html-slides": false,
     "ralph-loop@claude-plugins-official": false,
     "context-mode@context-mode": true,
     "kicad-happy@kicad-happy": false,
