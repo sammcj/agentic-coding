@@ -1,0 +1,89 @@
+# claude-statusline configuration
+# Docs: https://github.com/felipeelias/claude-statusline
+
+# Preset defines the complete visual style (layout, colors, separators).
+# Built-in presets:
+#   "default"          - flat with | pipes (no Nerd Font needed)
+#   "minimal"          - clean spacing, no separators (no Nerd Font needed)
+#   "pastel-powerline" - pastel powerline arrows (Nerd Font)
+#   "tokyo-night"      - dark blues rounded powerline (Nerd Font)
+#   "gruvbox-rainbow"  - earthy rainbow powerline (Nerd Font)
+#   "catppuccin"       - Catppuccin Mocha powerline (Nerd Font)
+# Run 'claude-statusline themes' to preview all presets.
+preset = "gruvbox-rainbow"
+
+# Format string controls the layout. Modules are referenced with $name.
+# Styled text groups use [text](style) syntax.
+# When using a preset, you typically don't need to change the format.
+format = "$directory | $context | $model | $usage | $agent_name"
+
+# Only populates under --agent; separators around empty segments are dropped.
+[agent_name]
+disabled = false
+format = "{{.Name}}"
+
+# Module configuration. Each module supports format, style, and disabled.
+# Styles: "bold", "dim", "italic", "fg:#hex", "bg:#hex", "208"
+
+# Requires Claude Code 2.1.80+ which provides rate_limits in the status line payload.
+# Add $usage to your format string to display it.
+[usage]
+disabled = false
+# format = '{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%'
+# style = "green"
+# bar_width = 5
+# bar_fill = "█"
+# bar_empty = "░"
+# thresholds = [
+#   { above = 75, style = "yellow" },
+#   { above = 90, style = "red" },
+# ]
+#
+# To only show usage when it exceeds a threshold:
+# format = '{{if ge .BlockPct 70.0}}{{.BlockBar}} {{printf "%.0f" .BlockPct}}%{{end}}{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}'
+
+[model]
+format = "{{.Name}}{{with .Details}} ({{.}}){{end}}"
+# style = "bold"
+
+[directory]
+format = "{{.Dir}}"
+truncation_length = 1
+
+# [cost]
+# format = '${{printf "%.2f" .TotalCostUSD}}'
+# style = "green"
+# thresholds = [
+#   { above = 1.0, style = "yellow" },
+#   { above = 5.0, style = "red" },
+# ]
+
+[context]
+format = '{{.Bar}} {{printf "%.0f" .UsedPct}}%'
+bar_width = 10
+# style = "green"
+# bar_fill = "█"
+# bar_empty = "░"
+thresholds = [
+  { above = 30, style = "yellow" },
+  { above = 50, style = "orange" },
+  { above = 90, style = "red" },
+]
+
+
+
+# [git_branch]
+# format = " {{.Branch}}{{if .InWorktree}} {{end}}"
+# style = "cyan"
+
+# Disabled by default. Set disabled = false and add to format string to enable.
+# [session_timer]
+# disabled = false
+# format = "{{if .Hours}}{{.Hours}}h{{end}}{{printf \"%02d\" .Minutes}}m{{printf \"%02d\" .Seconds}}s"
+# style = "fg:#117777 bold"
+
+# [lines_changed]
+# disabled = false
+# format = "+{{.Added}} -{{.Removed}}"
+# added_style = "green"
+# removed_style = "red"

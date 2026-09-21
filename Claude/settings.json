@@ -531,7 +531,7 @@
   "enableArtifact": false,
   "statusLine": {
     "type": "command",
-    "command": "/Users/samm/git/claude-statusline/claude-statusline prompt"
+    "command": "/Users/samm/go/bin/claude-statusline prompt"
   },
   "enabledPlugins": {
     "bash-lsp@zircote-lsp": true,

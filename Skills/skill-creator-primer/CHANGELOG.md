@@ -2,11 +2,6 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
-## 2026-09-15
-
-- HTML report: the 46px band is now a whole-skill verdict (FAILS / FIX / REVIEW / CLEAN, with its reasons) heading the first cell with its reasons beside it, read off the validator's own gates; the token budget rating drops to one inline line under it (no heading, no largest-reference name: the bars below show that). The verdict also leads the copied brief.
-- Bold rate exempts `**do**`, `**not**` and `**do not**` (any case, trailing punctuation ignored): the imperative's own stress, not scannability bold.
-
 ## 2026-09-08
 
 - "Bundled File Layout" now covers `CHANGELOG.md`: date headings (skills are non-code projects), history out of the body, update rule in both the file's HTML comment and the skill's `CLAUDE.md`, and use a changelog-setup skill if available.

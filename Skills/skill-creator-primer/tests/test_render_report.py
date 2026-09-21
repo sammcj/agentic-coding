@@ -208,12 +208,12 @@ class BudgetCellTests(unittest.TestCase):
         self.addCleanup(tmp.cleanup)
         return rr.render(build_skill(Path(tmp.name), body, metadata=metadata))
 
-    def test_rating_matches_the_validator_rating(self):
+    def test_band_matches_the_validator_rating(self):
         page = self.render("# H\n\n" + "word " * 40000 + "\n")
-        self.assertIn('<b class="rating poor">Token budget Poor</b>', page)
+        self.assertIn('<div class="band poor">POOR</div>', page)
 
     def test_a_small_skill_rates_great(self):
-        self.assertIn('<b class="rating great">Token budget Great</b>', self.render("# H\n\nShort.\n"))
+        self.assertIn('<div class="band great">GREAT</div>', self.render("# H\n\nShort.\n"))
 
     def test_justified_ceiling_is_shown_instead_of_the_cure(self):
         page = self.render(
@@ -229,8 +229,9 @@ class BudgetCellTests(unittest.TestCase):
             "# H\n\n" + "word " * 9000 + "\n",
             metadata="metadata:\n  skill-lint:\n    max-load-tokens: 20000 # fixture\n",
         )
-        self.assertIn('<b class="rating good">Token budget OK</b>', page)
-        self.assertNotIn('class="rating ok"', page)
+        self.assertIn(">OK</div>", page)
+        self.assertIn('<div class="band good">', page)
+        self.assertNotIn('<div class="band ok">', page)
 
     @unittest.skipIf(importlib.util.find_spec("tiktoken") is None, "tiktoken not installed")
     def test_tiktoken_counts_differ_from_the_heuristic(self):
@@ -251,7 +252,7 @@ class BudgetCellTests(unittest.TestCase):
         self.assertEqual(len(re.findall(r'<div class="bar', page)), 2)
 
     def test_the_largest_file_is_the_one_marked_as_leading(self):
-        # `.bar:first-of-type` matched the rating div above these rows and reached no bar at all, so the accent never
+        # `.bar:first-of-type` matched the band div above these rows and reached no bar at all, so the accent never
         # rendered.
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
@@ -261,64 +262,6 @@ class BudgetCellTests(unittest.TestCase):
         lead = re.search(r'<div class="bar lead"><u>([^<]+)</u>', page)
         self.assertIsNotNone(lead)
         self.assertEqual(lead.group(1), "SKILL.md")  # pyright: ignore
-
-
-class OverallVerdictTests(unittest.TestCase):
-    """The header's one word grades the whole skill, so each tier has to be reachable only by the evidence that
-    names it: a budget rating alone must never read as the skill's grade, which is what the old band did."""
-
-    def page(self, body: str, metadata: str = "", refs: dict[str, str] | None = None) -> str:
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        skill_dir = build_skill(Path(tmp.name), body, metadata=metadata)
-        for name, text in (refs or {}).items():
-            (skill_dir / "references" / name).write_text(text, encoding="utf-8")
-        return rr.render(skill_dir)
-
-    def verdict(self, page: str) -> tuple[str, str]:
-        m = re.search(r'<div class="verdict (\w+)"><b>(\w+)</b><span>(.*?)</span></div>', page)
-        assert m is not None, "no verdict in header"
-        self.assertEqual(m.group(1), m.group(2).lower())
-        return m.group(2), html.unescape(m.group(3))
-
-    def test_a_clean_skill_is_clean_and_says_why(self):
-        tier, reason = self.verdict(self.page("# H\n\nRun the build.\n"))
-        self.assertEqual(tier, "CLEAN")
-        self.assertIn("budget Great", reason)
-
-    def test_a_poor_budget_fails(self):
-        tier, reason = self.verdict(self.page("# H\n\n" + "word " * 40000 + "\n"))
-        self.assertEqual(tier, "FAILS")
-        self.assertIn("budget Poor", reason)
-
-    def test_a_justified_ceiling_does_not_fail(self):
-        tier, _reason = self.verdict(self.page(
-            "# H\n\n" + "word " * 40000 + "\n",
-            metadata="metadata:\n  skill-lint:\n    max-load-tokens: 60000 # fixture\n"))
-        self.assertNotEqual(tier, "FAILS")
-
-    def test_a_blob_in_skill_md_is_fix(self):
-        tier, reason = self.verdict(self.page(f"# H\n\n{BLOB}\n"))
-        self.assertEqual(tier, "FIX")
-        self.assertIn("1 blob in SKILL.md", reason)
-
-    def test_a_blob_only_in_a_reference_is_review(self):
-        tier, reason = self.verdict(self.page("# H\n\nSee references/r.md.\n", refs={"r.md": f"# R\n\n{BLOB}\n"}))
-        self.assertEqual(tier, "REVIEW")
-        self.assertIn("reference blobs", reason)
-
-    def test_the_verdict_leads_the_brief(self):
-        page = self.page(f"# H\n\n{BLOB}\n")
-        self.assertIn("Verdict: FIX (1 blob in SKILL.md).", html.unescape(page))
-
-    def test_the_verdict_leads_the_first_cell_and_the_budget_rating_sits_under_it(self):
-        # The budget rating is one metric, so it carries no heading of its own: the cell is headed by the verdict,
-        # and a reader scanning headings never mistakes "OK" for the skill's grade.
-        page = self.page("# H\n\nRun the build.\n")
-        cell = page.split("</header>")[1].split("</section>")[0]
-        self.assertIn("<h2>Verdict</h2>", cell)
-        self.assertNotIn("<h2>Token budget</h2>", page)
-        self.assertLess(cell.index('class="verdict'), cell.index('class="rating'))
 
 
 class SpecCellTests(unittest.TestCase):
