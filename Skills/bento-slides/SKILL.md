@@ -11,7 +11,7 @@ A Bento deck is one self-contained `.bento.html` file. The document is plain JSO
 <script type="application/bento+json" id="bento-doc"> { "format":"bento/slides", ... } </script>
 ```
 
-Edit that block only, in place. Never regenerate the rest of the file (the compressed runtime). Escape every `<` in the JSON as `<` so it can never contain a literal `</script>`; a build script can then rewrite the block by finding the first `</script>` after the opening tag.
+Edit that block only, in place. Never regenerate the rest of the file (the compressed runtime). Escape every `<` in the JSON as its unicode escape (a backslash followed by `u003c`; `render_check.mjs --write` does this) so it can never contain a literal `</script>`; a build script can then rewrite the block by finding the first `</script>` after the opening tag.
 
 In a chat context the user copies the JSON out (Save > Copy compact JSON) and pastes your replacement back (Save > Replace from JSON). `window.bento.loadDoc(json)` does the same from the console.
 
@@ -39,14 +39,18 @@ Write the **compact** form and let the runtime expand it. The on-disk block must
 2. Run the render check (below) with `--doc doc.json --write "<Topic>.bento.html"`: the real runtime expands the document, reports `dropped` keys and findings, screenshots every page, and writes the full document into the block.
 3. Fix the JSON, re-run.
 
-Read before authoring: `references/agents-1.2.3.md` (element shapes, morph/chart/state/ken-burns rules, column arithmetic; a pruned copy of bento.page/agents.md) and `references/format-reference.md` (1.0.19 to 1.2.3 additions and runtime rules). Every key, generated from the runtime: https://bento.page/schema/slides.json. Start from the "Minimal valid document": `size` (1280x720) and `theme` are required. Unknown keys are dropped silently by the on-disk path and reported only by `loadDoc`.
+Read before authoring: `references/agents-1.2.3.md` (element shapes, morph/chart/state/ken-burns rules, column arithmetic; a pruned copy of bento.page/agents.md) and `references/format-reference.md` (1.0.19 to 1.2.3 additions and runtime rules). Every key, generated from the runtime: https://bento.page/schema/slides.json. Start from the "Minimal valid document": a full document needs `size` (1280x720) and `theme`; compact fills both when omitted. Unknown keys: a full document keeps them and `validate()` flags them as `unknown-key`; compact input drops them and `loadDoc` reports each one.
 
 ## Workflow
 
 Create a task per step below, each with its completion criterion, then work them to completion.
 
 1. **Find the document.** Locate the `#bento-doc` block and parse its JSON. Note `doc.size`, `doc.theme`, existing element `id`s, `docId`, and whether `doc.template` or `doc.readonly` are set. Keep `docId` unchanged.
-2. **Leave `collab` alone.** Keys mint at creation and every ordinary save writes them, so nearly every saved deck carries `ownerPriv`. Anyone holding the file can join that live session. Say so once. Deleting `collab` severs the owner from their own room (sent copies keep the old one), so keep it and point at Save > Save read-only copy for hand-outs or Share > Rotate keys if the file has leaked. Author `collab:{"on":false}` only when the user asks for a deck that cannot be shared.
+2. **Leave `collab` alone.** Keys mint at creation and every save writes them, so nearly every saved deck carries `ownerPriv`, and anyone holding the file can join that live session.
+   - Keep `collab` as found. Deleting it severs the owner from their own room while sent copies keep the old one.
+   - Tell the user once that the file carries session keys.
+   - Hand-outs: Share > View-only copy. Leaked file: Share > Reset access.
+   - Author `collab:{"on":false}` only when the user asks for a deck that cannot be shared.
 3. **Classify the source material.** For each piece: a stat, a table, a process, a definition to expand, a photo, code?
 4. **Map each piece to a feature.** This step makes it a Bento deck:
    - numbers to compare (trend, magnitude, share) -> a `chart` element
@@ -79,13 +83,13 @@ Create a task per step below, each with its completion criterion, then work them
 
 ## Density rules
 
-Bento's own examples and templates are showcase slides (one headline, one big number). Their title band (`y:72 h:84`, content from `y:208`, 96px bottom margin) leaves 416px of 720 for content. Applied to every slide of a dense deck it wastes the canvas, so pick a tier per slide:
+Bento's examples use a display band (`y:72 h:84`, content from `y:208`, 96px bottom margin) that leaves 416px of 720 for content. Pick a tier per slide:
 
-- **Showcase tier** (cover, section divider, one-idea slide): that band and display type (88px headline, 40px+ body).
+- **Display tier** (cover, section divider, one-idea slide): that band, 88px headline, 40px+ body.
 - **Content tier** (bullets, tables, charts, comparisons): title ~40px at `y:64`, rule at `y:132`, content from `y:156` to `y:656` (500px), 96px side margins kept.
 - **Type floor:** body 16px or larger, nothing below 14px. Decks are watched over video calls that downscale the canvas, so 13px on 1280 reaches the audience at about 7px. Text baked into a raster image cannot be fixed; flag it during classification (step 3).
-- **Fill the band, then choose the gaps.** The margin rule caps extent; it says nothing about slack. Content on a content slide should reach the band's bottom and right edges, with leftover height distributed between blocks. For a column: measure every block (or use compact `h:"auto"`), sum, then split the remainder across the gaps. Whitespace is a decision, never a residue of a guessed grid.
-- `render_check.mjs` warns `text-too-small` (below 14px) and `low-coverage` (content box under 55% of canvas height on slides with three or more elements). Fix them like validate findings.
+- **Fill the band, then choose the gaps.** The margin rule caps extent and says nothing about slack. On a content slide, content reaches the band's bottom and right edges, with leftover height distributed between blocks. For a column: measure every block (or use compact `h:"auto"`), sum, then split the remainder across the gaps.
+- `render_check.mjs` warns `text-too-small` (below 14px) and `low-coverage` (content box under 55% of canvas height on slides with three or more content elements; backdrops and edge chrome do not count). Fix them like validate findings.
 
 ## Render check
 

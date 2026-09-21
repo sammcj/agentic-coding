@@ -538,7 +538,7 @@
     "clangd-lsp@claude-plugins-official": true,
     "frontend-design@claude-code-plugins": false,
     "gopls-lsp@claude-plugins-official": true,
-    "impeccable@impeccable": false,
+    "impeccable@impeccable": true,
     "playground@claude-plugins-official": false,
     "playwright-skill@playwright-skill": false,
     "pyright-lsp@claude-plugins-official": true,

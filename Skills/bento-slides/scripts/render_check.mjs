@@ -8,8 +8,9 @@ import { pathToFileURL } from "node:url";
 
 const HELP = `Usage: node render_check.mjs <deck.bento.html> [options]
 
-Renders a Bento deck headlessly, prints validate() findings (info severity omitted, except collab-secrets-present), and saves one PNG per page.
-Exit code 1 when validate() reports an error-severity finding, present mode does not open, or the deck fails to boot.
+Renders a Bento deck headlessly, prints validate() findings (info severity omitted, except collab-secrets-present and
+font-not-embedded), and saves one PNG per page.
+Exit code 1 when validate() reports an error-severity finding, --doc drops a key, present mode does not open, or the deck fails to boot.
 
 Options:
   --out <dir>        Screenshot directory (default: $TMPDIR/bento-render/<deck-name>)
@@ -23,9 +24,10 @@ Options:
   --eval <js>        Evaluate an expression against the booted deck and print the JSON result,
                      e.g. --eval 'window.bento.measure({html:"Long heading", w:880, fontSize:82, fontFamily:"Fraunces"})'
   --no-shots         Run validate() (and --eval) only, skip present mode and screenshots
-  --min-font <px>    Warn on text below this fontSize (default: 14; decks are shown downscaled over video calls)
-  --min-cover <0-1>  Warn when a slide's content box covers less of the canvas height than this (default: 0.55;
-                     slides with two or fewer elements are treated as covers/dividers and skipped)
+  --min-font <px>    Warn on text, code or table fontSize below this (default: 14; decks are shown downscaled over video calls)
+  --min-cover <0-1>  Warn when a slide's content box covers less of the canvas height than this (default: 0.55).
+                     Full-bleed backdrops and edge chrome (footers, page numbers, logos) are not content; slides with
+                     two or fewer content elements are treated as covers/dividers and skipped
   -h, --help         Show this help
 
 Compact JSON (see the skill) is accepted only by loadDoc, never by the on-disk block: author compact, then
@@ -190,6 +192,7 @@ await evaluate("document.fonts.ready.then(() => true)");
 const api = await evaluate("Object.keys(window.bento)");
 
 // Load a document through the runtime: compact JSON expands here, and the report names what the gate dropped.
+let droppedKeys = false;
 if (docPath) {
   if (!api.includes("loadDoc")) fail(`loadDoc not in this runtime (window.bento has: ${api.join(", ")}); download a fresh Bento_Slides.bento.html`);
   const input = readFileSync(docPath, "utf8");
@@ -204,6 +207,8 @@ if (docPath) {
   } else {
     console.log(`loadDoc: ok compact=${Boolean(report.compact)} expanded=${report.expanded ?? 0} fitted=${report.fitted ?? 0} laidOut=${report.laidOut ?? 0} dropped=${(report.dropped || []).length}`);
     for (const d of report.dropped || []) console.log(`  [dropped] ${d.path}: ${d.reason}`);
+    // A dropped key is content that silently vanished from the deck; treat it like a validate error.
+    if ((report.dropped || []).length) droppedKeys = true;
   }
   // Fonts named by the loaded doc may still be settling; auto heights are refitted on fonts.ready.
   await evaluate("document.fonts.ready.then(() => true)");
@@ -212,22 +217,30 @@ if (docPath) {
 
 const info = await evaluate(`(() => {
   const d = window.bento.doc;
-  return { title: d.title, slides: d.slides.length, pages: d.slides.filter(s => !s.stateOf).length,
-    states: d.slides.filter(s => s.stateOf).map(s => s.id) };
+  // The arrow-key walk covers slides that are neither states nor hidden (model.ts inLinearFlow).
+  return { title: d.title, slides: d.slides.length, pages: d.slides.filter(s => !s.stateOf && !s.hidden).length,
+    states: d.slides.filter(s => s.stateOf).map(s => s.id), hidden: d.slides.filter(s => s.hidden && !s.stateOf).map(s => s.id),
+    size: d.size };
 })()`);
-console.log(`Deck: ${info.title} | ${info.slides} slides (${info.pages} pages, ${info.states.length} state slides)`);
+console.log(`Deck: ${info.title} | ${info.slides} slides (${info.pages} pages, ${info.states.length} state slides, ${info.hidden.length} hidden)`);
+// Non-canonical canvases would otherwise letterbox inside the 1280x720 viewport.
+if (info.size.width !== 1280 || info.size.height !== 720) {
+  await cdp("Emulation.setDeviceMetricsOverride", { width: info.size.width, height: info.size.height, deviceScaleFactor: 1, mobile: false });
+}
 
 // Validate
-let hasError = false;
+let hasError = droppedKeys;
 if (api.includes("validate")) {
   const v = await evaluate("JSON.parse(JSON.stringify(window.bento.validate()))");
-  // Info findings are design choices except this one: keys in the file are a leak the agent must surface.
-  const findings = (v.findings || []).filter((f) => f.severity !== "info" || f.code === "collab-secrets-present");
+  // Info findings are design choices except these: keys in the file are a leak the agent must surface, and a
+  // font that is not embedded looks right only on the machine that has it installed.
+  const SURFACED_INFO = new Set(["collab-secrets-present", "font-not-embedded"]);
+  const findings = (v.findings || []).filter((f) => f.severity !== "info" || SURFACED_INFO.has(f.code));
   console.log(`validate(): ok=${v.ok} ${JSON.stringify(v.counts || {})}`);
   for (const f of findings) {
     console.log(`  [${f.severity}] ${f.code} ${f.slide ? `slide=${f.slide} ` : ""}${f.element ? `el=${f.element} ` : ""}${f.message}`);
   }
-  hasError = findings.some((f) => f.severity === "error");
+  hasError ||= findings.some((f) => f.severity === "error");
 } else {
   console.log(`validate(): not in this runtime (window.bento has: ${api.join(", ")}). Download a fresh Bento_Slides.bento.html from https://bento.page/releases/slides/ and splice the document JSON into its #bento-doc block.`);
 }
@@ -240,10 +253,15 @@ const readability = await evaluate(`((minFont, minCover) => {
   for (const s of d.slides) {
     const els = (s.elements || []).filter((e) => e.opacity !== 0);
     for (const e of els) {
-      if (hasText(e) && e.fontSize < minFont) out.push({ code: "text-too-small", slide: s.id, element: e.id, message: "fontSize " + e.fontSize + " is below the " + minFont + "px floor" });
+      // Tables carry their size in style.fontSize; code and text on the element.
+      const size = e.type === "table" ? e.style && e.style.fontSize : (e.type === "code" || hasText(e)) ? e.fontSize : undefined;
+      if (typeof size === "number" && size < minFont) out.push({ code: "text-too-small", slide: s.id, element: e.id, message: "fontSize " + size + " is below the " + minFont + "px floor" });
     }
-    // Full-bleed shapes and images are backdrops, not content; a cover or divider has little to cover with.
-    const content = els.filter((e) => !((e.type === "shape" || e.type === "image") && e.w * e.h >= 0.6 * W * H));
+    // Full-bleed shapes and images are backdrops, and footers, page numbers and logos are chrome: neither is content.
+    // Without the chrome exclusion a {{page}} footer at y=680 makes every slide "cover" the canvas.
+    const backdrop = (e) => (e.type === "shape" || e.type === "image") && e.w * e.h >= 0.6 * W * H;
+    const chrome = (e) => (e.h < 0.05 * H || e.w * e.h < 0.015 * W * H) && (e.y + e.h > 0.88 * H || e.y < 0.06 * H);
+    const content = els.filter((e) => !backdrop(e) && !chrome(e));
     if (content.length <= 2) continue;
     const x0 = Math.min(...content.map((e) => e.x)), y0 = Math.min(...content.map((e) => e.y));
     const x1 = Math.max(...content.map((e) => e.x + e.w)), y1 = Math.max(...content.map((e) => e.y + e.h));
@@ -276,7 +294,8 @@ if (writePath) {
   const json = JSON.stringify(ordered).replace(/</g, "\\u003c");
   let shell = readFileSync(deck, "utf8");
   // A stale first-page preview from an earlier save would show the old slide 1 in file managers; the next app save rewrites it anyway.
-  shell = shell.replace(/<div data-bento-preview[^>]*>[\s\S]*?<script data-bento-preview[^>]*>[\s\S]*?<\/script>/, "");
+  // Older saves parked the preview in <noscript>; current ones use a <div> plus a remover <script>.
+  shell = shell.replace(/<(div|noscript) data-bento-preview[^>]*>[\s\S]*?<\/\1>(\s*<script data-bento-preview[^>]*>[\s\S]*?<\/script>)?/, "");
   shell = shell.replace(DOC_BLOCK, (_, open, __, close) => `${open}${json}${close}`);
   writeFileSync(writePath, shell);
   console.log(`Wrote expanded document (${json.length} bytes) to ${writePath}`);
@@ -316,6 +335,7 @@ if (shots) {
   if (info.states.length) {
     console.log(`State slides not captured (arrow keys skip them): ${info.states.join(", ")}. Check each by clicking its link element in the editor.`);
   }
+  if (info.hidden.length) console.log(`Hidden slides not captured (arrow keys skip them): ${info.hidden.join(", ")}.`);
 }
 
 ws.onclose = null;

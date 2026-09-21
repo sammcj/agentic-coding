@@ -8,14 +8,14 @@ Contents: Compact form | Elements and fields | Slide, present, theme | Tokens | 
 
 `"compact": true` at the top level. Accepted only by `window.bento.loadDoc()`, Save > Replace from JSON, and `render_check.mjs --doc`. The on-disk `#bento-doc` block must hold the full document (boot does no expansion).
 
-- Omit every field equal to the editor default (rotation 0, opacity 1, weight 400, centre/middle, lineHeight 1.25, transparent stroke, theme background, `transition:"fade"`). Always write `x y w h` and the type's content key.
+- Omit every field equal to the editor default (rotation 0, opacity 1, weight 400, centre/middle, lineHeight 1.25, transparent stroke, theme background, `transition:"fade"`). Always write the type's content key, and `x y w h` unless the element is role-placed.
 - `id` may be omitted: minted as `<slideId>-<type>-<index>`, deterministic across re-runs.
 - `elements` may contain nested arrays (a helper returning `[bg, title, body]` needs no spread).
 - Text: omit `h` or write `"h":"auto"` to size the box to its text on the deck's real fonts. Write `md` instead of `html`: `**bold**`, `*italic*`, `` `code` ``, `~~strike~~`, `- bullets` (two-space indent for sub-bullets), `[caption](https://…)`. `md` bullets render as "•" glyph lines, not `<ul>`. When both present, `html` wins.
 - Placement by role: give the slide `layout` and elements `role`, omit geometry and typography. An element with `x y w h` is placed as given. Extra `body` elements stack in the body slot. A role the layout lacks falls back to body and is noted in `dropped`.
 - A role-placed element contributes only its content (`html`/`md`, or `src` for an image) to the layout's slot copy. Every other key on it (`fx`, `fontSize`, `color`, `link`, a typo) is discarded silently and never reaches `dropped`. For step reveals, fonts or effects, place the element with `x y w h` instead.
 - Built-in layouts and roles: `title` (title, subtitle), `title-content`/`title-body` (title, body), `two-col`/`two-column` (title, body, left, right), `section` (title, kicker), `three-cards`/`cards` (title, card1-3), `quote` (quote, attribution), `image-left` and `image-right` (image, title, body). A deck's own `layouts` may be named the same way.
-- Gate on load: an element missing its required keys is dropped (text `html`, shape `shape`+`fill`, image `src`, chart `option`, table `columns`+`rows`, media `kind`+`src`). Unknown keys are dropped and reported with their path. Colour strings max 64 chars, no `url()`.
+- Gate on load: an element missing its required keys is dropped (text `html`, shape `shape`+`fill`, image `src`, chart `option`, table `columns`+`rows`, media `kind`+`src`). Unknown keys are dropped and reported with their path. Colour strings max 64 chars; `url()` only as `url(#local-id)` on a shape `fill`.
 
 ## Elements and fields
 
@@ -26,7 +26,7 @@ Contents: Compact form | Elements and fields | Slide, present, theme | Tokens | 
 - Shape: `lineStart`/`lineEnd` in none|arrow|dot|bar|arrow-open|triangle|triangle-open|diamond|diamond-open|square|circle-open; `heads:2` double arrow; `strokeStyle` solid|dashed|dotted. Line colour comes from `fill`, and lines draw horizontally across the box (vertical = rotation).
 - Connectors (line/path): `from`/`to` `{el:"<id>", side?:"auto|top|right|bottom|left"}`. Endpoint geometry is derived and follows the target element. A dangling ref frees the endpoint (`dangling-connector` finding).
 - Image: `crop` `{x:0..1, y:0..1, scale:1..8}`, `keepAspectRatio`. Photos the editor inserts are downscaled to 2560px JPEG; agent-embedded images are not, so downscale before embedding (About > Compress pictures fixes it later).
-- `code` element: `content`, `grammarName` (js default, ts py rust go java sh sql c cpp csharp kotlin swift scala dart zig php ruby perl lua r julia powershell haskell elixir erlang clojure ocaml fsharp diff md), `themeName`, plus `fontSize fontFamily align valign lineHeight color`. Same-id code across slides morphs token by token; set `present.morphSeconds` around 1.5 so the travel reads. Needs a 1.2.0+ shell.
+- `code` element: `content`, `grammarName` (a key of `kernel/src/tokenize.ts` LANGS such as js ts py rust go sh sql json yaml, plus `diff`/`md`; unknown falls back to js), `themeName`, plus `fontSize fontFamily align valign lineHeight color`. Same-id code across slides morphs token by token; set `present.morphSeconds` around 1.5 so the travel reads. Needs a 1.2.0+ shell.
 - `chart`: `source:{tableId}` binds the series to a table element on the same slide.
 - `embed` element: `app`, `view`, `doc`, `url`, `live`. Low authoring value; leave to the editor.
 - Fonts: `doc.fonts[]` entries `{family, asset, weight, style?}`. The two shell faces need no bytes: `{"family":"Fraunces","asset":"builtin:fraunces-900","weight":"900"}`, `{"family":"Instrument Sans","asset":"builtin:instrument-sans","weight":"400 700"}`. Any other non-system first family not in `doc.fonts` gets a `font-not-embedded` finding.
@@ -36,11 +36,10 @@ Contents: Compact form | Elements and fields | Slide, present, theme | Tokens | 
 - Slide: `unnumbered:true` keeps the slide in the walk but repeats the previous page number (builds revealed across morph slides). `hidden` slides drop out of `{{pages}}` unless `present.numberHidden`. `hover:{type:"focus-group"|"reveal", dim?, default?}` with element `group`/`showOnHover`.
 - `present`: `slideNumber` and `progress` default true, `controls` false. A deck with its own `{{page}}` footer double-numbers unless `present:{"slideNumber":false}`. `morphSeconds` 0.1-6 (default 0.65).
 - Theme: `headingFamily`, `palette` (bg2, tx2, accent2-6, hlink), `table` defaults, `codePalette` (keys a c d f k n p s).
-- `layouts` insert deep-clones, keeps element ids, clears `notes`, `name` and `stateOf`.
 
-## Tokens
+## Date and time patterns
 
-`{{page}}`, `{{pages}}` (`:arg` pads), `{{date}}`, `{{time}}`, `{{title}}`, and `{{author}} {{company}} {{subject}} {{event}}` from `doc.meta`. Bare `{{date}}`/`{{time}}` follow the viewer's locale and today. A pattern pins the shape: `{{date:YYYY-MM-DD}}`, `{{date:D MMMM YYYY}}`, `{{time:h:mm a}}`. Tokens: YYYY YY MMMM MMM MM M DD D HH H hh h mm ss A a; bracket literal words `[at]`. For a fixed event date write the literal text.
+`{{date:PATTERN}}` and `{{time:PATTERN}}` pin the shape (field list in `agents-1.2.3.md` "Dynamic fields"): tokens YYYY YY MMMM MMM MM M DD D HH H hh h mm ss A a; bracket literal words `[at]`. Examples `{{date:D MMMM YYYY}}`, `{{time:h:mm a}}`.
 
 ## fx vocabulary
 
@@ -70,9 +69,9 @@ Allowed tags: b i u br span div p strong em s code ul ol li h1 h2 a. Every attri
 
 ## window.bento signatures
 
-- `loadDoc(json)` -> `false` | `{ok, compact, dropped:[{path,reason}], expanded, fitted, laidOut, findings, refit}`.
+- `loadDoc(json)` -> `false` | `{ok, compact, dropped:[{path,reason}], expanded, fitted, laidOut, findings, refit, stacks}`.
 - `compact()` -> compact JSON string. `schema()` -> JSON Schema 2020-12.
-- `validate(doc?, {measure?, margin?})` -> `{ok, measured, counts:{error,warning,info}, findings:[{code, severity, message, slide?, element?, path?}]}`. Margin check is 96px x 0.9 on text/table only; elements under 3% of canvas area exempt.
+- `validate(doc?, {measure?, margin?})` -> `{ok, measured, counts:{error,warning,info}, findings:[{code, severity, message, slide?, element?, path?}]}`. Margin check (`past-margin`, info severity) is 96px x 0.9 on text/table only; elements under 3% of canvas area exempt. `font-not-embedded` is info too; `render_check.mjs` surfaces both it and `collab-secrets-present`.
 - `measure(idOrSpec, {doc?})` with spec `{html, w, h?, fontSize?, fontFamily?, fontWeight?, lineHeight?, letterSpacing?}` -> `{height, width, lines, fits?, overflow?}`. Without `fontFamily` it measures in the editor stack, so always pass the deck's font.
 - `serialize()` returns the full file but stamps the session's collab keys into it. `render_check.mjs --write` splices `window.bento.doc` instead.
-- Player (`readonly`) files expose only `{format, doc}`; validate/measure need an editor shell.
+- Player (`readonly`) files expose only `{format, doc, readonly}`; validate/measure need an editor shell.

@@ -1,6 +1,6 @@
 # bento/slides agent guide (vendored)
 
-Pruned copy of https://bento.page/agents.md, guide version 1.2.3, read 2026-09-22. Cut because the skill replaces them: intro, "Make a GREAT deck", measure/validate and Gotchas (SKILL.md, `format-reference.md`), the vertical title band (SKILL.md "Density rules"). Stale lines corrected against the 1.2.3 source are marked `[1.2.3]`. Refresh: curl the URL, re-apply the same cuts, rename the file to the new version, log the read date in CHANGELOG.md.
+Pruned copy of https://bento.page/agents.md, guide version 1.2.3, read 2026-09-22. Cut because the skill replaces them: intro, "Make a GREAT deck", measure/validate and Gotchas (SKILL.md, `format-reference.md`), the vertical title band (SKILL.md "Density rules"). Stale lines corrected against the 1.2.3 source are marked `[1.2.3]`.
 
 ## Minimal valid document
 

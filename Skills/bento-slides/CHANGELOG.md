@@ -8,11 +8,11 @@
 - Added `references/format-reference.md`: 1.0.19 to 1.2.3 fields, fx vocabulary, text/chart/morph rules, window.bento signatures
 - Compact authoring form is now the default; on-disk block still holds the full document
 - `render_check.mjs`: `--doc` loads full or compact JSON via loadDoc and prints dropped keys; `--write` splices the expanded document back
-- `render_check.mjs`: `text-too-small` and `low-coverage` warnings; `--min-font`, `--min-cover`
-- `render_check.mjs`: refuses encrypted decks, detects present mode by overlay, pins viewport to 1280x720
-- Density rules: showcase vs content band tiers, 16px body / 14px floor, fill the band then choose gaps
+- `render_check.mjs`: `text-too-small` and `low-coverage` warnings; `--min-font`, `--min-cover`; dropped keys fail the run
+- `render_check.mjs`: refuses encrypted decks; hidden slides no longer overshoot the page walk
+- Density rules: display vs content band tiers, 16px body / 14px floor, fill the band then choose gaps
 - Workflow: ask the user to close the deck in the browser before editing (save and autosave restore both clobber)
-- Collab step corrected: leave `collab` untouched, point at read-only copy or key rotation; deleting keys severs the owner
+- Collab step corrected: leave `collab` untouched, point at View-only copy or Reset access; deleting keys severs the owner
 - Gotchas corrected: `{{date:PATTERN}}` pins format, `muted` defaults on, morph swaps content at frame one, builtin fonts need no bytes
 - Gotcha added: role-placed compact elements keep only their content; `fx`, fonts and colours on them are discarded silently
 - Feature map gained step reveals, `unnumbered` builds, code elements, connectors
