@@ -15,5 +15,6 @@
 - Collab step corrected: leave `collab` untouched, point at View-only copy or Reset access; deleting keys severs the owner
 - Gotchas corrected: `{{date:PATTERN}}` pins format, `muted` defaults on, morph swaps content at frame one, builtin fonts need no bytes
 - Gotcha added: role-placed compact elements keep only their content; `fx`, fonts and colours on them are discarded silently
-- Feature map gained step reveals, `unnumbered` builds, code elements, connectors
+- Feature map gained `unnumbered` builds, code elements, connectors
+- Animation is now opt-in: static decks by default, all motion guidance moved to `references/motion.md`
 - Added CHANGELOG.md and CLAUDE.md

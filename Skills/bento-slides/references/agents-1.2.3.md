@@ -1,6 +1,6 @@
 # bento/slides agent guide (vendored)
 
-Pruned copy of https://bento.page/agents.md, guide version 1.2.3, read 2026-09-22. Cut because the skill replaces them: intro, "Make a GREAT deck", measure/validate and Gotchas (SKILL.md, `format-reference.md`), the vertical title band (SKILL.md "Density rules"). Stale lines corrected against the 1.2.3 source are marked `[1.2.3]`.
+Pruned copy of https://bento.page/agents.md, guide version 1.2.3, read 2026-09-22. Cut because the skill replaces them: intro, "Make a GREAT deck", measure/validate and Gotchas (SKILL.md, `format-reference.md`), the vertical title band (SKILL.md "Density rules"), morph/entrance/ken-burns/loop/count-up rules (`motion.md`). Stale lines corrected against the 1.2.3 source are marked `[1.2.3]`.
 
 ## Minimal valid document
 
@@ -91,44 +91,6 @@ Start from this skeleton when creating a deck from scratch. `size` and `theme` a
 
 ## The rules that make decks feel designed
 
-- **Morph = shared ids.** Slides with `"transition": "morph"` tween any
-  elements whose `id` matches the previous slide - position, size, color,
-  gradients. This is THE signature move: carry 2-4 ids through the deck and
-  rearrange them per slide. Generators must emit deterministic ids.
-- **`morphId` decouples morph identity from `id`.** The real pairing key is
-  `morphId || id`, so an element can keep whatever `id` it likes and set
-  `"morphId": "running-head"` to morph against a differently-named element on
-  the next slide. For a generator this beats threading one id by hand through
-  every slide, and it lets two independently-created elements pair up. The key
-  must be unique **within** a slide. Plain shared `id` still works and is still
-  the simplest thing when you control both slides.
-- **Entrances**: `fx: { enter: "fade-up", order: 0 }` - equal `order` =
-  simultaneous. On a **morph arrival** the rule is per element, and it turns on
-  whether that element has a morph partner on the previous slide:
-  - **has a partner** → it morphs, and `fx.enter` and `fx.countUp` are both
-    skipped. It is already in motion and already showing its number; an
-    entrance would fight the tween and a count-up would restart from zero.
-  - **no partner** → it is new to the slide, so both run normally. Without an
-    `fx.enter` it gets an automatic fade-and-rise so nothing ever just pops in.
-
-  So a headline number, or a panel that sweeps in from the right, is fine on a
-  morph slide - just make sure it is new to that slide.
-- **Ken-burns**: `fx: { ambient: "kenburns", ken: { dir: "drift|out|in",
-  scale: 1.08, duration: 20 } }` - `drift` loops, `out`/`in` settle once on
-  slide entry. For full-bleed photos: image at 0,0,1280,720 + a scrim rect
-  + text on top. Never combine entrance tweens with motion-path loops.
-- **Loops**: two shapes, both under `fx.loop`.
-  - `{ type: "dash-march", distance: 18, duration: 1.4 }` - marches the stroke
-    dashes along a shape. It animates `strokeDashoffset`, so it needs a
-    `stroke` **and** a dash pattern: set `strokeStyle: "dashed"` or `"dotted"`.
-    On a solid stroke the tween still runs and there is nothing to see.
-  - `{ type: "motion-path", path: "M0,0 C60,-40 140,40 200,0", duration: 6,
-    delay: 0, ease: "none", speeds: [1, 1] }` - drifts the element along a
-    path given RELATIVE to its resting position (the first anchor is where it
-    sits). `speeds` is optional, one multiplier per on-curve point, and lets
-    the element dwell in places and rush others; omit it for constant pace.
-    Never put an entrance tween on a motion-path element - they fight over the
-    same transform.
 - **Interactivity**: element `link: "<slide-id>"` jumps on click; a slide
   with `stateOf: "<parent-id>"` is a hidden variant reached only by links
   (arrow keys skip it, ← returns to parent). Give clickable things a padded
@@ -144,7 +106,6 @@ Start from this skeleton when creating a deck from scratch. `size` and `theme` a
   Not the same as `stateOf`. A state is a variant OF another slide (← returns
   to its parent, and it morphs with it); hidden carries no such relationship.
   Use a state for "click to drill into this", hidden for "only if they ask".
-- **Numbers count up** with `fx: { countUp: true }`.
 - **Speaker notes** (`notes`) are part of the document - write them; they
   make a template teach itself.
 

@@ -39,7 +39,7 @@ Write the **compact** form and let the runtime expand it. The on-disk block must
 2. Run the render check (below) with `--doc doc.json --write "<Topic>.bento.html"`: the real runtime expands the document, reports `dropped` keys and findings, screenshots every page, and writes the full document into the block.
 3. Fix the JSON, re-run.
 
-Read before authoring: `references/agents-1.2.3.md` (element shapes, morph/chart/state/ken-burns rules, column arithmetic; a pruned copy of bento.page/agents.md) and `references/format-reference.md` (1.0.19 to 1.2.3 additions and runtime rules). Every key, generated from the runtime: https://bento.page/schema/slides.json. Start from the "Minimal valid document": a full document needs `size` (1280x720) and `theme`; compact fills both when omitted. Unknown keys: a full document keeps them and `validate()` flags them as `unknown-key`; compact input drops them and `loadDoc` reports each one.
+Read before authoring: `references/agents-1.2.3.md` (element shapes, chart/state/hidden-slide rules, column arithmetic; a pruned copy of bento.page/agents.md) and `references/format-reference.md` (1.0.19 to 1.2.3 additions and runtime rules). Every key, generated from the runtime: https://bento.page/schema/slides.json. Start from the "Minimal valid document": a full document needs `size` (1280x720) and `theme`; compact fills both when omitted. Unknown keys: a full document keeps them and `validate()` flags them as `unknown-key`; compact input drops them and `loadDoc` reports each one.
 
 ## Workflow
 
@@ -55,24 +55,21 @@ Create a task per step below, each with its completion criterion, then work them
 4. **Map each piece to a feature.** This step makes it a Bento deck:
    - numbers to compare (trend, magnitude, share) -> a `chart` element
    - a comparison, spec, pricing or feature grid -> a `table` element (`columns` weights + `rows` of `cells` + a `style` object)
-   - consecutive slides about the same thing changing -> morph: shared element `id`s on both slides + `transition:"morph"` on the later one (Bento's signature move, use it liberally)
-   - a list revealed point by point -> `fx:{step:n}` on each element, one slide
-   - a build across slides -> morph slides with `unnumbered:true` on the continuations
    - a point to drill into -> a state slide (`stateOf` + element `link`)
-   - a hero or full-slide image -> full-bleed image + scrim rect + text, with ken-burns drift
-   - a sequence, flow or timeline -> connectors (`from`/`to`) or a `path` with a `dash-march` loop, or morph a highlight through the steps
-   - a headline number -> big text + `fx:{countUp:true}`, one plain number per box
-   - source code -> a `code` element; same `id` across slides morphs token by token
-   - every cover or divider -> at least one ambient motion
-   - repeated chrome or logo -> keep its `id` stable across slides so it morphs in place
+   - a hero or full-slide image -> full-bleed image + scrim rect + text
+   - a sequence, flow or timeline -> connectors (`from`/`to`) or a `path`
+   - a headline number -> big text, one plain number per box
+   - source code -> a `code` element
+   - a build across slides -> one slide per step with `unnumbered:true` on the continuations
+   - repeated chrome or logo -> keep its `id` stable across slides
    - a demo clip, recording or soundbite -> a `media` element
+   - the user asked for animation -> read `references/motion.md` and map with its table
 5. **Author.** Respect one accent colour, at most two typefaces, 96px side margins (right-most x <= 1184), and the density rules below. Write speaker notes on each slide. Prefer compact `h:"auto"` for text height; otherwise `window.bento.measure({html, w, fontSize, fontFamily})` via `render_check.mjs --eval`, always passing `fontFamily`. When fanning slides out to several agents, the shared spec lists the type scale (title/body/caption px) and the band tier per slide, not only colours and columns.
 6. **Write back** via `render_check.mjs --doc --write`, or return the replacement JSON in a chat context.
 7. **Render check** (below): fix every `dropped` entry, warning and error, then read each PNG. Text overflow, crowded elements and a dropped chart key are invisible in the JSON and obvious on screen.
 8. **Self-audit before finishing:**
    - [ ] any numbers rendered as text that should be a chart?
-   - [ ] do consecutive slides on one subject share ids + `transition:"morph"`?
-   - [ ] at least one motion moment (ken-burns / loop / count-up / step reveal), especially the cover?
+   - [ ] no `fx`, no loops, transitions `none` or `fade` only, unless the user asked for animation?
    - [ ] a drill-down that would work better as a state slide?
    - [ ] one accent colour, at most two typefaces, 96px margins?
    - [ ] no text below 14px, body at 16px or more, captions baked into raster images flagged to the user?
@@ -80,6 +77,10 @@ Create a task per step below, each with its completion criterion, then work them
    - [ ] `present:{"slideNumber":false}` if the deck has its own `{{page}}` footer?
    - [ ] speaker notes on every slide?
    - [ ] `render_check.mjs` clean and every PNG reviewed?
+
+## Motion default
+
+Static decks: `transition:"none"` or `"fade"`, no `fx`, no loops, no ken-burns. Most decks are shown over a video call, where frame drops smear motion and loops pull attention from the speaker. Bento's templates lean on animation; ignore that. Only when the user asks for animation, read `references/motion.md` (morph, entrances, step reveals, count-up, ken-burns, loops).
 
 ## Density rules
 
@@ -105,14 +106,12 @@ Full rules in `references/format-reference.md`. The ones that bite most:
 
 - **Text `html` keeps tags only** (b i u br p div span ul ol li h1 h2 a code strong em s). Every attribute except http(s) `href` is stripped, so inline colour or size needs a separate text element. `$…$` on one line renders as maths; write `\$` for a literal dollar.
 - **Charts:** bar/line `data` plain numbers; pie takes `{name,value}`. `legend` must be an object to render. Chart text defaults to `sans-serif`: set `option.textStyle.fontFamily` to the deck font. `option` is pure JSON with template formatters only.
-- **Morph needs stable ids** shared across the slides that animate together, and the same `fontFamily` on every slide (content swaps at frame one; only geometry, opacity and colour tween). Keep the box aspect ratio or the text stretches.
-- **`fx.countUp` strips markup** and animates every number in the box.
 - **`present.slideNumber` defaults on**, so a deck with its own `{{page}}` footer shows two numbers.
 - **Fonts:** the shell faces need no bytes (`"asset":"builtin:fraunces-900"`, `"builtin:instrument-sans"`); any other face goes in `doc.assets` as a data URI. Images likewise, downscaled to 2560px before embedding.
 - **Media:** `muted` defaults to true; `muted:false` blocks video autoplay. Embed short clips, host large files by URL.
 - **`{{date}}` renders the viewer's today.** `{{date:YYYY-MM-DD}}` pins the shape only. Write a literal date for a fixed event.
 - `template:true` -> every open mints a fresh deck. `readonly:true` -> the file boots straight into the show with no editor (validate/measure absent).
-- **`doc.layouts` insert semantics:** deep-clones, preserves element ids (shared chrome keeps morphing), clears `notes`, `name` and `stateOf`. Leave `link` out of layouts.
+- **`doc.layouts` insert semantics:** deep-clones, preserves element ids, clears `notes`, `name` and `stateOf`. Leave `link` out of layouts.
 - **Reading the runtime source:** `node scripts/inflate_runtime.mjs "<deck>.bento.html"` extracts the compressed runtime as searchable minified JS; `rg` it to settle a question about app behaviour.
 
 Working examples of every technique: open any template at https://bento.page and read its `#bento-doc` block.

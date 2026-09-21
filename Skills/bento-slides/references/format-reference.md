@@ -2,7 +2,7 @@
 
 Supplements `agents-1.2.3.md`, whose upstream text stops at 1.0.18. Authoritative key list: https://bento.page/schema/slides.json (`window.bento.schema()` in the app).
 
-Contents: Compact form | Elements and fields | Slide, present, theme | Tokens | fx vocabulary | Text html rules | Chart rules | Morph mechanics | window.bento signatures
+Contents: Compact form | Elements and fields | Slide, present, theme | Date and time patterns | Text html rules | Chart rules | window.bento signatures. Animation: `motion.md`.
 
 ## Compact form
 
@@ -26,28 +26,20 @@ Contents: Compact form | Elements and fields | Slide, present, theme | Tokens | 
 - Shape: `lineStart`/`lineEnd` in none|arrow|dot|bar|arrow-open|triangle|triangle-open|diamond|diamond-open|square|circle-open; `heads:2` double arrow; `strokeStyle` solid|dashed|dotted. Line colour comes from `fill`, and lines draw horizontally across the box (vertical = rotation).
 - Connectors (line/path): `from`/`to` `{el:"<id>", side?:"auto|top|right|bottom|left"}`. Endpoint geometry is derived and follows the target element. A dangling ref frees the endpoint (`dangling-connector` finding).
 - Image: `crop` `{x:0..1, y:0..1, scale:1..8}`, `keepAspectRatio`. Photos the editor inserts are downscaled to 2560px JPEG; agent-embedded images are not, so downscale before embedding (About > Compress pictures fixes it later).
-- `code` element: `content`, `grammarName` (a key of `kernel/src/tokenize.ts` LANGS such as js ts py rust go sh sql json yaml, plus `diff`/`md`; unknown falls back to js), `themeName`, plus `fontSize fontFamily align valign lineHeight color`. Same-id code across slides morphs token by token; set `present.morphSeconds` around 1.5 so the travel reads. Needs a 1.2.0+ shell.
+- `code` element: `content`, `grammarName` (a key of `kernel/src/tokenize.ts` LANGS such as js ts py rust go sh sql json yaml, plus `diff`/`md`; unknown falls back to js), `themeName`, plus `fontSize fontFamily align valign lineHeight color`. Needs a 1.2.0+ shell.
 - `chart`: `source:{tableId}` binds the series to a table element on the same slide.
 - `embed` element: `app`, `view`, `doc`, `url`, `live`. Low authoring value; leave to the editor.
 - Fonts: `doc.fonts[]` entries `{family, asset, weight, style?}`. The two shell faces need no bytes: `{"family":"Fraunces","asset":"builtin:fraunces-900","weight":"900"}`, `{"family":"Instrument Sans","asset":"builtin:instrument-sans","weight":"400 700"}`. Any other non-system first family not in `doc.fonts` gets a `font-not-embedded` finding.
 
 ## Slide, present, theme
 
-- Slide: `unnumbered:true` keeps the slide in the walk but repeats the previous page number (builds revealed across morph slides). `hidden` slides drop out of `{{pages}}` unless `present.numberHidden`. `hover:{type:"focus-group"|"reveal", dim?, default?}` with element `group`/`showOnHover`.
-- `present`: `slideNumber` and `progress` default true, `controls` false. A deck with its own `{{page}}` footer double-numbers unless `present:{"slideNumber":false}`. `morphSeconds` 0.1-6 (default 0.65).
+- Slide: `unnumbered:true` keeps the slide in the walk but repeats the previous page number (a build spread over several slides). `hidden` slides drop out of `{{pages}}` unless `present.numberHidden`. `hover:{type:"focus-group"|"reveal", dim?, default?}` with element `group`/`showOnHover`.
+- `present`: `slideNumber` and `progress` default true, `controls` false. A deck with its own `{{page}}` footer double-numbers unless `present:{"slideNumber":false}`. `morphSeconds`: `motion.md`.
 - Theme: `headingFamily`, `palette` (bg2, tx2, accent2-6, hlink), `table` defaults, `codePalette` (keys a c d f k n p s).
 
 ## Date and time patterns
 
 `{{date:PATTERN}}` and `{{time:PATTERN}}` pin the shape (field list in `agents-1.2.3.md` "Dynamic fields"): tokens YYYY YY MMMM MMM MM M DD D HH H hh h mm ss A a; bracket literal words `[at]`. Examples `{{date:D MMMM YYYY}}`, `{{time:h:mm a}}`.
-
-## fx vocabulary
-
-- `enter`: fade | fade-up | fade-down | slide-left | slide-right | slide-up | slide-down. `enterDur` seconds. `order` for stagger (0.12s + index x 0.05s).
-- `step: n` (n >= 1): hidden on arrival, revealed on the n-th click. Gaps allowed. Backward arrival shows all. Stepped elements without `enter` get a plain fade.
-- `countUp:true`: rewrites `textContent`, so markup in the box is lost and every number in it animates. One plain number per count-up box.
-- `ambient:"kenburns"` + `ken:{dir:"drift"|"in"|"out", scale, duration}` (drift 1.1/26s, in/out 1.06/2.5s).
-- `loop:{type:"dash-march"}` (needs `strokeStyle:"dashed"`) or `loop:{type:"motion-path", path, speeds?, ease?}`. Path coords are offsets from the element's rest position, so start at `M0 0`. `speeds` length must equal the on-curve anchors. `ease` in none|linear|power1-3.in/out/inOut|sine.in/out/inOut. An `enter` on a motion-path element is flagged (`entrance-on-motion-path`).
 
 ## Text html rules
 
@@ -59,13 +51,6 @@ Allowed tags: b i u br span div p strong em s code ul ol li h1 h2 a. Every attri
 - `legend` must be an object (`{}`) to render at all. `label:false` hides pie labels. `axisLabel.formatter` supports `{value}`.
 - Bar/line `data` plain numbers (numeric strings and `{value}` objects coerce to 0). Pie needs `{name,value}` and draws only its first series.
 - No stacking, per-item colours, `title`, or `axisLabel.rotate`. `validate()` lists ignored keys as `chart-key-ignored`.
-
-## Morph mechanics
-
-- Matched ids render the destination slide's content (html, fontSize, fontFamily) from frame one. Only x/y/w/h/rotation, opacity, text colour, shape fill/stroke and image crop tween. A w/h aspect change stretches text mid-tween, so keep the box ratio.
-- `morphId` overrides `id` for pairing.
-- The slide before a morph slide has its own transition forced to none. Backward navigation morphs too.
-- Unpartnered arrivals get a default rise (0.45s from 40% of the morph); an explicit `fx.enter` replaces it. Count-ups on unpartnered text run on arrival.
 
 ## window.bento signatures
 
