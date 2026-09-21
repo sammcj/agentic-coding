@@ -235,6 +235,8 @@ if (api.includes("validate")) {
   // Info findings are design choices except these: keys in the file are a leak the agent must surface, and a
   // font that is not embedded looks right only on the machine that has it installed.
   const SURFACED_INFO = new Set(["collab-secrets-present", "font-not-embedded"]);
+  // With --doc the keys were minted in this browser session, never in a file; --write strips them again.
+  if (docPath && !("collab" in JSON.parse(readFileSync(docPath, "utf8")))) SURFACED_INFO.delete("collab-secrets-present");
   const findings = (v.findings || []).filter((f) => f.severity !== "info" || SURFACED_INFO.has(f.code));
   console.log(`validate(): ok=${v.ok} ${JSON.stringify(v.counts || {})}`);
   for (const f of findings) {
@@ -262,7 +264,10 @@ const readability = await evaluate(`((minFont, minCover) => {
     const backdrop = (e) => (e.type === "shape" || e.type === "image") && e.w * e.h >= 0.6 * W * H;
     const chrome = (e) => (e.h < 0.05 * H || e.w * e.h < 0.015 * W * H) && (e.y + e.h > 0.88 * H || e.y < 0.06 * H);
     const content = els.filter((e) => !backdrop(e) && !chrome(e));
-    if (content.length <= 2) continue;
+    // Decorative shapes (accent bars, card backgrounds) extend the box but do not make a slide dense: a cover is
+    // title + subtitle + accent bar, and counting the bar would flag every cover.
+    const dense = content.filter((e) => e.type !== "shape" && (e.type !== "text" || hasText(e)));
+    if (dense.length <= 2) continue;
     const x0 = Math.min(...content.map((e) => e.x)), y0 = Math.min(...content.map((e) => e.y));
     const x1 = Math.max(...content.map((e) => e.x + e.w)), y1 = Math.max(...content.map((e) => e.y + e.h));
     const ch = (y1 - y0) / H, cw = (x1 - x0) / W;
