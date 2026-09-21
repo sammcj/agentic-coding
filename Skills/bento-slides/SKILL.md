@@ -11,7 +11,9 @@ A Bento deck is one self-contained `.bento.html` file. The document is plain JSO
 <script type="application/bento+json" id="bento-doc"> { "format":"bento/slides", ... } </script>
 ```
 
-Edit that block only, in place. Escape every `<` in the JSON as `<` so it can never contain a literal `</script>`. Leave the rest of the file (the compressed runtime) untouched.
+Edit that block only, in place. Escape every `<` in the JSON as `\u003c` so it can never contain a literal `</script>`. This also makes the splice idempotent: a build script can rewrite the block by finding the first `</script>` after the opening tag. Leave the rest of the file (the compressed runtime) untouched.
+
+Generate the document JSON from a throwaway Node script rather than hand-writing it. A deck runs to ~100 elements each needing a full field set, and a missing field renders wrong with no warning. Give the script helpers that fill the default fields (`rotation`, `opacity`, `stroke`, `strokeWidth`) and compute image dimensions so logos keep their aspect ratio.
 
 In a chat context the user copies the JSON out (Save > Copy document JSON) and pastes your replacement back (Save > Replace from JSON). `window.bento.loadDoc(json)` does the same from the console.
 
@@ -34,8 +36,6 @@ Rules for a fresh document:
 - Fully specify element fields as the skeleton shows. Shapes need `stroke`/`strokeWidth`, text needs `fontFamily`/`align`/`valign`. Missing fields render wrong or not at all.
 - Omit `docId` and `collab`. The app mints a fresh identity and dormant collaboration credentials on first open.
 
-When done, open the file (`open` / `xdg-open` / `start`) and look at every slide before reporting done. Text overflow, crowded elements, a heading wrapped to three lines and a dropped chart key are invisible in the JSON and obvious on screen. Author, render, check, fix.
-
 ## Workflow
 
 Create a task per step below, each with its completion criterion, then work them to completion.
@@ -54,15 +54,25 @@ Create a task per step below, each with its completion criterion, then work them
    - every cover or divider -> at least one ambient motion
    - repeated chrome or logo -> keep its `id` stable across slides so it morphs in place
    - a demo clip, recording or soundbite -> a `media` element (see gotchas)
-5. **Author** using the schema. Fetch https://bento.page/agents.md and keep it open: element shapes, morph/chart/state/ken-burns snippets, gotchas. Respect one accent colour, at most two typefaces, 96px side margins (right-most x <= 1184). Write speaker notes on each slide.
-6. **Self-audit before finishing:**
+5. **Author** using the schema. Fetch https://bento.page/agents.md and keep it open: element shapes, morph/chart/state/ken-burns snippets, gotchas. Respect one accent colour, at most two typefaces, 96px side margins (right-most x <= 1184). Write speaker notes on each slide. Size text with `window.bento.measure({html, w, fontSize, lineHeight})` rather than guessing heights: pass it to `render_check.mjs --eval` (below), or run it in the browser console when the user has the deck open.
+6. **Write back** the edited `#bento-doc` block, or return the replacement JSON.
+7. **Render check** (below): run `render_check.mjs`, fix every warning and error, read each PNG. Text overflow, crowded elements and a dropped chart key are invisible in the JSON and obvious on screen.
+8. **Self-audit before finishing:**
    - [ ] any numbers rendered as text that should be a chart?
    - [ ] do consecutive slides on one subject share ids + `transition:"morph"`?
    - [ ] at least one motion moment (ken-burns / loop / count-up), especially the cover?
    - [ ] a drill-down that would work better as a state slide?
    - [ ] one accent colour, at most two typefaces, 96px margins?
    - [ ] speaker notes on every slide?
-7. **Write back** the edited `#bento-doc` block, or return the replacement JSON.
+   - [ ] `render_check.mjs` clean and every PNG reviewed?
+
+## Render check
+
+```bash
+node scripts/render_check.mjs "<Topic>.bento.html"
+```
+
+Boots the deck in headless Brave/Chrome, prints `window.bento.validate()` findings (unknown keys, text overflow, off-canvas elements, broken links, ignored chart options), enters present mode and saves one PNG per page. `--help` lists the options, including `--eval` for `measure()` calls.
 
 ## Critical gotchas
 
@@ -71,6 +81,10 @@ Create a task per step below, each with its completion criterion, then work them
 - **Images and fonts are embedded** as data URIs in `doc.assets` and referenced by `"asset:<key>"`, so the file stays self-contained.
 - **Media:** `media` element (`kind: video|audio`). Embed short clips as a data URI in `src`; reference big files by URL to keep the deck small. `autoplay` runs only in present mode and needs `muted:true` for video.
 - **`docId` is the document's identity.** Keep it unchanged when editing an existing deck.
-- `template:true` -> every open mints a fresh deck. `readonly:true` -> the file boots straight into the show with no editor.
+- `template:true` -> every open mints a fresh deck. `readonly:true` -> the file boots straight into the show with no editor. A template cannot be edited through the app: change the JSON and rebuild.
+- **Morphed elements need the same `fontFamily` on every slide** they appear on, or the tween swaps typeface mid-flight. Vary size and weight only.
+- **`{{date}}` renders the viewer's today** in their machine's locale. Write a literal ISO date (YYYY-MM-DD) on the cover instead. The `:arg` suffix only pads `{{page}}` and `{{pages}}`.
+- **`doc.layouts` insert semantics:** inserting deep-clones the layout, preserves element ids (so shared chrome keeps morphing) and clears `notes`. Leave `link` out of layouts, since its target slide id will not exist in the deck it is used in. Put teaching notes on demo slides, never on layouts.
+- **Reading the runtime source:** agents.md does not cover everything. The two `bento/deflate-b64` script blocks near the end of the file are raw DEFLATE; `zlib.inflateRawSync(Buffer.from(b64, "base64"))` gives readable minified source to settle a question about app behaviour.
 
 Working examples of every technique: open any template at https://bento.page and read its `#bento-doc` block.
