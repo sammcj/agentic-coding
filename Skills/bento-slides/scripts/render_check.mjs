@@ -21,8 +21,9 @@ Options:
   --doc <json>       Load this document (full or compact JSON) into the booted deck via window.bento.loadDoc()
                      before validating; prints the load report (dropped keys, fields expanded, boxes fitted)
   --write <path>     Write the loaded, fully expanded document back into the deck's #bento-doc block at <path>
-                     (may equal the deck path). Only meaningful with --doc. Strips collab/docId when the input had none,
-                     always drops collab.sync (a stale CRDT stamp resurrects deleted elements on the next open), and
+                     (may equal the deck path). Only meaningful with --doc. When the input has no collab (a new deck)
+                     it writes freshly minted keys with sharing off (collab.on:false); strips docId when the input
+                     had none; always drops collab.sync (a stale CRDT stamp resurrects deleted elements on the next open), and
                      keeps the previous file as <path>.bak.
   --eval <js>        Evaluate an expression against the booted deck and print the JSON result,
                      e.g. --eval 'window.bento.measure({html:"Long heading", w:880, fontSize:82, fontFamily:"Fraunces"})'
@@ -265,7 +266,7 @@ if (api.includes("validate")) {
   // Info findings are design choices except these: keys in the file are a leak the agent must surface, a
   // font that is not embedded looks right only on the machine that has it installed, and the skill holds 96px margins.
   const SURFACED_INFO = new Set(["collab-secrets-present", "font-not-embedded", "past-margin"]);
-  // With --doc the keys were minted in this browser session, never in a file; --write strips them again.
+  // With --doc and no input collab the keys were minted in this session, and --write saves them with sharing off.
   if (docPath && !("collab" in JSON.parse(readFileSync(docPath, "utf8")))) SURFACED_INFO.delete("collab-secrets-present");
   const findings = (v.findings || []).filter((f) => f.severity !== "info" || SURFACED_INFO.has(f.code));
   console.log(`validate(): ok=${v.ok} ${JSON.stringify(v.counts || {})}`);
@@ -299,8 +300,9 @@ const readability = await evaluate(`((minFont, minCover, motion) => {
   }
   if (faces.size > 2) out.push({ code: "too-many-typefaces", message: faces.size + " typefaces (" + [...faces].join(", ") + "); keep to two" });
 
-  const noNotes = d.slides.filter((s) => !String(s.notes || "").trim()).map((s) => s.id);
-  if (noNotes.length) out.push({ code: "missing-notes", message: "no speaker notes on " + noNotes.join(", ") });
+  // A state slide is a variant its parent's notes already cover.
+  const noNotes = d.slides.filter((s) => !s.stateOf && !String(s.notes || "").trim()).map((s) => s.id);
+  if (noNotes.length) out.push({ code: "missing-notes", message: "no speaker notes on " + noNotes.slice(0, 8).join(", ") + (noNotes.length > 8 ? " +" + (noNotes.length - 8) + " more" : "") });
 
   if (!(d.present && d.present.slideNumber === false) && all.some(([, e]) => /\\{\\{page(:\\d+)?\\}\\}/.test(String(e.html || "")))) {
     out.push({ code: "double-page-number", message: "a {{page}} footer plus the default slide number shows two numbers; set present:{\\"slideNumber\\":false}" });
@@ -361,10 +363,16 @@ if (opts["--eval"]) {
 if (writePath) {
   const input = JSON.parse(readFileSync(docPath, "utf8"));
   const full = await evaluate("JSON.parse(JSON.stringify(window.bento.doc))");
-  // The runtime re-mints collab it finds incomplete, which would sever the owner's room: the file keeps what the
-  // input had, minus `sync` (the CRDT state at the last save; reopening with it merges that state back over this edit).
-  if (!("collab" in input)) delete full.collab;
-  else if (input.collab && typeof input.collab === "object") {
+  // A new deck (no collab in the input) keeps the credentials this session minted, with sharing off: Share turns it
+  // on later with working keys. An authored keyless collab would never get keys (ensureCollab skips any collab object).
+  // An existing deck keeps what the input had, minus `sync` (the CRDT state at the last save; reopening with it
+  // merges that state back over this edit).
+  if (!("collab" in input)) {
+    if (full.collab?.room && full.collab.key) {
+      full.collab = { ...full.collab, on: false };
+      delete full.collab.sync;
+    } else delete full.collab;
+  } else if (input.collab && typeof input.collab === "object") {
     full.collab = { ...input.collab };
     delete full.collab.sync;
   }

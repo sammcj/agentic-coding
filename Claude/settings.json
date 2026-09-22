@@ -1,7 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "syncClaudeAiSkills": false,
-  "disableClaudeAiConnectors": true,
   "env": {
     "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "1",
     "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1",
@@ -58,6 +57,9 @@
       "Bash(git tag -l *)",
       "Bash(git log *)",
       "Bash(git show *)",
+      "Bash(git rev-list *)",
+      "Bash(git fetch *)",
+      "Bash(git switch *)",
       "Bash(go *)",
       "Bash(gofmt *)",
       "Bash(golangci-lint *)",
@@ -475,6 +477,7 @@
       "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Dropbox Import/dotfiles/shell_config"
     ]
   },
+  "disableClaudeAiConnectors": true,
   "hooks": {
     "PermissionRequest": [
       {

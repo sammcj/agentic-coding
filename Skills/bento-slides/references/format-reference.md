@@ -55,7 +55,7 @@ Contents: Compact form | Elements and fields | Slide, present, theme | Date and 
 
 - `loadDoc(json)` -> `false` | `{ok, compact, dropped:[{path,reason}], expanded, fitted, laidOut, findings, refit, stacks}`.
 - `compact()` -> compact JSON string. `schema()` -> JSON Schema 2020-12.
-- `validate(doc?, {measure?, margin?})` -> `{ok, measured, counts:{error,warning,info}, findings:[{code, severity, message, slide?, element?, path?}]}`. Margin check (`past-margin`, info severity) is 96px x 0.9 on text/table only; elements under 3% of canvas area exempt. `font-not-embedded` is info too; `render_check.mjs` surfaces both it and `collab-secrets-present`.
+- `validate(doc?, {measure?, margin?})` -> `{ok, measured, counts:{error,warning,info}, findings:[{code, severity, message, slide?, element?, path?}]}`. Margin check (`past-margin`, info severity) is 96px x 0.9 on text/table only; elements under 3% of canvas area exempt.
 - `measure(idOrSpec, {doc?})` with spec `{html, w, h?, fontSize?, fontFamily?, fontWeight?, lineHeight?, letterSpacing?}` -> `{height, width, lines, fits?, overflow?}`. Without `fontFamily` it measures in the editor stack, so always pass the deck's font. `letterSpacing` is accepted and ignored in 1.2.3: budget one `letterSpacing` per character on the longest line.
 - `serialize()` returns the full file but stamps the session's freshly minted collab keys into it; write with `render_check.mjs --write` instead.
 - List CSS in text `html`, for height budgets: `ul`/`ol` `padding-inline-start:1.35em`, `li` `margin:0.12em 0`; `ul` is `disc`, nested `ul` `circle`; centre or right aligned boxes use `list-style-position:inside`.

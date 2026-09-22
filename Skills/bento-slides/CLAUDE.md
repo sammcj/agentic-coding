@@ -8,7 +8,7 @@ Bento source, when cloned, lives at `~/git/bento`; `slides/src/model.ts` is the 
 - `references/format-reference.md` holds what agents.md lacks or gets wrong; correct it there rather than editing the vendored copy beyond `[version]`-tagged fixes.
 - Each rule lives in one file. SKILL.md "Critical gotchas" holds the rules that bite most; everything else goes in a reference, and other files point to it.
 - A rule a script can check belongs in `scripts/render_check.mjs` as a warning, not in the SKILL.md self-audit.
-- `render_check.mjs` reads the skill's Bento version from the `agents-<version>.md` filename and warns when a deck's runtime differs, so the rename on refresh also updates that check.
+- `render_check.mjs` reads the skill's Bento version from the `agents-<version>.md` filename and prints a note when a deck's runtime differs, so the rename on refresh also updates that check.
 
 ## Trigger evals
 

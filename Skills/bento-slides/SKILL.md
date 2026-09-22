@@ -22,8 +22,8 @@ A Bento deck is one self-contained `.bento.html` file: a compressed app runtime 
 - **Leave `collab` as found.** Keys mint at creation and every save writes them, so nearly every saved deck carries `ownerPriv`: anyone with the file can join its live session.
   - Deleting `collab` severs the owner from their own room while sent copies keep the old one.
   - Tell the user once that the file contains session keys. Hand-outs: Share > View-only copy. Leaked file: Share > Reset access.
-  - Every save also stamps CRDT state into `collab.sync`; the next open merges it with the room, so elements a script deleted come back. `render_check.mjs --write` drops `collab.sync`. If edits still reappear, the owner's other tabs are in the room: set `collab:{"on":false}` and have the user Share > Reset access.
-  - Author `collab:{"on":false}` otherwise only when the user asks for a deck that cannot be shared.
+  - Every save also stamps CRDT state into `collab.sync`; the next open merges it with the room, so elements a script deleted come back. `render_check.mjs --write` drops `collab.sync`. If edits still reappear, the owner's other tabs are in the room: set `collab.on` to `false` and have the user Share > Reset access.
+  - Otherwise set `collab.on` to `false` only when the user asks to stop sharing. Change that one field and keep the keys.
 
 ## Starting from nothing
 
@@ -34,7 +34,7 @@ The user does not need Bento installed; the app ships inside every deck. Fetch t
 curl -fsSL https://bento.page/releases/slides/Bento_Slides.bento.html -o "<Topic>.bento.html"
 ```
 
-Verify the download contains `id="bento-doc"`. The block is empty on disk (a browser mints a demo deck on first open), so there is nothing to discard. Omit `docId` and `collab`; the app mints both on open and writes them when the user saves.
+Verify the download contains `id="bento-doc"`. The block is empty on disk (a browser mints a demo deck on first open), so there is nothing to discard. Omit `docId` and `collab`. `render_check.mjs --write` saves freshly minted keys with sharing off (`collab.on:false`); the user turns sharing on with Share. Never author a `collab` object: one without keys never gets any, so Share silently connects nothing.
 
 ## Workflow
 

@@ -4,9 +4,10 @@
 
 ## 2026-09-23
 
+- New decks are written with sharing off (`collab.on:false`, real keys kept); Share turns it on
+
 - `render_check.mjs` warns on 3+ typefaces, missing notes, double page numbers, unrequested motion (`--motion` opts in)
 - `render_check.mjs` surfaces `past-margin` and notes when the deck's Bento version differs from the references
-- Added trigger evals (`evals/trigger.json`)
 
 ## 2026-09-22
 
