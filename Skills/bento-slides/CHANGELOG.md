@@ -18,4 +18,12 @@
 - Feature map gained `unnumbered` builds, code elements, connectors
 - Gotcha added: bullets are `<ul><li>` in `html`; glyph bullets and `md` bullets wrap badly
 - Animation is now opt-in: static decks by default, all motion guidance moved to `references/motion.md`
+- Compact expansion is theme-blind: free-placed text needs explicit `fontFamily`, `color`, `align`, `valign`
+- `render_check.mjs`: presses through `fx.step` reveals per page; `--write` restores `template` and `layouts`; invisible hit rects no longer mask low coverage
+- Gotchas added: `line` shapes draw 2px minimum, table header always bold, chart `show` flags unread, `theme.chartPalette`
+- Density: aim for 20px+ body on content slides
+- `render_check.mjs`: boots with DNS off so shared decks never join their room (`--online` opts out); `--margin` flag
+- `render_check.mjs --write`: keeps `<path>.bak`, carries input `collab` through minus `sync` (stale stamp resurrects deleted elements)
+- Close-deck guidance explains the `collab.sync` merge and the Discard/Reset access recovery
+- Gotchas added: lists cost height, `fit:"contain"` boxes lie to margin and coverage checks, `measure()` ignores `letterSpacing`
 - Added CHANGELOG.md and CLAUDE.md

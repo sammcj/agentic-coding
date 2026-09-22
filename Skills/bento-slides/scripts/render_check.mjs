@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Open a .bento.html deck in a headless Chromium browser, run window.bento.validate(), screenshot every slide in present mode.
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -20,7 +20,9 @@ Options:
   --doc <json>       Load this document (full or compact JSON) into the booted deck via window.bento.loadDoc()
                      before validating; prints the load report (dropped keys, fields expanded, boxes fitted)
   --write <path>     Write the loaded, fully expanded document back into the deck's #bento-doc block at <path>
-                     (may equal the deck path). Only meaningful with --doc. Strips collab/docId when the input had none.
+                     (may equal the deck path). Only meaningful with --doc. Strips collab/docId when the input had none,
+                     always drops collab.sync (a stale CRDT stamp resurrects deleted elements on the next open), and
+                     keeps the previous file as <path>.bak.
   --eval <js>        Evaluate an expression against the booted deck and print the JSON result,
                      e.g. --eval 'window.bento.measure({html:"Long heading", w:880, fontSize:82, fontFamily:"Fraunces"})'
   --no-shots         Run validate() (and --eval) only, skip present mode and screenshots
@@ -28,6 +30,9 @@ Options:
   --min-cover <0-1>  Warn when a slide's content box covers less of the canvas height than this (default: 0.55).
                      Full-bleed backdrops and edge chrome (footers, page numbers, logos) are not content; slides with
                      two or fewer content elements are treated as covers/dividers and skipped
+  --margin <px>      Side margin for validate()'s past-margin check (default: the runtime's 96)
+  --online           Let the browser reach the network. Off by default: a shared deck (collab.on) would otherwise join
+                     its live room on boot and validate() would report the owner's open tab, not the file
   -h, --help         Show this help
 
 Compact JSON (see the skill) is accepted only by loadDoc, never by the on-disk block: author compact, then
@@ -47,8 +52,8 @@ if (args.length === 0 || args.includes("-h") || args.includes("--help")) {
   console.log(HELP);
   process.exit(args.length === 0 ? 1 : 0);
 }
-const VALUE_OPTS = new Set(["--out", "--browser", "--boot-timeout", "--settle", "--eval", "--doc", "--write", "--min-font", "--min-cover"]);
-const FLAG_OPTS = new Set(["--no-shots"]);
+const VALUE_OPTS = new Set(["--out", "--browser", "--boot-timeout", "--settle", "--eval", "--doc", "--write", "--min-font", "--min-cover", "--margin"]);
+const FLAG_OPTS = new Set(["--no-shots", "--online"]);
 const opts = {};
 const positional = [];
 for (let i = 0; i < args.length; i++) {
@@ -79,6 +84,7 @@ const settle = num("--settle", 1500);
 const shots = !opts["--no-shots"];
 const minFont = num("--min-font", 14);
 const minCover = num("--min-cover", 0.55);
+const margin = opts["--margin"] === undefined ? undefined : num("--margin", 96);
 if (minCover > 1) fail("--min-cover is a fraction of canvas height, 0 to 1");
 const docPath = opts["--doc"] && resolve(opts["--doc"]);
 if (docPath && !existsSync(docPath)) fail(`Document not found: ${docPath}`);
@@ -120,13 +126,16 @@ const proc = spawn(
     `--user-data-dir=${profile}`,
     "--remote-debugging-port=0", // let the OS pick a free port; read it back from DevToolsActivePort
     "--window-size=1280,720",
+    // No DNS means no relay, no update check and no cross-tab state: the render reflects the file alone.
+    ...(opts["--online"] ? [] : ["--host-resolver-rules=MAP * ~NOTFOUND"]),
     pathToFileURL(deck).href,
   ],
   { stdio: "ignore" },
 );
 process.on("exit", () => {
   proc.kill();
-  rmSync(profile, { recursive: true, force: true });
+  // The browser may still be flushing the profile as it dies; a leftover temp dir is not a failed run.
+  try { rmSync(profile, { recursive: true, force: true, maxRetries: 3 }); } catch {}
 });
 const onSpawnError = (e) => fail(`Could not launch browser ${browser}: ${e.message}`);
 const onEarlyExit = (code) => fail(`Browser exited with code ${code} before connecting (a sandbox blocking the profile directory? run outside it)`);
@@ -218,7 +227,10 @@ if (docPath) {
 const info = await evaluate(`(() => {
   const d = window.bento.doc;
   // The arrow-key walk covers slides that are neither states nor hidden (model.ts inLinearFlow).
-  return { title: d.title, slides: d.slides.length, pages: d.slides.filter(s => !s.stateOf && !s.hidden).length,
+  const walk = d.slides.filter(s => !s.stateOf && !s.hidden);
+  // Each fx.step on a page consumes one arrow press before the next page arrives.
+  return { title: d.title, slides: d.slides.length, pages: walk.length,
+    steps: walk.map(s => Math.max(0, ...(s.elements || []).map(e => (e.fx && e.fx.step) || 0))),
     states: d.slides.filter(s => s.stateOf).map(s => s.id), hidden: d.slides.filter(s => s.hidden && !s.stateOf).map(s => s.id),
     size: d.size };
 })()`);
@@ -231,7 +243,7 @@ if (info.size.width !== 1280 || info.size.height !== 720) {
 // Validate
 let hasError = droppedKeys;
 if (api.includes("validate")) {
-  const v = await evaluate("JSON.parse(JSON.stringify(window.bento.validate()))");
+  const v = await evaluate(`JSON.parse(JSON.stringify(window.bento.validate(undefined, ${JSON.stringify(margin === undefined ? {} : { margin })})))`);
   // Info findings are design choices except these: keys in the file are a leak the agent must surface, and a
   // font that is not embedded looks right only on the machine that has it installed.
   const SURFACED_INFO = new Set(["collab-secrets-present", "font-not-embedded"]);
@@ -263,7 +275,9 @@ const readability = await evaluate(`((minFont, minCover) => {
     // Without the chrome exclusion a {{page}} footer at y=680 makes every slide "cover" the canvas.
     const backdrop = (e) => (e.type === "shape" || e.type === "image") && e.w * e.h >= 0.6 * W * H;
     const chrome = (e) => (e.h < 0.05 * H || e.w * e.h < 0.015 * W * H) && (e.y + e.h > 0.88 * H || e.y < 0.06 * H);
-    const content = els.filter((e) => !backdrop(e) && !chrome(e));
+    // An invisible shape (a transparent click target over a link) would stretch the box without showing anything.
+    const invisible = (e) => e.type === "shape" && /^(transparent|none|rgba\\([^)]*,\\s*0\\))$/i.test(String(e.fill || "")) && !(e.strokeWidth > 0 && e.stroke && !/^(transparent|none)$/i.test(e.stroke));
+    const content = els.filter((e) => !backdrop(e) && !chrome(e) && !invisible(e));
     // Decorative shapes (accent bars, card backgrounds) extend the box but do not make a slide dense: a cover is
     // title + subtitle + accent bar, and counting the bar would flag every cover.
     const dense = content.filter((e) => e.type !== "shape" && (e.type !== "text" || hasText(e)));
@@ -293,8 +307,17 @@ if (opts["--eval"]) {
 if (writePath) {
   const input = JSON.parse(readFileSync(docPath, "utf8"));
   const full = await evaluate("JSON.parse(JSON.stringify(window.bento.doc))");
+  // The runtime re-mints collab it finds incomplete, which would sever the owner's room: the file keeps what the
+  // input had, minus `sync` (the CRDT state at the last save; reopening with it merges that state back over this edit).
   if (!("collab" in input)) delete full.collab;
+  else if (input.collab && typeof input.collab === "object") {
+    full.collab = { ...input.collab };
+    delete full.collab.sync;
+  }
   if (!("docId" in input)) delete full.docId;
+  // parseDoc treats a template as a fresh instantiation and deletes the flag; the file on disk must keep it.
+  if (input.template) full.template = true;
+  if (input.layouts && !full.layouts) full.layouts = input.layouts;
   const ordered = { $schema: "https://bento.page/schema/slides.json", ...full };
   const json = JSON.stringify(ordered).replace(/</g, "\\u003c");
   let shell = readFileSync(deck, "utf8");
@@ -302,6 +325,8 @@ if (writePath) {
   // Older saves parked the preview in <noscript>; current ones use a <div> plus a remover <script>.
   shell = shell.replace(/<(div|noscript) data-bento-preview[^>]*>[\s\S]*?<\/\1>(\s*<script data-bento-preview[^>]*>[\s\S]*?<\/script>)?/, "");
   shell = shell.replace(DOC_BLOCK, (_, open, __, close) => `${open}${json}${close}`);
+  // Decks often live outside git; the previous file is the only undo.
+  if (existsSync(writePath)) copyFileSync(writePath, `${writePath}.bak`);
   writeFileSync(writePath, shell);
   console.log(`Wrote expanded document (${json.length} bytes) to ${writePath}`);
 }
@@ -325,18 +350,29 @@ if (shots) {
   // The fullscreen request is swallowed when headless denies it, so the overlay element is the marker that the click landed.
   if (!(await evaluate("Boolean(document.querySelector('.bento-present-overlay') || document.fullscreenElement)"))) fail("Present mode did not open after clicking Slideshow; the editor chrome may have changed");
 
-  // Arrow keys skip state slides, so this walks the page count only.
-  for (let i = 1; i <= info.pages; i++) {
-    const { data } = await cdp("Page.captureScreenshot", { format: "png" });
-    writeFileSync(join(outDir, `slide-${String(i).padStart(2, "0")}.png`), Buffer.from(data, "base64"));
-    if (i < info.pages) {
-      for (const type of ["keyDown", "keyUp"]) {
-        await cdp("Input.dispatchKeyEvent", { type, key: "ArrowRight", code: "ArrowRight", windowsVirtualKeyCode: 39 });
-      }
-      await sleep(settle);
+  const press = async () => {
+    for (const type of ["keyDown", "keyUp"]) {
+      await cdp("Input.dispatchKeyEvent", { type, key: "ArrowRight", code: "ArrowRight", windowsVirtualKeyCode: 39 });
     }
+    await sleep(settle);
+  };
+  const shoot = async (name) => {
+    const { data } = await cdp("Page.captureScreenshot", { format: "png" });
+    writeFileSync(join(outDir, `${name}.png`), Buffer.from(data, "base64"));
+  };
+  // Arrow keys skip state slides, so this walks the page count only. A page with fx.step reveals needs one press
+  // per step before the next page arrives; its fully revealed state is captured as a second PNG.
+  for (let i = 1; i <= info.pages; i++) {
+    const page = String(i).padStart(2, "0");
+    await shoot(`slide-${page}`);
+    const steps = info.steps[i - 1];
+    if (steps > 0) {
+      for (let k = 0; k < steps; k++) await press();
+      await shoot(`slide-${page}-revealed`);
+    }
+    if (i < info.pages) await press();
   }
-  console.log(`Screenshots: ${outDir}/slide-01.png .. slide-${String(info.pages).padStart(2, "0")}.png`);
+  console.log(`Screenshots: ${outDir}/slide-01.png .. slide-${String(info.pages).padStart(2, "0")}.png (pages with step reveals also get slide-NN-revealed.png)`);
   if (info.states.length) {
     console.log(`State slides not captured (arrow keys skip them): ${info.states.join(", ")}. Check each by clicking its link element in the editor.`);
   }
