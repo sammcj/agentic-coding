@@ -8,9 +8,19 @@ uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py transcript <youtube-url>
 
 The script downloads English subtitles or auto-generated text transcripts (not audio).
 
-If the script fails, report the error to the user and stop. Do not download audio, run whisper, or attempt any alternative transcription method unless instructed to do so by the user.
+## No subtitles
 
-After downloading, rename the directory using the rename subcommand:
+When the video has no subtitles the script prints `NO_SUBTITLES`, the video `DURATION` and a `TRANSCRIBE_HINT`, then exits with status 2. Do not transcribe on your own initiative. Ask the user whether to transcribe locally with Parakeet, stating the duration and that it downloads the audio plus, on first run, the model. Only if they agree, rerun with the flag:
+
+```bash
+uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py transcript <youtube-url> --transcribe
+```
+
+If the user declines, or the script fails for any other reason, report the error and stop.
+
+## After download
+
+Rename the directory using the rename subcommand:
 
 ```bash
 uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py rename "<OUTPUT_DIR>" "<Short Description>"
@@ -20,7 +30,7 @@ The script automatically prepends today's date and sanitises the description int
 
 - Example: `rename "<path>/O7SSQfiPDXA" "Demis Hassabis Interview"` produces `2026-02-05-Demis-Hassabis-Interview`
 
-Then read the transcript file from `TRANSCRIPT_PATH`. Transcripts are cleaned and formatted as continuous text with minimal whitespace.
+Then read the `*-transcript.txt` file inside the renamed directory (the `TRANSCRIPT_PATH` printed earlier points at the old name). Each paragraph opens with a `[m:ss]` or `[h:mm:ss]` marker giving its start time in the video; the `DURATION` line gives the video length. Transcribed audio (via `--transcribe`) carries no markers.
 
 The transcript command also outputs `YOUTUBE_CHANNEL`, `YOUTUBE_TITLE`, and `THUMBNAIL` lines when metadata is available. Use these to populate the corresponding frontmatter fields (`youtube_channel`, `youtube_title`, `thumbnail`). The video description is saved in `metadata.json` in the output directory; read it to populate `youtube_description`.
 

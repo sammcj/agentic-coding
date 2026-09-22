@@ -8,6 +8,7 @@
 #   "graphviz",
 #   "tzdata",
 #   "Pillow",
+#   "trafilatura",
 # ]
 # ///
 """Extract-wisdom helper tools.
@@ -16,7 +17,9 @@ Single script replacing the individual bash scripts for transcript download,
 markdown formatting, and PDF rendering. Run via: uv run wisdom.py <subcommand>
 
 Subcommands:
-    transcript <url>                Download YouTube transcript
+    transcript <url> [--transcribe] Download YouTube transcript (--transcribe opts in to
+                                    local Parakeet audio transcription when no subtitles exist)
+    fetch <url>                     Fetch a web article to markdown via trafilatura
     output-dir                      Print the resolved output directory
     create-dir <description>        Create a date-prefixed directory for non-YouTube sources
     rename <dir> <description>      Rename directory with date prefix
@@ -67,6 +70,14 @@ from zoneinfo import ZoneInfo
 
 # Minimum gap (ms) between subtitle events to insert a paragraph break.
 PARAGRAPH_GAP_MS = 2500
+
+# A paragraph must reach this length before a gap may end it, otherwise every
+# subtitle pause becomes its own timestamped paragraph (about one per 5 s).
+MIN_PARAGRAPH_CHARS = 400
+
+# Densely cued manual captions may never pause long enough to break, so force
+# a break at this length to keep timestamp markers usable.
+MAX_PARAGRAPH_CHARS = 4 * MIN_PARAGRAPH_CHARS
 
 # Subtitle language preference (first match wins).
 SUBTITLE_LANGS = ["en"]
@@ -201,8 +212,49 @@ def _sanitise_filename(name: str) -> str:
     return name.strip("_")
 
 
+# Soft hyphen, zero-width, bidi-control, BOM and Unicode tag characters. Invisible
+# in editors, but they corrupt search, break word boundaries and can smuggle hidden
+# text. Built from code points so the source never holds the characters themselves.
+_INVISIBLE_RANGES = (
+    (0x00AD, 0x00AD), (0x200B, 0x200F), (0x202A, 0x202E), (0x2060, 0x2064),
+    (0x2066, 0x2069), (0xFEFF, 0xFEFF), (0xE0000, 0xE007F),
+)
+_INVISIBLE_CHARS = re.compile(
+    "[" + "".join(f"{chr(lo)}-{chr(hi)}" for lo, hi in _INVISIBLE_RANGES) + "]"
+)
+_NBSP = chr(0xA0)
+
+
+def _normalise_text(text: str, *, collapse_spaces: bool = False) -> str:
+    """Strip invisible Unicode and tidy whitespace in source content.
+
+    Runs of spaces are collapsed only on request: markdown relies on leading
+    indentation for code blocks and nested lists.
+    """
+    text = _INVISIBLE_CHARS.sub("", text)
+    text = text.replace(_NBSP, " ")
+    if collapse_spaces:
+        text = re.sub(r"[ \t]+", " ", text)
+        text = re.sub(r"\n ", "\n", text)
+    text = re.sub(r"[ \t]+\n", "\n", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.lstrip("\n").rstrip()
+
+
+def _format_timestamp(ms: int) -> str:
+    """Render milliseconds as [m:ss] or [h:mm:ss]."""
+    total = ms // 1000
+    h, rem = divmod(total, 3600)
+    m, s = divmod(rem, 60)
+    return f"[{h}:{m:02d}:{s:02d}]" if h else f"[{m}:{s:02d}]"
+
+
 def _json3_to_text(json3_path: Path) -> str:
-    """Convert yt-dlp JSON3 subtitle file to clean paragraph text."""
+    """Convert yt-dlp JSON3 subtitles to timestamped paragraphs.
+
+    Each paragraph opens with the start time of its first subtitle event so an
+    analysis can link back to the moment in the video.
+    """
     data = json.loads(json3_path.read_text(encoding="utf-8"))
     entries: list[tuple[int, str]] = []
     for event in data.get("events", []):
@@ -214,20 +266,35 @@ def _json3_to_text(json3_path: Path) -> str:
         entries.append((t, text))
 
     prev_t = 0
-    parts: list[str] = []
+    paragraphs: list[str] = []
+    current: list[str] = []
+    current_len = 0
+    current_start = 0
     for t, text in entries:
-        if not re.sub(r"\s+", "", text):
+        if not text.strip():
+            # Newline-only events separate captions; keep them as a word gap.
+            if current:
+                current.append(" ")
             continue
-        if parts and (t - prev_t) > PARAGRAPH_GAP_MS:
-            parts.append("\n\n")
-        parts.append(text)
+        gap_break = current_len >= MIN_PARAGRAPH_CHARS and (t - prev_t) > PARAGRAPH_GAP_MS
+        if current and (gap_break or current_len >= MAX_PARAGRAPH_CHARS):
+            paragraphs.append(f"{_format_timestamp(current_start)} {''.join(current).strip()}")
+            current = []
+            current_len = 0
+        if not current:
+            current_start = t
+        elif not current[-1][-1:].isspace() and not text[:1].isspace():
+            # Manually authored captions omit the space between events.
+            current.append(" ")
+        current.append(text)
+        current_len += len(text)
         prev_t = t
+    if current:
+        paragraphs.append(f"{_format_timestamp(current_start)} {''.join(current).strip()}")
 
-    raw = "".join(parts)
-    raw = re.sub(r"[ \t]+", " ", raw)
-    raw = re.sub(r"\n ", "\n", raw)
-    raw = re.sub(r" \n", "\n", raw)
-    return raw.strip()
+    return _normalise_text(
+        "\n\n".join(p.replace("\n", " ") for p in paragraphs), collapse_spaces=True
+    )
 
 
 class _SilentLogger:
@@ -422,6 +489,7 @@ def _extract_youtube_metadata(url: str) -> dict[str, str] | None:
         "title": info.get("title") or "",
         "channel": info.get("channel") or info.get("uploader") or "",
         "description": raw_desc,
+        "duration": str(info.get("duration") or ""),
         "thumbnail_url": f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg",
     }
 
@@ -634,6 +702,8 @@ def _print_transcript_output(
             print(f"YOUTUBE_TITLE: {metadata['title']}")
         if (video_dir / "thumbnail.jpg").is_file():
             print("THUMBNAIL: thumbnail.jpg")
+        if metadata.get("duration"):
+            print(f"DURATION: {_format_timestamp(int(metadata['duration']) * 1000)}")
         print("METADATA: metadata.json")
     print(f"NEXT_STEP: uv run <skill-dir>/scripts/wisdom.py rename \"{video_dir}\" \"<Short-Description>\"")
 
@@ -663,15 +733,24 @@ def cmd_transcript(args: argparse.Namespace) -> None:
 
     json3_files = list(video_dir.glob("*.json3"))
     if not download_ok or not json3_files:
-        # Fallback: download audio and transcribe locally with Parakeet TDT v2
+        if not args.transcribe:
+            # Audio download plus local ASR is slow and pulls a model on first
+            # run, so it is opt-in: the agent asks the user, then reruns.
+            print(f"NO_SUBTITLES: {video_dir}")
+            print(f"DURATION: {_format_timestamp(int(metadata['duration']) * 1000)}"
+                  if metadata.get("duration") else "DURATION: unknown")
+            print("TRANSCRIBE_HINT: rerun with --transcribe to download the audio and "
+                  "transcribe locally with Parakeet TDT v2 (needs ffmpeg; first run "
+                  "downloads the model)")
+            sys.exit(2)
+
         transcript_file = _audio_transcription_fallback(url, video_dir)
         if transcript_file is None:
-            print("Error: No subtitles available and audio transcription failed", file=sys.stderr)
+            print("Error: Audio transcription failed", file=sys.stderr)
             print(f"Check: {video_dir}", file=sys.stderr)
             print("", file=sys.stderr)
             print("This may be due to:", file=sys.stderr)
             print("  - Age-restricted video requiring login", file=sys.stderr)
-            print("  - Video has no available subtitles", file=sys.stderr)
             print("  - Video is private or unlisted", file=sys.stderr)
             print("  - Rate limiting from YouTube", file=sys.stderr)
             print("  - Audio transcription deps not installed (pip install 'onnx-asr[cpu,hub]')", file=sys.stderr)
@@ -715,6 +794,113 @@ def cmd_transcript(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     _print_transcript_output(transcript_files[0], video_dir, metadata)
+
+
+# ---------------------------------------------------------------------------
+# Web article fetch
+# ---------------------------------------------------------------------------
+
+# Phrases found on interstitials served instead of the article (bot walls,
+# consent gates, JS-only shells). Checked only when extraction comes back thin.
+_BLOCKED_PAGE_PATTERN = re.compile(
+    r"access denied|attention required|captcha|cloudflare|enable javascript|forbidden|"
+    r"please turn javascript on|verify you are human|just a moment",
+    re.IGNORECASE,
+)
+# Below this, the extractor has almost certainly picked up a nav shell rather than an article.
+_MIN_ARTICLE_CHARS = 200
+# Sites commonly serve a stub to unknown user agents; a browser UA gets the real page.
+_BROWSER_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/128.0 Safari/537.36"
+)
+
+
+def _fetch_html(url: str) -> tuple[bytes, str]:
+    """Download a page, returning (body, content_type). Exits with FETCH_STATUS on failure."""
+    req = urllib.request.Request(url, headers={
+        "User-Agent": _BROWSER_UA,
+        "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+        "Accept-Language": "en-AU,en;q=0.9",
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            ctype = resp.headers.get("Content-Type", "")
+            return resp.read(10 * 1024 * 1024), ctype
+    except urllib.error.HTTPError as exc:
+        # Bot walls answer 403/503 with a challenge page rather than a thin 200.
+        try:
+            challenge = exc.read(20000).decode(errors="replace")
+        except Exception:
+            challenge = ""
+        status = "blocked" if _BLOCKED_PAGE_PATTERN.search(challenge) else "error"
+        print(f"FETCH_STATUS: {status} HTTP {exc.code}")
+    except Exception as exc:
+        print(f"FETCH_STATUS: error {exc}")
+    sys.exit(2)
+
+
+def cmd_fetch(args: argparse.Namespace) -> None:
+    """Fetch a web article, extract the main content to markdown and stage it in a directory."""
+    from urllib.parse import urlparse
+
+    from trafilatura import extract
+
+    url: str = args.url
+    raw, ctype = _fetch_html(url)
+    if ctype and not any(t in ctype for t in ("html", "xml", "text/plain")):
+        print(f"FETCH_STATUS: unsupported content type {ctype.split(';')[0]}")
+        sys.exit(2)
+
+    body = extract(
+        raw, url=url, output_format="markdown", include_links=True, include_formatting=True,
+        include_tables=True, include_images=False, include_comments=False, favor_recall=True,
+    )
+    if not body or len(body) < _MIN_ARTICLE_CHARS:
+        head = raw[:20000].decode(errors="replace")
+        status = "blocked" if _BLOCKED_PAGE_PATTERN.search(head) else "thin"
+        print(f"FETCH_STATUS: {status}")
+        print(f"EXTRACTED_CHARS: {len(body or '')}")
+        sys.exit(2)
+
+    info_json = extract(raw, url=url, output_format="json", with_metadata=True)
+    info: dict[str, Any] = json.loads(info_json) if info_json else {}
+    meta = {
+        "url": url,
+        "title": info.get("title") or "",
+        "author": info.get("author") or "",
+        "date": info.get("date") or "",
+        "site_name": info.get("sitename") or "",
+    }
+
+    base_dir = detect_base_dir()
+    parsed = urlparse(url)
+    slug = _sanitise_dirname(meta["title"])[:60].rstrip("-") or _sanitise_dirname(
+        f"{parsed.netloc}-{parsed.path}"
+    )[:60].rstrip("-") or "article"
+    # URL hash keeps generic titles ("Home") from sharing a staging directory,
+    # while a rerun of the same URL lands in the same place.
+    url_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()[:6]
+    out_dir = base_dir / f"{slug}-{url_hash}"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    article = _normalise_text(body)
+    if meta["title"] and not article.startswith("#"):
+        article = f"# {meta['title']}\n\n{article}"
+    article_path = out_dir / "article.md"
+    article_path.write_text(article + "\n", encoding="utf-8")
+    (out_dir / "metadata.json").write_text(
+        json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+
+    print("FETCH_STATUS: ok")
+    print(f"ARTICLE_PATH: {article_path}")
+    print(f"OUTPUT_DIR: {out_dir}")
+    for key in ("title", "author", "date", "site_name"):
+        if meta[key]:
+            print(f"{key.upper()}: {meta[key]}")
+    print(f"WORDS: {len(article.split())}")
+    print(f"NEXT_STEP: uv run <skill-dir>/scripts/wisdom.py rename \"{out_dir}\" \"<Short-Description>\"")
 
 
 # ---------------------------------------------------------------------------
@@ -3309,6 +3495,13 @@ def main() -> None:
     # transcript
     p_transcript = sub.add_parser("transcript", help="Download YouTube transcript")
     p_transcript.add_argument("url", help="YouTube video URL")
+    p_transcript.add_argument("--transcribe", action="store_true",
+                              help="If no subtitles exist, download audio and transcribe "
+                                   "locally with Parakeet (opt-in: slow, fetches a model)")
+
+    # fetch
+    p_fetch = sub.add_parser("fetch", help="Fetch a web article to markdown via trafilatura")
+    p_fetch.add_argument("url", help="Article URL (non-YouTube)")
 
     # output-dir
     sub.add_parser("output-dir", help="Print resolved output directory")
@@ -3406,6 +3599,7 @@ def main() -> None:
 
     dispatch = {
         "transcript": cmd_transcript,
+        "fetch": cmd_fetch,
         "output-dir": cmd_output_dir,
         "create-dir": cmd_create_dir,
         "rename": cmd_rename,
