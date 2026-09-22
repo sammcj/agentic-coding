@@ -4,7 +4,7 @@ Pruned copy of https://bento.page/agents.md, guide version 1.2.3, read 2026-09-2
 
 ## Minimal valid document
 
-Start from this skeleton when creating a deck from scratch. `size` and `theme` are required. The full field set shown is what the on-disk block holds; write the compact form and let the runtime expand it (SKILL.md "Authoring form").
+The full form the on-disk block holds; `size` and `theme` are required there. Author the compact form instead and let the runtime expand it (SKILL.md "Workflow" step 5) `[1.2.3]`.
 
 ```json
 {
@@ -29,7 +29,7 @@ Start from this skeleton when creating a deck from scratch. `size` and `theme` a
 
 ## Element types (all share `id,x,y,w,h,rotation,opacity`)
 
-- **text**: `html` (tags only, see `format-reference.md` "Text html rules" `[1.2.3]`), `fontSize`, `fontFamily`,
+- **text**: `html` (tags only, see SKILL.md gotchas `[1.2.3]`), `fontSize`, `fontFamily`,
   `fontWeight`, `color`, `align` (`left|center|right`), `valign`,
   `lineHeight`, optional `letterSpacing`.
 - **shape**: `shape` = `rect|ellipse|triangle|arrow|line|path`, `fill`, `stroke`,
@@ -125,7 +125,7 @@ Start from this skeleton when creating a deck from scratch. `size` and `theme` a
 
   Every row ends flush at x = 1184. Vertical bands: SKILL.md "Density rules".
 - One accent colour; 2 typefaces max. `theme` sets deck defaults.
-- A `fontFamily` naming a face the document does not carry falls back silently to the next entry in the stack, and it looks right to you because you have the face installed. `validate()` reports it as `font-not-embedded`. Always write a full stack (`"'Fraunces', Georgia, serif"`), never a bare family name. Embedding: `format-reference.md`, "Fonts".
+- A `fontFamily` naming a face the document does not carry falls back silently to the next entry in the stack, and it looks right to you because you have the face installed. `validate()` reports it as `font-not-embedded`. Always write a full stack (`"'Fraunces', Georgia, serif"`), never a bare family name. Embedding: `format-reference.md`, "Elements and fields", Fonts bullet.
 
 ## Layouts and `role`
 

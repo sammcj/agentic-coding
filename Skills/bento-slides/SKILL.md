@@ -1,57 +1,47 @@
 ---
 name: bento-slides
-description: Use when creating single file HTML slide decks, or when editing HTML presentations using Bento.
+description: Use when creating or editing Bento (`.bento.html`) slide decks, including any request for a single-file HTML slide deck.
 ---
 
 # Authoring Bento decks
 
-A Bento deck is one self-contained `.bento.html` file. The document is plain JSON in a single block:
+A Bento deck is one self-contained `.bento.html` file: a compressed app runtime plus the document as plain JSON in one block:
 
 ```html
 <script type="application/bento+json" id="bento-doc"> { "format":"bento/slides", ... } </script>
 ```
 
-Edit that block only, in place. Do not regenerate the rest of the file (the compressed runtime). Escape every `<` in the JSON as its unicode escape (a backslash followed by `u003c`; `render_check.mjs --write` does this) so it cannot contain a literal `</script>`; a build script can then rewrite the block by finding the first `</script>` after the opening tag.
-
-In a chat context the user copies the JSON out (Save > Copy compact JSON) and pastes your replacement back (Save > Replace from JSON). `window.bento.loadDoc(json)` does the same from the console.
+- Edit that block only, in place. Leave the runtime untouched.
+- `render_check.mjs --write` writes the block for you. A hand-written splice must escape every `<` in the JSON as its unicode escape (a backslash followed by `u003c`), so the block never contains a literal `</script>` and a build script can find the block's end at the first `</script>` after the opening tag.
+- Chat context (no filesystem): the user copies the JSON out (Save > Copy compact JSON) and pastes your replacement back (Save > Replace from JSON). `window.bento.loadDoc(json)` does the same from the console.
 
 ## Before touching an existing deck
 
-- **Ask the user to close the deck in their browser first.** A save from the open tab overwrites your edit. Autosave also keeps a recovery snapshot in IndexedDB keyed by `docId`, so a stale tab makes the next open offer to "restore" the old version over yours; tell the user to pick Discard.
-- A shared deck (`collab.on`, the default once keys exist) is worse: every save stamps CRDT state into `collab.sync`, the next open restores that stamp and merges it with the room, so elements a script deleted come back under the new ones. `render_check.mjs --write` drops `collab.sync` on every write. If edits keep reappearing, the owner's other tabs are still in the room: set `collab:{"on":false}` and have the user Share > Reset access.
-- If the `#bento-doc` block contains `"format":"bento/enc"`, the deck is password-encrypted. Stop and tell the user; writing plain JSON over it destroys the ciphertext.
+- **Ask the user to close the deck in their browser.** A save from the open tab overwrites your edit. Autosave keeps a recovery snapshot in IndexedDB keyed by `docId`, so a stale tab offers to "restore" the old version on the next open; tell the user to pick Discard.
+- If the `#bento-doc` block contains `"format":"bento/enc"`, the deck is password-encrypted. Stop and tell the user; plain JSON written over it destroys the ciphertext.
+- **Leave `collab` as found.** Keys mint at creation and every save writes them, so nearly every saved deck carries `ownerPriv`: anyone with the file can join its live session.
+  - Deleting `collab` severs the owner from their own room while sent copies keep the old one.
+  - Tell the user once that the file contains session keys. Hand-outs: Share > View-only copy. Leaked file: Share > Reset access.
+  - Every save also stamps CRDT state into `collab.sync`; the next open merges it with the room, so elements a script deleted come back. `render_check.mjs --write` drops `collab.sync`. If edits still reappear, the owner's other tabs are in the room: set `collab:{"on":false}` and have the user Share > Reset access.
+  - Author `collab:{"on":false}` otherwise only when the user asks for a deck that cannot be shared.
 
 ## Starting from nothing
 
-The user does not need Bento installed. The app ships inside every deck. When there is no `.bento.html` to edit, fetch the latest signed release and author into it:
+The user does not need Bento installed; the app ships inside every deck. Fetch the latest release and author into it:
 
 ```bash
 # name the file after the deck's topic, e.g. Q4_Review.bento.html
 curl -fsSL https://bento.page/releases/slides/Bento_Slides.bento.html -o "<Topic>.bento.html"
 ```
 
-Verify the download contains `id="bento-doc"`. The block is empty on disk: a browser mints a demo deck on first open, so there is nothing to discard or copy from. Omit `docId` and `collab`; the app mints both in memory on open and writes them only when the user saves.
-
-## Authoring form
-
-Write the **compact** form and let the runtime expand it. The on-disk block must contain the full document, so the loop is:
-
-1. Write `doc.json` with `"compact": true` (see `references/format-reference.md`, "Compact form"): defaults omitted, ids optional, text `md` instead of `html`, `h` omitted for auto height, `layout` + `role` placement with no coordinates. A role-placed element keeps only its content; give any element with `fx`, fonts or colours explicit `x y w h`. Expansion fills omitted typography from the editor's insert defaults (system font stack, centred, ink derived from the slide background), never from `theme`: a free-placed text element needs `fontFamily`, `color`, `align` and `valign` written out, or the deck renders off-theme.
-2. Run the render check (below) with `--doc doc.json --write "<Topic>.bento.html"`: the real runtime expands the document, reports `dropped` keys and findings, screenshots every page, and writes the full document into the block.
-3. Fix the JSON, re-run.
-
-Read before authoring: `references/agents-1.2.3.md` (element shapes, chart/state/hidden-slide rules, column arithmetic; a pruned copy of bento.page/agents.md) and `references/format-reference.md` (1.0.19 to 1.2.3 additions and runtime rules). Every key, generated from the runtime: https://bento.page/schema/slides.json. Start from the "Minimal valid document": a full document needs `size` (1280x720) and `theme`; compact fills both when omitted. Unknown keys: a full document keeps them and `validate()` flags them as `unknown-key`; compact input drops them and `loadDoc` reports each one.
+Verify the download contains `id="bento-doc"`. The block is empty on disk (a browser mints a demo deck on first open), so there is nothing to discard. Omit `docId` and `collab`; the app mints both on open and writes them when the user saves.
 
 ## Workflow
 
 Create a task per step below, each with its completion criterion, then work them to completion.
 
-1. **Find the document.** Locate the `#bento-doc` block and parse its JSON. Note `doc.size`, `doc.theme`, existing element `id`s, `docId`, and whether `doc.template` or `doc.readonly` are set. Keep `docId` unchanged.
-2. **Leave `collab` alone.** Keys mint at creation and every save writes them, so nearly every saved deck contains `ownerPriv`, and anyone with the file can join that live session.
-   - Keep `collab` as found. Deleting it severs the owner from their own room while sent copies keep the old one.
-   - Tell the user once that the file contains session keys.
-   - Hand-outs: Share > View-only copy. Leaked file: Share > Reset access.
-   - Author `collab:{"on":false}` only when the user asks for a deck that cannot be shared.
+1. **Read the references.** `references/agents-1.2.3.md` (element shapes, chart/state/hidden-slide rules, column arithmetic) and `references/format-reference.md` (compact form, fields since 1.0.18, runtime rules). Every key, generated from the runtime: https://bento.page/schema/slides.json.
+2. **Find the document** (existing deck). Parse the `#bento-doc` JSON. Note `doc.size`, `doc.theme`, element `id`s, `docId`, and whether `template` or `readonly` is set. Keep `docId` unchanged.
 3. **Classify the source material.** For each piece: a stat, a table, a process, a definition to expand, a photo, code?
 4. **Map each piece to a feature.** This step makes it a Bento deck:
    - numbers to compare (trend, magnitude, share) -> a `chart` element
@@ -64,20 +54,19 @@ Create a task per step below, each with its completion criterion, then work them
    - a build across slides -> one slide per step with `unnumbered:true` on the continuations
    - repeated chrome or logo -> keep its `id` stable across slides
    - a demo clip, recording or soundbite -> a `media` element
-   - the user asked for animation -> read `references/motion.md` and map with its table
-5. **Author.** Respect one accent colour, at most two typefaces, 96px side margins (right-most x <= 1184), and the density rules below. Write speaker notes on each slide. Prefer compact `h:"auto"` for text height; otherwise `window.bento.measure({html, w, fontSize, fontFamily})` via `render_check.mjs --eval`, always passing `fontFamily`. When fanning slides out to several agents, the shared spec lists the type scale (title/body/caption px) and the band tier per slide, not only colours and columns.
-6. **Write back** via `render_check.mjs --doc --write`, or return the replacement JSON in a chat context.
-7. **Render check** (below): fix every `dropped` entry, warning and error, then read each PNG. Text overflow, crowded elements and a dropped chart key are invisible in the JSON and obvious on screen.
+5. **Author `doc.json` in compact form** (`"compact": true`), per format-reference "Compact form". Its typography and role-placement rules fail silently: read both before writing text. Compact fills `size` (1280x720) and `theme` when omitted.
+   - Keep one accent colour, at most two typefaces, and 96px side margins (right-most x <= 1184).
+   - Write speaker notes on each slide.
+   - Size text with compact `h:"auto"`; otherwise `window.bento.measure({html, w, fontSize, fontFamily})` via `render_check.mjs --eval`, always passing `fontFamily`.
+   - When fanning slides out to several agents, the shared spec lists the type scale (title/body/caption px) and the band tier per slide, as well as colours and columns.
+6. **Render and write back:** `render_check.mjs "<Topic>.bento.html" --doc doc.json --write "<Topic>.bento.html"` (add `--motion` if the user asked for animation). In a chat context, return the replacement JSON instead.
+7. **Fix and re-run** until there are no `dropped` entries or errors, and no warnings on content you authored, then read every PNG. On an existing deck, report warnings about the user's own content (motion, notes, fonts) instead of rewriting it. Overflow, crowding and a dropped chart key are invisible in the JSON and obvious on screen.
 8. **Self-audit before finishing:**
    - [ ] any numbers rendered as text that should be a chart?
-   - [ ] no `fx`, no loops, transitions `none` or `fade` only, unless the user asked for animation?
    - [ ] a drill-down that would work better as a state slide?
-   - [ ] one accent colour, at most two typefaces, 96px margins?
-   - [ ] no text below 14px, body at 16px or more, captions baked into raster images flagged to the user?
+   - [ ] one accent colour?
+   - [ ] captions baked into raster images flagged to the user?
    - [ ] on content slides, does the content reach the bottom of the band, with slack spread between blocks rather than pooled underneath?
-   - [ ] `present:{"slideNumber":false}` if the deck has its own `{{page}}` footer?
-   - [ ] speaker notes on every slide?
-   - [ ] `render_check.mjs` clean and every PNG reviewed?
 
 ## Motion default
 
@@ -89,34 +78,25 @@ Bento's examples use a display band (`y:72 h:84`, content from `y:208`, 96px bot
 
 - **Display tier** (cover, section divider, one-idea slide): that band, 88px headline, 40px+ body.
 - **Content tier** (bullets, tables, charts, comparisons): title ~40px at `y:64`, rule at `y:132`, content from `y:156` to `y:656` (500px), 96px side margins kept.
-- **Type floor:** body 16px or larger, nothing below 14px. Aim for 20px+ body on content slides; 16px is caption and footer territory. Decks are watched over video calls that downscale the canvas, so 13px on 1280 reaches the audience at about 7px. Text baked into a raster image cannot be fixed; flag it during classification (step 3).
-- **Fill the band, then choose the gaps.** The margin rule caps extent and says nothing about slack. On a content slide, content reaches the band's bottom and right edges, with leftover height distributed between blocks. For a column: measure every block (or use compact `h:"auto"`), sum, then split the remainder across the gaps.
-- `render_check.mjs` warns `text-too-small` (below 14px) and `low-coverage` (content box under 55% of canvas height on slides with three or more content elements; backdrops and edge chrome do not count). Fix them like validate findings.
+- **Type floor:** body 16px or larger, nothing below 14px, 20px+ body on content slides. Video calls downscale the canvas, so 13px on 1280 reaches the audience at about 7px. Text baked into a raster image cannot be fixed; flag it during classification (step 3).
+- **Fill the band, then choose the gaps.** On a content slide, content reaches the band's bottom and right edges, with leftover height distributed between blocks. For a column: measure every block (or use compact `h:"auto"`), sum, then split the remainder across the gaps.
 
-## Render check
+## Scripts
 
-```bash
-node scripts/render_check.mjs "<Topic>.bento.html" [--doc doc.json [--write <Topic>.bento.html]]
-```
-
-Boots the deck in headless Brave/Chrome with DNS disabled (a shared deck would otherwise join its live room and report the owner's open tab), optionally loads a document through `loadDoc()` and prints its report, prints `window.bento.validate()` findings (unknown keys, text overflow, off-canvas elements, broken links, ignored chart options), enters present mode and saves one PNG per page (plus `slide-NN-revealed.png` after pressing through any `fx.step` reveals). `--write` keeps the previous file as `<path>.bak`. `--help` lists the options, including `--eval` for `measure()` calls and `--margin` for decks not on 96px. It cannot run inside a sandbox that blocks the browser profile directory; when run outside one, `$TMPDIR` differs, so keep `doc.json` and the deck on project paths.
+- `node scripts/render_check.mjs <deck> [--doc doc.json [--write <deck>]]` boots the deck in headless Brave/Chrome with DNS off, prints the load report, `validate()` findings and the skill's own checks, and saves one PNG per page. `--help` lists the options.
+- `node scripts/inflate_runtime.mjs <deck>` extracts the compressed runtime as searchable minified JS; `rg` it to settle a question about app behaviour.
+- The browser needs its profile directory under `$TMPDIR`; a sandbox that blocks it kills the run, so run outside it. Outside the sandbox `$TMPDIR` differs: keep `doc.json` and the deck on project paths.
 
 ## Critical gotchas
 
-Full rules in `references/format-reference.md`. The ones that bite most:
-
-- **Bullets are `<ul><li>` in `html`** (nested `<ul>` for sub-bullets; `<ol>` for numbered). A "•" or "-" glyph typed into the text is inline, so a wrapped line returns under the bullet instead of hanging under the text. Compact `md` bullets produce glyph lines, so a bulleted element uses `html`, not `md`. Lists cost height (1.35em indent, a small margin per `li`, and `<ul>` already breaks so no `<br>` beside it): re-measure after converting glyphs. Centre or right aligned lists lose the hanging indent.
-- **`fit:"contain"` draws smaller than its box.** Margin and coverage checks read the box, so a portrait image in a landscape box passes while leaving dead space. Read the asset's pixel size and give the box the same aspect.
-- **Text `html` keeps tags only** (b i u br p div span ul ol li h1 h2 a code strong em s). Every attribute except http(s) `href` is stripped, so inline colour or size needs a separate text element. `$…$` on one line renders as maths; write `\$` for a literal dollar.
-- **Charts:** bar/line `data` plain numbers; pie takes `{name,value}`. `legend` must be an object to render, and sits top or bottom only. Chart text defaults to `sans-serif`: set `option.textStyle.fontFamily` to the deck font. `axisLine.show` and `splitLine.show` are not read; hide a line by painting `lineStyle.color` the slide background. `option` is pure JSON with template formatters only.
-- **Tables:** the header row is always bold and `borderWidth` applies to every edge; for horizontal rules only, set `borderWidth:0` and draw `rect` shapes of `h:1` at the row pitch.
+- **Bullets are `<ul><li>` in `html`** (nested `<ul>` for sub-bullets, `<ol>` for numbered). A typed "•" or "-" is inline, so a wrapped line returns under the bullet instead of hanging under the text. Compact `md` bullets produce those glyph lines, so a bulleted element uses `html`. Lists cost height and `<ul>` already breaks (no `<br>` beside it): re-measure after converting. Centre or right aligned lists lose the hanging indent.
+- **Text `html` keeps tags only** (b i u br p div span ul ol li h1 h2 a code strong em s). Every attribute except http(s) `href` is stripped, so inline colour or size needs a separate text element. `$…$` on one line renders as maths (`$typst: …$` for Typst); write `\$` for a literal dollar.
+- **Charts implement a subset of ECharts:** unimplemented keys are ignored silently, and `validate()` misses ignored sub-keys. Write charts only from agents "chart" and format-reference "Chart rules".
+- **`fit:"contain"` draws smaller than its box.** Margin and coverage checks read the box, so a portrait image in a landscape box passes while leaving dead space. Give the box the asset's aspect ratio.
+- **Tables:** the header row is always bold and `borderWidth` applies to every edge. For horizontal rules only, set `borderWidth:0` and draw `rect` shapes of `h:1` at the row pitch.
 - **Hairlines:** a `line` shape draws at 2px minimum. A 1px rule is a `rect` with `h:1`.
-- **`present.slideNumber` defaults on**, so a deck with its own `{{page}}` footer shows two numbers.
-- **Fonts:** the shell faces need no bytes (`"asset":"builtin:fraunces-900"`, `"builtin:instrument-sans"`); any other face goes in `doc.assets` as a data URI. Images likewise, downscaled to 2560px before embedding.
-- **Media:** `muted` defaults to true; `muted:false` blocks video autoplay. Embed short clips, host large files by URL.
-- **`{{date}}` renders the viewer's today.** `{{date:YYYY-MM-DD}}` pins the shape only. Write a literal date for a fixed event.
+- **`{{date}}` renders the viewer's today.** `{{date:YYYY-MM-DD}}` pins the format only. Write a literal date for a fixed event.
 - `template:true` -> every open mints a fresh deck, so the runtime strips the flag on load; `render_check.mjs --write` restores `template` and `layouts` from the input JSON. `readonly:true` -> the file boots straight into the show with no editor (validate/measure absent).
 - **`doc.layouts` insert semantics:** deep-clones, preserves element ids, clears `notes`, `name` and `stateOf`. Leave `link` out of layouts.
-- **Reading the runtime source:** `node scripts/inflate_runtime.mjs "<deck>.bento.html"` extracts the compressed runtime as searchable minified JS; `rg` it to settle a question about app behaviour.
 
 Working examples of every technique: open any template at https://bento.page and read its `#bento-doc` block.

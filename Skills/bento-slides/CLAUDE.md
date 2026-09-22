@@ -6,6 +6,17 @@ Bento source, when cloned, lives at `~/git/bento`; `slides/src/model.ts` is the 
 
 - `references/agents-<version>.md` is a pruned copy of bento.page/agents.md. On refresh: curl the URL, re-apply the cuts listed in its header, rename to the new Bento version, log the read date in CHANGELOG.md.
 - `references/format-reference.md` holds what agents.md lacks or gets wrong; correct it there rather than editing the vendored copy beyond `[version]`-tagged fixes.
+- Each rule lives in one file. SKILL.md "Critical gotchas" holds the rules that bite most; everything else goes in a reference, and other files point to it.
+- A rule a script can check belongs in `scripts/render_check.mjs` as a warning, not in the SKILL.md self-audit.
+- `render_check.mjs` reads the skill's Bento version from the `agents-<version>.md` filename and warns when a deck's runtime differs, so the rename on refresh also updates that check.
+
+## Trigger evals
+
+`evals/trigger.json`; run outside the sandbox after any description change:
+
+```bash
+~/.claude/skills/skill-creator-primer/scripts/eval_triggering.py --skill-path ~/.claude/skills/bento-slides --eval-set ~/.claude/skills/bento-slides/evals/trigger.json --model claude-sonnet-5
+```
 
 ## Update CHANGELOG.md after changes
 

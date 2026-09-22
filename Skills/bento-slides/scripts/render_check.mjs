@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 // Open a .bento.html deck in a headless Chromium browser, run window.bento.validate(), screenshot every slide in present mode.
 import { spawn } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const HELP = `Usage: node render_check.mjs <deck.bento.html> [options]
 
-Renders a Bento deck headlessly, prints validate() findings (info severity omitted, except collab-secrets-present and
-font-not-embedded), and saves one PNG per page.
+Renders a Bento deck headlessly, prints validate() findings (info severity omitted, except collab-secrets-present,
+font-not-embedded and past-margin), runs the skill's own checks (type floor, coverage, typefaces, speaker notes,
+double page numbers, motion, runtime version), and saves one PNG per page.
 Exit code 1 when validate() reports an error-severity finding, --doc drops a key, present mode does not open, or the deck fails to boot.
 
 Options:
@@ -31,6 +32,8 @@ Options:
                      Full-bleed backdrops and edge chrome (footers, page numbers, logos) are not content; slides with
                      two or fewer content elements are treated as covers/dividers and skipped
   --margin <px>      Side margin for validate()'s past-margin check (default: the runtime's 96)
+  --motion           The user asked for animation: skip the motion-in-static-deck warning (fx, loops, transitions
+                     other than none/fade)
   --online           Let the browser reach the network. Off by default: a shared deck (collab.on) would otherwise join
                      its live room on boot and validate() would report the owner's open tab, not the file
   -h, --help         Show this help
@@ -53,7 +56,7 @@ if (args.length === 0 || args.includes("-h") || args.includes("--help")) {
   process.exit(args.length === 0 ? 1 : 0);
 }
 const VALUE_OPTS = new Set(["--out", "--browser", "--boot-timeout", "--settle", "--eval", "--doc", "--write", "--min-font", "--min-cover", "--margin"]);
-const FLAG_OPTS = new Set(["--no-shots", "--online"]);
+const FLAG_OPTS = new Set(["--no-shots", "--online", "--motion"]);
 const opts = {};
 const positional = [];
 for (let i = 0; i < args.length; i++) {
@@ -200,6 +203,21 @@ while (!(await evaluate("Boolean(window.bento && window.bento.doc)"))) {
 await evaluate("document.fonts.ready.then(() => true)");
 const api = await evaluate("Object.keys(window.bento)");
 
+// The skill's references are pinned to one Bento version (references/agents-<version>.md); a newer shell may carry
+// keys and behaviour they do not describe, an older one may lack features they assume.
+const runtimeVersion = api.includes("schema") ? await evaluate("window.bento.schema()['x-bento-version'] || null") : null;
+const refVersion = (() => {
+  try {
+    const f = readdirSync(new URL("../references/", import.meta.url)).find((n) => /^agents-.+\.md$/.test(n));
+    return f && f.slice("agents-".length, -".md".length);
+  } catch { return undefined; }
+})();
+console.log(`Runtime: Bento ${runtimeVersion ?? "unknown (no schema())"}${refVersion ? ` | skill references: ${refVersion}` : ""}`);
+if (runtimeVersion && refVersion && runtimeVersion !== refVersion) {
+  // Informational, not a [warning]: nothing in the deck can fix it, and a fix-every-warning loop would never end.
+  console.log(`  note: the deck runs Bento ${runtimeVersion} but the skill describes ${refVersion}; treat https://bento.page/schema/slides.json as authoritative where they differ`);
+}
+
 // Load a document through the runtime: compact JSON expands here, and the report names what the gate dropped.
 let droppedKeys = false;
 if (docPath) {
@@ -244,9 +262,9 @@ if (info.size.width !== 1280 || info.size.height !== 720) {
 let hasError = droppedKeys;
 if (api.includes("validate")) {
   const v = await evaluate(`JSON.parse(JSON.stringify(window.bento.validate(undefined, ${JSON.stringify(margin === undefined ? {} : { margin })})))`);
-  // Info findings are design choices except these: keys in the file are a leak the agent must surface, and a
-  // font that is not embedded looks right only on the machine that has it installed.
-  const SURFACED_INFO = new Set(["collab-secrets-present", "font-not-embedded"]);
+  // Info findings are design choices except these: keys in the file are a leak the agent must surface, a
+  // font that is not embedded looks right only on the machine that has it installed, and the skill holds 96px margins.
+  const SURFACED_INFO = new Set(["collab-secrets-present", "font-not-embedded", "past-margin"]);
   // With --doc the keys were minted in this browser session, never in a file; --write strips them again.
   if (docPath && !("collab" in JSON.parse(readFileSync(docPath, "utf8")))) SURFACED_INFO.delete("collab-secrets-present");
   const findings = (v.findings || []).filter((f) => f.severity !== "info" || SURFACED_INFO.has(f.code));
@@ -259,11 +277,47 @@ if (api.includes("validate")) {
   console.log(`validate(): not in this runtime (window.bento has: ${api.join(", ")}). Download a fresh Bento_Slides.bento.html from https://bento.page/releases/slides/ and splice the document JSON into its #bento-doc block.`);
 }
 
-// Readability checks validate() does not make: type below the floor, and slides that leave most of the canvas empty.
-// Runs on the loaded doc in the browser so assets never cross the wire.
-const readability = await evaluate(`((minFont, minCover) => {
+// Checks validate() does not make: the skill's readability and house rules. Runs on the loaded doc in the browser
+// so assets never cross the wire.
+const readability = await evaluate(`((minFont, minCover, motion) => {
   const d = window.bento.doc, W = d.size.width, H = d.size.height, out = [];
   const hasText = (e) => e.type === "text" && /[^\\s]/.test(String(e.html || "").replace(/<[^>]*>/g, ""));
+  const all = d.slides.flatMap((s) => (s.elements || []).map((e) => [s, e]));
+
+  // A monospace stack is the code face and does not count against the two-typeface limit; the system aliases are one face.
+  const SYSTEM = /^(system-ui|-apple-system|blinkmacsystemfont|segoe ui|sans-serif)$/;
+  const face = (stack) => {
+    const s = typeof stack === "string" ? stack : "";
+    if (!s.trim() || /\\bmonospace\\b/i.test(s)) return null;
+    const f = s.split(",")[0].trim().replace(/^['"]|['"]$/g, "").toLowerCase();
+    return SYSTEM.test(f) ? "system-ui" : f;
+  };
+  const faces = new Set();
+  for (const [, e] of all) {
+    const f = face(hasText(e) && e.fontFamily) || face(e.type === "chart" && e.option && e.option.textStyle && e.option.textStyle.fontFamily);
+    if (f) faces.add(f);
+  }
+  if (faces.size > 2) out.push({ code: "too-many-typefaces", message: faces.size + " typefaces (" + [...faces].join(", ") + "); keep to two" });
+
+  const noNotes = d.slides.filter((s) => !String(s.notes || "").trim()).map((s) => s.id);
+  if (noNotes.length) out.push({ code: "missing-notes", message: "no speaker notes on " + noNotes.join(", ") });
+
+  if (!(d.present && d.present.slideNumber === false) && all.some(([, e]) => /\\{\\{page(:\\d+)?\\}\\}/.test(String(e.html || "")))) {
+    out.push({ code: "double-page-number", message: "a {{page}} footer plus the default slide number shows two numbers; set present:{\\"slideNumber\\":false}" });
+  }
+
+  if (!motion) {
+    const moving = [];
+    for (const s of d.slides) {
+      const t = s.transition || "fade";
+      const fx = (s.elements || []).filter((e) => e.fx && Object.keys(e.fx).length).length;
+      const why = [t !== "none" && t !== "fade" ? "transition " + t : "", fx ? fx + " fx" : ""].filter(Boolean);
+      if (why.length) moving.push(s.id + " (" + why.join(", ") + ")");
+    }
+    const shown = moving.slice(0, 8).join("; ") + (moving.length > 8 ? "; +" + (moving.length - 8) + " more slides" : "");
+    if (moving.length) out.push({ code: "motion-in-static-deck", message: shown + "; remove, or pass --motion if the user asked for animation" });
+  }
+
   for (const s of d.slides) {
     const els = (s.elements || []).filter((e) => e.opacity !== 0);
     for (const e of els) {
@@ -288,11 +342,11 @@ const readability = await evaluate(`((minFont, minCover) => {
     if (ch < minCover) out.push({ code: "low-coverage", slide: s.id, message: "content spans " + Math.round(ch * 100) + "% of the height and " + Math.round(cw * 100) + "% of the width (y " + Math.round(y0) + ".." + Math.round(y1) + "); tighten the band or grow the type" });
   }
   return out;
-})(${minFont}, ${minCover})`);
+})(${minFont}, ${minCover}, ${Boolean(opts["--motion"])})`);
 for (const f of readability) {
-  console.log(`  [warning] ${f.code} slide=${f.slide} ${f.element ? `el=${f.element} ` : ""}${f.message}`);
+  console.log(`  [warning] ${f.code} ${f.slide ? `slide=${f.slide} ` : ""}${f.element ? `el=${f.element} ` : ""}${f.message}`);
 }
-if (readability.length) console.log(`readability: ${readability.length} warning(s); --min-font and --min-cover adjust the floors`);
+if (readability.length) console.log(`checks: ${readability.length} warning(s); --min-font, --min-cover and --motion adjust them`);
 
 if (opts["--eval"]) {
   try {

@@ -1,0 +1,9 @@
+[
+  {"query": "Make me a 6-slide single-file HTML presentation on our Q3 cloud cost savings. Spend fell from $182k to $131k a month; the three biggest wins were rightsizing EC2, moving batch jobs to spot, and S3 lifecycle rules. Audience is the exec team, shown over Zoom.", "should_trigger": true},
+  {"query": "Slide 4 of Agentic_Coding.bento.html has a bar chart in the wrong colours and the heading overflows its box. Fix both without breaking the live share link.", "should_trigger": true},
+  {"query": "Turn these talk notes into a Bento deck I can present from the browser: 1) why agents stall on big repos 2) context budgets 3) sub-agents for fan-out 4) demo 5) takeaways.", "should_trigger": true},
+  {"query": "Create a .pptx deck for Thursday's board meeting covering: revenue up 14%, two new hires, churn steady at 3%, and the Sydney office move.", "should_trigger": false},
+  {"query": "Build a single-page HTML explainer of our new API rate limits (100 req/min per key, 429 with Retry-After, burst of 20) with a small diagram, to link from the docs site.", "should_trigger": false},
+  {"query": "Set up a reveal.js presentation for my Rust meetup talk with Markdown slides, speaker view and a GitHub Pages deploy: intro, ownership, lifetimes, async, Q&A.", "should_trigger": false},
+  {"query": "Convert quarterly_review.pptx into markdown notes, one section per slide, keeping what the charts show.", "should_trigger": false}
+]
