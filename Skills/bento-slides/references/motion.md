@@ -38,9 +38,9 @@ Every animation must carry meaning: the same thing changing, a point arriving on
 
 ## Loops
 
-Both under `fx.loop`. Never combine with `fx.enter` on the same element (`entrance-on-motion-path`).
+Both under `fx.loop`. Do not combine with `fx.enter` on the same element (`entrance-on-motion-path`).
 
-- `{type:"dash-march", distance:18, duration:1.4}` animates `strokeDashoffset`, so the shape needs a `stroke` and `strokeStyle:"dashed"` or `"dotted"`; on a solid stroke nothing is visible (`dash-march-no-dash`).
+- `{type:"dash-march", distance:18, duration:1.4}` animates `strokeDashoffset`, so the shape needs a `stroke` and `strokeStyle:"dashed"` or `"dotted"`; on a solid stroke the animation is invisible (`dash-march-no-dash`).
 - `{type:"motion-path", path:"M0,0 C60,-40 140,40 200,0", duration:6, delay:0, ease:"none", speeds:[1,1]}`: path coords are offsets from the element's rest position, so start at `M0 0`. `speeds` is optional, one multiplier per on-curve anchor. `ease` in none|linear|power1-3.in/out/inOut|sine.in/out/inOut.
 
 ## Code morph

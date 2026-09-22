@@ -6,22 +6,22 @@ Contents: Compact form | Elements and fields | Slide, present, theme | Date and 
 
 ## Compact form
 
-`"compact": true` at the top level. Accepted only by `window.bento.loadDoc()`, Save > Replace from JSON, and `render_check.mjs --doc`. The on-disk `#bento-doc` block must hold the full document (boot does no expansion).
+`"compact": true` at the top level. Accepted only by `window.bento.loadDoc()`, Save > Replace from JSON, and `render_check.mjs --doc`. The on-disk `#bento-doc` block must contain the full document (boot does no expansion).
 
 - Omit every field equal to the editor default (rotation 0, opacity 1, weight 400, centre/middle, lineHeight 1.25, transparent stroke, theme background, `transition:"fade"`). Always write the type's content key, and `x y w h` unless the element is role-placed.
-- The defaults are the editor's insert defaults, not the theme (`compact.ts` `elementDefaults`): text gets the system font stack, 32px, `align:"center"`, `valign:"middle"` and a colour derived from the slide background; `theme.fontFamily` and `theme.color` are never consulted. Write `fontFamily` (full stack), `color`, `align` and `valign` on every free-placed text and code element. Role-placed elements take typography from the layout instead. Tables do read the theme (`defaultTable(theme)`).
+- The defaults are the editor's insert defaults, not the theme (`compact.ts` `elementDefaults`): text gets the system font stack, 32px, `align:"center"`, `valign:"middle"` and a colour derived from the slide background; `theme.fontFamily` and `theme.color` are not read. Write `fontFamily` (full stack), `color`, `align` and `valign` on every free-placed text and code element. Role-placed elements take typography from the layout instead. Tables do read the theme (`defaultTable(theme)`).
 - `id` may be omitted: minted as `<slideId>-<type>-<index>`, deterministic across re-runs.
 - `elements` may contain nested arrays (a helper returning `[bg, title, body]` needs no spread).
 - Text: omit `h` or write `"h":"auto"` to size the box to its text on the deck's real fonts. Write `md` instead of `html`: `**bold**`, `*italic*`, `` `code` ``, `~~strike~~`, `[caption](https://…)`. `md` bullets (`- item`) become "•" glyph lines with the bad wrap described in SKILL.md, so write bulleted elements as `html` with `<ul><li>`. When both present, `html` wins.
 - Placement by role: give the slide `layout` and elements `role`, omit geometry and typography. An element with `x y w h` is placed as given. Extra `body` elements stack in the body slot. A role the layout lacks falls back to body and is noted in `dropped`.
-- A role-placed element contributes only its content (`html`/`md`, or `src` for an image) to the layout's slot copy. Every other key on it (`fx`, `fontSize`, `color`, `link`, a typo) is discarded silently and never reaches `dropped`. For step reveals, fonts or effects, place the element with `x y w h` instead.
+- A role-placed element contributes only its content (`html`/`md`, or `src` for an image) to the layout's slot copy. Every other key on it (`fx`, `fontSize`, `color`, `link`, a typo) is discarded silently and does not reach `dropped`. For step reveals, fonts or effects, place the element with `x y w h` instead.
 - Built-in layouts and roles: `title` (title, subtitle), `title-content`/`title-body` (title, body), `two-col`/`two-column` (title, body, left, right), `section` (title, kicker), `three-cards`/`cards` (title, card1-3), `quote` (quote, attribution), `image-left` and `image-right` (image, title, body). A deck's own `layouts` may be named the same way.
 - Gate on load: an element missing its required keys is dropped (text `html`, shape `shape`+`fill`, image `src`, chart `option`, table `columns`+`rows`, media `kind`+`src`). Unknown keys are dropped and reported with their path. Colour strings max 64 chars; `url()` only as `url(#local-id)` on a shape `fill`.
 
 ## Elements and fields
 
 - Every element may carry `shadow` (`{x,y,blur,color}` or an array to stack), `blur` (px), `blend` (mix-blend-mode), `backdropFilter` (px, screen only, pair with translucent `fill` for PDF), `link`, `group`, `showOnHover`, `themeRefs`.
-- `link`: a slide id (jump, the state-slide idiom) or an http(s) URL (opens a new tab). Editor clicks never follow it. Text `html` may also carry `<a href="https://…">`.
+- `link`: a slide id (jump, the state-slide idiom) or an http(s) URL (opens a new tab). Editor clicks do not follow it. Text `html` may also carry `<a href="https://…">`.
 - `themeRefs`: `{"fill":"accent1 -20%"}` re-derives the literal from `theme.palette` on every change, overwriting the literal. Slots: bg1, tx1, accent1 (from theme.background/color/accent), bg2, tx2, accent2-6, hlink.
 - Text extras: `letterSpacing` (px), `textStroke` `{width,color,fill?}` (`fill:"none"` for hollow glyphs), `colorGradient` (wins over `color`). Empty `html` with `placeholder` is hidden in present mode. Text never autoshrinks.
 - Shape: `lineStart`/`lineEnd` in none|arrow|dot|bar|arrow-open|triangle|triangle-open|diamond|diamond-open|square|circle-open; `heads:2` double arrow; `strokeStyle` solid|dashed|dotted. Line colour comes from `fill`, and lines draw horizontally across the box (vertical = rotation). A `line` renders at `max(strokeWidth, 2)` px, so a 1px hairline is a `rect` with `h:1`.
@@ -53,7 +53,7 @@ Allowed tags: b i u br span div p strong em s code ul ol li h1 h2 a. Every attri
 - `legend` must be an object (`{}`) to render at all. `label:false` hides pie labels. `axisLabel.formatter` supports `{value}`.
 - Bar/line `data` plain numbers (numeric strings and `{value}` objects coerce to 0). Pie needs `{name,value}` and draws only its first series.
 - No stacking, per-item colours, `title`, or `axisLabel.rotate`. `validate()` lists ignored keys as `chart-key-ignored`.
-- Inside honoured keys only some sub-keys are read, and `validate()` does not see that far: `axisLine`/`splitLine` read `lineStyle.color` and `lineStyle.width` only (`show:false` still draws; paint the colour the slide background instead), `axisLabel` reads `color`, `fontSize`, `fontWeight`, `formatter` (no `show`), `legend` honours `top` or `bottom` (never `left`/`right`; default bottom), `boundaryGap` is ignored.
+- Inside honoured keys only some sub-keys are read, and `validate()` does not see that far: `axisLine`/`splitLine` read `lineStyle.color` and `lineStyle.width` only (`show:false` still draws; paint the colour the slide background instead), `axisLabel` reads `color`, `fontSize`, `fontWeight`, `formatter` (no `show`), `legend` honours `top` or `bottom` (not `left`/`right`; default bottom), `boundaryGap` is ignored.
 
 ## window.bento signatures
 
@@ -61,6 +61,6 @@ Allowed tags: b i u br span div p strong em s code ul ol li h1 h2 a. Every attri
 - `compact()` -> compact JSON string. `schema()` -> JSON Schema 2020-12.
 - `validate(doc?, {measure?, margin?})` -> `{ok, measured, counts:{error,warning,info}, findings:[{code, severity, message, slide?, element?, path?}]}`. Margin check (`past-margin`, info severity) is 96px x 0.9 on text/table only; elements under 3% of canvas area exempt. `font-not-embedded` is info too; `render_check.mjs` surfaces both it and `collab-secrets-present`.
 - `measure(idOrSpec, {doc?})` with spec `{html, w, h?, fontSize?, fontFamily?, fontWeight?, lineHeight?, letterSpacing?}` -> `{height, width, lines, fits?, overflow?}`. Without `fontFamily` it measures in the editor stack, so always pass the deck's font. `letterSpacing` is accepted and ignored in 1.2.3: budget one `letterSpacing` per character on the longest line.
-- `serialize()` returns the full file but stamps the session's collab keys into it. `render_check.mjs --write` splices `window.bento.doc` instead, carrying `collab` (minus `sync`), `template` (parseDoc deletes it as a fresh instantiation) and `layouts` over from the input JSON; the runtime re-mints an incomplete `collab`, which would sever the owner's room.
+- `serialize()` returns the full file but stamps the session's collab keys into it. `render_check.mjs --write` splices `window.bento.doc` instead, copying `collab` (minus `sync`), `template` (parseDoc deletes it as a fresh instantiation) and `layouts` from the input JSON; the runtime replaces an incomplete `collab` with new keys, which would cut the owner off from the room.
 - Lists in text `html`: `ul`/`ol` get `padding-inline-start:1.35em`, `li` gets `margin:0.12em 0`, `ul` is `disc` and nested `ul` is `circle`. Centre or right aligned boxes switch to `list-style-position:inside` (no hanging indent).
 - Player (`readonly`) files expose only `{format, doc, readonly}`; validate/measure need an editor shell.
