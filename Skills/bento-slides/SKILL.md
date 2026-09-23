@@ -36,6 +36,15 @@ curl -fsSL https://bento.page/releases/slides/Bento_Slides.bento.html -o "<Topic
 
 Verify the download contains `id="bento-doc"`. The block is empty on disk (a browser mints a demo deck on first open), so there is nothing to discard. Omit `docId` and `collab`. `render_check.mjs --write` saves freshly minted keys with sharing off (`collab.on:false`); the user turns sharing on with Share. Never author a `collab` object: one without keys never gets any, so Share silently connects nothing.
 
+## Starting from a theme
+
+When the user asks for a themed deck or names a theme from [bento-themes](https://github.com/sammcj/bento-themes), use the local clone at `~/git/sammcj/bento-themes` if it exists (it may hold unreleased work). Otherwise clone it there: `git clone https://github.com/sammcj/bento-themes ~/git/sammcj/bento-themes`.
+
+- Pick a theme from the repo README (one section per theme) and `themes/<name>/preview/*.png`.
+- Shell: copy `themes/<name>/<Name>.bento.html` to `<Topic>.bento.html`.
+- Document: start `doc.json` from `themes/<name>/<Name>.doc.json` (full form). Keep `theme`, `fonts`, `assets`, `present`, `meta` and `layouts`. Delete `collab`, `docId` and `template` so the deck is not a template and `--write` saves it with sharing off.
+- Slides: copy the demo slide for each layout you need (its element ids match the layout), give it a unique slide `id`, and replace its text, data and notes. A layout with a detail state needs its state slide copied too, with `stateOf` and `link` updated. Theme layouts carry no `role`, so compact role placement does not apply.
+
 ## Workflow
 
 Create a task per step below, each with its completion criterion, then work them to completion.

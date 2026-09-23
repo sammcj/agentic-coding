@@ -4,6 +4,8 @@
 
 ## 2026-09-23
 
+- Starting from a bento-themes theme: reuse `~/git/sammcj/bento-themes`, copy demo slides per layout
+
 - New decks are written with sharing off (`collab.on:false`, real keys kept); Share turns it on
 
 - `render_check.mjs` warns on 3+ typefaces, missing notes, double page numbers, unrequested motion (`--motion` opts in)
