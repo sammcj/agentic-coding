@@ -10,7 +10,11 @@ The script downloads English subtitles or auto-generated text transcripts (not a
 
 ## No subtitles
 
-When the video has no subtitles the script prints `NO_SUBTITLES`, the video `DURATION` and a `TRANSCRIBE_HINT`, then exits with status 2. Do not transcribe on your own initiative. Ask the user whether to transcribe locally with Parakeet, stating the duration and that it downloads the audio plus, on first run, the model. Only if they agree, rerun with the flag:
+When the video has no subtitles the script prints `NO_SUBTITLES`, the video `DURATION` and a `TRANSCRIBE_HINT`, then exits with status 2.
+
+If the output contains `COOKIE_HINT`, follow its instructions before offering transcription.
+
+Do not transcribe on your own initiative. Ask the user whether to transcribe locally with Parakeet, stating the duration and that it downloads the audio plus, on first run, the model. Only if they agree, rerun with the flag:
 
 ```bash
 uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py transcript <youtube-url> --transcribe

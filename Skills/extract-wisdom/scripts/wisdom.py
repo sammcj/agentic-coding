@@ -85,6 +85,18 @@ SUBTITLE_LANGS = ["en"]
 # Browser search order for cookie-based YouTube downloads.
 COOKIE_BROWSERS = ("firefox", "brave", "chrome", "chromium", "safari")
 
+# Exported Netscape cookie file, preferred over browser extraction. macOS app data
+# protection can block reading browser profiles, and a file limits exposure to one site.
+COOKIE_FILE = Path.home() / ".config" / "yt-dlp" / "youtube-cookies.txt"
+
+# macOS profile directories for COOKIE_BROWSERS, relative to ~/Library/Application Support.
+MACOS_BROWSER_DIRS = {
+    "firefox": "Firefox",
+    "brave": "BraveSoftware/Brave-Browser",
+    "chrome": "Google/Chrome",
+    "chromium": "Chromium",
+}
+
 # Markdown extensions used when converting to HTML for PDF rendering.
 # See https://python-markdown.github.io/extensions/
 MD_EXTENSIONS = ["tables", "fenced_code"]
@@ -198,7 +210,18 @@ def detect_browser() -> str | None:
             return browser
         if browser == "chrome" and (home / ".var" / "app" / "com.google.Chrome").is_dir():
             return browser
+        mac_dir = MACOS_BROWSER_DIRS.get(browser)
+        if mac_dir and (home / "Library" / "Application Support" / mac_dir).is_dir():
+            return browser
     return None
+
+
+def _cookie_opts() -> dict:
+    """yt-dlp cookie options: exported cookie file first, then browser extraction."""
+    if COOKIE_FILE.is_file():
+        return {"cookiefile": str(COOKIE_FILE)}
+    browser = detect_browser()
+    return {"cookiesfrombrowser": (browser,)} if browser else {}
 
 
 # ---------------------------------------------------------------------------
@@ -332,9 +355,7 @@ def _download_transcript(url: str, video_dir: Path, use_cookies: bool = False) -
         "remote_components": {"ejs:github"},
     }
     if use_cookies:
-        browser = detect_browser()
-        if browser:
-            opts["cookiesfrombrowser"] = (browser,)
+        opts.update(_cookie_opts())
     # Redirect stderr at the OS level to suppress yt-dlp's direct fd writes
     old_fd = os.dup(2)
     devnull = os.open(os.devnull, os.O_WRONLY)
@@ -374,9 +395,7 @@ def _download_audio(url: str, video_dir: Path, use_cookies: bool = False) -> boo
         "logger": _SilentLogger(),
     }
     if use_cookies:
-        browser = detect_browser()
-        if browser:
-            opts["cookiesfrombrowser"] = (browser,)
+        opts.update(_cookie_opts())
     old_fd = os.dup(2)
     devnull = os.open(os.devnull, os.O_WRONLY)
     os.dup2(devnull, 2)
@@ -742,6 +761,18 @@ def cmd_transcript(args: argparse.Namespace) -> None:
             print("TRANSCRIBE_HINT: rerun with --transcribe to download the audio and "
                   "transcribe locally with Parakeet TDT v2 (needs ffmpeg; first run "
                   "downloads the model)")
+            if not COOKIE_FILE.is_file():
+                # macOS app data protection blocks reading Firefox's profile, so an
+                # exported single-site cookie file is the supported route.
+                print(f"COOKIE_HINT: no cookie file at {COOKIE_FILE}. YouTube may be rate "
+                      "limiting (HTTP 429) anonymous requests. Before offering --transcribe, "
+                      "ask the user to:\n"
+                      "  1. Install https://addons.mozilla.org/en-GB/firefox/addon/cookies-txt/\n"
+                      "  2. Open a private window, log into YouTube, export cookies for "
+                      "youtube.com only (YouTube rotates cookies in open tabs), then close "
+                      "the window\n"
+                      f"  3. Save the export to {COOKIE_FILE} and chmod 600 it\n"
+                      "  Then rerun the transcript command.")
             sys.exit(2)
 
         transcript_file = _audio_transcription_fallback(url, video_dir)
