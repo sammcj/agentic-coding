@@ -32,7 +32,7 @@ These principles are adapted from the `html-design-examples` skill. Load that sk
 
 Use visual accents (coloured border stripes, tinted-background callout boxes, accent bars on cards) only when the colour or treatment encodes specific information - status, category, severity, or priority that I've explicitly defined. Don't apply visual accents decoratively, don't rotate through palette colours across sibling items for variety, and don't reach for the tinted-callout-with-coloured-bar pattern as a default way to mark asides. If you're about to add an accent, ask whether removing it would lose information; if not, remove it and rely on plain typographic hierarchy instead.
 
-Other things to avoid because they read as AI-default output: excessive centred layouts, purple gradients, uniformly rounded corners on everything, glassmorphism, emoji bullets, and three-card-grid hero sections with identical icons.
+Other things to avoid because they read as AI-default output: excessive centred layouts, purple gradients, uniformly rounded corners on everything, glassmorphism, emoji bullets, and three-card-grid hero sections with identical icons. The same goes for status badges or pulsing dots whose state never changes ("Active", "Verified"), copy that echoes the prompt or stack ("Built with..."), fake-system naming (`//` separators, SCREAMING_SNAKE labels, version pills, spaced mono-caps eyebrows), and landing-page furniture on working screens (hype subtitles, vanity stat strips, one headline word in the accent colour). Check the alignment of SVGs, ASCII art and timeline markers by measuring the computed boxes.
 
 ## Themes
 

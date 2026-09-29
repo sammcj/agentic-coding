@@ -2,6 +2,10 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-09-29
+
+- New `references/ui-slop.md`: tells of AI-generated interfaces (gradients, rainbow colour, glass, badges with no state, fingernail cards, emoji icons, fake-system naming, misalignment, prompt leakage in copy), each paired with its fix, plus a short review/fix workflow. SKILL.md points to it for screenshot, page or component input; description now says "text or UI".
+
 ## 2026-09-08
 
 - New tells: "X is the contract" (copula shape only) and "carries the" (an object doing the work) join `metaphor-tic`; `byte-identical` / bit-identical / byte-for-byte is a finding from the second use in a document, via a `REPEATED` floor applied in `scan_spans` so the text and HTML reports agree. Tier 1 and the checklist name both. Tests cover the literal contract and the single use.

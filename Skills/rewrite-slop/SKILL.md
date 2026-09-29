@@ -1,6 +1,6 @@
 ---
 name: rewrite-slop
-description: Use when explicitly asked to review or rewrite AI-generated text so it reads as human, or with phrasings like "de-slop", "humanise this", "make it sound less like AI", or "remove the AI tells" or asks for a "slopsummary".
+description: Use when explicitly asked to review or rewrite AI-generated text or UI so it reads as human, or with phrasings like "de-slop", "humanise this", "make it sound less like AI", or "remove the AI tells" or asks for a "slopsummary".
 argument-hint: "[Please (review|rewrite) the text in file.md to make sure it doesn't sound like AI slop] - NOTE: Recommended to use Fable (or at least Opus with this skill)"
 ---
 
@@ -13,6 +13,8 @@ This is editing, not authoring. You add no new information. You change no facts,
 Tier 2's vocabulary is a snapshot of a ranking that moves. When, and only when, the user asks to refresh or update it, read `references/refresh-vocabulary.md` and follow it. Never do this as part of a rewrite.
 
 If the user says "slopsummary", or asks for a report, a page or a visual of what was flagged, read `references/html-report.md`. Otherwise ignore it: the rewrite phases below never need it.
+
+If the input is an interface (a screenshot, a page, or component and style code), read `references/ui-slop.md` before Phase 0. It covers the visual tells; the phases below still apply to the interface copy.
 
 ## Phase 0: Triage technical artefacts
 

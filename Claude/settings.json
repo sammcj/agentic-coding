@@ -562,7 +562,8 @@
     "i-have-adhd@i-have-adhd": true,
     "cc-safety-net@cc-marketplace": true,
     "caveman@caveman": false,
-    "nono@nolabs-ai": true
+    "nono@nolabs-ai": true,
+    "deploy-on-aws@agent-plugins-for-aws": false
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -639,6 +640,13 @@
         "source": "github",
         "repo": "JuliusBrussee/caveman"
       }
+    },
+    "agent-plugins-for-aws": {
+      "source": {
+        "source": "github",
+        "repo": "awslabs/agent-plugins"
+      },
+      "autoUpdate": true
     }
   },
   "outputStyle": "terse",
