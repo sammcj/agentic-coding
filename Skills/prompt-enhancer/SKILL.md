@@ -1,7 +1,7 @@
 ---
 name: prompt-enhancer
 description: |
- Transform poor or overly simple prompts with expert-level framing. Use when the user explicitly asks to improve, refine, or rewrite a prompt, or wants help framing a request for another AI system. Do NOT use for authoring, reviewing, or migrating system prompts or skills targeting a specific Claude model (prompt-fable).
+ Transform poor or overly simple prompts with expert-level framing. Use when the user explicitly asks to improve, refine, or rewrite a prompt, or wants help framing a request for another AI system. Do NOT use for authoring, reviewing, or migrating system prompts or skills targeting a specific Claude model.
 ---
 
 # Expert Prompt Enhancer

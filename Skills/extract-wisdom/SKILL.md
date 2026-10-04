@@ -1,7 +1,7 @@
 ---
 name: extract-wisdom
 description: Extract wisdom, insights, and actionable takeaways from YouTube videos, blog posts, articles, or text files. Use when asked to extract wisdom or key insights from a given content source.
-allowed-tools: Read Write Edit Glob Grep Task WebSearch WebFetch Bash(uv run */extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *)
+allowed-tools: Read Write Edit Glob Grep Agent WebSearch WebFetch Bash(uv run */extract-wisdom/scripts/wisdom.py *) Bash(uv run scripts/wisdom.py *) Bash(mv *)
 ---
 
 # Wisdom Extraction

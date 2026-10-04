@@ -1,6 +1,6 @@
 ---
 name: systematic-debugging
-description: Applies a modified Fagan Inspection methodology to resolve persistent bugs and complex issues. Use when several fix or debugging attempts have already failed and a methodical root-cause analysis warranting a Fagan inspection is needed. For first-pass diagnosis of a reproducible bug or regression use diagnose-hard-problem. Do not use for simple troubleshooting.
+description: Applies a modified Fagan Inspection methodology to resolve persistent bugs and complex issues. Use when several fix or debugging attempts have already failed and a methodical root-cause analysis warranting a Fagan inspection is needed. Do not use for simple troubleshooting.
 ---
 
 # Systematic Debugging with Fagan Inspection
@@ -38,7 +38,7 @@ Check against these defect categories:
 4. **Data Flow Issues**
 5. **Integration Points**
 
-**Think aloud** during this phase. For each section of code:
+Talk through the code step by step, as the Reader does in a Fagan inspection. For each section of code:
 - State what the code is intended to do
 - Identify any discrepancies between intent and implementation
 - Flag assumptions or unclear aspects

@@ -152,7 +152,7 @@ If issues arise during implementation:
 - [ ] All user instructions followed
 - [ ] All requirements implemented and tested
 - [ ] No critical code smell warnings
-- [ ] British/Australian spelling used throughout (NO AMERICAN SPELLING ALLOWED!)
+- [ ] Australian English spelling used throughout
 - [ ] No smart formatting, non-ascii characters or emojis
 - [ ] Code follows project conventions and standards
 - [ ] Documentation is updated and accurate if needed
@@ -170,7 +170,7 @@ If issues arise during implementation:
 - Use dashes with single spaces for markdown lists: `- [ ] Task`
 - Do not include dates or time estimates
 - Be clear, concise, and actionable
-- Write in British English
+- Write in Australian English
 - Use technical terminology consistently
 - Avoid vague language - be specific about what needs to be done
 

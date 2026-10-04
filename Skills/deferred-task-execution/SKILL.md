@@ -1,7 +1,7 @@
 ---
 name: deferred-task-execution
 description: Delays execution of a task until a specified time or after a duration. Use when the user asks to run something later, in X minutes/hours, at a specific time, schedule a command, or defer work to a future point.
-allowed-tools: [Bash, Read, TaskOutput]
+allowed-tools: [Bash, Read, TaskStop]
 ---
 
 # Deferred Task Execution
@@ -50,21 +50,15 @@ Run the wait script using Bash with `run_in_background: true`:
 ~/.claude/skills/deferred-task-execution/scripts/wait-until.sh <argument>
 ```
 
-Note the task ID from the response -- you need it for the next step.
+Note the task ID from the response -- you need it to cancel.
 
 ### Step 3: Wait for the timer
 
-Use the `TaskOutput` tool to block until the timer completes:
-
-- Set `block: true`
-- Set `timeout: 600000` (maximum: 10 minutes / 600000ms)
-- Use the task ID from Step 2
-
-**If the wait exceeds 10 minutes**: TaskOutput will return before the timer completes because the maximum timeout is 600000ms. Check the output -- if it does not contain "Timer complete", call TaskOutput again with the same task ID and `block: true`. Repeat until the timer finishes.
+Background Bash notifies you when the script exits. Wait for that notification; don't poll.
 
 ### Step 4: Execute the deferred task
 
-Once TaskOutput returns output containing "Timer complete. Proceed with deferred task.", carry out whatever work the user requested.
+Once the output contains "Timer complete. Proceed with deferred task.", carry out whatever work the user requested.
 
 ## Important Notes
 
