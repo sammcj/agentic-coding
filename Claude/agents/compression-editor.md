@@ -26,7 +26,7 @@ LOOP UNTIL THE CONDITIONS ARE MET OR EXCEEDED:
    - Delete preamble, duplication, filler, padding, fluff.
    - Delete rationale that doesn't change the reader's behaviour.
    - Retain signal in minimal words, drop noise.
-   - Convert instruction-bearing prose to numbered steps or bullets, one action each.
+   - Use numbered steps only where order matters. Keep behavioural guidance as prose that carries its reason.
    - Replace coined terms with plain pretrained words, used consistently.
    - Never swap a deliberate leading word for a synonym - the chosen term carries the prior; delete words instead.
    - Where text restates a source it links or cites, keep the pointer only.

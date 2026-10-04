@@ -5,13 +5,13 @@
 Fetch the article with the script. It extracts the main content to markdown, strips invisible characters, and stages it in a directory alongside `metadata.json`:
 
 ```bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py fetch <url>
+uv run <skill-dir>/scripts/wisdom.py fetch <url>
 ```
 
 On `FETCH_STATUS: ok` it prints `ARTICLE_PATH`, `OUTPUT_DIR`, `WORDS`, and `TITLE`, `AUTHOR`, `DATE`, `SITE_NAME` when the page provides them. Rename the directory, then read `article.md` in full from the renamed `OUTPUT_DIR`:
 
 ```bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py rename "<OUTPUT_DIR>" "<Short Description>"
+uv run <skill-dir>/scripts/wisdom.py rename "<OUTPUT_DIR>" "<Short Description>"
 ```
 
 Keep the description short (1-6 words). Use `AUTHOR` and `DATE` for the `author` and `content_date` frontmatter fields.
@@ -44,7 +44,7 @@ If the content clearly indicates there was an image that is highly likely to con
 Create a date-prefixed output directory using the `create-dir` subcommand:
 
 ```bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/wisdom.py create-dir "<Short Description>"
+uv run <skill-dir>/scripts/wisdom.py create-dir "<Short Description>"
 ```
 
 The script automatically prepends today's date (local timezone) and creates the directory in the wisdom base directory. Keep the description short (1-6 words). It outputs `OUTPUT_DIR: <path>` with the created directory path.

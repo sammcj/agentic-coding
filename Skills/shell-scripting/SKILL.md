@@ -23,7 +23,7 @@ Guidance for writing reliable, maintainable bash scripts following modern best p
 - Anything over ~100 lines or with non-straightforward control flow
 - When you need proper data structures beyond arrays
 
-**Critical**: If your script grows too large (1000+ lines) or complex, consider offering to rewrite it in a proper language (Python, Go, etc.) before it becomes unmaintainable.
+If a script passes ~100 lines or gets complex, offer to rewrite it in Python or Go before it becomes unmaintainable.
 
 ## Mandatory Foundations
 
@@ -394,7 +394,7 @@ count="${#lines[@]}"
 ## Style Guidelines
 
 ### Formatting
-- **Indentation**: 2 spaces, never tabs
+- **Indentation**: 4 spaces, never tabs
 - **Line length**: Maximum 120 characters
 - **Long strings**: Use here-documents or embedded newlines
 

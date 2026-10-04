@@ -11,7 +11,3 @@ metadata:
 ## Resources & Tools
 
 - scripts/nextpcb_search.py - A script to search for electronic parts on NextPCB
-
-### Vendor Specific
-
-- resources/jlpcb.md - Read this file when dealing with JLPCB

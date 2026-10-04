@@ -37,8 +37,8 @@ Scan the input and remove the following. These are pure AI markers with no legit
 - JSON tails: `({"attribution":{"attributableIndex":"X-Y"}})`
 - Placeholder tokens: `[Your Name]`, `INSERT_SOURCE_URL_30`, `2025-XX-XX`, `[Describe the specific section]`, any other unfilled bracket placeholder
 - Decorative unicode: mathematical bold (`𝗯𝗼𝗹𝗱`), italic (`𝘪𝘵𝘢𝘭𝘪𝘤`), arrows used as bullets (`→`), multiplication signs in prose (`x` rendered as `×`)
-- Em dashes (`-`) and en dashes (`-`): replace with comma, period, parentheses, or hyphen as the sentence requires. Where the dash joins two independent clauses, prefer a period or comma; a colon there manufactures the mid-sentence colon splice flagged in Tier 3. Zero tolerance: not one dash is acceptable in the output.
-- Smart quotes (`" "`, `' '`): replace with straight quotes (`"`, `'`). Zero tolerance.
+- Em dashes (U+2014) and en dashes (U+2013): replace with comma, period, parentheses, or hyphen as the sentence requires. Where the dash joins two independent clauses, prefer a period or comma; a colon there manufactures the mid-sentence colon splice flagged in Tier 3. Zero tolerance: not one dash is acceptable in the output.
+- Smart quotes (U+201C/U+201D, U+2018/U+2019): replace with straight quotes (`"`, `'`). Zero tolerance.
 - Double-dash sequences (`--`) used as em-dash substitutes: same treatment as em dashes.
 
 Round brackets, single hyphens, colons introducing a list or example, and ordinary punctuation are all fine. Only the smart or decorative forms above are removed.
@@ -291,7 +291,7 @@ Single-pass rewriting leaves patterns it was instructed to remove. This pass cat
 
 Create a task per question below. Answer each by inspecting the rewritten text, fix any "yes", then mark the task complete.
 
-- Are there any em dashes (`-`), en dashes (`-`), or `--` sequences? Any smart quotes (`" "` or `' '`)?
+- Are there any em dashes (U+2014), en dashes (U+2013), or `--` sequences? Any smart quotes (U+201C/U+201D, U+2018/U+2019)?
 - Does any sentence start with Additionally, Furthermore, Moreover, Notably, Consequently, In conclusion, Overall, In summary, It is important to note?
 - Does any paragraph contain three parallel adjectives, three parallel short phrases, or three parallel clauses used decoratively?
 - Are there any "It's not X. It's Y.", "Not just X, but Y.", or cousin negation-antithesis contrasts? Apply the swap test: if "It's not Y, it's X" is equally plausible, the contrast is decorative. Drop the negation and state Y directly.

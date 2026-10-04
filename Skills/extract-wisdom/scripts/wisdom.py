@@ -19,6 +19,8 @@ markdown formatting, and PDF rendering. Run via: uv run wisdom.py <subcommand>
 Subcommands:
     transcript <url> [--transcribe] Download YouTube transcript (--transcribe opts in to
                                     local Parakeet audio transcription when no subtitles exist)
+    frames <dir> [--at T] [--quote Q]
+                                    Grab still frames from a YouTube video into a temp directory
     fetch <url>                     Fetch a web article to markdown via trafilatura
     output-dir                      Print the resolved output directory
     create-dir <description>        Create a date-prefixed directory for non-YouTube sources
@@ -81,6 +83,9 @@ MAX_PARAGRAPH_CHARS = 4 * MIN_PARAGRAPH_CHARS
 
 # Subtitle language preference (first match wins).
 SUBTITLE_LANGS = ["en"]
+
+# Per-word caption timings kept beside the transcript for the frames command.
+CAPTIONS_FILE = "captions.json"
 
 # Browser search order for cookie-based YouTube downloads.
 COOKIE_BROWSERS = ("firefox", "brave", "chrome", "chromium", "safari")
@@ -318,6 +323,23 @@ def _json3_to_text(json3_path: Path) -> str:
     return _normalise_text(
         "\n\n".join(p.replace("\n", " ") for p in paragraphs), collapse_spaces=True
     )
+
+
+def _json3_timings(json3_path: Path) -> list[tuple[int, str]]:
+    """Start time (ms) and text of every caption segment.
+
+    Auto-generated captions time each word; manual captions only time each line,
+    so words inside a line take the line's start.
+    """
+    data = json.loads(json3_path.read_text(encoding="utf-8"))
+    timings: list[tuple[int, str]] = []
+    for event in data.get("events", []):
+        start = event.get("tStartMs", 0)
+        for seg in event.get("segs") or []:
+            text = seg.get("utf8", "")
+            if text.strip():
+                timings.append((start + seg.get("tOffsetMs", 0), text))
+    return timings
 
 
 class _SilentLogger:
@@ -803,6 +825,9 @@ def cmd_transcript(args: argparse.Namespace) -> None:
         try:
             text = _json3_to_text(json3_file)
             output_file.write_text(text, encoding="utf-8")
+            (video_dir / CAPTIONS_FILE).write_text(
+                json.dumps(_json3_timings(json3_file), ensure_ascii=False), encoding="utf-8"
+            )
             json3_file.unlink()
             converted += 1
         except Exception as exc:
@@ -825,6 +850,184 @@ def cmd_transcript(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     _print_transcript_output(transcript_files[0], video_dir, metadata)
+
+
+# ---------------------------------------------------------------------------
+# Video frames
+# ---------------------------------------------------------------------------
+
+# Every frame costs the agent an image read to check, so cap one request.
+MAX_FRAMES = 5
+
+# "3K" ceiling on either edge. On YouTube this picks 1440p at most, or the
+# native resolution when lower; the height check covers vertical video.
+MAX_FRAME_EDGE = 3072
+
+# Seeking deep into an HLS stream took ~11 s in testing; allow for slow links.
+FRAME_TIMEOUT_S = 120
+
+_WORD = re.compile(r"[^\W_]+")
+_MARKER = re.compile(r"\[\d+(?::\d\d){1,2}\]")
+
+
+def _words(text: str) -> list[str]:
+    return _WORD.findall(_MARKER.sub(" ", text).lower())
+
+
+def _parse_time(value: str) -> int:
+    """Parse m:ss, h:mm:ss (optionally bracketed) or plain seconds into ms."""
+    parts = value.strip().strip("[]").split(":")
+    if len(parts) > 3 or not all(p.isdigit() for p in parts):
+        raise ValueError(f"bad time {value!r}, expected m:ss or h:mm:ss")
+    secs = 0
+    for part in parts:
+        secs = secs * 60 + int(part)
+    return secs * 1000
+
+
+def _locate_quote(timings: list[tuple[int, str]], quote: str) -> list[int]:
+    """Start time (ms) of each place the quote's words are spoken consecutively.
+
+    Matching on words ignores case, punctuation, spacing and copied [m:ss] markers.
+    """
+    timed = [(t, w) for t, text in timings for w in _words(text)]
+    seq = [w for _, w in timed]
+    target = _words(quote)
+    if not target:
+        return []
+    n = len(target)
+    return [timed[i][0] for i in range(len(seq) - n + 1)
+            if seq[i] == target[0] and seq[i:i + n] == target]
+
+
+def _frame_name(ms: int) -> str:
+    h, rem = divmod(ms // 1000, 3600)
+    m, s = divmod(rem, 60)
+    return f"{h}h{m:02d}m{s:02d}s.jpg" if h else f"{m}m{s:02d}s.jpg"
+
+
+def _resolve_video_stream(url: str, use_cookies: bool) -> dict | None:
+    """Look up a video-only stream no larger than MAX_FRAME_EDGE, without downloading."""
+    from yt_dlp import YoutubeDL
+
+    edge = f"[width<={MAX_FRAME_EDGE}][height<={MAX_FRAME_EDGE}]"
+    opts: dict = {
+        "format": f"bv*{edge}/b{edge}",
+        "quiet": True,
+        "no_warnings": True,
+        "logger": _SilentLogger(),
+        "remote_components": {"ejs:github"},
+    }
+    if use_cookies:
+        opts.update(_cookie_opts())
+    try:
+        with YoutubeDL(opts) as ydl:  # type: ignore[arg-type]
+            info = ydl.extract_info(url, download=False)
+    except Exception as exc:
+        print(f"Stream lookup error: {exc}", file=sys.stderr)
+        return None
+    return dict(info) if info and info.get("url") else None
+
+
+def _grab_frame(stream: dict, ms: int, dest: Path) -> str | None:
+    """Write the frame at ms to dest as JPEG. Returns an error message on failure."""
+    headers = "".join(f"{k}: {v}\r\n" for k, v in (stream.get("http_headers") or {}).items())
+    # -ss before -i seeks by HTTP range, fetching only the segment around ms.
+    # -q:v 2 is near-lossless JPEG, so slide text stays legible.
+    cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error"]
+    if headers:
+        cmd += ["-headers", headers]
+    cmd += ["-ss", f"{ms / 1000:.3f}", "-i", stream["url"],
+            "-frames:v", "1", "-q:v", "2", "-y", str(dest)]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=FRAME_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        return f"ffmpeg timed out after {FRAME_TIMEOUT_S} s"
+    if result.returncode != 0 or not dest.is_file():
+        return result.stderr.strip()[-300:] or "ffmpeg wrote no frame"
+    return None
+
+
+def cmd_frames(args: argparse.Namespace) -> None:
+    video_dir = Path(args.directory).expanduser().resolve()
+    meta_path = video_dir / "metadata.json"
+    if not meta_path.is_file():
+        print(f"Error: no metadata.json in {video_dir}; pass the directory the "
+              "transcript command created", file=sys.stderr)
+        sys.exit(1)
+    video_id = json.loads(meta_path.read_text(encoding="utf-8")).get("id", "")
+    if not video_id:
+        print("Error: not a YouTube video directory (no id in metadata.json)", file=sys.stderr)
+        sys.exit(1)
+
+    times: list[int] = []
+    errors: list[str] = []
+    for value in args.at or []:
+        try:
+            times.append(_parse_time(value))
+        except ValueError as exc:
+            errors.append(f"BAD_TIME: {exc}")
+    if args.quote:
+        captions = video_dir / CAPTIONS_FILE
+        if not captions.is_file():
+            errors.append("NO_CAPTION_TIMINGS: this video has no caption timings "
+                          "(transcribed audio or an older download); use --at")
+        else:
+            timings = [(t, s) for t, s in json.loads(captions.read_text(encoding="utf-8"))]
+            for quote in args.quote:
+                hits = _locate_quote(timings, quote)
+                if not hits:
+                    errors.append(f'QUOTE_NOT_FOUND: "{quote}" (copy 4 or more consecutive '
+                                  "words verbatim from the transcript)")
+                elif len(hits) > 1:
+                    found = ", ".join(_format_timestamp(h) for h in hits[:MAX_FRAMES])
+                    errors.append(f'QUOTE_AMBIGUOUS: "{quote}" is spoken at {found} '
+                                  "(use a longer quote or --at)")
+                else:
+                    times.append(hits[0])
+    # Frames are named by whole second, so requests within one second share a file.
+    times = sorted({ms // 1000 * 1000 for ms in times})
+    if not times and not errors:
+        errors.append("Error: pass at least one --at or --quote")
+    if len(times) > MAX_FRAMES:
+        errors.append(f"TOO_MANY_FRAMES: {len(times)} requested, max {MAX_FRAMES}")
+    if errors:
+        print("\n".join(errors))
+        sys.exit(2)
+
+    if not shutil.which("ffmpeg"):
+        print("FRAMES_FAILED: ffmpeg not installed "
+              f"({'brew' if _is_mac() else 'sudo apt'} install ffmpeg)")
+        sys.exit(1)
+
+    url = f"https://www.youtube.com/watch?v={video_id}"
+    stream = _resolve_video_stream(url, use_cookies=True) or _resolve_video_stream(url, use_cookies=False)
+    if not stream:
+        print("FRAMES_FAILED: could not look up a video stream")
+        sys.exit(1)
+
+    # Frames are scratch material for the analysis, so they live outside the library.
+    frames_dir = Path(tempfile.mkdtemp(prefix=f"wisdom-frames-{video_id}-"))
+    print(f"FRAMES_DIR: {frames_dir}")
+    duration_ms = int(stream.get("duration") or 0) * 1000
+    saved = 0
+    for ms in times:
+        stamp = _format_timestamp(ms)
+        if duration_ms and ms >= duration_ms:
+            print(f"FRAME_FAILED: {stamp} is past the end of the video {_format_timestamp(duration_ms)}")
+            continue
+        dest = frames_dir / _frame_name(ms)
+        error = _grab_frame(stream, ms, dest)
+        if error:
+            print(f"FRAME_FAILED: {stamp} {error}")
+            continue
+        dims = _jpeg_dimensions(dest.read_bytes())
+        print(f"FRAME: {dest} {stamp}" + (f" {dims[0]}x{dims[1]}" if dims else ""))
+        saved += 1
+    if not saved:
+        frames_dir.rmdir()
+        print("FRAMES_FAILED: no frames saved")
+        sys.exit(1)
 
 
 # ---------------------------------------------------------------------------
@@ -3530,6 +3733,18 @@ def main() -> None:
                               help="If no subtitles exist, download audio and transcribe "
                                    "locally with Parakeet (opt-in: slow, fetches a model)")
 
+    # frames
+    p_frames = sub.add_parser(
+        "frames", help="Grab still frames from a YouTube video by time or transcript quote",
+        description=f"Save up to {MAX_FRAMES} JPEG frames (native resolution, max "
+                    f"{MAX_FRAME_EDGE} px per edge) to a new temp directory.")
+    p_frames.add_argument("directory", help="Video directory created by the transcript command")
+    p_frames.add_argument("--at", action="append", metavar="TIME",
+                          help="Video time as m:ss or h:mm:ss (repeatable)")
+    p_frames.add_argument("--quote", action="append",
+                          help="Words copied verbatim from the transcript; the frame is taken "
+                               "as the first word is spoken (repeatable)")
+
     # fetch
     p_fetch = sub.add_parser("fetch", help="Fetch a web article to markdown via trafilatura")
     p_fetch.add_argument("url", help="Article URL (non-YouTube)")
@@ -3630,6 +3845,7 @@ def main() -> None:
 
     dispatch = {
         "transcript": cmd_transcript,
+        "frames": cmd_frames,
         "fetch": cmd_fetch,
         "output-dir": cmd_output_dir,
         "create-dir": cmd_create_dir,

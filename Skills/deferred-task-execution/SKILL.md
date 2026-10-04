@@ -1,10 +1,10 @@
 ---
-name: differed-task-execution
+name: deferred-task-execution
 description: Delays execution of a task until a specified time or after a duration. Use when the user asks to run something later, in X minutes/hours, at a specific time, schedule a command, or defer work to a future point.
 allowed-tools: [Bash, Read, TaskOutput]
 ---
 
-# Differed Task Execution
+# Deferred Task Execution
 
 Delays agent work until a user-specified time using a background timer script, then proceeds with the deferred task.
 

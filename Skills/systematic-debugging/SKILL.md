@@ -99,7 +99,7 @@ Now propose specific fixes for each identified issue.
 - **Flag unclear aspects** rather than guessing - if something is uncertain, say so
 - **Use available tools** - read files, search code, run tests, check logs
 - **Focus on systematic analysis** over quick fixes
-- **Validate flagged aspects** - after completing all phases, revisit any unclear points and use the think tool with "ultra" depth if needed to clarify them
+- **Validate flagged aspects** - after completing all phases, revisit any unclear points and verify them with tools
 
 ## Final Output
 

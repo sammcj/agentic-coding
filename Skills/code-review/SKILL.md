@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Use this skill after completing multiple, complex software development tasks before informing the user that work is complete.
+description: Use when the user asks for a code review of a change, branch or PR.
 ---
 
 # Code Review After Completing Complex Software Development Tasks

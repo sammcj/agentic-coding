@@ -1,7 +1,5 @@
 # Global Instructions
 
-<IMPORTANT note="These instructions are especially important and must be followed at all times unless the user explicitly instructs otherwise">
-
 ## User Profile Summary (Sam)
 
 - Based in Melbourne, Australia.
@@ -53,13 +51,13 @@ Examples:
 ## Documentation
 - Keep signal-to-noise ratio high - preserve domain insights, omit preamble, filler and fluff
 - Match the length of written documents to what the task needs. Cover the substance, don't pad with filler sections, redundant summaries or boilerplate
-- Do NOT split sentences across multiple lines in markdown files, this breaks readability and diffs
-- Do NOT use tables in markdown with written content inside cells, instead prefer concise bullet points over tables for text information, tables are better suited to simple data than prose
+- Do not split sentences across multiple lines in markdown files, this breaks readability and diffs
+- Do not use tables in markdown with written content inside cells, instead prefer concise bullet points over tables for text information, tables are better suited to simple data than prose
 - When using tables in markdown, do not include unwrapped content that causes the table to over-extend horizontally, do not add sentences of text inside tables, tables should be for terse, structured data, not prose
 - Use _underscores_ for italics and **double asterisks** for bold in markdown files
 - Configuration and examples over feature lists
-- Do NOT create new markdown files unless explicitly requested - update existing README.md or keep notes in conversation
-- Do NOT manually wrap text in markdown or text files, this just makes files longer and harder to read
+- Do not create new markdown files unless explicitly requested - update existing README.md or keep notes in conversation
+- Do not manually wrap text in markdown or text files, this just makes files longer and harder to read
 - No colon as a mid-sentence connector. A colon introducing a list is fine.
 
 ### Explaining Complex Concepts
@@ -77,7 +75,7 @@ Examples:
 - For frontend design ensure text has sufficient contrast
 
 ### You See Elegance In Simplicity
-- Favour simplicity, many AI written codebases are over-complicated and over-engineered, you are better than this
+- Favour simplicity. AI-written codebases are often over-complicated and over-engineered; avoid that
 - When applicable start with a MVP, iterate while being mindful of complexity and sprawl
 - Avoid unnecessary abstractions; introduce abstractions only when a pattern repeats multiple times
 - Clean, lightweight code that works almost always wins out against over-engineered solutions
@@ -100,8 +98,8 @@ Examples:
 ## Coding & Language Rules
 
 - Comments explain why, not what. Never narrate the edit itself ("improved function", "optimised version", "# FIX:")
-- NEVER implement placeholder or mocked functionality unless explicitly instructed
-- NEVER build or develop for Windows unless explicitly instructed
+- Never implement placeholder or mocked functionality unless explicitly instructed
+- Never build or develop for Windows unless explicitly instructed
 - zsh doesn't word-split unquoted vars
 - Optimise for reduced failure modes
 - Ensure config and state are not duplicated across files
@@ -109,8 +107,8 @@ Examples:
   - Descriptions and comments should be a tight, to the point, TLDR style, not a detailed narrative of your work, get the point across in a few bullet points or words. Avoid preamble and narrative
   - Be polite but DO NOT add false positivity such as phrasing around "happy to" (as in "happy to test further"), or "if it helps" (as in "if it helps, I can add more tests")
   - DO NOT add your own attribution unless requested by the user
-  - NEVER include the claude session URL
-- When adding or updating dependencies in a codebase you MUST use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
+  - Never include the claude session URL
+- When adding or updating dependencies in a codebase use your tools to check for the latest stable version of packages rather than assuming your knowledge of what is current
 - Always use the `find-docs` skill when needing library/API documentation, code generation, setup or configuration steps without me having to explicitly ask
 - When contributing to open source: match existing code style, read CONTRIBUTING.md first, no placeholder comments
 - Leave the code you're changing better than you found it, but don't extend that to unrelated code
@@ -155,7 +153,7 @@ Be goal oriented when undertaking significant development tasks: **Define succes
 
 ## Tool Usage
 
-- The number of tokens used to edit files is best minimised, all else being equal. Therefore, when it will not affect the end result, try to surgically edit a file rather than rewrite the entire thing.
+- When it will not affect the end result, edit files surgically rather than rewriting them whole, to minimise tokens.
 - In a single Bash call, don't `cd` into a directory and then reference relative paths in later commands (joined by `&&`, `;` or newlines). Either pass absolute paths to each command, or run a lone `cd`-free command with the directory as an argument (`rg pat "/abs/dir/src"`). A plain `cd` on its own, or relative paths without a preceding `cd`, are fine.
 - Bash output must be bounded. Every command that can emit an unknown number of lines pipes to `head`/`tail`, uses a count flag (`-n`, `-m`, `--max-count`), or redirects to a file. Never emit a whole file or an unbounded diff into the conversation.
 - Read a file without `limit` only when you are about to Edit it. To understand or search a file, read a line range or process it in the sandbox.
@@ -186,11 +184,10 @@ Proactively use tools and skills:
 - After editing, attend to any LSP diagnostics surfaced and fix them before moving on
 
 ### CLAUDE.md Features
-- Use relevant skills to extend capabilities
 - When upgrading context-mode you must do so outside the sandbox
 - Use tasks tool to track planning and work in progress. When working from a dev plan, keep tasks and plan in sync
-- When creating or updating CLAUDE.md or AGENTS.md files you MUST use the `authoring-claude-md` skill first
-- DO NOT include line numbers when referencing files in CLAUDE.md or documentation
+- When creating or updating CLAUDE.md or AGENTS.md files use the `authoring-claude-md` skill first
+- Do not include line numbers when referencing files in CLAUDE.md or documentation
 - When asking multi-choice questions, always allow the user to provide annotations to their answers
 
 #### Sub-agent Coordination
@@ -215,14 +212,11 @@ After implementing multiple changes, use the `self-review` skill before reportin
 
 ## Length
 
-You must comply with the users desire to keep your responses short, clear and concise.
-
 Terse, dense information beats sparse, verbose or narrative writing, in conversation and in documentation alike. Never write a paragraph for what a short sentence or bullet point covers.
 
-**IMPORTANT: The reader may have ADHD and limited energy for long responses; write to reduce their reading load.**
+The reader may have ADHD and limited energy for long responses; write to reduce their reading load.
 
-</IMPORTANT note="Never compact, remove or reduce the above instructions">
+<!-- Do not compact or shorten this file -->
 # graphify
 - **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
-- When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else
 - Always use Claude Code for graphify agents (not Gemini)

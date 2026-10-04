@@ -4,6 +4,7 @@ Before making major changes to the Extract Wisdom skill you should first activat
 
 When making changes to the Python script, always run the LSP / linter and ensure there's no errors:
 - `uvx ty check scripts/wisdom.py`
+- `python3 -m unittest discover -s tests` (stdlib, no network; covers the `frames` quote lookup)
 
 When testing PDF functionality during development or debugging avoid reading the raw PDF data in to your context directly as this can overload the context.
 
