@@ -531,6 +531,43 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v repowise-augment >/dev/null 2>&1; then exec repowise-augment; fi",
+            "timeout": 10,
+            "statusMessage": "Loading repowise context..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Grep|Glob|Read|Edit|Write|mcp__.*[Rr]epowise.*__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v repowise-augment >/dev/null 2>&1; then exec repowise-augment; fi",
+            "timeout": 10,
+            "statusMessage": "Checking codebase context..."
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Read|Edit|Write|Grep|Glob|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v repowise-augment >/dev/null 2>&1; then exec repowise-augment; fi",
+            "timeout": 10,
+            "statusMessage": "Checking codebase context..."
+          }
+        ]
       }
     ]
   },
@@ -713,7 +750,9 @@
         "~/.cargo/registry",
         "~/.cargo/git",
         "~/.lmstudio",
-        "~/.npm"
+        "~/.npm",
+        "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
+        "~/.claude/skills/release-debrief/resources/outputs"
       ],
       "denyWrite": [
         "~/.ssh",
@@ -725,7 +764,6 @@
         "~/Library/Mobile Documents/com~apple~CloudDocs/Backups",
         "~/Library/Application Support/1Password",
         "~/.claude.json",
-        "~/.zshenv",
         "/Library/LaunchAgents",
         "/Library/LaunchDaemons"
       ],
@@ -738,7 +776,8 @@
         "~/Library/Application Support/Brave",
         "~/.aws/credentials",
         "~/.aws/config",
-        "~/.kube/config"
+        "~/.kube/config",
+        "~/.zshenv"
       ],
       "allowRead": [
         ".",

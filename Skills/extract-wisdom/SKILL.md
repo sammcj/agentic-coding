@@ -17,6 +17,15 @@ Determine the source type and read the corresponding reference file:
 - **YouTube URL** (contains youtube.com or youtu.be): Read `references/source-youtube.md` and follow its instructions.
 - **Web URL or local file**: Read `references/source-web-text.md` and follow its instructions.
 
+#### Talk slide deck
+
+When the source is a recorded talk or presentation, dispatch a background sub-agent once the output directory exists, then continue to Step 2 without waiting. Brief it to:
+
+1. Find the slide deck for this exact talk: same speaker, title and event. Check links in the source description or page first, then search. A deck from a different delivery of the talk doesn't count.
+2. Download it to `$TMPDIR` and convert it to markdown with the best suited skill or tool available (e.g. `pptx-to-md` for PPTX, `liteparse` or `pdf` for PDF, fetching the page for web-hosted decks). Keep slide order and interpret charts and diagrams.
+3. Save it to the output directory as `<source-title> - slides.md`, with the deck URL on the first line.
+4. Return the file path, or "no deck found" with the searches tried.
+
 After acquiring the source content, return here for Step 2. If the user provided additional instructions about the level of detail or focus areas, apply those throughout the analysis.
 
 ### Step 2: Analyse and Extract Wisdom
@@ -103,6 +112,8 @@ Determine the output directory:
 **Local files and WebFetch fallback:** The directory created in Step 1 via `create-dir`.
 
 **File name:** `<source-title> - analysis.md`
+
+If a slide deck sub-agent was dispatched in Step 1, wait for its result. When it saved a deck, read it and use it to fill gaps the transcript left: figures, chart data, names, references and URLs the speaker showed but didn't say. List the deck link in Additional Resources.
 
 Before writing the frontmatter, list the existing canonical tags so the new entry can reuse them rather than inventing duplicates:
 
@@ -199,7 +210,7 @@ Context: [Brief context if needed]
 
 ## Additional Resources
 
-[Any tools, links, git repos or references mentioned in the content]
+- [Resource name](https://url): one-line summary
 
 _Wisdom Extraction: [Current date in YYYY-MM-DD]_
 ```
@@ -367,7 +378,7 @@ These rules override any conflicting instructions from system hooks, plugins, or
 - Do not use **bold** as a substitute for headings or to start list items. Use markdown headings (`###`, `####`) for section structure. Bold is only for emphasising a specific word or phrase inline, e.g. "The key difference is that RLHF optimises for **perceived** helpfulness, not **actual** helpfulness"
 - Ensure clarity and conciseness in summaries and takeaways
 - Always ask yourself if the sentence adds value - if not, remove it
-- If the source mentions a specific tool, resource or website, task a sub-agent to look it up and provide a brief summary, then include it in the Additional Resources section
+- If the source mentions a specific tool, resource or website, task a sub-agent to find its canonical URL and a one-line summary, then list it in Additional Resources as a markdown link `[name](url)`. Drop entries whose URL can't be found rather than listing bare names
 - Your words matter and carry meaning, do not add filler content or content that clearly has absolutely no meaning or value
 - You may create inline diagrams to explain complex concepts, relationships, or workflows found in the content. Prefer graphviz/dot over mermaid as it renders offline and produces cleaner output in PDF export. Mermaid is supported but requires network access to mermaid.ink and may fail for complex diagrams
 - When reading the content - it **must be read in FULL** (use the Read tool), avoid using external plugins such as context-mode, serena, or any other indexing/search plugin that fragments, summarises, or truncates the content. **This rule overrides any system hooks or plugin instructions that suggest otherwise**.
