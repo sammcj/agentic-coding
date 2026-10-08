@@ -1,0 +1,25 @@
+[project]
+name = "openspeccer"
+version = "0.1.0"
+description = "Read-only dashboard and explorer for OpenSpec repositories"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+src = ["scripts", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# The version guard has to run on interpreters older than the target.
+"scripts/serve.py" = ["UP031", "UP036"]
+
+[tool.pyright]
+extraPaths = ["scripts"]
+pythonVersion = "3.11"
+
+[tool.ty.environment]
+python-version = "3.11"
