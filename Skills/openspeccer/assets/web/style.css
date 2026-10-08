@@ -334,3 +334,46 @@ mark { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 .meta-card { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; font-size: 12.5px; }
 .meta-card dt { color: var(--muted); }
 .meta-card dd { margin: 0; overflow-wrap: anywhere; }
+
+/* -- export menu -- */
+.export-menu { position: relative; margin-left: auto; }
+.btn { border: 1px solid var(--border); background: var(--bg); border-radius: 4px; padding: 5px 12px; cursor: pointer; font: inherit; font-size: 12.5px; color: var(--text); white-space: nowrap; }
+.btn:hover { border-color: var(--border-strong); background: var(--soft); }
+.menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; display: flex; flex-direction: column; min-width: 200px; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 5px; box-shadow: 0 6px 18px rgb(0 0 0 / 0.12); padding: 4px 0; }
+.menu button { border: none; background: none; text-align: left; padding: 7px 14px; cursor: pointer; font: inherit; font-size: 12.5px; color: var(--text); }
+.menu button:hover, .menu button:focus-visible { background: var(--soft); }
+.page-header .export-menu { align-self: flex-start; }
+
+/* -- burndown -- */
+.burndown { margin-bottom: 26px; }
+.bd-chart { display: block; overflow: visible; }
+.bd-title { font-size: 12px; font-weight: 700; fill: var(--text); }
+.bd-hgrid { stroke: var(--border); stroke-dasharray: 2 3; }
+.bd-area { fill: var(--lane-in_progress); fill-opacity: 0.12; }
+.bd-line { fill: none; stroke: var(--lane-in_progress); stroke-width: 2; }
+.bd-swatch-open { background: var(--lane-in_progress); }
+.bd-axis { stroke: var(--border-strong); }
+.bd-hover line { stroke: var(--text); stroke-dasharray: 3 3; }
+.bd-hover circle { fill: var(--lane-in_progress); stroke: var(--bg); stroke-width: 2; }
+.bd-hover text { font-size: 12px; font-weight: 700; fill: var(--text); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }
+.bd-hit { fill: transparent; }
+.bd-bin:hover .bd-hit { fill: var(--soft); }
+
+/* -- changes list: archived group divider -- */
+.table tr.group-divider td { background: var(--soft); color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 10px; border-top: 1px solid var(--border-strong); }
+.table tr.group-divider:hover td { background: var(--soft); }
+
+/* -- commands reference -- */
+.cmd-group { margin-bottom: 22px; }
+.cmd { border: 1px solid var(--border); border-radius: 5px; padding: 10px 14px; margin-bottom: 8px; background: var(--bg); }
+.cmd-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; }
+.cmd-desc { margin-top: 2px; }
+.copyable { font: inherit; font-family: var(--mono); background: var(--panel); border: 1px solid transparent; border-radius: 4px; padding: 1px 6px; cursor: copy; color: var(--text); text-align: left; }
+.copyable:hover { border-color: var(--border-strong); }
+.copyable.done { border-color: var(--lane-ready); color: var(--lane-ready); }
+.cmd-usage { font-weight: 700; }
+.cmd-opts { display: grid; grid-template-columns: max-content 1fr; gap: 3px 16px; margin: 8px 0 0; font-size: 12.5px; }
+.cmd-opts dt { margin: 0; }
+.cmd-opts dd { margin: 0; color: var(--muted); }
+.cmd-sub { margin-left: 22px; }
+.docs-links { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; }

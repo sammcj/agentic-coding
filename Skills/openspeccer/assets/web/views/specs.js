@@ -1,3 +1,4 @@
+import { ExportMenu, mdTable } from "../export.js";
 import { apiUrl, changeHref, href, html, setQuery, useApi, useState } from "../lib.js";
 import { Markdown, Toc } from "../md.js";
 import { Badge, Chips, Empty, ErrorBox, Loading, OpBadge, PageHeader } from "../ui.js";
@@ -154,7 +155,9 @@ function SpecDetail({ topic, snap, query }) {
     <${PageHeader}
       title=${topic}
       sub=${`${spec.doc.requirement_count} requirements${meta?.in_flight.length ? ` · ${meta.in_flight.length} active change(s)` : ""}`}
-    />
+    >
+      <${ExportMenu} name=${`spec-${topic}`} title=${topic} markdown=${() => spec.content} />
+    <//>
     <${Chips} options=${tabs} value=${tab} onChange=${(t) => setQuery({ tab: t === "spec" ? "" : t, base: "", head: "" })} />
     ${tab === "spec" &&
     html`<div class="with-toc">
@@ -166,13 +169,23 @@ function SpecDetail({ topic, snap, query }) {
   </div>`;
 }
 
+function specIndexMarkdown(snap) {
+  const rows = snap.specs.map((s) => [s.topic, s.requirement_count, s.in_flight.length]);
+  return `# ${snap.repo.name} specs\n\n${mdTable(["Spec", "Requirements", "Active changes"], rows)}\n`;
+}
+
 export function SpecsPage({ snap, topic, query }) {
   return html`<div class="split">
     <${SpecTree} specs=${snap.specs} current=${topic} />
     <div class="split-main">
       ${topic
         ? html`<${SpecDetail} key=${topic} topic=${topic} snap=${snap} query=${query} />`
-        : html`<${Empty}>${snap.specs.length ? "Pick a spec from the tree." : "No specs in openspec/specs yet."}<//>`}
+        : html`<div class="detail">
+            <${PageHeader} title="Specs" sub=${`${snap.specs.length} specs`}>
+              <${ExportMenu} name=${`${snap.repo.name}-specs`} title=${`${snap.repo.name} specs`} markdown=${() => specIndexMarkdown(snap)} />
+            <//>
+            <${Empty}>${snap.specs.length ? "Pick a spec from the tree." : "No specs in openspec/specs yet."}<//>
+          </div>`}
     </div>
   </div>`;
 }

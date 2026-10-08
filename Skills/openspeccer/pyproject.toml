@@ -1,13 +1,13 @@
 [project]
 name = "openspeccer"
-version = "0.1.0"
+version = "0.1.1"
 description = "Read-only dashboard and explorer for OpenSpec repositories"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = []
 
 [tool.ruff]
 line-length = 110
-target-version = "py311"
+target-version = "py312"
 src = ["scripts", "tests"]
 
 [tool.ruff.lint]
@@ -19,7 +19,7 @@ select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
 
 [tool.pyright]
 extraPaths = ["scripts"]
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 
 [tool.ty.environment]
-python-version = "3.11"
+python-version = "3.12"

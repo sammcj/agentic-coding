@@ -1,14 +1,35 @@
 // Change lifecycles as bars on a shared time axis: created -> archived (or today).
+import { ExportMenu, mdTable } from "../export.js";
 import { changeHref, html, setQuery, useRef, useWidth } from "../lib.js";
 import { Chips, Empty, PageHeader, laneLabel } from "../ui.js";
+import { Burndown, DAY, burndownStats, isoDay, midnight, toTime } from "./burndown.js";
 
-const DAY = 86400000;
 const ROW = 24;
 const LABEL_W = 240;
 const AXIS_H = 28;
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const toTime = (d) => new Date(`${d}T00:00:00`).getTime();
+const spanDays = (c, today) => Math.max(1, Math.round(((c.archived ? toTime(c.archived) : today) + DAY - toTime(c.created)) / DAY));
+
+function timelineMarkdown(repoName, all, dated, today) {
+  const s = burndownStats(all, today);
+  const r = (n) => Math.round(n * 10) / 10;
+  const clear = s.openNow === 0 ? "clear" : s.clearBy === null ? "not burning down" : isoDay(s.clearBy);
+  return [
+    `# ${repoName} timeline`,
+    "",
+    `- Open now: ${s.openNow}`,
+    `- Archived per week (last 4 weeks): ${r(s.archivedPerWeek)}`,
+    `- Opened per week (last 4 weeks): ${r(s.openedPerWeek)}`,
+    `- Projected clear: ${clear}`,
+    "",
+    mdTable(
+      ["Change", "Stage", "Created", "Archived", "Days"],
+      dated.map((c) => [c.name, laneLabel(c.lane), c.created, c.archived || "", spanDays(c, today)]),
+    ),
+    "",
+  ].join("\n");
+}
 
 function ticks(start, end) {
   const out = [];
@@ -43,7 +64,7 @@ export function Timeline({ snap, query }) {
     </div>`;
   }
 
-  const today = toTime(new Date().toISOString().slice(0, 10));
+  const today = midnight(Date.now());
   const start = Math.min(...dated.map((c) => toTime(c.created))) - DAY;
   const end = Math.max(today, ...dated.map((c) => (c.archived ? toTime(c.archived) : today))) + DAY;
   const plotW = Math.max(200, width - LABEL_W - 16);
@@ -64,9 +85,14 @@ export function Timeline({ snap, query }) {
     for (const c of dated) rows.push({ change: c });
   }
   const height = AXIS_H + rows.length * ROW + 8;
+  const grid = ticks(start, end).map((t) => t.t);
 
   return html`<div class="page" ref=${ref}>
-    <${PageHeader} title="Timeline" sub=${`${dated.length} changes${undated ? ` · ${undated} without a date not shown` : ""}`} />
+    <${PageHeader} title="Timeline" sub=${`${dated.length} changes${undated ? ` · ${undated} without a date not shown` : ""}`}>
+      <${ExportMenu} name=${`${snap.repo.name}-timeline`} title=${`${snap.repo.name} timeline`} markdown=${() => timelineMarkdown(snap.repo.name, snap.changes, dated, today)} />
+    <//>
+    <${Burndown} changes=${snap.changes} start=${start} end=${end} today=${today} x=${x} width=${width} labelW=${LABEL_W} grid=${grid} />
+    <h2 class="panel-title">Lifecycles</h2>
     <div class="toolbar">
       <${Chips}
         options=${[{ id: "all", label: "All" }, { id: "active", label: "Active" }, { id: "archived", label: "Archived" }]}
@@ -97,7 +123,7 @@ export function Timeline({ snap, query }) {
         const c = r.change;
         const s = toTime(c.created);
         const e = c.archived ? toTime(c.archived) + DAY : today + DAY;
-        const days = Math.max(1, Math.round((e - s) / DAY));
+        const days = spanDays(c, today);
         const tip = `${c.name}\n${laneLabel(c.lane)} · ${c.created} -> ${c.archived || "now"} (${days}d)`;
         return html`<a href=${changeHref(c)} class="tl-row">
           <title>${tip}</title>

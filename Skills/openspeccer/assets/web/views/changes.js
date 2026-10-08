@@ -1,6 +1,7 @@
 import { apiUrl, changeHref, href, html, pref, relative, setPref, setQuery, useApi, useState } from "../lib.js";
 import { Markdown, Toc, headings } from "../md.js";
-import { Badge, Chips, Empty, ErrorBox, LANES, LaneBadge, Loading, PageHeader, Progress, Select, SourceBadge } from "../ui.js";
+import { ExportMenu, mdTable } from "../export.js";
+import { Badge, Chips, Empty, ErrorBox, LANES, LaneBadge, Loading, PageHeader, Progress, Select, SourceBadge, laneLabel } from "../ui.js";
 import { SpecDoc, docToc } from "./specs.js";
 
 // -- list --
@@ -20,8 +21,20 @@ const sorters = {
 };
 const ratio = (c) => (c.tasks?.total ? c.tasks.done / c.tasks.total : -1);
 
+function changeListMarkdown(repoName, rows, status) {
+  return [
+    `# ${repoName} changes (${status})`,
+    "",
+    mdTable(
+      ["Change", "Status", "Stage", "Schema", "Tasks", "Created", "Updated", "Archived"],
+      rows.map((c) => [c.name, c.status, laneLabel(c.lane), c.schema || "", c.tasks ? `${c.tasks.done}/${c.tasks.total}` : "", c.created || "", (c.updated || "").slice(0, 10), c.archived || ""]),
+    ),
+    "",
+  ].join("\n");
+}
+
 export function ChangeList({ snap, query }) {
-  const status = query.get("status") || "active";
+  const status = query.get("status") || "all";
   const lane = query.get("lane") || "";
   const sort = query.get("sort") || "updated";
   const [filter, setFilter] = useState("");
@@ -29,11 +42,15 @@ export function ChangeList({ snap, query }) {
   let rows = snap.changes.filter((c) => status === "all" || c.status === status);
   if (lane) rows = rows.filter((c) => c.lane === lane);
   if (f) rows = rows.filter((c) => c.slug.toLowerCase().includes(f) || (c.schema || "").includes(f) || c.spec_topics.some((t) => t.includes(f)));
-  rows = [...rows].sort(sorters[sort] || sorters.updated);
+  // Active first, so the archived group follows its divider whatever the sort.
+  rows = [...rows].sort((a, b) => (a.status === b.status ? 0 : a.status === "active" ? -1 : 1) || (sorters[sort] || sorters.updated)(a, b));
+  const firstArchived = status === "all" ? rows.findIndex((c) => c.status === "archived") : -1;
   const count = (s) => snap.changes.filter((c) => s === "all" || c.status === s).length;
   const lanes = [{ id: "", label: "Any stage" }, ...LANES.filter((l) => l.id !== "archived")];
   return html`<div class="page">
-    <${PageHeader} title="Changes" sub=${`${rows.length} shown`} />
+    <${PageHeader} title="Changes" sub=${`${rows.length} shown`}>
+      <${ExportMenu} name=${`${snap.repo.name}-changes`} title=${`${snap.repo.name} changes`} markdown=${() => changeListMarkdown(snap.repo.name, rows, status)} />
+    <//>
     <div class="toolbar">
       <${Chips}
         options=${[
@@ -42,7 +59,7 @@ export function ChangeList({ snap, query }) {
           { id: "all", label: "All", count: count("all") },
         ]}
         value=${status}
-        onChange=${(s) => setQuery({ status: s === "active" ? "" : s, lane: "" })}
+        onChange=${(s) => setQuery({ status: s === "all" ? "" : s, lane: "" })}
       />
       ${status !== "archived" && html`<${Select} label="Stage" value=${lane} options=${lanes} onChange=${(v) => setQuery({ lane: v })} />`}
       <${Select} label="Sort" value=${sort} options=${SORTS} onChange=${(v) => setQuery({ sort: v === "updated" ? "" : v })} />
@@ -54,7 +71,8 @@ export function ChangeList({ snap, query }) {
           <thead><tr><th>Change</th><th>Stage</th><th>Schema</th><th>Tasks</th><th>Created</th><th>${status === "archived" ? "Archived" : "Updated"}</th></tr></thead>
           <tbody>
             ${rows.map(
-              (c) => html`<tr key=${c.slug + c.source.key} class="row-link">
+              (c, i) => html`${i === firstArchived && i > 0 && html`<tr key="archived-divider" class="group-divider"><td colspan="6">Archived · ${rows.length - i}</td></tr>`}
+              <tr key=${c.slug + c.source.key} class="row-link">
                 <td><a class="row-target" href=${changeHref(c)}>${c.name}</a> <${SourceBadge} source=${c.source} />
                   ${c.variants > 1 && html`<${Badge} kind="warn">${c.variants} versions<//>`}
                   ${c.status === "archived" && html`<div class="muted small mono">${c.slug}</div>`}</td>
@@ -172,10 +190,11 @@ export function ChangeDetail({ slug, query }) {
     c.archived ? `archived ${c.archived}` : `updated ${relative(c.updated)}`,
   ].filter(Boolean).join(" · ");
   return html`<div class="detail">
-    <${PageHeader} title=${c.name} sub=${sub} back=${href(["changes"], { status: c.status === "archived" ? "archived" : "" })}>
+    <${PageHeader} title=${c.name} sub=${sub} back=${href(["changes"])}>
       <${LaneBadge} lane=${c.lane} />
       <${SourceBadge} source=${c.source} />
       ${c.tasks && html`<${Progress} done=${c.tasks.done} total=${c.tasks.total} />`}
+      <${ExportMenu} name=${c.slug} title=${c.name} markdown=${() => changeMarkdown(c, sub, sortArtifacts(c.artifacts, sortMode, order))} />
     <//>
     ${c.artifacts.length === 0
       ? html`<${Empty}>This change has no artifacts yet.<//>`
@@ -199,6 +218,17 @@ export function ChangeDetail({ slug, query }) {
         <${PrevNext} arts=${arts} current=${current} />`}
     <${MetaCard} meta=${c.meta} />
   </div>`;
+}
+
+// Every artifact verbatim, in the tab order, each under its file path.
+function changeMarkdown(c, sub, arts) {
+  const parts = [`# ${c.name}`, "", sub];
+  const file = (path, body) => parts.push("", "---", "", `**\`${path}\`**`, "", body.trim());
+  for (const a of arts) {
+    if (a.kind === "specs") for (const s of a.specs) file(s.path, s.content);
+    else file(a.path, a.kind === "data" ? `\`\`\`${a.path.split(".").pop()}\n${a.content.trim()}\n\`\`\`` : a.content);
+  }
+  return `${parts.join("\n")}\n`;
 }
 
 // Reading a change front to back: the neighbouring tabs in the current sort order.

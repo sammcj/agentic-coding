@@ -169,8 +169,9 @@ class Repo:
             item: dict[str, Any] = asdict(a)
             if a.kind == "specs":
                 item["specs"] = [
-                    {"topic": t, "path": f"specs/{t}/spec.md", **_doc(_read(p))}
+                    {"topic": t, "path": f"specs/{t}/spec.md", "content": c, **_doc(c)}
                     for t, p in discover_specs(root / "specs").items()
+                    for c in (_read(p),)
                 ]
             else:
                 content = _read(root / a.path)

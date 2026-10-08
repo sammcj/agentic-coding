@@ -20,6 +20,6 @@ openspeccer is a read-only local web dashboard for any repository holding an `op
 
 - Re-running for the same repo reuses the running server and prints `already serving`, so step 4 is safe to repeat.
 - A server you did not start (no handle from this session) belongs to the user. Leave it running.
-- The OpenSpec CLI is optional and only feeds the Schemas page. Without it, only project schemas show. For a CLI outside `PATH`, set `OPENSPECCER_OPENSPEC_BIN`.
+- The OpenSpec CLI is optional and only feeds the Schemas and Commands pages. Without it, only project schemas show and Commands is empty. For a CLI outside `PATH`, set `OPENSPECCER_OPENSPEC_BIN`.
 - Active changes from every git worktree are aggregated by default.
 - The page updates as files change, so there is nothing to refresh after editing artifacts.

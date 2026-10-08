@@ -21,6 +21,7 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlparse
 
 from . import __version__
+from .commands import CommandCatalog
 from .repo import NotFound, Repo
 
 ASSETS = Path(__file__).resolve().parents[2] / "assets" / "web"
@@ -96,6 +97,8 @@ def _arg(qs: dict[str, list[str]], name: str) -> str:
 
 
 def make_handler(repo: Repo, watcher: Watcher | None, default_jj: bool) -> type[BaseHTTPRequestHandler]:
+    commands = CommandCatalog(repo.root)
+
     class Handler(BaseHTTPRequestHandler):
         server_version = f"openspeccer/{__version__}"
 
@@ -152,6 +155,8 @@ def make_handler(repo: Repo, watcher: Watcher | None, default_jj: bool) -> type[
                     return repo.schemas(**scope)
                 case "/api/schema":
                     return repo.schema_detail(_arg(qs, "name"))
+                case "/api/commands":
+                    return commands.get()
                 case "/api/search":
                     return {"query": _arg(qs, "q"), "hits": repo.search(_arg(qs, "q"), **scope)}
             raise NotFound(path)
