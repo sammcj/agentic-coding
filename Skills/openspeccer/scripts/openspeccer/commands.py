@@ -81,8 +81,9 @@ class CommandCatalog:
         with self._lock:
             if self._cached is None:
                 result = self._fetch()
-                # Only an answer is kept: a missing CLI may be installed while the server runs.
-                if result["error"] is None:
+                # Only a whole answer is kept: a missing CLI may be installed while the server
+                # runs, and a help call that timed out under load may succeed next time.
+                if result["error"] is None and not result["partial"]:
                     self._cached = result
                 return result
             return self._cached
@@ -96,18 +97,22 @@ class CommandCatalog:
         root_help = self._help([])
         if root_help is None:
             error = f"could not run `{cli()} --help`"
-            return {"version": None, "commands": [], "global_options": [], "error": error}
+            return {"version": None, "commands": [], "global_options": [], "error": error, "partial": False}
         root = _command_entry([], root_help)
         commands: list[dict[str, Any]] = []
+        partial = False
         with ThreadPoolExecutor(_WORKERS) as pool:
             level = [[name] for name in root["children"]]
             while level:
                 helps = list(pool.map(self._help, level))
                 next_level = []
                 for path, text in zip(level, helps, strict=True):
-                    entry = _command_entry(path, text) if text else None
+                    if text is None:
+                        partial = True
+                        continue
+                    entry = _command_entry(path, text)
                     # An unknown name gets its parent's help back; following it would never end.
-                    if entry is None or _usage_path(entry["usage"], len(path)) != path:
+                    if _usage_path(entry["usage"], len(path)) != path:
                         continue
                     commands.append(entry)
                     if len(path) < _MAX_DEPTH:
@@ -131,4 +136,5 @@ class CommandCatalog:
             "global_options": root["options"],
             "commands": ordered,
             "error": None,
+            "partial": partial,
         }

@@ -70,7 +70,7 @@ export function ChangeList({ snap, query }) {
       : html`<table class="table">
           <thead><tr><th>Change</th><th>Stage</th><th>Schema</th><th>Tasks</th><th>Created</th><th>${status === "archived" ? "Archived" : "Updated"}</th></tr></thead>
           <tbody>
-            ${rows.map(
+            ${rows.flatMap(
               (c, i) => html`${i === firstArchived && i > 0 && html`<tr key="archived-divider" class="group-divider"><td colspan="6">Archived · ${rows.length - i}</td></tr>`}
               <tr key=${c.slug + c.source.key} class="row-link">
                 <td><a class="row-target" href=${changeHref(c)}>${c.name}</a> <${SourceBadge} source=${c.source} />

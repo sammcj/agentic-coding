@@ -28,13 +28,16 @@ const dayLabel = (t) => {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 };
 
+// `created` can come from a first git commit made after the archive date in a directory name.
+const openedOn = (c) => (c.archived && c.archived < c.created ? c.archived : c.created);
+
 // A change is open from its created day through its archive day.
 function openSeries(changes) {
   const deltas = new Map();
   const bump = (t, n) => deltas.set(t, (deltas.get(t) || 0) + n);
   for (const c of changes) {
     if (!c.created) continue;
-    bump(toTime(c.created), 1);
+    bump(toTime(openedOn(c)), 1);
     if (c.archived) bump(nextDay(toTime(c.archived)), -1);
   }
   let open = 0;
@@ -74,21 +77,25 @@ function flowBins(changes, monthly) {
   };
   for (const c of changes) {
     if (!c.created) continue;
-    add(c.created, "opened");
+    add(openedOn(c), "opened");
     if (c.archived) add(c.archived, "archived");
   }
   return [...bins.values()];
 }
 
+// Counts the same dated set the charts draw, so a tile never disagrees with its chart.
 export function burndownStats(changes, today) {
+  const dated = changes.filter((c) => c.created);
   const from = addDays(today, 1 - WINDOW_DAYS);
   const inWindow = (d) => d && toTime(d) >= from && toTime(d) <= today;
-  const archivedPerWeek = (changes.filter((c) => inWindow(c.archived)).length * 7) / WINDOW_DAYS;
-  const openedPerWeek = (changes.filter((c) => inWindow(c.created)).length * 7) / WINDOW_DAYS;
-  const openNow = changes.filter((c) => c.status === "active").length;
+  const archivedPerWeek = (dated.filter((c) => inWindow(c.archived)).length * 7) / WINDOW_DAYS;
+  const openedPerWeek = (dated.filter((c) => inWindow(openedOn(c))).length * 7) / WINDOW_DAYS;
+  const openNow = dated.filter((c) => c.status === "active").length;
+  const undated = changes.length - dated.length;
   const net = archivedPerWeek - openedPerWeek;
   const weeks = net > 0 ? openNow / net : null;
-  return { openNow, archivedPerWeek, openedPerWeek, net, weeks, clearBy: weeks === null ? null : addDays(today, Math.ceil(weeks * 7)) };
+  const clearBy = weeks === null ? null : addDays(today, Math.ceil(weeks * 7));
+  return { openNow, undated, archivedPerWeek, openedPerWeek, net, weeks, clearBy };
 }
 
 const fmtRate = (n) => (Math.round(n * 10) / 10).toString();
@@ -106,7 +113,7 @@ function StatTiles({ s }) {
       ? { value: "Not burning down", sub: "opening as fast as archiving" }
       : { value: dayLabel(s.clearBy), sub: `~${Math.ceil(s.weeks)} wk at net ${fmtRate(s.net)}/wk` };
   return html`<div class="stats">
-    <div class="stat"><div class="stat-label">Open now</div><div class="stat-value">${s.openNow}</div></div>
+    <div class="stat"><div class="stat-label">Open now</div><div class="stat-value">${s.openNow}</div>${s.undated > 0 && html`<div class="stat-sub">${s.undated} undated not counted</div>`}</div>
     <div class="stat"><div class="stat-label">Archived / week</div><div class="stat-value">${fmtRate(s.archivedPerWeek)}</div><div class="stat-sub">last 4 weeks</div></div>
     <div class="stat"><div class="stat-label">Opened / week</div><div class="stat-value">${fmtRate(s.openedPerWeek)}</div><div class="stat-sub">last 4 weeks</div></div>
     <div class="stat"><div class="stat-label">Projected clear</div><div class="stat-value">${clear.value}</div><div class="stat-sub">${clear.sub}</div></div>

@@ -89,6 +89,19 @@ class CommandCatalogTest(unittest.TestCase):
         self.assertEqual([o["term"] for o in listing["options"]], ["--json"])
         self.assertEqual([o["term"] for o in result["global_options"]], ["--no-color"])
 
+    def test_a_failed_subcommand_help_is_not_kept(self) -> None:
+        cli = fake_cli(self.dir)
+        broken = self.dir / "broken-openspec"
+        broken.write_text(f'#!/bin/sh\n[ "$*" = "store --help" ] && exit 1\nexec "{cli}" "$@"\n')
+        broken.chmod(0o755)
+        catalog = CommandCatalog(self.dir)
+        with mock.patch.dict(os.environ, {"OPENSPECCER_OPENSPEC_BIN": str(broken)}):
+            first = catalog.get()
+        self.assertTrue(first["partial"])
+        self.assertEqual(first["commands"], [])
+        with mock.patch.dict(os.environ, {"OPENSPECCER_OPENSPEC_BIN": str(cli)}):
+            self.assertEqual(len(catalog.get()["commands"]), 2)
+
     def test_missing_cli_is_retried_and_an_answer_is_kept(self) -> None:
         missing = self.dir / "nowhere" / "openspec"
         with mock.patch.dict(os.environ, {"OPENSPECCER_OPENSPEC_BIN": str(missing)}):
