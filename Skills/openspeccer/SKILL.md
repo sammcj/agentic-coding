@@ -5,7 +5,7 @@ metadata:
   version: 2026-10-08
 ---
 
-openspeccer is a read-only local web dashboard for any repository holding an `openspec/` directory. It is stdlib Python and needs no install. Run `python3 <this-skill-dir>/scripts/serve.py --help` for every option.
+openspeccer is a read-only local web dashboard for any repository holding an `openspec/` directory. It is stdlib Python and needs no install. Run `<this-skill-dir>/scripts/serve.py --help` for every option.
 
 ## Workflow
 

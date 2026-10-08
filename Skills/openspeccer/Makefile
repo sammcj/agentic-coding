@@ -11,7 +11,7 @@ help:
 	@echo "make check           lint, typecheck and test"
 
 run:
-	python3 scripts/serve.py $(REPO)
+	scripts/serve.py $(REPO)
 
 test:
 	$(PY) -m unittest discover -s tests -t tests
