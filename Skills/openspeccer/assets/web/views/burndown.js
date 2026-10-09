@@ -53,24 +53,29 @@ const openAt = (series, t) => {
   return v;
 };
 
-function binStart(t, monthly) {
+// A bin no wider than a fraction of the span: one weekly bar across a five-day history reads as a block.
+// Up to 60 days, daily bars stay at least ~20px wide on a typical plot.
+const binGrain = (spanDays) => (spanDays <= 60 ? "day" : spanDays > 400 ? "month" : "week");
+
+function binStart(t, grain) {
   const d = new Date(t);
-  if (monthly) d.setDate(1);
-  else d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // Monday
+  if (grain === "month") d.setDate(1);
+  else if (grain === "week") d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // Monday
+  d.setHours(0, 0, 0, 0);
   return d.getTime();
 }
 
-function nextBin(t, monthly) {
+function nextBin(t, grain) {
   const d = new Date(t);
-  if (monthly) d.setMonth(d.getMonth() + 1);
-  else d.setDate(d.getDate() + 7);
+  if (grain === "month") d.setMonth(d.getMonth() + 1);
+  else d.setDate(d.getDate() + (grain === "week" ? 7 : 1));
   return d.getTime();
 }
 
-function flowBins(changes, monthly) {
+function flowBins(changes, grain) {
   const bins = new Map();
   const add = (date, key) => {
-    const t = binStart(toTime(date), monthly);
+    const t = binStart(toTime(date), grain);
     const b = bins.get(t) || { t, opened: 0, archived: 0 };
     b[key] += 1;
     bins.set(t, b);
@@ -126,7 +131,7 @@ export function Burndown({ changes, start, end, today, x, width, labelW, grid })
   const stats = burndownStats(changes, today);
   const last = nextDay(today);
   const plotW = x(end) - x(start);
-  const monthly = (end - start) / DAY > 400;
+  const grain = binGrain((end - start) / DAY);
 
   // -- open changes, a step area --
   const yMax = niceMax(Math.max(1, ...series.map((p) => p.open)));
@@ -145,11 +150,11 @@ export function Burndown({ changes, start, end, today, x, width, labelW, grid })
   const hoverOpen = hover === null ? 0 : openAt(series, hover);
 
   // -- flow: opened up, archived down, one shared scale --
-  const bins = flowBins(changes, monthly).filter((b) => b.t >= binStart(start, monthly) && b.t <= last);
+  const bins = flowBins(changes, grain).filter((b) => b.t >= binStart(start, grain) && b.t <= last);
   const fMax = niceMax(Math.max(1, ...bins.map((b) => Math.max(b.opened, b.archived))));
   const mid = FLOW_H / 2;
   const fy = (v) => ((mid - PAD / 2) * v) / fMax;
-  const unit = monthly ? "month" : "week";
+  const binLabel = { day: "", week: "Week of ", month: "Month of " }[grain];
 
   return html`<section class="burndown">
     <${StatTiles} s=${stats} />
@@ -169,16 +174,16 @@ export function Burndown({ changes, start, end, today, x, width, labelW, grid })
         <text x=${hoverX + (hoverX > labelW + plotW - 140 ? -8 : 8)} y="16" text-anchor=${hoverX > labelW + plotW - 140 ? "end" : "start"}>${dayLabel(hover)} · ${hoverOpen} open</text>
       </g>`}
     </svg>
-    <svg class="bd-chart" width=${width} height=${FLOW_H} role="img" aria-label=${`Changes opened and archived per ${unit}`}>
+    <svg class="bd-chart" width=${width} height=${FLOW_H} role="img" aria-label=${`Changes opened and archived per ${grain}`}>
       ${grid.map((g) => g >= start && html`<line class="tl-grid" x1=${x(g)} x2=${x(g)} y1="0" y2=${FLOW_H} />`)}
-      <text class="bd-title" x="4" y="16">Per ${unit}</text>
+      <text class="bd-title" x="4" y="16">Per ${grain}</text>
       <text class="tl-tick" x=${labelW - 6} y=${mid - fy(fMax) + 4} text-anchor="end">+${fMax}</text>
       <text class="tl-tick" x=${labelW - 6} y=${mid + fy(fMax) + 4} text-anchor="end">-${fMax}</text>
       ${bins.map((b) => {
         const bx = x(Math.max(b.t, start)) + 1;
-        const bw = Math.max(2, x(Math.min(nextBin(b.t, monthly), end)) - bx - 2);
+        const bw = Math.max(2, x(Math.min(nextBin(b.t, grain), end)) - bx - 2);
         return html`<g class="bd-bin">
-          <title>${`${unit === "week" ? "Week of" : "Month of"} ${dayLabel(b.t)}: ${b.opened} opened, ${b.archived} archived`}</title>
+          <title>${`${binLabel}${dayLabel(b.t)}: ${b.opened} opened, ${b.archived} archived`}</title>
           <rect class="bd-hit" x=${bx - 1} y="0" width=${bw + 2} height=${FLOW_H} />
           ${b.opened > 0 && html`<rect class="lane-fill-planned" x=${bx} y=${mid - 1 - fy(b.opened)} width=${bw} height=${fy(b.opened)} rx="2" />`}
           ${b.archived > 0 && html`<rect class="lane-fill-archived" x=${bx} y=${mid + 1} width=${bw} height=${fy(b.archived)} rx="2" />`}

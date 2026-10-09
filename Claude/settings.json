@@ -60,6 +60,7 @@
       "Bash(git rev-list *)",
       "Bash(git fetch *)",
       "Bash(git switch *)",
+      "Bash(git worktree *)",
       "Bash(go *)",
       "Bash(gofmt *)",
       "Bash(golangci-lint *)",

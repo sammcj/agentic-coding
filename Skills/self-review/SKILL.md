@@ -26,6 +26,7 @@ When you delegate:
 - **Parallelise only on independent slices.** Spawn one reviewer per group of changes that don't interact (by subsystem, layer, or requirement), and give each an explicit boundary - the files or area it owns - so they don't overlap. When slices share an interface or contract, brief at least one reviewer on both sides, or use a single reviewer - a fresh reviewer that sees only one side can't catch the interaction. Don't split for its own sake.
 - **Stay fresh by default.** A fresh reviewer gives the unbiased read that makes self-review worth doing. Fork only if the review genuinely needs this conversation's nuance; never fork it for the adversarial read, since a fork inherits this agent's bias and defeats the point.
 - **Write the brief in terse notes.** Keywords and bullets, not full prose; the reviewer is a capable model, not an audience.
+- **For very complex changes pick the best model.** If the work to review is very complex, use the most capable model available (e.g. `fable`), for normal reviews use the default model (`opus`).
 
 After each reviewer agent has finished and returned it's findings (unless there is a good reason to wait for all findings, or instructed otherwise):
 

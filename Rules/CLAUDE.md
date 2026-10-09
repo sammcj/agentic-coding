@@ -196,6 +196,7 @@ The user has explicitly and standingly requested sub-agent use when appropriate,
 
 - Keep working on independent parts of the task while sub-agents run. Don't idle waiting for their results.
 - Give agents that don't need the whole conversation history their own isolated context rather than using a forked sub-agent.
+- When you have a well defined idea and task to try multiple approaches on (8+), consider using many sub-agents in parallel running the `haiku` (very fast, very cheap, not very smart) model to pick the best solution, Note: Only for clear, well defined tasks that don't require smarts / reasoning, you may then want to rewrite or improve the solution if the quality is below what you would do yourself.
 
 ## Self-Review Protocol
 
