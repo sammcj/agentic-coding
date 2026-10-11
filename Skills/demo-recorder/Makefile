@@ -15,7 +15,7 @@ help:
 	@echo "make record DEMO=x.mjs       record only: frames/, frames.ffconcat, scenes.json"
 	@echo "make encode DEMO=x.mjs       encode only: demo.mp4, timings.tsv, stills/"
 	@echo "make narrate DEMO=x.mjs      text-to-speech each section of x.md into AUDIO (needs Cloney)"
-	@echo "make voices                  list Cloney characters and their engines"
+	@echo "make voices                  list Cloney characters, engines and references"
 	@echo "make dub DEMO=x.mjs          lay AUDIO's clips (1.wav, 2.wav...) over demo.mp4, one per scene"
 	@echo "Example demo: $(SKILL)/assets/examples/openspeccer.mjs; narrate takes VOICE, ENGINE etc, see $(S)/narrate.sh --help"
 
