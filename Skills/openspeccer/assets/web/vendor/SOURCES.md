@@ -2,7 +2,12 @@
 
 Minified ES module builds copied from npm, so the dashboard runs with no install or build step. `index.html` maps the bare specifiers (`preact`, `preact/hooks`, `htm`, `marked`) to these files with an import map. Licences are in `LICENSES.txt`.
 
-The only change from upstream is the trailing `//# sourceMappingURL=` line, removed because the `.map` files aren't shipped. Everything else is byte for byte the npm file.
+Changes from upstream:
+
+- The trailing `//# sourceMappingURL=` line is removed, because the `.map` files aren't shipped.
+- The minified files (`preact.mjs`, `hooks.mjs`, `htm.mjs`) gain a first-line comment pointing here.
+
+The hashes below are of the npm file without its source map line, so they exclude the pointer comment.
 
 ## Files
 
@@ -21,8 +26,11 @@ The only change from upstream is the trailing `//# sourceMappingURL=` line, remo
 
 ## Verify or update
 
-Fetch the npm file, drop the source map line, and compare. To update, bump the version in the URL, write the result over the vendored file, then refresh the version, path and hash above and the matching section of `LICENSES.txt`.
+Fetch the npm file, drop the source map line, and compare with the vendored file minus its pointer comment (skip the `tail` for `marked.esm.js`, which has none).
 
 ```sh
 curl -sL https://unpkg.com/preact@11.0.0/hooks/dist/hooks.mjs | sed '/^\/\/# sourceMappingURL=/d' | shasum -a 256
+tail -n +2 hooks.mjs | shasum -a 256
 ```
+
+To update, bump the version in the URL and write the stripped result over the vendored file. Re-add the pointer comment to minified files, then refresh the version, path and hash above and the matching section of `LICENSES.txt`.
