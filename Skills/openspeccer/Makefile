@@ -19,7 +19,10 @@ test:
 lint:
 	uvx ruff check scripts tests
 	uvx ruff format --check scripts tests
-	@for f in assets/web/*.js assets/web/views/*.js; do node --check "$$f" || exit 1; done
+	@# The JS runs in the browser; node is only an optional syntax check.
+	@if command -v node >/dev/null; then \
+		for f in assets/web/*.js assets/web/views/*.js; do node --check "$$f" || exit 1; done; \
+	else echo "node not found, skipping JS syntax check"; fi
 
 format:
 	uvx ruff format scripts tests
