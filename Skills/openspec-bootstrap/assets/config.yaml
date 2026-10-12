@@ -1,0 +1,20 @@
+schema: spec-driven
+
+context: |
+  <what the project is, its hard constraints, and which files hold decisions and conventions>
+
+  A change's artifacts (proposal, specs, design, tasks) say what to build, why, and the approach. The implementer decides how to write the code.
+
+  Contracts are the exception: anything that would force a change outside the code being written and its own tests if it changed. Specify contracts exactly.
+
+rules:
+  design:
+    - Cover the approach, key decisions and trade-offs, not the code. Describe interfaces between modules or parallel task groups by the data they pass and how they behave. Existing code may be named so it can be found.
+    - List every contract under a `## Contracts` heading with its exact name or format.
+  tasks:
+    - State each task as a goal plus an observable check that shows it is done. Code-level detail appears only when it is listed under the design's `## Contracts`.
+
+operations:
+  apply:
+    guidance:
+      - "If the implementation changes a requirement or a contract, update the specs or design to match. If it only changes implementation details, leave the artifacts as they are."
