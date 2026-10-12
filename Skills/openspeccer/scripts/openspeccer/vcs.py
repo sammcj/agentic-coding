@@ -29,13 +29,22 @@ class Worktree:
 
 
 def worktree_key(path: str) -> str:
-    return hashlib.sha1(path.encode()).hexdigest()[:8]
+    return hashlib.blake2b(path.encode(), digest_size=4).hexdigest()
 
 
 def run_result(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str] | None:
     """The finished process whatever its exit code; None only when it could not run or timed out."""
     try:
-        return subprocess.run(args, cwd=cwd, capture_output=True, text=True, timeout=_TIMEOUT, check=False)
+        # An explicit codec: the locale default (cp1252 on Windows) garbles or rejects UTF-8 output.
+        return subprocess.run(
+            args,
+            cwd=cwd,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=_TIMEOUT,
+            check=False,
+        )
     except (OSError, subprocess.TimeoutExpired):
         return None
 

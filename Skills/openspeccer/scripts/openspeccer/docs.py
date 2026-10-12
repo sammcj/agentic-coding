@@ -10,11 +10,13 @@ import re
 from dataclasses import dataclass, field
 
 _FENCE_RE = re.compile(r"^\s{0,3}(```|~~~)")
-_HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*#*\s*$")
+_HEADING_RE = re.compile(r"^(#{1,6})\s(.*)$")
 # Only column-0 checkboxes count; an indented one is part of its parent task's text.
-_CHECKBOX_RE = re.compile(r"^[-*+] \[([ xX])\]\s+(.*)$")
-# Lines that end a lazy continuation: a new list item, heading, quote, fence or rule.
-_BLOCK_OPENER_RE = re.compile(r"^(?:[-*+]\s|\d+[.)]\s|#{1,6}\s|>|```|~~~|(?:[-*_]\s*){3,}$)")
+_CHECKBOX_RE = re.compile(r"^[-*+] \[([ xX])\]\s(.*)$")
+# Lines that end a lazy continuation: a new list item, heading, quote or fence. Rules are
+# checked in _opens_block.
+_BLOCK_OPENER_RE = re.compile(r"^(?:[-*+]\s|\d+[.)]\s|#{1,6}\s|>|```|~~~)")
+_RULE_CHARS = "-*_"
 _DELTA_OP_RE = re.compile(r"^(ADDED|MODIFIED|REMOVED|RENAMED)\b")
 
 
@@ -57,12 +59,12 @@ def parse_tasks(text: str) -> Tasks:
             last = None
             continue
         if m := _CHECKBOX_RE.match(line):
-            last = TaskItem(text=m.group(2), done=m.group(1) != " ", line=lineno)
+            last = TaskItem(text=m.group(2).lstrip(), done=m.group(1) != " ", line=lineno)
             sections[-1].items.append(last)
             pending_blanks = 0
             continue
-        if (h := _HEADING_RE.match(line)) and not line.startswith((" ", "\t")):
-            sections.append(TaskSection(title=h.group(2)))
+        if (h := _heading(line)) and not line.startswith((" ", "\t")):
+            sections.append(TaskSection(title=h[1]))
             last = None
             continue
         if last is None:
@@ -71,7 +73,7 @@ def parse_tasks(text: str) -> Tasks:
             pending_blanks += 1
             continue
         indented = line.startswith(("  ", "\t"))
-        if indented or (pending_blanks == 0 and not _BLOCK_OPENER_RE.match(line)):
+        if indented or (pending_blanks == 0 and not _opens_block(line)):
             last.text += "\n" * (pending_blanks + 1) + _dedent2(line)
             pending_blanks = 0
         else:
@@ -149,13 +151,11 @@ def parse_spec(text: str) -> SpecDoc:
     for line in _lines(text):
         if _FENCE_RE.match(line):
             in_fence = not in_fence
-        h = None if in_fence else _HEADING_RE.match(line)
-        level = len(h.group(1)) if h else 0
-        if h and level == 1 and title is None and group is None:
-            title = h.group(2)
+        level, text_ = (None if in_fence else _heading(line)) or (0, "")
+        if level == 1 and title is None and group is None:
+            title = text_
             continue
-        if h and level in (2, 3, 4):
-            text_ = h.group(2)
+        if level in (2, 3, 4):
             if level == 2:
                 flush()
                 op = m.group(1) if (m := _DELTA_OP_RE.match(text_)) else None
@@ -183,6 +183,22 @@ def parse_spec(text: str) -> SpecDoc:
     flush()
     count = sum(1 for g in groups for b in g.blocks if b.kind == "requirement")
     return SpecDoc(title=title, intro=intro, groups=groups, requirement_count=count)
+
+
+def _heading(line: str) -> tuple[int, str] | None:
+    """(level, text) of an ATX heading, without its optional closing `#` run."""
+    m = _HEADING_RE.match(line)
+    if not m:
+        return None
+    return len(m.group(1)), m.group(2).strip().rstrip("#").rstrip()
+
+
+def _opens_block(line: str) -> bool:
+    if _BLOCK_OPENER_RE.match(line):
+        return True
+    # A thematic break: three or more rule characters, optionally spaced.
+    marks = "".join(line.split())
+    return len(marks) >= 3 and line[0] in _RULE_CHARS and not marks.strip(_RULE_CHARS)
 
 
 def _block(heading: str, slugger: _Slugger) -> Block:

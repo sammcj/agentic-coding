@@ -127,7 +127,7 @@ class WorktreeTest(unittest.TestCase):
         self.assertEqual(cs["add-passkeys"]["variants"], 2)
         self.assertFalse(cs["wt-only"]["source"]["is_main"])
         self.assertNotIn("init-auth", cs)
-        self.assertEqual(cs["idea-sso"]["source"]["is_main"], True)
+        self.assertTrue(cs["idea-sso"]["source"]["is_main"])
         self.assertEqual(len(snap["worktrees"]), 2)
 
         main_only = Repo(self.root).snapshot(aggregate=False)

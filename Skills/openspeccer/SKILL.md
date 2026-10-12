@@ -2,7 +2,7 @@
 name: openspeccer
 description: Use when the user wants to open or browse an OpenSpec project's dashboard, or asks which OpenSpec changes are in flight or how far along one is. Do NOT use for creating, editing, verifying or archiving changes; use the OpenSpec workflow skills for those.
 metadata:
-  version: 2026-10-08
+  version: 2026-10-12
 ---
 
 openspeccer is a read-only local web dashboard for any repository holding an `openspec/` directory. It is stdlib Python and needs no install. Run `<this-skill-dir>/scripts/serve.py --help` for every option.

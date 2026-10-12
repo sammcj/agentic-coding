@@ -184,7 +184,12 @@ def list_artifacts(change_dir: Path, schema: SchemaDef | None) -> list[Artifact]
         if not rel.endswith(ARTIFACT_EXTS):
             continue
         is_md = rel.endswith(".md")
-        kind = "tasks" if rel == tracks else "markdown" if is_md else "data"
+        if rel == tracks:
+            kind = "tasks"
+        elif is_md:
+            kind = "markdown"
+        else:
+            kind = "data"
         art_id = rel[:-3] if is_md else rel
         out.append(
             Artifact(
@@ -328,13 +333,13 @@ def fingerprint(change_dir: Path, signature: tuple, cache: ScanCache) -> str:
     hit = cache.prints.get(str(change_dir))
     if hit and hit[0] == signature:
         return hit[1]
-    h = hashlib.sha1()
+    h = hashlib.blake2b()
     for rel, *_ in signature:
         if not rel:
             continue
         h.update(rel.encode())
         try:
-            h.update(hashlib.sha1((change_dir / rel).read_bytes()).digest())
+            h.update(hashlib.blake2b((change_dir / rel).read_bytes()).digest())
         except OSError:
             h.update(b"?")
     digest = h.hexdigest()
@@ -366,7 +371,12 @@ def scan_active(worktrees: list[Worktree], archived_names: set[str], ctx: ScanCo
         sigs = {d: tree_signature(d) for _, d in found}
         prints = {d: fingerprint(d, sigs[d], ctx.cache) for _, d in found}
         if len(set(prints.values())) > 1:
-            wt, d = max(found, key=lambda c: newest_mtime(sigs[c[1]]))
+            newest = {d: newest_mtime(s) for d, s in sigs.items()}
+            wt, d = found[0]
+            # Strictly greater, so a tie keeps the earlier copy.
+            for cand_wt, cand_d in found[1:]:
+                if newest[cand_d] > newest[d]:
+                    wt, d = cand_wt, cand_d
         else:
             wt, d = next((c for c in found if c[0].is_main), found[0])
         change = scan_change(d, "active", Source.of(wt), ctx)

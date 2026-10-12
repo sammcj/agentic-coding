@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import argparse
 import errno
+import http.client
 import json
 import sys
 import threading
-import urllib.request
 import webbrowser
 from pathlib import Path
 
@@ -34,12 +34,18 @@ def find_repo(start: Path) -> Path | None:
 
 
 def existing_instance(host: str, port: int, repo: Path) -> bool:
+    # The host is this tool's own --host bind address, from the user's command line.
+    conn = http.client.HTTPConnection(host, port, timeout=0.5)  # NOSONAR
     try:
-        with urllib.request.urlopen(f"http://{host}:{port}/api/ping", timeout=0.5) as resp:
-            data = json.loads(resp.read())
-    except (OSError, ValueError):
+        conn.request("GET", "/api/ping")
+        resp = conn.getresponse()
+        data = json.loads(resp.read()) if resp.status == 200 else None
+    except (OSError, ValueError, http.client.HTTPException):
         return False
-    return data.get("app") == "openspeccer" and data.get("repo") == str(repo)
+    finally:
+        conn.close()
+    # Whatever else holds the port may answer with any JSON shape.
+    return isinstance(data, dict) and data.get("app") == "openspeccer" and data.get("repo") == str(repo)
 
 
 def summary(snap: dict) -> str:
@@ -105,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
 
     ports = [args.port] if args.port else range(DEFAULT_PORT, DEFAULT_PORT + _PORT_SPAN)
     for port in ports:
-        url = f"http://{args.host}:{port}/"
+        url = f"http://{args.host}:{port}/"  # NOSONAR - a local dashboard serves plain HTTP
         if existing_instance(args.host, port, repo.root):
             print(f"openspeccer already serving {root.name} at {url}", flush=True)
             if not args.no_open:

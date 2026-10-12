@@ -1,6 +1,6 @@
 [project]
 name = "openspeccer"
-version = "0.1.1"
+version = "0.1.2"
 description = "Read-only dashboard and explorer for OpenSpec repositories"
 requires-python = ">=3.12"
 dependencies = []

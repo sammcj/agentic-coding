@@ -168,10 +168,16 @@ def _split_key(content: str) -> tuple[str, str] | None:
         if rest and not rest.startswith(" "):
             return None
         return content[1:end], rest.strip()
-    m = re.match(r"^([^\s#'\"\[\]{},][^:#]*?)\s*:(?:\s+|$)(.*)$", content)
-    if not m:
+    if not content or content[0].isspace() or content[0] in "#'\"[]{},":
         return None
-    return m.group(1).strip(), m.group(2).strip()
+    # The key runs to the first colon after its first character; a `#` before it is a comment.
+    colon = content.find(":", 1)
+    if colon == -1 or "#" in content[:colon]:
+        return None
+    rest = content[colon + 1 :]
+    if rest and not rest[0].isspace():
+        return None
+    return content[:colon].strip(), rest.strip()
 
 
 def _strip_comment(s: str) -> str:
@@ -271,4 +277,4 @@ def _fold(lines: list[str]) -> str:
     if para:
         out.append(" ".join(para))
     text = "\n".join(out)
-    return re.sub(r"\n\n", "\n", text)
+    return text.replace("\n\n", "\n")

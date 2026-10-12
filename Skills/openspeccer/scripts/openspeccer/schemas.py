@@ -10,6 +10,7 @@ from __future__ import annotations
 import fnmatch
 import json
 import os
+import shutil
 import threading
 import time
 from dataclasses import dataclass, field
@@ -150,7 +151,12 @@ class SchemaCatalog:
 
 def cli() -> str:
     """The OpenSpec CLI to run; override for installs outside PATH (and in tests)."""
-    return os.environ.get("OPENSPECCER_OPENSPEC_BIN", "openspec")
+    name = os.environ.get("OPENSPECCER_OPENSPEC_BIN", "openspec")
+    # Resolves npm's `openspec.cmd` shim on Windows, which a bare name does not find. Windows
+    # `which` also searches the current directory first; a hit there could be a script planted
+    # in the repo being viewed, so it is not trusted.
+    found = shutil.which(name)
+    return found if found and os.path.dirname(found) != os.curdir else name
 
 
 def is_safe_name(name: str) -> bool:

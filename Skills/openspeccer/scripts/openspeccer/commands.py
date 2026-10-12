@@ -16,7 +16,7 @@ from . import vcs
 from .schemas import cli
 
 _SECTION_RE = re.compile(r"^([A-Z][\w ]*):\s*$")
-_ITEM_RE = re.compile(r"^  (\S.*?)(?:\s{2,}(\S.*))?$")
+_COLUMN_GAP_RE = re.compile(r"\s{2,}")
 _WORKERS = 8  # enough to fetch the whole tree in well under a second
 _MAX_DEPTH = 3  # OpenSpec nests two levels (`openspec new change`); one spare
 _SKIP_COMMANDS = {"help"}
@@ -36,8 +36,10 @@ def parse_help(text: str) -> dict[str, Any]:
             current = sections.setdefault(m.group(1).lower(), [])
         elif current is None:
             description.append(line.strip())
-        elif item := _ITEM_RE.match(line):
-            current.append({"term": item.group(1).strip(), "desc": (item.group(2) or "").strip()})
+        elif line.startswith("  ") and line[2:3].strip():
+            # An item sits at a two-space indent; two or more spaces separate term from desc.
+            term, *desc = _COLUMN_GAP_RE.split(line[2:].strip(), maxsplit=1)
+            current.append({"term": term, "desc": desc[0] if desc else ""})
         elif current:
             # commander wraps long descriptions onto lines indented past the term column
             last = current[-1]

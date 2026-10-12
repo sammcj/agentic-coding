@@ -10,6 +10,10 @@ from pathlib import Path
 # Hermetic: never reach a real OpenSpec install. Schemas resolve from the fixture's own
 # openspec/schemas/, which is the CLI-unavailable path.
 os.environ["OPENSPECCER_OPENSPEC_BIN"] = "openspeccer-test-no-such-cli"
+# Run from a git hook, git exports GIT_INDEX_FILE (and sometimes GIT_DIR) for the outer repo,
+# which would capture the fixture repos' git calls.
+for _key in [k for k in os.environ if k.startswith("GIT_")]:
+    del os.environ[_key]
 
 LOOP_SCHEMA = """name: loop
 description: Custom loop

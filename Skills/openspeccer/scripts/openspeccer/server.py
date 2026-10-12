@@ -52,7 +52,7 @@ class Watcher(threading.Thread):
     def signature(self) -> tuple[str, str]:
         """(everything, project schemas). Schemas are tracked apart because re-resolving them
         spawns the CLI, which is too slow to repeat on every artifact save."""
-        everything, schemas = hashlib.sha1(), hashlib.sha1()
+        everything, schemas = hashlib.blake2b(), hashlib.blake2b()
         for root in self._roots:
             everything.update(str(root).encode())
             schema_dir = str(root / "schemas")
@@ -162,7 +162,10 @@ def make_handler(repo: Repo, watcher: Watcher | None, default_jj: bool) -> type[
             raise NotFound(path)
 
         def _json(self, data: Any, status: HTTPStatus = HTTPStatus.OK) -> None:
-            body = json.dumps(data, default=str).encode()
+            # Responses echo the query string; escaping markup characters keeps a response
+            # sniffed or rendered as HTML inert. JSON.parse decodes the escapes unchanged.
+            text = json.dumps(data, default=str)
+            body = text.replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e").encode()
             self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Cache-Control", "no-store")
@@ -172,9 +175,12 @@ def make_handler(repo: Repo, watcher: Watcher | None, default_jj: bool) -> type[
             if len(body) > 1024 and "gzip" in self.headers.get("Accept-Encoding", ""):
                 body = gzip.compress(body, compresslevel=5)
                 self.send_header("Content-Encoding", "gzip")
+            self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
-            self.wfile.write(body)
+            # JSON bodies have markup characters escaped in _json, and nosniff stops a browser
+            # rendering them as HTML.
+            self.wfile.write(body)  # NOSONAR
 
         def _static(self, path: str) -> None:
             rel = "index.html" if path in ("", "/") else path.lstrip("/")
@@ -211,7 +217,7 @@ def make_handler(repo: Repo, watcher: Watcher | None, default_jj: bool) -> type[
                         # otherwise wait out a whole heartbeat.
                         if repo.version == seen:
                             watcher.changed.wait(_HEARTBEAT)
-            except (BrokenPipeError, ConnectionResetError, OSError):
+            except OSError:
                 return
 
     return Handler
@@ -219,7 +225,9 @@ def make_handler(repo: Repo, watcher: Watcher | None, default_jj: bool) -> type[
 
 class Server(ThreadingHTTPServer):
     daemon_threads = True
-    allow_reuse_address = True
+    # On Windows SO_REUSEADDR lets a second server bind a port in use, so the CLI's port hop
+    # would never trigger.
+    allow_reuse_address = sys.platform != "win32"
 
 
 def serve(repo: Repo, host: str, port: int, interval: float, include_jj: bool) -> tuple[Server, Watcher]:
