@@ -27,6 +27,7 @@ SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 import render_report as rr  # noqa: E402  # pyright: ignore[reportMissingImports]
+import report_model as rm  # noqa: E402  # pyright: ignore[reportMissingImports]
 import validate_skill as vs  # noqa: E402  # pyright: ignore[reportMissingImports]
 from test_validate_skill import build_skill  # noqa: E402  # pyright: ignore[reportMissingImports]
 
@@ -377,11 +378,11 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(listed, 3)
 
     def test_examples_are_capped_per_rule(self):
-        fences = "\n\n".join(FENCE for _ in range(rr.BRIEF_EXAMPLES + 3))
+        fences = "\n\n".join(FENCE for _ in range(rm.BRIEF_EXAMPLES + 3))
         text, _ = self.brief_of("# H\n\n" + fences + "\n")
         line = next(x for x in text.splitlines() if x.startswith("- code,"))
-        self.assertIn("code, %d code blocks" % (rr.BRIEF_EXAMPLES + 3), line)
-        self.assertEqual(line.count("SKILL.md:"), rr.BRIEF_EXAMPLES)
+        self.assertIn("code, %d code blocks" % (rm.BRIEF_EXAMPLES + 3), line)
+        self.assertEqual(line.count("SKILL.md:"), rm.BRIEF_EXAMPLES)
 
     def test_budget_cure_appears_only_when_over(self):
         over, _ = self.brief_of("# H\n\n" + "word " * 40000 + "\n")
@@ -648,6 +649,35 @@ class DenseRunReportTests(unittest.TestCase):
         self.assertRegex(page, r'id="L-0-8"[^>]*data-label="140w blob"')
         # one label per block, not one per shaded line
         self.assertEqual(len(re.findall(r'data-label="140w blob"', page)), 1)
+
+
+class HoverCardTests(unittest.TestCase):
+    """Hovering a flagged line or word in the preview shows a card at the cursor naming the rule, its step on the
+    ramp and the reason. The card reads these off the element, so each one has to carry all three."""
+
+    def render(self, body: str) -> str:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return rr.render(build_skill(Path(tmp.name), body))
+
+    def test_a_shaded_line_names_its_rule_and_confidence(self):
+        page = self.render("# H\n\n" + BLOB + "\n")
+        self.assertRegex(page, r'id="L-0-8" data-why="[^"]+" data-head="blob" data-conf="probable"')
+
+    def test_a_mark_names_its_rules_and_drops_the_native_tooltip(self):
+        page = self.render("# H\n\nIt is not just robust but fast.\n")
+        mark = re.search(r'<mark [^>]*>', page).group(0)  # pyright: ignore
+        self.assertIn('data-conf="', mark)
+        head = re.search(r'data-head="([^"]+)"', mark).group(1)  # pyright: ignore
+        self.assertIn("puffery", head)
+        self.assertIn("negation-antithesis", head)
+        # A native title would pop up over the card a second later with the same text.
+        self.assertNotIn("title=", mark)
+
+    def test_the_page_builds_the_card(self):
+        page = self.render("# H\n\nA robust plan.\n")
+        self.assertIn("#card", page)
+        self.assertIn("card.id = 'card'", page)
 
 
 class JumpTests(unittest.TestCase):
@@ -1074,18 +1104,18 @@ class AgentFindingTests(unittest.TestCase):
         return rr.render(build_skill(Path(tmp.name), body), agent=agent)
 
     def test_a_spec_grade_fails_an_otherwise_clean_skill(self):
-        page = self.render("# H\n\nShort.\n", [rr.AgentFinding("spec", "Name does not match the directory.")])
+        page = self.render("# H\n\nShort.\n", [rm.AgentFinding("spec", "Name does not match the directory.")])
         self.assertIn('<div class="verdict certain">Fail <small>with 1 finding</small></div>', page)
         self.assertIn("<li><b>agent</b> Name does not match the directory.</li>", page)
 
     def test_a_primer_grade_blocks_as_the_primer_says(self):
-        page = self.render("# H\n\nShort.\n", [rr.AgentFinding("primer", "Duplicates the reference.")])
+        page = self.render("# H\n\nShort.\n", [rm.AgentFinding("primer", "Duplicates the reference.")])
         self.assertIn('<div class="verdict certain">Fail <small>', page)
 
     def test_fails_counts_only_the_findings_it_rests_on(self):
-        page = self.render("# H\n\nA comprehensive plan.\n", [rr.AgentFinding("spec", "One."),
-                                                              rr.AgentFinding("primer", "Two."),
-                                                              rr.AgentFinding("judgement", "Three.")])
+        page = self.render("# H\n\nA comprehensive plan.\n", [rm.AgentFinding("spec", "One."),
+                                                              rm.AgentFinding("primer", "Two."),
+                                                              rm.AgentFinding("judgement", "Three.")])
         self.assertIn("Fail <small>with 2 findings</small>", page)
 
     def test_only_fails_carries_a_count(self):
@@ -1093,29 +1123,29 @@ class AgentFindingTests(unittest.TestCase):
         self.assertIn('<div class="verdict probable">Needs work</div>', page)
 
     def test_a_judgement_call_alone_passes(self):
-        page = self.render("# H\n\nShort.\n", [rr.AgentFinding("judgement", "Could split the branch.")])
+        page = self.render("# H\n\nShort.\n", [rm.AgentFinding("judgement", "Could split the branch.")])
         self.assertRegex(page, r'<div class="verdict[^"]*">Pass</div>')
 
     def test_rows_rank_worst_grade_first_and_jump_to_their_line(self):
         page = self.render("# H\n\nShort.\n", [
-            rr.AgentFinding("judgement", "Later.", where="SKILL.md:6"),
-            rr.AgentFinding("spec", "First.", where="SKILL.md:8", fix="Rename it.", cite="Spec"),
+            rm.AgentFinding("judgement", "Later.", where="SKILL.md:6"),
+            rm.AgentFinding("spec", "First.", where="SKILL.md:8", fix="Rename it.", cite="Spec"),
         ])
         self.assertLess(page.index(">First.<"), page.index(">Later.<"))
         self.assertIn('<tr class="pick agent certain" data-goto="L-0-8">', page)
         self.assertIn("<small><b>Spec</b> Rename it.</small>", page)
 
     def test_a_where_outside_the_loaded_files_is_not_clickable(self):
-        page = self.render("# H\n\nShort.\n", [rr.AgentFinding("primer", "Stray.", where="notes.md:3")])
+        page = self.render("# H\n\nShort.\n", [rm.AgentFinding("primer", "Stray.", where="notes.md:3")])
         self.assertIn('<tr class="pick agent probable"><td class="n">primer</td>', page)
 
     def test_findings_are_escaped(self):
-        page = self.render("# H\n\nShort.\n", [rr.AgentFinding("primer", "<script>x</script>")])
+        page = self.render("# H\n\nShort.\n", [rm.AgentFinding("primer", "<script>x</script>")])
         self.assertNotIn("<script>x</script>", page)
 
     def test_the_brief_lists_each_finding_with_its_fix(self):
         page = self.render("# H\n\nShort.\n", [
-            rr.AgentFinding("primer", "Duplicates the reference.", where="SKILL.md:6", fix="Cut it.",
+            rm.AgentFinding("primer", "Duplicates the reference.", where="SKILL.md:6", fix="Cut it.",
                             cite="Failure Modes: Duplication")])
         self.assertIn("- [primer] SKILL.md:6: Duplicates the reference. Fix: Cut it. "
                       "(Failure Modes: Duplication)", html.unescape(page))
@@ -1191,11 +1221,11 @@ class AssessTests(unittest.TestCase):
         return [(i.level, i.cell) for i in rr.assess(budget, list(found), agent, emphasis, words)]
 
     def block(self, kind, where="SKILL.md:6", size=120):
-        return rr.Finding(rule=rr.BLOCK_RULE.get(kind, kind), n=1, unit="u", example=where, kind=kind,
+        return rm.Finding(rule=rr.BLOCK_RULE.get(kind, kind), n=1, unit="u", example=where, kind=kind,
                           what="x", size=size, where=where)
 
     def term(self, rule, n=1):
-        return rr.Finding(rule=rule, n=n, unit="use", example="t", kind="filler", what="t", size=n, term="t")
+        return rm.Finding(rule=rule, n=n, unit="use", example="t", kind="filler", what="t", size=n, term="t")
 
     def test_budget_levels_follow_the_validator(self):
         self.assertEqual(self.levels(budget=("Poor", True, False, 13000)), [("fail", "budget")])
@@ -1240,7 +1270,7 @@ class LoadAgentFindingsTests(unittest.TestCase):
 
     def test_optional_fields_default_empty(self):
         self.assertEqual(self.load('[{"grade": "spec", "finding": "x"}]'),
-                         [rr.AgentFinding("spec", "x")])
+                         [rm.AgentFinding("spec", "x")])
 
     def test_rejects_an_unknown_grade(self):
         with self.assertRaisesRegex(ValueError, "entry 0.*grade"):

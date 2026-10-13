@@ -6,11 +6,12 @@
 
 - Description hard cap raised from 65 to 70 words; the 55-word soft ceiling stays a warning. The HTML now shades a description between the two orange (probable, Needs work) and only past the hard cap red (Fail).
 - New `hard-wrap` rule: a paragraph or list item spread over several source lines by hand. A possible (`?`) SIGNAL, one summary line in the full text report and left out of the post-edit hook's `--report-only` run; in the HTML one row per file, with every wrapped unit lightly shaded yellow.
-- HTML layout: the hover caption swaps with the legend in one fixed-height slot, so hovering no longer resizes cells; only a cell's list scrolls when short of room, down to a two-row floor, with the wording footer pinned to the cell's bottom; past every floor the left panel scrolls instead of clipping; the header is about a third shorter; cell padding and inner margins tightened; the wording search box is gone.
+- HTML layout: the hover caption swaps with the legend in one fixed-height slot, so hovering no longer resizes cells; only a cell's list scrolls when short of room, down to a two-row floor, with the wording footer pinned to the cell's bottom; past every floor the left panel scrolls instead of clipping; the header is about a third shorter; cell padding and inner margins tightened; the wording search box is gone; hovering a flagged line or word in the preview shows a card at the cursor with the rule, its confidence and the reason, replacing the native tooltip.
 - HTML report: an overall verdict (Fail / Needs work / Pass) replaces the large budget rating, with a chip per cell and "with n findings" after Fail. Fail mirrors the validator's gate plus agent spec/primer grades; Needs work is FACTS plus habits by count or rate (no-ops at 2+ per 1000 words and 3+ hits, abused bold, 3+ reference blobs); other SIGNALS never lower it. The budget rating is now a label in its own cell.
 - HTML report: `--findings JSON` (or `-` for stdin) adds an "Agent findings" cell and brief section from the reviewing agent, graded spec/primer/judgement. Omitted when not passed.
 - HTML report defaults to `~/Downloads`, falling back to the temp directory when it is missing or unwritable.
 - HTML report: a too-short description warning now lists as a spec row and counts towards the verdict; it was dropped from the page.
+- `render_report.py` split three ways to stay under 700 lines: `report_model.py` (findings, verdict, brief), `report_assets.py` (CSS and JS), and the HTML cells, page and CLI left in `render_report.py`. Output unchanged.
 
 ## 2026-09-08
 
