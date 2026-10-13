@@ -2,6 +2,16 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-10-13
+
+- Description hard cap raised from 65 to 70 words; the 55-word soft ceiling stays a warning. The HTML now shades a description between the two orange (probable, Needs work) and only past the hard cap red (Fail).
+- New `hard-wrap` rule: a paragraph or list item spread over several source lines by hand. A possible (`?`) SIGNAL, one summary line in the full text report and left out of the post-edit hook's `--report-only` run; in the HTML one row per file, with every wrapped unit lightly shaded yellow.
+- HTML layout: the hover caption swaps with the legend in one fixed-height slot, so hovering no longer resizes cells; only a cell's list scrolls when short of room, down to a two-row floor, with the wording footer pinned to the cell's bottom; past every floor the left panel scrolls instead of clipping; the header is about a third shorter; cell padding and inner margins tightened; the wording search box is gone.
+- HTML report: an overall verdict (Fail / Needs work / Pass) replaces the large budget rating, with a chip per cell and "with n findings" after Fail. Fail mirrors the validator's gate plus agent spec/primer grades; Needs work is FACTS plus habits by count or rate (no-ops at 2+ per 1000 words and 3+ hits, abused bold, 3+ reference blobs); other SIGNALS never lower it. The budget rating is now a label in its own cell.
+- HTML report: `--findings JSON` (or `-` for stdin) adds an "Agent findings" cell and brief section from the reviewing agent, graded spec/primer/judgement. Omitted when not passed.
+- HTML report defaults to `~/Downloads`, falling back to the temp directory when it is missing or unwritable.
+- HTML report: a too-short description warning now lists as a spec row and counts towards the verdict; it was dropped from the page.
+
 ## 2026-09-08
 
 - "Bundled File Layout" now covers `CHANGELOG.md`: date headings (skills are non-code projects), history out of the body, update rule in both the file's HTML comment and the skill's `CLAUDE.md`, and use a changelog-setup skill if available.

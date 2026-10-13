@@ -31,6 +31,9 @@ invisible character is certain (red); everything else is probable (orange),
 since the validator never gates on a word a skill may mean literally. Bold is a
 density rather than a mark of any confidence and keeps its own blue.
 
+The verdict reads its levels from assess(), one branch per finding kind. A new kind needs a branch there, or it shows
+on the page and never moves the verdict.
+
 Three checks after a change, all of them past what a browser screenshot shows:
 
 - Every mark key (marks carry one per finding, joined by |) is matched by one
@@ -44,6 +47,7 @@ import contextlib
 import datetime
 import html
 import io
+import json
 import os
 import sys
 import tempfile
@@ -69,6 +73,54 @@ KINDS = [
     ("em", "bold mid-sentence - a density, not a defect at the span"),
 ]
 RANK = {"certain": 0, "probable": 1, "possible": 2}
+
+# Each verdict level: its word, the ramp step that colours it, and its rank. See assess() for what sets each.
+LEVELS = {"fail": ("Fail", "certain", 0), "work": ("Needs work", "probable", 1), "judge": ("Pass", "", 2)}
+CELLS = ("budget", "structure", "wording", "agent")
+VERDICT_REASONS = 3
+# Lexical no-ops need work from 2 per 1000 words, and never on fewer than 3 hits. Calibrated over 64 installed skills:
+# over half carry none, and 2.0 flags the top 8%, where the words are a habit rather than a slip.
+NOOP_RATE, NOOP_LEAST = 2.0, 3
+SPEC_SKIPPED = "Spec checks skipped"
+
+# The primer's own review grades (Reviewing a Skill), placed on the ramp for colour. Spec and primer violations block;
+# a judgement call is the agent's read and carries the possible step's caveat.
+GRADES = {"spec": "certain", "primer": "probable", "judgement": "possible"}
+
+
+class AgentFinding(NamedTuple):
+    """One finding from the agent that ran the review, passed in with --findings."""
+
+    grade: str  # spec | primer | judgement
+    finding: str
+    where: str = ""  # path or path:line, relative to the skill
+    fix: str = ""
+    cite: str = ""  # the primer section or failure mode it rests on
+
+    @property
+    def conf(self):
+        return GRADES[self.grade]
+
+
+def load_agent_findings(path):
+    """[AgentFinding] from a JSON array, or "-" for stdin. Raises ValueError naming the first bad entry, since the
+    agent that wrote the file is the one reading the error."""
+    text = sys.stdin.read() if path == "-" else Path(path).read_text(encoding="utf-8")
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError as err:
+        raise ValueError("--findings is not valid JSON: %s" % err) from None
+    if not isinstance(data, list):
+        raise ValueError("--findings must be a JSON array of finding objects")
+    out = []
+    for i, item in enumerate(data):
+        if not isinstance(item, dict) or not str(item.get("finding", "")).strip():
+            raise ValueError("--findings entry %d needs a non-empty \"finding\"" % i)
+        if not isinstance(item.get("grade"), str) or item["grade"] not in GRADES:
+            raise ValueError("--findings entry %d: \"grade\" must be one of %s"
+                             % (i, ", ".join(GRADES)))
+        out.append(AgentFinding(**{k: str(item.get(k) or "").strip() for k in AgentFinding._fields}))
+    return out
 
 
 def why_for(rule):
@@ -116,6 +168,9 @@ WHY = {
                  f"{vs.DENSE_LIST_RUN}+ list items of {vs.DENSE_LIST_WORDS}+, not every one "
                  "of them a blob. A wall with nowhere to rest: split it, or cut the units "
                  "that restate one another.",
+    "hard-wrap": "A paragraph or list item broken across source lines by hand. Markdown joins the lines when it "
+                 "renders, so the breaks buy nothing, and every later edit reflows the paragraph and spreads a "
+                 "one-word change across the diff. Put each paragraph or item on one line.",
     "invisible": "A character that renders as nothing or as an ordinary space - a "
                  "no-break space, a zero-width space, a private-use glyph - usually "
                  "pasted in from a web page. It breaks a command or a trigger phrase "
@@ -185,7 +240,10 @@ class Finding(NamedTuple):
 
     @property
     def conf(self):
-        """The row's step on the ramp; bold has none, being a density rather than a defect at any span."""
+        """The row's step on the ramp; bold has none, being a density rather than a defect at any span. A description
+        past only the soft ceiling is probable, matching the validator's warning."""
+        if self.kind == "descw":
+            return "probable"
         return "" if self.kind == "em" else confidence(self.rule)
 
 CSS = """
@@ -212,21 +270,25 @@ body { margin: 0; background: var(--ground); color: var(--ink);
 .board { display: grid; grid-template-columns: minmax(440px, 41%) 1fr;
          grid-template-rows: auto minmax(0, 1fr) auto;
          gap: var(--rule); padding: var(--rule); height: 100vh; }
-.cell { border: var(--rule) solid var(--ink); padding: 14px 16px; min-width: 0; }
-/* The panel does not scroll; the findings cell inside it takes the slack and
-   scrolls, so each column shows exactly one scrollbar and the budget stays put. */
-/* The panel itself never scrolls: a scrollbar on the column would put the budget out of sight, which is the figure
-   the page exists to report. Cells take their content height and shrink no further than their own list, which is
-   what scrolls. `flex: 0 1 auto` is the whole trick - shrink when the panel is full, never stretch when it is not,
-   so a short list leaves no gap under itself and a long one steals nothing from the cells above. */
+.cell { border: var(--rule) solid var(--ink); padding: 9px 12px; min-width: 0; }
+/* Cells take their content height and the lists inside them give way first: `flex: 0 1 auto` shrinks a cell when
+   the panel is full and never stretches one when it is not, so a short list leaves no gap under itself. Only once
+   every cell is at its floor does the panel scroll, so a short window gets one scrollbar on the column rather than
+   clipped cells. */
 .panel { display: flex; flex-direction: column; gap: var(--rule);
-         min-height: 0; overflow: hidden; }
+         min-height: 0; overflow-y: auto; }
 /* :not(.grow) is load-bearing: as a bare `.panel > .cell` this outweighs `.grow` on specificity, pinned the list
    cells at their full content height, and the panel clipped everything below the first long table. */
 .panel > .cell:not(.grow) { flex: none; }
-/* The floor is what stops the longer list taking the shorter one's cell. Flex shrinks in proportion to basis, so a
-   42-row structure list beside a 2-row wording list left the wording cell at its search box and nothing else. */
-.grow { flex: 0 1 auto; min-height: 170px; display: flex; flex-direction: column; }
+/* Only the list scrolls; a scrolling cell carried the footer away with it. The floor has to be set on the cell: left
+   at auto, a flex item cannot shrink below its whole content, so a long structure list kept every row and pushed the
+   wording cell off the column. Each floor is padding, borders and heading, plus two 26px rows, plus the footer where
+   there is one, sized to that sum so the footer always fits under the list. */
+.grow { flex: 0 1 auto; display: flex; flex-direction: column; min-height: 96px; overflow: hidden; }
+.grow.rated { min-height: 120px; }  /* the prose-share line under the heading */
+.grow:has(.foot) { min-height: 162px; }  /* the legend and caption slot, absent on a clean skill */
+.grow .scroll { min-height: 54px; }
+.grow .scroll:has(+ .foot) { margin-bottom: 10px; }
 .doc { min-height: 0; overflow: auto; }
 header, footer { grid-column: 1 / -1; }
 /* Wraps rather than overflowing: on a narrow window the title took the full row and pushed the three figures out of
@@ -244,38 +306,56 @@ header .stats { flex: 1 1 380px; max-width: 680px; }
   header .stats { max-width: none; margin-top: 16px; }
 }
 
-h1 { font: 700 27px/1.1 var(--grotesk); margin: 0; letter-spacing: -0.02em;
+h1 { font: 700 23px/1.1 var(--grotesk); margin: 0; letter-spacing: -0.02em;
      text-transform: uppercase; }
 h1 span { background: var(--accent); color: #fff; padding: 0 6px; }
 h2 { font: 700 11px/1 var(--grotesk); letter-spacing: 0.14em; text-transform: uppercase;
-     margin: 0 0 12px; color: var(--muted); }
-h2.sub { margin: 20px 0 10px; padding-top: 14px; border-top: 1px solid #ececec; }
+     margin: 0 0 8px; color: var(--muted); }
+h2.sub { margin: 12px 0 8px; padding-top: 10px; border-top: 1px solid #ececec; }
 
-/* the stat strip: a coloured rule over each figure, small caps under it */
+/* the stat strip: a coloured rule over each figure, its label on the same baseline so the header stays one line tall */
+header.cell { padding-top: 8px; padding-bottom: 8px; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-.stats div i { display: block; height: 5px; margin-bottom: 10px; }
-.stats div b { font: 700 25px/1 var(--grotesk); letter-spacing: -0.01em; }
-.stats div u { display: block; text-decoration: none; margin-top: 5px;
+.stats div i { display: block; height: 4px; margin-bottom: 6px; }
+.stats div b { font: 700 21px/1 var(--grotesk); letter-spacing: -0.01em; }
+.stats div u { text-decoration: none; margin-left: 8px; white-space: nowrap;
                font: 400 10px var(--mono); letter-spacing: 0.1em; color: var(--muted); }
 
-input { width: 100%; border: var(--rule) solid var(--ink); background: var(--ground);
-        color: var(--ink); font: 400 12px var(--mono); padding: 7px 9px;
-        margin-bottom: 10px; letter-spacing: 0.08em; }
-input::placeholder { color: var(--muted); text-transform: uppercase; }
-tr.gone { display: none; }
 
 footer { display: flex; align-items: center; gap: 14px;
          font: 400 10px var(--mono); letter-spacing: 0.1em; color: var(--muted);
          padding: 7px 16px; border: var(--rule) solid var(--ink); text-transform: uppercase; }
 footer .end { margin-left: auto; }
 
-/* the rating, set at the size of the finding it is */
-.band { font: 700 46px/1 var(--grotesk); letter-spacing: -0.02em; }
+/* The verdict is the one word set large: it judges every cell, so no single cell's rating may compete with it. */
+.verdict { font: 700 46px/1 var(--grotesk); letter-spacing: -0.02em; text-transform: uppercase; }
+.verdict.certain { color: var(--accent); }
+.verdict.probable { color: var(--likely-rule); }
+.verdict small { font: 700 16px var(--grotesk); letter-spacing: 0; text-transform: none; }
+/* Columns by count, since the agent chip is there only when findings were passed. */
+.score { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 12px; margin-top: 10px; }
+.score div { border-top: 5px solid var(--ink); padding-top: 6px; font: 400 11px var(--mono); }
+.score div.certain { border-top-color: var(--accent); }
+.score div.probable { border-top-color: var(--likely-rule); }
+.score b { display: block; font: 700 14px var(--grotesk); }
+.score u { display: block; text-decoration: none; color: var(--muted); letter-spacing: 0.08em;
+           text-transform: uppercase; }
+.score em { font-style: normal; color: var(--muted); }
+.reasons { margin: 8px 0 0; padding: 0; list-style: none; font: 400 12px/1.5 var(--mono); }
+.reasons li { padding-left: 9px; border-left: var(--rule) solid var(--accent); margin-bottom: 3px; }
+.reasons b { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; margin-right: 6px; }
+/* The budget's own rating, demoted to a label: set large it read as the verdict on the whole skill. */
+.band { font-weight: 700; color: var(--ink); text-transform: uppercase; }
 .band.ok, .band.poor { color: var(--accent); }
-.rate { font: 400 13px var(--mono); color: var(--muted); margin-top: 6px; }
-.note { font: 400 12px/1.5 var(--mono); color: var(--ink); margin-top: 10px;
+/* An agent finding is a sentence rather than a term, so the grade sits in the count column and the fix under the text. */
+tr.agent td.n { width: 1%; }
+tr.agent td.n::before { content: none; }
+tr.agent small { display: block; color: var(--muted); font-size: 12px; }
+tr.agent small b { color: var(--ink); font-weight: 400; }
+.rate { font: 400 13px var(--mono); color: var(--muted); margin-top: 4px; }
+.note { font: 400 12px/1.5 var(--mono); color: var(--ink); margin-top: 8px;
         border-left: var(--rule) solid var(--accent); padding-left: 9px; }
-.gauge { position: relative; height: 22px; border: var(--rule) solid var(--ink); margin-top: 14px; }
+.gauge { position: relative; height: 22px; border: var(--rule) solid var(--ink); margin-top: 8px; }
 .gauge i { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
 .gauge b { position: absolute; top: -2px; bottom: -2px; width: var(--rule); background: var(--ink); }
 .ticks { display: flex; justify-content: space-between;
@@ -283,7 +363,7 @@ footer .end { margin-left: auto; }
 
 /* per-file bars: one grey ramp, the accent reserved for the file that leads */
 .bar { display: grid; grid-template-columns: 190px 1fr 44px; align-items: center;
-       gap: 8px; margin-bottom: 7px; font: 400 12px var(--mono); }
+       gap: 8px; margin-bottom: 4px; font: 400 12px var(--mono); }
 .bar u { text-decoration: none; color: var(--muted); overflow: hidden;
          text-overflow: ellipsis; white-space: nowrap; }
 .bar s { text-decoration: none; height: 13px; background: #d4d4d4; display: block; }
@@ -322,14 +402,15 @@ tr.pick.spec, tr.pick.specw { cursor: default; }
 .pair em { font-style: normal; color: var(--muted); }
 .cut { color: var(--accent); }
 
-/* The caption under the list: the reason for whatever is hovered or chosen. It costs no space until something is
-   hovered - a standing instruction to hover is a row spent explaining the interface rather than the skill. Once
-   opened it holds a fixed height and scrolls, since the reasons run from one line to five and sizing to the text
-   made the whole panel jump on every hover. */
-.why { height: 0; margin: 0; padding: 0; border: 0; overflow: hidden; flex: none;
-       font: 400 12px/1.45 var(--mono); }
-.why.live { height: 5.8em; margin: 12px 0 0; padding-top: 10px;
-            border-top: 1px solid #ececec; overflow: auto; }
+/* The caption under the list: the reason for whatever is hovered or chosen. It shares one fixed-height slot with the
+   legend, showing the legend until something is hovered and the reason after, so a hover never resizes the cell. Sized
+   to the text, it pushed the list up on every hover and shoved the legend out of the cell. The reasons run from one
+   line to five, so the slot scrolls rather than grows. */
+.foot { flex: none; height: 4.6em; margin-top: auto; padding-top: 6px; border-top: 1px solid #ececec;
+        font: 400 12px/1.45 var(--mono); overflow: hidden; }
+.why { display: none; margin: 0; height: 100%; overflow: auto; }
+.foot.live .why { display: block; }
+.foot.live .legend { display: none; }
 
 /* Sized to sit on the footer rule beside the date, not to stand over it. */
 button { font: 400 10px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase;
@@ -344,7 +425,7 @@ body.spill { overflow: auto; }
 
 /* flex: none, or the wrapped second row was shrunk away by the column above it and the legend lost half its keys. */
 .legend { display: flex; gap: 8px 16px; font: 400 11px var(--mono);
-          color: var(--muted); margin-top: 12px; flex-wrap: wrap; flex: none; }
+          color: var(--muted); flex-wrap: wrap; flex: none; }
 .legend span { white-space: nowrap; }
 .key { display: inline-block; width: 22px; height: 11px; margin-right: 5px;
        vertical-align: -1px; }
@@ -373,7 +454,10 @@ pre { margin: 0; font: 400 13px/1.65 var(--mono); white-space: pre-wrap;
    Every shade is a block of the same weight, so the kind is carried by the margin label rather than by the colour -
    the earlier pale grey on code was invisible at reading distance and said nothing the label does not. */
 .l.dense { background: #fffbe6; border-left-color: var(--maybe-rule); }
-.l.blob, .l.code, .l.table { background: #ffe4bd; border-left-color: var(--likely-rule); }
+/* Possible like a dense run, but lighter: a whole file can be wrapped, and a full-strength shade on every paragraph
+   would drown the findings that matter. */
+.l.wrap { background: #fffdf2; border-left-color: #f0dc7a; }
+.l.blob, .l.code, .l.table, .l.descw { background: #ffe4bd; border-left-color: var(--likely-rule); }
 .l.redundant, .l.desc { background: #ffdedb; border-left-color: var(--accent); }
 /* The label names the block on its first line, set in the right margin so it never displaces the source. */
 .l.lead { position: relative; }
@@ -416,11 +500,12 @@ tr.here td { background: var(--fill); box-shadow: inset 2px 0 0 var(--accent); }
 JS = """
 var body = document.body, sel = null;
 var why = document.getElementById('why'), pinned = '';
-/* Opened by the first reason and left open: collapsing it again on every mouseout would move the rows under the
-   cursor, which is the jump the fixed height was there to stop. */
+/* The reason and the legend swap within one fixed slot, so the legend comes back once nothing is hovered or pinned.
+   The slot is absent on a skill with no wording findings, where structure rows still call this. */
+var foot = document.getElementById('foot');
 function say(text) {
   why.textContent = text || pinned;
-  if (why.textContent) why.classList.add('live');
+  if (foot) foot.classList.toggle('live', why.textContent !== '');
 }
 document.addEventListener('mouseover', function (e) {
   var el = e.target.closest('[data-why]');
@@ -485,18 +570,7 @@ document.addEventListener('click', function (e) {
 });
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' && sel) { pinned = ''; say(''); choose(sel); }
-  else if (e.key === '/' && document.activeElement !== box) { e.preventDefault(); box.focus(); }
 });
-var box = document.getElementById('find');
-box.addEventListener('input', function () {
-  var q = box.value.trim().toLowerCase();
-  // Structure rows are pickable but carry no term, so the key may be absent
-  document.querySelectorAll('tr.pick').forEach(function (tr) {
-    var key = tr.dataset.term || '';
-    tr.classList.toggle('gone', q !== '' && key.indexOf(q) === -1);
-  });
-});
-box.addEventListener('click', function (e) { e.stopPropagation(); });
 
 var copy = document.getElementById('copy'), stash = document.getElementById('brief');
 function flashed(ok) {
@@ -597,7 +671,7 @@ def spec_findings(skill_dir):
             return vs.lint(Path(skill_dir))
     except (SystemExit, ImportError):
         errors, warnings = vs.description_findings(vs.skill_description(skill_dir))
-        warnings.append("Spec checks skipped: skills-ref is not installed, so only the primer's own "
+        warnings.append(SPEC_SKIPPED + ": skills-ref is not installed, so only the primer's own "
                         "description rule ran. Re-run under uv run for the rest.")
         return errors, warnings
 
@@ -614,7 +688,110 @@ def gauge(load):
             % (pct, marks, ticks, GAUGE_CEILING))
 
 
-def verdict(load, sized, advice, ceiling, within_budget):
+class Issue(NamedTuple):
+    """One thing the verdict rests on, in the cell the reader looks to for it."""
+
+    level: str  # fail | work | judge
+    cell: str  # one of CELLS
+    text: str
+
+
+def assess(budget, found, agent, emphasis, words):
+    """[Issue] behind the verdict, worst first, each level taken from a split the primer already makes.
+
+    - fail: what validate_skill's exit code fails (a spec error, the description over its hard cap, a Poor load), and
+      what the primer's review says blocks (an agent's spec or primer grade).
+    - work: the validator's FACTS, always-loaded costs it reports without gating, and the SIGNALS that are habits by
+      count or rate: lexical no-ops, abused bold, and reference blobs at the validator's warning count.
+    - judge: every other SIGNAL, decided one by one. These never lower the verdict, so one flagged phrase cannot.
+
+    `budget` is (rating, driver_is_main, within_budget, load), as _budget reports it.
+    """
+    rating, driver_is_main, within_budget, load = budget
+    out = []
+    if rating in ("OK", "Poor") and not within_budget:
+        level = "fail" if rating == "Poor" else ("work" if driver_is_main else "judge")
+        out.append(Issue(level, "budget", "worst-case load %d tokens rates %s" % (load, rating)))
+    ref_blobs = [f for f in found if f.kind == "blob" and not f.where.startswith("SKILL.md:")]
+    # Spec rows rather than the raw spec result: spec_rows has already folded the description errors into the
+    # description row, and reading the raw list would print them twice.
+    for f in found:
+        if f.kind == "spec":
+            out.append(Issue("fail", "structure", f.what))
+        # The skipped-checks note is about this machine, not the skill; the verdict says so apart.
+        elif f.kind == "specw" and not f.what.startswith(SPEC_SKIPPED):
+            out.append(Issue("work", "structure", f.what))
+        elif f.kind in ("desc", "descw"):
+            out.append(Issue("fail" if f.kind == "desc" else "work", "structure", f.what))
+        elif f.kind == "redundant":
+            out.append(Issue("work", "structure", '"%s" section at %s' % (f.what, f.where)))
+        elif f.kind == "blob" and f not in ref_blobs:
+            out.append(Issue("work", "structure", "%dw blob in SKILL.md at %s" % (f.size, f.where)))
+        elif f.kind in ("blob", "code", "table", "dense", "wrap"):
+            out.append(Issue("judge", "structure", f.what))
+    if len(ref_blobs) >= vs.REF_BLOB_WARN:
+        out.append(Issue("work", "structure", "%d blobs in references" % len(ref_blobs)))
+    if emphasis:
+        out.append(Issue("work" if emphasis["band"] == "ABUSED" else "judge", "wording",
+                         "bold %s at %.1f per 1000 words" % (emphasis["band"].lower(), emphasis["rate"])))
+    terms = [f for f in found if f.kind == "filler"]
+    out += [Issue("work", "wording", "invisible character %s" % f.term) for f in terms if f.rule == "invisible"]
+    no_ops = [f for f in terms if f.rule not in ("invisible", "americanism")]
+    hits = sum(f.n for f in no_ops)
+    rate = 1000.0 * hits / max(words, 1)
+    if hits >= NOOP_LEAST and rate >= NOOP_RATE:
+        out.append(Issue("work", "wording", "%d lexical no-ops, %.1f per 1000 words" % (hits, rate)))
+    else:
+        out += [Issue("judge", "wording", f.term) for f in no_ops]
+    out += [Issue("judge", "wording", f.term) for f in terms if f.rule == "americanism"]
+    out += [Issue("judge" if a.grade == "judgement" else "fail", "agent", a.finding) for a in agent or ()]
+    return sorted(out, key=lambda i: LEVELS[i.level][2])  # stable: within a level, cell order holds
+
+
+def overall(issues):
+    """The worst level among issues ranked worst first; judge alone passes."""
+    return issues[0].level if issues else "judge"
+
+
+def verdict_line(issues):
+    """The verdict as one line of the brief, naming what it rests on."""
+    level = overall(issues)
+    top = ["%s: %s" % (i.cell, i.text.rstrip(".")) for i in issues if i.level == level][:VERDICT_REASONS]
+    return "Verdict: %s%s." % (LEVELS[level][0], " (%s)" % "; ".join(top) if level != "judge" else "")
+
+
+def verdict_block(issues, agent_run, spec_skipped):
+    """The one rating that judges every cell, the issues it rests on, and each cell's own standing."""
+    level = overall(issues)
+    word, step, _ = LEVELS[level]
+    top = [i for i in issues if i.level == level]
+    if level == "judge":
+        why = ('<div class="rate">%d to judge, none blocking</div>' % len(top) if top
+               else '<div class="rate">nothing flagged</div>')
+    else:
+        why = '<ul class="reasons">%s%s</ul>' % (
+            "".join("<li><b>%s</b> %s</li>" % (e(i.cell), e(i.text)) for i in top[:VERDICT_REASONS]),
+            "<li>and %d more</li>" % (len(top) - VERDICT_REASONS) if len(top) > VERDICT_REASONS else "")
+    if spec_skipped:
+        why += '<div class="note">Spec checks did not run here. Re-run under uv run before trusting a pass.</div>'
+    chips = []
+    for cell in CELLS:
+        if cell == "agent" and not agent_run:
+            continue
+        mine = [i for i in issues if i.cell == cell]
+        fix = sum(1 for i in mine if i.level != "judge")
+        counts = ", ".join(x for x in ("%d to fix" % fix if fix else "",
+                                       "%d to judge" % (len(mine) - fix) if len(mine) > fix else "") if x)
+        cword, cstep, _ = LEVELS[overall(mine)]
+        chips.append('<div class="%s"><b>%s</b><u>%s</u><em>%s</em></div>'
+                     % (cstep, cword, cell, counts or "clean"))
+    count = (' <small>with %d finding%s</small>' % (len(top), "" if len(top) == 1 else "s")
+             if level == "fail" else "")
+    return ('<div class="verdict %s">%s%s</div>%s<div class="score">%s</div>'
+            % (step, word, count, why, "".join(chips)))
+
+
+def budget_block(load, sized, advice, ceiling, within_budget):
     rating = vs.token_rating(load)
     main = sized.get("SKILL.md", 0)
     # Ties break on iteration order, matching how _budget picks its driver file, so the page and the text report never
@@ -626,8 +803,8 @@ def verdict(load, sized, advice, ceiling, within_budget):
     # A skill inside a justified ceiling passes the validator's gate, so the band is set in the passing treatment rather
     # than contradicting its own note.
     tone = "good" if within_budget else rating.lower()
-    out = ['<div class="band %s">%s</div>' % (tone, e(rating.upper())),
-           '<div class="rate">%s tokens worst-case load: %s</div>' % (load, e(detail)),
+    out = ['<div class="rate"><span class="band %s">%s</span> %s tokens worst-case load: %s</div>'
+           % (tone, e(rating), load, e(detail)),
            gauge(load)]
     if within_budget:
         out.append('<div class="note">Within the declared max-load-tokens %d.</div>' % ceiling)
@@ -660,10 +837,14 @@ def spec_rows(spec, skill_dir):
     if isinstance(spec, str):
         return [Finding(rule="spec-warning", n=1, unit="warning", example="dependency",
                         kind="specw",
-                        what="Spec checks skipped: %s is not installed. Re-run under uv run."
+                        what=SPEC_SKIPPED + ": %s is not installed. Re-run under uv run."
                              % spec, size=0, where="")]
     errors, warnings = spec
-    own = set(sum(vs.description_findings(vs.skill_description(skill_dir)), []))
+    # Only a long description has a row of its own to carry these; a too-short one stays a spec row, or the page would
+    # drop a finding the validator lists under FACTS.
+    description = vs.skill_description(skill_dir)
+    own = (set(sum(vs.description_findings(description), []))
+           if vs.description_word_count(description) > vs.DESCRIPTION_WORDS_WARN else set())
     out = []
     for kind, rule, unit, group in (("spec", "spec-error", "error", errors),
                                     ("specw", "spec-warning", "warning", warnings)):
@@ -677,7 +858,7 @@ def spec_rows(spec, skill_dir):
 
 # One character each, since the count column is fixed-width: a longer suffix wrapped and doubled the row height.
 # L lines, w words, c prose cells. The row's own text and the caption say which is which.
-UNIT_SUFFIX = {"code": "L", "redundant": "L", "desc": "w", "table": "c"}
+UNIT_SUFFIX = {"code": "L", "redundant": "L", "desc": "w", "descw": "w", "table": "c", "wrap": "L"}
 
 
 def block_rows(found):
@@ -741,8 +922,16 @@ def tally(filler):
     return terms
 
 
+def wrapped_by_file(wrapped):
+    """{rel: [unit]} in file order, the grouping the row and the shading's jump back both key on."""
+    out = {}
+    for unit in wrapped:
+        out.setdefault(str(unit[1]), []).append(unit)
+    return out
+
+
 def collect(blobs, long_code, filler, index_of, emphasis=None, dense=(),
-            redundant=(), description=None, tables=()):
+            redundant=(), description=None, tables=(), wrapped=()):
     """Every finding as one ranked list: blocks first, then terms by frequency.
 
     The description and the "When to use" sections lead, ahead of every other
@@ -768,7 +957,7 @@ def collect(blobs, long_code, filler, index_of, emphasis=None, dense=(),
         words, span, over = description
         found.append(Finding(
             rule="description-length", n=1, unit="description",
-            example="SKILL.md:%d" % span[0], kind="desc",
+            example="SKILL.md:%d" % span[0], kind=desc_kind(words),
             what="description is %d words, over the %d-word %s"
                  % (words, over[0], over[1]),
             size=words, where="SKILL.md:%d" % span[0],
@@ -813,6 +1002,15 @@ def collect(blobs, long_code, filler, index_of, emphasis=None, dense=(),
                                              " ".join(opening.split()[:6])),
             size=size, where=f"{rel}:{start}", goto=anchor(index_of.get(str(rel), 0), start),
         ))
+    # One row per file rather than per unit: a file wrapped by hand is wrapped everywhere, and a row per paragraph
+    # would bury every other finding. The row jumps to the first; the source shades them all.
+    for rel, group in wrapped_by_file(wrapped).items():
+        first = group[0][2]
+        found.append(Finding(
+            rule="hard-wrap", n=len(group), unit="unit", example=f"{rel}:{first}", kind="wrap",
+            what="%d paragraphs or list items wrapped by hand" % len(group),
+            size=sum(g[0] for g in group), where=f"{rel}:{first}", goto=anchor(index_of.get(rel, 0), first),
+        ))
     where = {}
     for _category, rel, line, hit in filler:
         where.setdefault(term_key(hit), f"{rel}:{line}")
@@ -835,7 +1033,7 @@ def findings_block(found):
     terms = [f for f in found if f.kind == "filler"]
     emphasis = [f for f in found if f.kind == "em"]
     if not terms and not emphasis:
-        return ('<input id="find" hidden><p id="why" class="why" hidden></p>'
+        return ('<p id="why" class="why" hidden></p>'
                 '<p class="empty">No lexical no-ops, American spellings, bold abuse or invisible '
                 'characters found.</p>')
     # The bold row's bar reads against the abuse threshold, not against the term counts: a rate of 6 and a word used 6
@@ -860,14 +1058,33 @@ def findings_block(found):
     legend += "".join('<span><i class="key k-%s"></i>%s</span>' % (k, e(d)) for k, d in KINDS)
     # The caption holds the reason for whatever is hovered or chosen, so why a thing is flagged does not depend on
     # finding a tooltip.
-    return ('<input id="find" placeholder="Search for a term..." autocomplete="off">'
-            '<div class="scroll"><table>%s</table></div>'
-            '<p id="why" class="why"></p>'
-            '<div class="legend">%s</div>'
+    return (            '<div class="scroll"><table>%s</table></div>'
+            '<div class="foot" id="foot"><p id="why" class="why"></p>'
+            '<div class="legend">%s</div></div>'
             % (rows, legend))
 
 
-def brief(skill_dir, load, sized, ceiling, within_budget, spec, found):
+def goto_for(where, index_of):
+    """The anchor an agent finding's path:line lands on, or "" when it names no loadable line."""
+    rel, _, line = where.partition(":")
+    return anchor(index_of[rel], int(line)) if rel in index_of and line.isdigit() else ""
+
+
+def agent_block(agent, index_of):
+    """The reviewing agent's findings, worst grade first, each row jumping to the line it names."""
+    if not agent:
+        return '<p class="empty">The agent passed no findings.</p>'
+    rows = []
+    for a in sorted(agent, key=lambda a: RANK[a.conf]):
+        goto = goto_for(a.where, index_of)
+        note = "".join(x for x in ("<b>%s</b> " % e(a.cite) if a.cite else "", e(a.fix)) if x)
+        rows.append('<tr class="pick agent %s"%s><td class="n">%s</td><td>%s%s</td><td class="r">%s</td></tr>'
+                    % (a.conf, ' data-goto="%s"' % goto if goto else "", e(a.grade), e(a.finding),
+                       "<small>%s</small>" % note if note else "", e(a.where)))
+    return '<div class="scroll"><table>%s</table></div>' % "".join(rows)
+
+
+def brief(skill_dir, load, sized, ceiling, within_budget, spec, found, agent=None, issues=()):
     """The findings as text, sized to paste into another agent.
 
     Grouped by rule and carrying each rule's reason. A list of bare rule names
@@ -880,7 +1097,8 @@ def brief(skill_dir, load, sized, ceiling, within_budget, spec, found):
     rating = vs.token_rating(load)
     out = ["Skill report for %s. Load the skill-creator-primer skill, then fix the "
            "following. Cut words, not behaviour: every instruction the skill carries "
-           "has to survive." % os.path.basename(str(skill_dir)), ""]
+           "has to survive." % os.path.basename(str(skill_dir)), "",
+           verdict_line(issues), ""]
 
     budget = ("Budget: %s. Worst-case load %d tokens (SKILL.md plus the largest "
               "reference) across %d file(s) that load."
@@ -901,6 +1119,15 @@ def brief(skill_dir, load, sized, ceiling, within_budget, spec, found):
     else:
         out.append("Spec: not checked, %s was not installed." % spec)
     out.append("")
+
+    # Listed one per line, never grouped: each is a sentence of its own rather than another hit of a rule.
+    if agent:
+        out.append("Agent findings (spec and primer grades block):")
+        for a in sorted(agent, key=lambda a: RANK[a.conf]):
+            out.append("- [%s]%s %s%s%s" % (a.grade, " %s:" % a.where if a.where else "", a.finding,
+                                           " Fix: %s" % a.fix if a.fix else "",
+                                           " (%s)" % a.cite if a.cite else ""))
+        out.append("")
 
     groups = {}
     for f in found:
@@ -948,7 +1175,7 @@ def compare_block(baseline, skill_dir, use_tiktoken=False):
     pre-compression snapshot. Same measurements, both sides."""
     def measure(target):
         sized = per_file_tokens(target, use_tiktoken)
-        _pct, skill_blobs, ref_blobs, long_code, dense = vs._structure(Path(target))
+        _pct, skill_blobs, ref_blobs, long_code, dense, _wrapped = vs._structure(Path(target))
         return {
             "load": worst_case_load(sized),
             "skill": sized.get("SKILL.md", 0),
@@ -971,29 +1198,35 @@ def compare_block(baseline, skill_dir, use_tiktoken=False):
     return "".join(out)
 
 
-BLOCK_RULE = {"blob": "blob", "code": "code", "dense": "dense-run", "table": "table",
-              "redundant": "when-to-use", "desc": "description-length",
+BLOCK_RULE = {"blob": "blob", "code": "code", "dense": "dense-run", "table": "table", "wrap": "hard-wrap",
+              "redundant": "when-to-use", "desc": "description-length", "descw": "description-length",
               # No span in the source: a spec finding names the file. Listed with the rest, never shaded.
               "spec": "spec-error", "specw": "spec-warning"}
 # What the margin label prints beside each block, since every block now takes a shade from the same ramp and the
 # colour alone no longer says which kind fired.
 BLOCK_LABEL = {"blob": "%dw blob", "code": "%dL code", "dense": "%d units, dense run",
                "table": "%d prose cells, table", "redundant": '%dL "when to use"',
-               "desc": "%dw description"}
+               "desc": "%dw description", "descw": "%dw description", "wrap": "%dL wrapped"}
+
+
+def desc_kind(words):
+    """desc past the hard cap, which the validator fails; descw past the soft ceiling, which it only warns on."""
+    return "desc" if words > vs.DESCRIPTION_WORDS_FAIL else "descw"
 
 
 def marked_source(skill_dir, blobs, long_code, filler, emphasis=None, dense=(), invisible=(),
-                  redundant=(), desc_span=None, tables=(), desc_words=0, rows=None):
+                  redundant=(), desc_span=None, tables=(), desc_words=0, rows=None, wrapped=()):
     """Every loadable file, one block per line, flagged spans marked in place."""
     spans = {}
     labels = {}
     back = {}  # (rel, line) -> the id of the row that explains this block
     rows = rows or {}
     if desc_span:
+        kind = desc_kind(desc_words)
         for n in range(desc_span[0], desc_span[1] + 1):
-            spans[("SKILL.md", n)] = "desc"
-            back.setdefault(("SKILL.md", n), rows.get(("desc", "SKILL.md:%d" % desc_span[0]), ""))
-        labels[("SKILL.md", desc_span[0])] = BLOCK_LABEL["desc"] % desc_words
+            spans[("SKILL.md", n)] = kind
+            back.setdefault(("SKILL.md", n), rows.get((kind, "SKILL.md:%d" % desc_span[0]), ""))
+        labels[("SKILL.md", desc_span[0])] = BLOCK_LABEL[kind] % desc_words
     # First writer wins the line. A "When to use" section leads, because the whole span is going and a blob marked
     # inside it would offer to compress text that should not be there at all; blobs then lead dense runs, so a blob
     # inside a run keeps its own deeper shade.
@@ -1007,6 +1240,14 @@ def marked_source(skill_dir, blobs, long_code, filler, emphasis=None, dense=(), 
             # A dense run's own measure is its unit count, which trails the tuple; every other kind measures by size.
             measure = rest[0] if kind == "dense" and rest else size
             labels.setdefault((str(rel), start), BLOCK_LABEL[kind] % measure)
+    # Last, so any other block over the same lines keeps its shade. Every unit jumps back to its file's one row.
+    for rel, group in wrapped_by_file(wrapped).items():
+        row = rows.get(("wrap", "%s:%d" % (rel, group[0][2])), "")
+        for size, _rel, start, end, _opening in group:
+            for n in range(start, end + 1):
+                if spans.setdefault((rel, n), "wrap") == "wrap":
+                    back.setdefault((rel, n), row)
+            labels.setdefault((rel, start), BLOCK_LABEL["wrap"] % size)
     # Only lines the detector reported are re-scanned for spans, so the page can never mark a line the text report left
     # out.
     flagged = {(str(rel), lineno) for _category, rel, lineno, _hit in filler}
@@ -1099,7 +1340,7 @@ def mark_line(line, extra=()):
         if all(r == "bold-emphasis" for r in rules):
             cls, conf = "em", ""
         else:
-            conf = min((confidence(r) for r in rules if r != "bold-emphasis"), key=RANK.get)
+            conf = min((confidence(r) for r in rules if r != "bold-emphasis"), key=RANK.__getitem__)
             cls = "inv" if all(r == "invisible" for r in rules) else ""
         # Each invisible character shows as its code point and every other character as itself, so a no-break space
         # inside a bold phrase does not turn the whole phrase into hex. A leading BOM is an empty span; its term
@@ -1115,11 +1356,11 @@ def mark_line(line, extra=()):
     return "".join(out)
 
 
-def render(skill_dir, against=None, use_tiktoken=False):
+def render(skill_dir, against=None, use_tiktoken=False, agent=None):
     skill_dir = Path(skill_dir).resolve()
     sized = per_file_tokens(skill_dir, use_tiktoken)
     load = worst_case_load(sized)
-    pct, skill_blobs, ref_blobs, long_code, dense = vs._structure(skill_dir)
+    pct, skill_blobs, ref_blobs, long_code, dense, wrapped = vs._structure(skill_dir)
     blobs = sorted(skill_blobs + ref_blobs, reverse=True)
     filler = vs._filler(skill_dir)
     emphasis = vs._bold(skill_dir)
@@ -1139,17 +1380,24 @@ def render(skill_dir, against=None, use_tiktoken=False):
     # their marks are placed from the spans, as bold's are.
     hits = filler + [("invisible", rel, lineno, name) for rel, lineno, _s, _e, name in invisible]
     index_of = {rel: i for i, (rel, _path) in enumerate(loadable_files(skill_dir))}
-    _lines, _rating, advice, _driver, within_budget = vs._budget(skill_dir, use_tiktoken)
+    _lines, rating, advice, driver_is_main, within_budget = vs._budget(skill_dir, use_tiktoken)
     ceiling, _justified = vs.declared_token_budget(
         (skill_dir / "SKILL.md").read_text(encoding="utf-8-sig", errors="ignore"))
     spec = spec_findings(skill_dir)
     found = spec_rows(spec, skill_dir) + collect(
-        blobs, long_code, hits, index_of, emphasis, dense, redundant, description, tables)
+        blobs, long_code, hits, index_of, emphasis, dense, redundant, description, tables, wrapped)
     rows = block_rows(found)
+    words = sum(len(path.read_text(encoding="utf-8-sig", errors="ignore").split())
+                for _rel, path in loadable_files(skill_dir))
+    issues = assess((rating, driver_is_main, within_budget, load), found, agent, emphasis, words)
+    spec_skipped = isinstance(spec, str) or any(w.startswith(SPEC_SKIPPED) for w in spec[1])
 
     extra = ""
+    if agent is not None:
+        extra += ('<section class="cell grow"><h2>Agent findings</h2>%s</section>'
+                  % agent_block(agent, index_of))
     if against is not None:
-        extra = ('<section class="cell"><h2>Before and after</h2>%s</section>'
+        extra += ('<section class="cell"><h2>Before and after</h2>%s</section>'
                  % compare_block(against, skill_dir, use_tiktoken))
 
     # Possible findings are counted apart, as the text report prints them: a page of reads is not a page of defects.
@@ -1176,9 +1424,10 @@ def render(skill_dir, against=None, use_tiktoken=False):
     <div class="stats">%(strip)s</div>
   </header>
   <div class="panel">
-    <section class="cell"><h2>Token budget</h2>%(verdict)s%(files)s</section>
+    <section class="cell"><h2>Verdict</h2>%(verdict)s</section>
+    <section class="cell"><h2>Token budget</h2>%(budget)s%(files)s</section>
     %(extra)s
-    <section class="cell grow"><h2>Structure</h2>%(structure)s</section>
+    <section class="cell grow rated"><h2>Structure</h2>%(structure)s</section>
     <section class="cell grow"><h2>Wording and emphasis</h2>%(findings)s</section>
   </div>
   <section class="cell doc"><h2>The skill</h2>%(source)s</section>
@@ -1193,15 +1442,16 @@ def render(skill_dir, against=None, use_tiktoken=False):
         "css": CSS, "js": JS,
         "strip": strip,
         "when": datetime.datetime.now().astimezone().date().isoformat(),
-        "verdict": verdict(load, sized, advice, ceiling, within_budget),
+        "verdict": verdict_block(issues, agent is not None, spec_skipped),
+        "budget": budget_block(load, sized, advice, ceiling, within_budget),
         "files": files_block(sized),
         "structure": structure_block(pct, found, rows),
         "findings": findings_block(found),
         "extra": extra,
         "source": marked_source(skill_dir, blobs, long_code, filler, emphasis, dense, invisible,
                                 redundant, desc_span if description else None, tables, desc_words,
-                                rows),
-        "brief": e(brief(skill_dir, load, sized, ceiling, within_budget, spec, found)),
+                                rows, wrapped),
+        "brief": e(brief(skill_dir, load, sized, ceiling, within_budget, spec, found, agent, issues)),
     }
 
 
@@ -1214,7 +1464,11 @@ def main() -> None:
     ap.add_argument("--tiktoken", action="store_true",
                     help="count tokens with tiktoken instead of the chars/N heuristic "
                          "(run via `uv run --with tiktoken`)")
-    ap.add_argument("-o", "--out", help="output path (default: a temp directory)")
+    ap.add_argument("--findings", metavar="JSON",
+                    help="the reviewing agent's findings, a JSON array (or - for stdin) of "
+                         '{"grade": "spec|primer|judgement", "finding": ..., "where": "path:line", '
+                         '"fix": ..., "cite": ...}; only grade and finding are required')
+    ap.add_argument("-o", "--out", help="output path (default: ~/Downloads, else a temp directory)")
     args = ap.parse_args()
 
     skill_dir = Path(args.skill_directory)
@@ -1224,20 +1478,36 @@ def main() -> None:
         ap.error(f"no SKILL.md in {args.against}")
     if args.tiktoken:
         vs._tiktoken_encoding()
+    agent = None
+    if args.findings is not None:
+        try:
+            agent = load_agent_findings(args.findings)
+        except (OSError, ValueError) as err:
+            ap.error(str(err))
 
     name = f"{skill_dir.resolve().name}.skill-report.html"
-    out = Path(args.out) if args.out else Path(tempfile.gettempdir()) / name
+    # Downloads is where the user looks for a file they did not ask to keep anywhere in particular; the temp directory
+    # covers a machine without one.
+    downloads = Path.home() / "Downloads"
+    out = Path(args.out) if args.out else (downloads if downloads.is_dir() else Path(tempfile.gettempdir())) / name
     if out.is_dir():
         out = out / name  # -o took a directory: name the file rather than refusing
-    page = render(skill_dir, args.against, args.tiktoken)
-    try:
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(page, encoding="utf-8")
-    except OSError as err:
-        # One line, naming the fix: the default output sits in the temp directory, but -o often points somewhere
-        # read-only, and a traceback says nothing about which path or what to do.
-        print("cannot write %s: %s. Pass -o to choose another path." % (out, err.strerror), file=sys.stderr)
-        sys.exit(2)
+    page = render(skill_dir, args.against, args.tiktoken, agent)
+    # A sandboxed agent often sees Downloads but cannot write to it, so the default retries in the temp directory. An
+    # explicit -o is the user's choice and is never second-guessed.
+    targets = [out] if args.out else [out, Path(tempfile.gettempdir()) / name]
+    for target in targets:
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(page, encoding="utf-8")
+            out = target
+            break
+        except OSError as err:
+            if target == targets[-1]:
+                # One line, naming the fix: a traceback says nothing about which path or what to do.
+                print("cannot write %s: %s. Pass -o to choose another path." % (target, err.strerror),
+                      file=sys.stderr)
+                sys.exit(2)
     print(out.resolve())
 
 

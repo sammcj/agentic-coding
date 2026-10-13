@@ -13,6 +13,7 @@ import contextlib
 import html
 import importlib.util
 import io
+import os
 import re
 import subprocess
 import sys
@@ -130,12 +131,12 @@ class MarkCountTests(unittest.TestCase):
         assert marked is not None
         self.assertIn('<tr class="pick probable" data-term="%s"' % marked.group(1), page)
 
-    def test_clean_skill_says_so_and_keeps_the_search_box(self):
-        # The page's JS binds unconditionally to #find; dropping the element on a clean skill would break every other
-        # interaction on the page.
+    def test_clean_skill_says_so_and_keeps_the_caption(self):
+        # The page's JS binds unconditionally to #why; dropping it on a clean skill would break every other interaction.
         page, _ = self.render("# H\n\nA plain line of body text.\n")
         self.assertIn("No lexical no-ops, American spellings, bold abuse or invisible characters found.", page)
-        self.assertIn('id="find"', page)
+        self.assertIn('id="why"', page)
+        self.assertNotIn("<input", page)
 
 
 class SpanShadingTests(unittest.TestCase):
@@ -163,8 +164,9 @@ class SpanShadingTests(unittest.TestCase):
 
     def test_each_finding_row_jumps_to_the_line_it_names(self):
         page = self.render("# H\n\n" + BLOB + "\n")
+        # The fixture is hard-wrapped as well as a blob, so both rows jump to its first line.
         goto = re.findall(r'data-goto="([^"]+)"', page)
-        self.assertEqual(goto, ["L-0-8"])
+        self.assertEqual(goto, ["L-0-8", "L-0-8"])
         self.assertIn('id="L-0-8"', page)
 
 
@@ -210,10 +212,10 @@ class BudgetCellTests(unittest.TestCase):
 
     def test_band_matches_the_validator_rating(self):
         page = self.render("# H\n\n" + "word " * 40000 + "\n")
-        self.assertIn('<div class="band poor">POOR</div>', page)
+        self.assertIn('<span class="band poor">Poor</span>', page)
 
     def test_a_small_skill_rates_great(self):
-        self.assertIn('<div class="band great">GREAT</div>', self.render("# H\n\nShort.\n"))
+        self.assertIn('<span class="band great">Great</span>', self.render("# H\n\nShort.\n"))
 
     def test_justified_ceiling_is_shown_instead_of_the_cure(self):
         page = self.render(
@@ -229,9 +231,8 @@ class BudgetCellTests(unittest.TestCase):
             "# H\n\n" + "word " * 9000 + "\n",
             metadata="metadata:\n  skill-lint:\n    max-load-tokens: 20000 # fixture\n",
         )
-        self.assertIn(">OK</div>", page)
-        self.assertIn('<div class="band good">', page)
-        self.assertNotIn('<div class="band ok">', page)
+        self.assertIn('<span class="band good">OK</span>', page)
+        self.assertNotIn('<span class="band ok">', page)
 
     @unittest.skipIf(importlib.util.find_spec("tiktoken") is None, "tiktoken not installed")
     def test_tiktoken_counts_differ_from_the_heuristic(self):
@@ -372,8 +373,8 @@ class BriefTests(unittest.TestCase):
         text, page = self.brief_of(body)
         rows = len(re.findall(r'<tr class="pick', page))
         listed = len(re.findall(r"^- ", text, re.MULTILINE))
-        self.assertEqual(rows, 2)  # one blob, one term
-        self.assertEqual(listed, 2)
+        self.assertEqual(rows, 3)  # one blob, one hard-wrap (the fixture is wrapped), one term
+        self.assertEqual(listed, 3)
 
     def test_examples_are_capped_per_rule(self):
         fences = "\n\n".join(FENCE for _ in range(rr.BRIEF_EXAMPLES + 3))
@@ -684,10 +685,10 @@ class JumpTests(unittest.TestCase):
         # 40-odd structure rows previously squeezed the spec and findings cells out of the panel entirely.
         page = self.render("# H\n\n" + ((BLOB + "\n\n") * 6))
         self.assertIn('<div class="scroll"><table>', page)
-        self.assertIn('<section class="cell grow"><h2>Structure</h2>', page)
-        # The list shrinks and scrolls inside its cell; the panel itself never gets a scrollbar.
+        self.assertIn('<section class="cell grow rated"><h2>Structure</h2>', page)
+        # The list shrinks and scrolls inside its cell; the panel scrolls only once every cell is at its floor.
         self.assertIn(".panel { display: flex; flex-direction: column; gap: var(--rule);\n"
-                      "         min-height: 0; overflow: hidden; }", page)
+                      "         min-height: 0; overflow-y: auto; }", page)
         self.assertIn(".scroll { flex: 1 1 auto; min-height: 0; overflow: auto; }", page)
         # A cell never stretches past its content, so a short list leaves no gap under itself.
         self.assertRegex(page, r"\.grow \{ flex: 0 1 auto;")
@@ -696,15 +697,19 @@ class JumpTests(unittest.TestCase):
         self.assertNotRegex(page, r"\n\.panel > \.cell \{")
         self.assertIn(".panel > .cell:not(.grow) { flex: none; }", page)
 
-    def test_the_caption_costs_nothing_until_something_is_hovered(self):
-        # The standing "Hover or click a finding..." line spent a row explaining the interface rather than the skill.
+    def test_the_caption_swaps_with_the_legend_in_one_fixed_slot(self):
+        # The standing "Hover or click a finding..." line spent a row explaining the interface rather than the skill,
+        # and a caption sized to its text resized the cell on every hover.
         page = self.render("# H\n\nA comprehensive line.\n")
         self.assertNotIn("Hover or click a finding", page)
-        self.assertIn('<p id="why" class="why"></p>', page)
-        # opened by the first reason, then held at a fixed height rather than resizing per hover
-        self.assertRegex(page, r"\.why \{ height: 0;")
-        self.assertRegex(page, r"\.why\.live \{ height: 5\.8em;")
-        self.assertIn("why.classList.add('live')", page)
+        self.assertIn('<div class="foot" id="foot"><p id="why" class="why"></p><div class="legend">', page)
+        self.assertRegex(page, r"\.foot \{ flex: none; height: [\d.]+em; margin-top: auto;")
+        # Only the list scrolls; the cell holding the footer never does.
+        # A floor on the cell, or a long list in another cell keeps every row and pushes this one off the column.
+        self.assertRegex(page, r"\.grow \{ flex: 0 1 auto;[^}]*min-height: \d+px; overflow: hidden; \}")
+        self.assertRegex(page, r"\.grow:has\(\.foot\) \{ min-height: \d+px; \}")
+        self.assertIn(".foot.live .legend { display: none; }", page)
+        self.assertIn("foot.classList.toggle('live'", page)
 
     def test_the_row_names_its_rule(self):
         page = self.render("# H\n\n" + FENCE + "\n")
@@ -758,22 +763,66 @@ class InvisibleMarkTests(unittest.TestCase):
 
 
 class CommandLineTests(unittest.TestCase):
-    def run_cli(self, *args):
+    def run_cli(self, *args, home=None, stdin=None):
+        # HOME is pointed at a scratch directory so the default output never lands in the real ~/Downloads.
+        env = dict(os.environ, HOME=home or tempfile.mkdtemp())
         return subprocess.run(
             [sys.executable, str(SCRIPTS / "render_report.py"), *args],
-            capture_output=True, text=True,
+            capture_output=True, text=True, env=env, input=stdin,
         )
 
-    def test_default_output_lands_in_the_temp_dir_named_for_the_skill(self):
+    def test_default_output_lands_in_downloads_named_for_the_skill(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "Downloads").mkdir()
+            skill_dir = build_skill(Path(tmp), "# H\n\nShort.\n", name="named")
+            result = self.run_cli(str(skill_dir), home=tmp)
+            out = Path(result.stdout.strip())
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(out, (Path(tmp) / "Downloads" / "named.skill-report.html").resolve())
+            self.assertTrue(out.is_file())
+
+    def test_default_output_falls_back_to_the_temp_dir_without_downloads(self):
         with tempfile.TemporaryDirectory() as tmp:
             skill_dir = build_skill(Path(tmp), "# H\n\nShort.\n", name="named")
-            result = self.run_cli(str(skill_dir))
+            result = self.run_cli(str(skill_dir), home=tmp)
         out = Path(result.stdout.strip())
         self.addCleanup(lambda: out.unlink(missing_ok=True))
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(out.name, "named.skill-report.html")
         self.assertEqual(out.parent, Path(tempfile.gettempdir()).resolve())
         self.assertTrue(out.is_file())
+
+    def test_an_unwritable_downloads_falls_back_to_the_temp_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            downloads = Path(tmp) / "Downloads"
+            downloads.mkdir()
+            skill_dir = build_skill(Path(tmp), "# H\n\nShort.\n", name="named")
+            downloads.chmod(0o500)
+            try:
+                result = self.run_cli(str(skill_dir), home=tmp)
+            finally:
+                downloads.chmod(0o700)
+        out = Path(result.stdout.strip())
+        self.addCleanup(lambda: out.unlink(missing_ok=True))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(out.parent, Path(tempfile.gettempdir()).resolve())
+
+    def test_findings_are_read_from_stdin(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# H\n\nShort.\n")
+            target = Path(tmp) / "report.html"
+            result = self.run_cli(str(skill_dir), "--findings", "-", "-o", str(target),
+                                  stdin='[{"grade": "primer", "finding": "Duplicates the reference."}]')
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Duplicates the reference.", target.read_text())
+
+    def test_a_bad_grade_exits_2_naming_the_entry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# H\n\nShort.\n")
+            result = self.run_cli(str(skill_dir), "--findings", "-",
+                                  stdin='[{"grade": "major", "finding": "x"}]')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("entry 0", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
 
     def test_out_flag_writes_where_it_is_told(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -906,7 +955,7 @@ class DeleteFirstTests(unittest.TestCase):
         # The pale grey it used to take was invisible at reading distance; blob, table and code now share the
         # orange step and are told apart by the margin label.
         page, _ = self.render("# H\n\n" + FENCE + "\n")
-        self.assertIn(".l.blob, .l.code, .l.table { background: #ffe4bd;", page)
+        self.assertIn(".l.blob, .l.code, .l.table, .l.descw { background: #ffe4bd;", page)
         self.assertNotIn(".l.code { background: #f4f4f4", page)
         self.assertIn('data-label="12L code"', page)
 
@@ -915,6 +964,298 @@ class DeleteFirstTests(unittest.TestCase):
         parser = Balance()
         parser.feed(page)
         self.assertEqual(parser.mismatched, [])
+
+
+class VerdictTests(unittest.TestCase):
+    """The headline judges every cell, so a great budget cannot read as a great skill."""
+
+    def render(self, body, agent=None, spec=([], [])):
+        # Spec checks are stubbed, or a machine without skills-ref would note its skipped checks under every verdict.
+        patch = unittest.mock.patch.object(rr, "spec_findings", return_value=spec)
+        patch.start()
+        self.addCleanup(patch.stop)
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return rr.render(build_skill(Path(tmp.name), body), agent=agent)
+
+    def verdict(self, page):
+        found = re.search(r'<div class="verdict[^"]*">([^<]+?)(?: <small>|</div>)', page)
+        self.assertIsNotNone(found)
+        return found.group(1)  # pyright: ignore
+
+    def test_a_clean_skill_passes(self):
+        self.assertEqual(self.verdict(self.render("# H\n\nShort.\n")), "Pass")
+
+    def test_a_great_budget_with_a_spec_error_fails(self):
+        page = self.render("# H\n\nShort.\n", spec=(["name does not match the directory"], []))
+        self.assertIn('<span class="band great">Great</span>', page)
+        self.assertEqual(self.verdict(page), "Fail")
+        self.assertIn("<li><b>structure</b> name does not match the directory</li>", page)
+
+    def test_a_description_over_the_hard_cap_fails(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        skill_dir = build_skill(Path(tmp.name), "# H\n\nShort.\n")
+        md = skill_dir / "SKILL.md"
+        md.write_text(md.read_text().replace(vs.skill_description(skill_dir), "word " * 130))
+        with unittest.mock.patch.object(rr, "spec_findings", return_value=([], [])):
+            self.assertEqual(self.verdict(rr.render(skill_dir)), "Fail")
+
+    def test_an_always_loaded_fact_needs_work(self):
+        page = self.render("# H\n\nls" + chr(0xA0) + "-la\n")
+        self.assertEqual(self.verdict(page), "Needs work")
+        self.assertIn("<b>wording</b> invisible character", page)
+
+    def test_one_flagged_phrase_passes_as_a_judgement(self):
+        page = self.render("# H\n\nA comprehensive plan.\n")
+        self.assertEqual(self.verdict(page), "Pass")
+        self.assertIn("1 to judge, none blocking", page)
+
+    def test_below_the_hit_floor_a_high_rate_still_passes(self):
+        self.assertEqual(self.verdict(self.render("# H\n\nA comprehensive plan, comprehensive.\n")), "Pass")
+
+    def test_a_no_op_habit_needs_work(self):
+        page = self.render("# H\n\nA comprehensive plan. A comprehensive test. A comprehensive fix.\n")
+        self.assertEqual(self.verdict(page), "Needs work")
+        self.assertIn("3 lexical no-ops", page)
+
+    def test_a_signal_in_a_reference_never_lowers_the_verdict(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        skill_dir = build_skill(Path(tmp.name), "# H\n\nRead [ref](references/ref.md).\n")
+        (skill_dir / "references" / "ref.md").write_text("# R\n\n" + BLOB + "\n")
+        with unittest.mock.patch.object(rr, "spec_findings", return_value=([], [])):
+            self.assertEqual(self.verdict(rr.render(skill_dir)), "Pass")
+
+    def test_a_blob_in_skill_md_needs_work(self):
+        self.assertEqual(self.verdict(self.render("# H\n\n" + BLOB + "\n")), "Needs work")
+
+    def test_skipped_spec_checks_are_noted_rather_than_counted(self):
+        page = self.render("# H\n\nShort.\n", spec="PyYAML")
+        self.assertEqual(self.verdict(page), "Pass")
+        self.assertIn("Spec checks did not run here", page)
+
+    def test_without_findings_there_is_no_agent_cell_or_chip(self):
+        page = self.render("# H\n\nShort.\n")
+        self.assertNotIn("<u>agent</u>", page)
+        self.assertNotIn("<h2>Agent findings</h2>", page)
+
+    def test_a_too_short_description_needs_work(self):
+        # The validator lists it under FACTS; spec_rows used to drop it as a duplicate of a description row that only
+        # exists for a long description.
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        skill_dir = build_skill(Path(tmp.name), "# H\n\nShort.\n")
+        md = skill_dir / "SKILL.md"
+        md.write_text(md.read_text().replace(vs.skill_description(skill_dir), "Use when doing things."))
+        _, warnings = vs.description_findings(vs.skill_description(skill_dir))
+        with unittest.mock.patch.object(rr, "spec_findings", return_value=([], warnings)):
+            page = rr.render(skill_dir)
+        self.assertEqual(self.verdict(page), "Needs work")
+        self.assertIn("Description is 4 words", page.split('<pre id="brief"')[0])
+
+    def test_the_verdict_and_its_reasons_are_in_the_brief(self):
+        page = self.render("# H\n\nShort.\n", spec=(["bad name"], []))
+        self.assertIn("Verdict: Fail (structure: bad name).", html.unescape(page))
+
+
+class AgentFindingTests(unittest.TestCase):
+    def render(self, body, agent):
+        patch = unittest.mock.patch.object(rr, "spec_findings", return_value=([], []))
+        patch.start()
+        self.addCleanup(patch.stop)
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return rr.render(build_skill(Path(tmp.name), body), agent=agent)
+
+    def test_a_spec_grade_fails_an_otherwise_clean_skill(self):
+        page = self.render("# H\n\nShort.\n", [rr.AgentFinding("spec", "Name does not match the directory.")])
+        self.assertIn('<div class="verdict certain">Fail <small>with 1 finding</small></div>', page)
+        self.assertIn("<li><b>agent</b> Name does not match the directory.</li>", page)
+
+    def test_a_primer_grade_blocks_as_the_primer_says(self):
+        page = self.render("# H\n\nShort.\n", [rr.AgentFinding("primer", "Duplicates the reference.")])
+        self.assertIn('<div class="verdict certain">Fail <small>', page)
+
+    def test_fails_counts_only_the_findings_it_rests_on(self):
+        page = self.render("# H\n\nA comprehensive plan.\n", [rr.AgentFinding("spec", "One."),
+                                                              rr.AgentFinding("primer", "Two."),
+                                                              rr.AgentFinding("judgement", "Three.")])
+        self.assertIn("Fail <small>with 2 findings</small>", page)
+
+    def test_only_fails_carries_a_count(self):
+        page = self.render("# H\n\n" + BLOB + "\n", [])
+        self.assertIn('<div class="verdict probable">Needs work</div>', page)
+
+    def test_a_judgement_call_alone_passes(self):
+        page = self.render("# H\n\nShort.\n", [rr.AgentFinding("judgement", "Could split the branch.")])
+        self.assertRegex(page, r'<div class="verdict[^"]*">Pass</div>')
+
+    def test_rows_rank_worst_grade_first_and_jump_to_their_line(self):
+        page = self.render("# H\n\nShort.\n", [
+            rr.AgentFinding("judgement", "Later.", where="SKILL.md:6"),
+            rr.AgentFinding("spec", "First.", where="SKILL.md:8", fix="Rename it.", cite="Spec"),
+        ])
+        self.assertLess(page.index(">First.<"), page.index(">Later.<"))
+        self.assertIn('<tr class="pick agent certain" data-goto="L-0-8">', page)
+        self.assertIn("<small><b>Spec</b> Rename it.</small>", page)
+
+    def test_a_where_outside_the_loaded_files_is_not_clickable(self):
+        page = self.render("# H\n\nShort.\n", [rr.AgentFinding("primer", "Stray.", where="notes.md:3")])
+        self.assertIn('<tr class="pick agent probable"><td class="n">primer</td>', page)
+
+    def test_findings_are_escaped(self):
+        page = self.render("# H\n\nShort.\n", [rr.AgentFinding("primer", "<script>x</script>")])
+        self.assertNotIn("<script>x</script>", page)
+
+    def test_the_brief_lists_each_finding_with_its_fix(self):
+        page = self.render("# H\n\nShort.\n", [
+            rr.AgentFinding("primer", "Duplicates the reference.", where="SKILL.md:6", fix="Cut it.",
+                            cite="Failure Modes: Duplication")])
+        self.assertIn("- [primer] SKILL.md:6: Duplicates the reference. Fix: Cut it. "
+                      "(Failure Modes: Duplication)", html.unescape(page))
+
+    def test_an_empty_array_still_shows_the_cell(self):
+        page = self.render("# H\n\nShort.\n", [])
+        self.assertIn("The agent passed no findings.", page)
+        self.assertIn("<b>Pass</b><u>agent</u><em>clean</em>", page)
+
+
+class HardWrapPageTests(unittest.TestCase):
+    def render(self, body):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        with unittest.mock.patch.object(rr, "spec_findings", return_value=([], [])):
+            return rr.render(build_skill(Path(tmp.name), body))
+
+    def test_one_possible_row_per_file_shading_every_unit(self):
+        page = self.render("# H\n\nOne sentence\ncarried on.\n\nAnother\nwrapped one.\n")
+        self.assertEqual(len(re.findall(r'<tr class="pick wrap possible"', page)), 1)
+        self.assertIn("2 paragraphs or list items wrapped by hand", page)
+        self.assertEqual(shaded(page, "wrap"), [8, 9, 11, 12])
+        self.assertIn('data-label="2L wrapped"', page)
+
+    def test_every_shaded_unit_jumps_back_to_the_one_row(self):
+        page = self.render("# H\n\nOne sentence\ncarried on.\n\nAnother\nwrapped one.\n")
+        row = re.search(r'<tr class="pick wrap possible" id="(R\d+)"', page)
+        self.assertIsNotNone(row)
+        self.assertEqual(len(re.findall(r'data-back="%s"' % row.group(1), page)), 4)  # pyright: ignore
+
+    def test_it_never_lowers_the_verdict(self):
+        page = self.render("# H\n\nOne sentence\ncarried on.\n")
+        self.assertRegex(page, r'<div class="verdict[^"]*">Pass</div>')
+
+
+class DescriptionCapTests(unittest.TestCase):
+    """Past the soft ceiling is a warning on the probable step; past the hard cap the validator fails it."""
+
+    def render(self, words):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        skill_dir = build_skill(Path(tmp.name), "# H\n\nShort.\n")
+        md = skill_dir / "SKILL.md"
+        md.write_text(md.read_text().replace(vs.skill_description(skill_dir), " ".join(["word"] * words)))
+        with unittest.mock.patch.object(rr, "spec_findings", return_value=([], [])):
+            return rr.render(skill_dir)
+
+    def test_the_caps_are_55_and_70(self):
+        self.assertEqual((vs.DESCRIPTION_WORDS_WARN, vs.DESCRIPTION_WORDS_FAIL), (55, 70))
+
+    def test_at_the_hard_cap_it_is_a_warning(self):
+        page = self.render(vs.DESCRIPTION_WORDS_FAIL)
+        self.assertIn('<tr class="pick descw probable"', page)
+        self.assertIn('class="l descw lead"', page)
+        self.assertRegex(page, r'<div class="verdict probable">Needs work</div>')
+
+    def test_past_the_hard_cap_it_fails(self):
+        page = self.render(vs.DESCRIPTION_WORDS_FAIL + 1)
+        self.assertIn('<tr class="pick desc certain"', page)
+        self.assertRegex(page, r'<div class="verdict certain">Fail <small>')
+
+    def test_the_validator_agrees(self):
+        self.assertEqual(vs.description_findings(" ".join(["w"] * 70))[0], [])
+        self.assertNotEqual(vs.description_findings(" ".join(["w"] * 71))[0], [])
+
+
+class AssessTests(unittest.TestCase):
+    """Each branch of assess(), fed hand-built findings, so a level change shows here before it shows on a page."""
+
+    GREAT = ("Great", True, False, 3000)
+
+    def levels(self, found=(), budget=GREAT, agent=None, emphasis=None, words=1000):
+        return [(i.level, i.cell) for i in rr.assess(budget, list(found), agent, emphasis, words)]
+
+    def block(self, kind, where="SKILL.md:6", size=120):
+        return rr.Finding(rule=rr.BLOCK_RULE.get(kind, kind), n=1, unit="u", example=where, kind=kind,
+                          what="x", size=size, where=where)
+
+    def term(self, rule, n=1):
+        return rr.Finding(rule=rule, n=n, unit="use", example="t", kind="filler", what="t", size=n, term="t")
+
+    def test_budget_levels_follow_the_validator(self):
+        self.assertEqual(self.levels(budget=("Poor", True, False, 13000)), [("fail", "budget")])
+        self.assertEqual(self.levels(budget=("OK", True, False, 10000)), [("work", "budget")])
+        self.assertEqual(self.levels(budget=("OK", False, False, 10000)), [("judge", "budget")])
+        self.assertEqual(self.levels(budget=("Poor", True, True, 13000)), [])
+
+    def test_description_over_the_ceiling_needs_work_and_over_the_cap_fails(self):
+        self.assertEqual(self.levels([self.block("descw", size=vs.DESCRIPTION_WORDS_FAIL)]), [("work", "structure")])
+        self.assertEqual(self.levels([self.block("desc", size=vs.DESCRIPTION_WORDS_FAIL + 1)]),
+                         [("fail", "structure")])
+
+    def test_facts_need_work(self):
+        for f in (self.block("redundant"), self.block("blob"), self.block("specw"), self.term("invisible")):
+            self.assertEqual(self.levels([f])[0][0], "work", f.kind)
+
+    def test_reference_blobs_need_work_only_from_the_warning_count(self):
+        ref = self.block("blob", where="references/r.md:3")
+        self.assertEqual(self.levels([ref] * (vs.REF_BLOB_WARN - 1)), [("judge", "structure")] * (vs.REF_BLOB_WARN - 1))
+        self.assertIn(("work", "structure"), self.levels([ref] * vs.REF_BLOB_WARN))
+
+    def test_bold_needs_work_only_when_abused(self):
+        self.assertEqual(self.levels(emphasis={"band": "ABUSED", "rate": 13.0}), [("work", "wording")])
+        self.assertEqual(self.levels(emphasis={"band": "SLOPPY", "rate": 7.0}), [("judge", "wording")])
+
+    def test_no_ops_need_work_by_rate_and_floor(self):
+        self.assertEqual(self.levels([self.term("puffery", 3)], words=1500), [("work", "wording")])
+        self.assertEqual(self.levels([self.term("puffery", 3)], words=2000), [("judge", "wording")])
+        self.assertEqual(self.levels([self.term("puffery", 2)], words=100), [("judge", "wording")])
+
+    def test_signals_are_judged(self):
+        for f in (self.block("code"), self.block("table"), self.block("dense"), self.term("americanism")):
+            self.assertEqual([lvl for lvl, _ in self.levels([f])], ["judge"], f.kind)
+
+
+class LoadAgentFindingsTests(unittest.TestCase):
+    def load(self, text):
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            fh.write(text)
+        self.addCleanup(lambda: os.unlink(fh.name))
+        return rr.load_agent_findings(fh.name)
+
+    def test_optional_fields_default_empty(self):
+        self.assertEqual(self.load('[{"grade": "spec", "finding": "x"}]'),
+                         [rr.AgentFinding("spec", "x")])
+
+    def test_rejects_an_unknown_grade(self):
+        with self.assertRaisesRegex(ValueError, "entry 0.*grade"):
+            self.load('[{"grade": "major", "finding": "x"}]')
+
+    def test_rejects_a_non_string_grade_without_a_traceback(self):
+        with self.assertRaisesRegex(ValueError, "entry 0.*grade"):
+            self.load('[{"grade": ["spec"], "finding": "x"}]')
+
+    def test_rejects_a_missing_finding(self):
+        with self.assertRaisesRegex(ValueError, "entry 1"):
+            self.load('[{"grade": "spec", "finding": "x"}, {"grade": "spec"}]')
+
+    def test_rejects_an_object_at_the_top(self):
+        with self.assertRaisesRegex(ValueError, "array"):
+            self.load('{"findings": []}')
+
+    def test_rejects_invalid_json(self):
+        with self.assertRaisesRegex(ValueError, "not valid JSON"):
+            self.load("[")
 
 
 if __name__ == "__main__":

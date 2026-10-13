@@ -80,7 +80,7 @@ class ProsePercentageTests(unittest.TestCase):
 class BlobDetectionTests(unittest.TestCase):
     def blobs(self, body: str):
         with tempfile.TemporaryDirectory() as tmp:
-            _, skill_blobs, ref_blobs, long_code, _dense = vs._structure(build_skill(Path(tmp), body))
+            _, skill_blobs, ref_blobs, long_code, _dense, _wrapped = vs._structure(build_skill(Path(tmp), body))
             return skill_blobs, ref_blobs, long_code
 
     def test_paragraph_over_threshold_is_a_blob(self):
@@ -365,6 +365,45 @@ artifacts licence license practice
 analyzer optimizer serializer tokenizer tokenize tokenized dialog dialogs catalog
 cataloged analog math harbor distill Distill
 """
+
+
+class HardWrapTests(unittest.TestCase):
+    """A paragraph or list item broken across source lines by hand."""
+
+    def wrapped(self, body: str):
+        with tempfile.TemporaryDirectory() as tmp:
+            return vs._structure(build_skill(Path(tmp), body))[5]
+
+    def test_a_paragraph_over_two_lines_is_one_wrapped_unit(self):
+        # Frontmatter is lines 1-4 and a blank line 5, so the body starts on line 6.
+        self.assertEqual(self.wrapped("# H\n\nOne sentence\ncarried on.\n"), [(2, "SKILL.md", 8, 9, "One sentence")])
+
+    def test_a_list_item_with_a_continuation_line_is_wrapped(self):
+        self.assertEqual([w[2:4] for w in self.wrapped("# H\n\n- item\n  continued\n- next\n")], [(8, 9)])
+
+    def test_one_line_units_rows_fences_and_the_frontmatter_are_not(self):
+        body = "# H\n\nOne line.\n\n- a\n- b\n\n| a | b |\n| - | - |\n\n> q\n> r\n\n```\nx\ny\n```\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), body)
+            md = skill_dir / "SKILL.md"
+            md.write_text(md.read_text().replace("description: ", "description: >\n  "))
+            self.assertEqual(vs._structure(skill_dir)[5], [])
+
+    def test_the_text_report_lists_it_as_a_possible_signal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            text = vs.build_report(build_skill(Path(tmp), "# H\n\nOne sentence\ncarried on.\n"))[0]
+        self.assertIn("Hard-wrapped text (1 paragraphs or list items: SKILL.md 1)", text)
+        self.assertIn("? right where the break is meant", text)
+        # One summary line, not a listing.
+        self.assertNotIn("SKILL.md:8", text)
+
+    def test_the_post_edit_hook_run_leaves_it_out(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# H\n\nOne sentence\ncarried on.\n")
+            text = vs.build_report(skill_dir, report_only=True)[0]
+            lines, _ok = vs.validate_one(skill_dir, report_only=True)
+        self.assertNotIn("Hard-wrapped", text)
+        self.assertNotIn("Hard-wrapped", "\n".join(lines))
 
 
 class DenseRunTests(unittest.TestCase):

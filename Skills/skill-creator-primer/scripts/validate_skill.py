@@ -23,14 +23,14 @@ except ModuleNotFoundError:
 
 _FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
 
-# Description word-count rule from the primer's Skill Description Checklist: soft ceiling 55 words, hard cap 65.
+# Description word-count rule from the primer's Skill Description Checklist: soft ceiling 55 words, hard cap 70.
 # Descriptions share the agent's always-loaded token budget with every other skill, so length is policed mechanically
 # here rather than by eyeballing. The bounds are ceilings only - a stated aim reads as a quota and gets padded up to, so
 # the messages never name a target. MIN is set low enough to catch a description with no triggers in it, not to demand
 # length.
 DESCRIPTION_WORDS_MIN = 15
 DESCRIPTION_WORDS_WARN = 55
-DESCRIPTION_WORDS_FAIL = 65
+DESCRIPTION_WORDS_FAIL = 70
 
 
 def description_word_count(description: str) -> int:
@@ -360,19 +360,22 @@ def _dense_runs(seq: list) -> list[tuple[int, str, int, int, str, int, int, bool
     return out
 
 
-def _structure(skill_dir: Path) -> tuple[int | None, list, list, list, list]:
+def _structure(skill_dir: Path) -> tuple[int | None, list, list, list, list, list]:
     """Scan a skill's referenced Markdown for prose shape. Returns
     (percent of body words in paragraph prose or None if no body,
     blobs in SKILL.md, blobs in referenced files, over-length code blocks,
-    dense runs); blob and code entries are (size, relative path, 1-based first
-    line, 1-based last line, opening text), largest first, and a dense run is
-    the same five fields followed by (unit count, longest unit, all list items).
+    dense runs, hard-wrapped units); blob and code entries are (size, relative
+    path, 1-based first line, 1-based last line, opening text), largest first,
+    and a dense run is the same five fields followed by (unit count, longest
+    unit, all list items). A hard-wrapped unit is a paragraph or list item
+    spread over several source lines, sized in lines, in file order.
     The line span is inclusive, so a caller rendering the source can mark the
     whole unit rather than its opening."""
     para_words = struct_words = 0
     units: list[tuple[int, str, int, int, str]] = []  # (words, rel path, first line, last line, opening words)
     long_code: list[tuple[int, str, int, int, str]] = []  # (lines, rel path, first line, last line, first code line)
     dense: list[tuple[int, str, int, int, str, int, int, bool]] = []
+    wrapped: list[tuple[int, str, int, int, str]] = []  # (lines, rel path, first line, last line, opening words)
     skill_root = Path(skill_dir).resolve()
     for path in referenced_md_files(skill_dir):
         text = path.read_text(encoding="utf-8-sig", errors="ignore")
@@ -398,6 +401,8 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list, list]:
             nonlocal unit, para_words, struct_words
             if unit:
                 units.append((unit, str(rel), unit_line, unit_end, unit_open))  # noqa: B023
+                if unit_kind != "row" and unit_end > unit_line:  # noqa: B023
+                    wrapped.append((unit_end - unit_line + 1, str(rel), unit_line, unit_end, unit_open))  # noqa: B023
                 if unit_kind != "row":  # noqa: B023
                     seq.append((unit, str(rel), unit_line, unit_end, unit_open, unit_kind == "list"))  # noqa: B023
                 if unit_kind == "para" and unit >= PROSE_UNIT_MIN:  # noqa: B023
@@ -460,7 +465,7 @@ def _structure(skill_dir: Path) -> tuple[int | None, list, list, list, list]:
     blobs = sorted((u for u in units if u[0] >= BLOB_WORDS), reverse=True)
     skill_blobs = [b for b in blobs if b[1] == "SKILL.md"]
     ref_blobs = [b for b in blobs if b[1] != "SKILL.md"]
-    return pct, skill_blobs, ref_blobs, sorted(long_code, reverse=True), sorted(dense, reverse=True)
+    return pct, skill_blobs, ref_blobs, sorted(long_code, reverse=True), sorted(dense, reverse=True), wrapped
 
 
 # Lexical no-ops: words and shapes that spend always-loaded tokens without changing what the agent does, so they fail
@@ -587,6 +592,7 @@ POSSIBLE = {
     "americanism": "right as a proper noun (the Labor Party, the World Health Organization) and in a skill written "
                    "for an American reader",
     "dense-run": "earned when each unit carries a distinct instruction; a wall when the units restate one",
+    "hard-wrap": "right where the break is meant to render, as in an address or a two-space hard break",
 }
 # Rules that cannot be argued with, reported under FACTS and marked red on the page. Everything in neither set is
 # probable: reported, never gated, since a skill may mean the word literally.
@@ -937,13 +943,14 @@ def _dense_listing(group: list) -> list[str]:
     return out
 
 
-def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str, str, bool]:
+def build_report(skill_dir: Path, use_tiktoken: bool = False,
+                 report_only: bool = False) -> tuple[str, str, str, bool]:
     """Sectioned report that routes the reading agent's attention: FACTS are
     always-loaded costs to fix, SIGNALS are branch-loaded findings to judge,
     INFO is context. Returns (text, rating, advice); main() enforces the
     rating by exit code (Poor fails, OK warns)."""
     budget_lines, rating, advice, driver_is_main, within_budget = _budget(skill_dir, use_tiktoken)
-    pct, skill_blobs, ref_blobs, long_code, dense = _structure(skill_dir)
+    pct, skill_blobs, ref_blobs, long_code, dense, wrapped = _structure(skill_dir)
     filler = _filler(skill_dir)
     emphasis = _bold(skill_dir)
     invisible = _invisible(skill_dir)
@@ -1009,6 +1016,15 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False) -> tuple[str, str,
             f"(? {POSSIBLE['dense-run']}):"
         )
         signals.extend(_dense_listing(dense))
+    # One line, and none on the post-edit hook's run: a hand-wrapped skill would otherwise reprint a listing after every
+    # edit, spending context on a cosmetic finding and inviting a rewrap nobody asked for. The HTML page shades each unit.
+    if wrapped and not report_only:
+        per_file = Counter(str(w[1]) for w in wrapped)
+        signals.append(
+            f"  Hard-wrapped text ({len(wrapped)} paragraphs or list items: "
+            f"{', '.join(f'{rel} {n}' for rel, n in per_file.items())}) - Markdown joins the lines anyway, so put each "
+            f"on one line (? {POSSIBLE['hard-wrap']})"
+        )
     # One scan, two findings: a no-op is a word to cut, an Americanism a word to respell.
     no_ops = [f for f in filler if f[0] != "americanism"]
     spellings = [f for f in filler if f[0] == "americanism"]
@@ -1195,7 +1211,8 @@ def validate_one(
     if not (skill_dir / "SKILL.md").is_file():
         return [f"Error: no SKILL.md in {skill_dir}"], False
 
-    report_text, rating, advice, within_budget = build_report(skill_dir, use_tiktoken=use_tiktoken)
+    report_text, rating, advice, within_budget = build_report(skill_dir, use_tiktoken=use_tiktoken,
+                                                              report_only=report_only)
     # Token-budget gate on the worst-case load (see _budget): "Poor" fails the build; "OK" warns via the report's FACTS
     # section. A justified metadata.skill-lint.max-load-tokens the load fits inside clears both. Ratings and cures live
     # in the primer's "Validating a Skill" and "Failure Modes" sections.

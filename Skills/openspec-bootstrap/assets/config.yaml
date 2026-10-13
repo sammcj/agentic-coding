@@ -5,7 +5,7 @@ context: |
 
   A change's artifacts (proposal, specs, design, tasks) say what to build, why, and the approach. The implementer decides how to write the code.
 
-  Contracts are the exception: anything that would force a change outside the code being written and its own tests if it changed. Specify contracts exactly.
+  Contracts are the exception - anything that would force a change outside the code being written and its own tests if it changed. Specify contracts exactly.
 
 rules:
   design:
@@ -18,3 +18,4 @@ operations:
   apply:
     guidance:
       - "If the implementation changes a requirement or a contract, update the specs or design to match. If it only changes implementation details, leave the artifacts as they are."
+      - "If there is a CHANGELOG.md, update it after completing new features or fixes."
