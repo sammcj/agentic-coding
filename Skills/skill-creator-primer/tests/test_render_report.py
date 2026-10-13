@@ -598,6 +598,11 @@ class ConfidenceTests(unittest.TestCase):
         page = self.render("# H\n\nA comprehensive plan to normalize the color.\n")
         self.assertIn("<b>1</b><u>findings, 2 possible</u>", page)
 
+    def test_the_strip_counts_hard_wrapped_units_as_possible_and_never_goes_negative(self):
+        # Wrapped units were subtracted as possible but never added, so 50 of them turned 11 findings into -39.
+        page = self.render("# H\n\nA comprehensive plan.\n\nOne sentence\ncarried on.\n\nAnother\nwrapped one.\n")
+        self.assertIn("<b>1</b><u>findings, 2 possible</u>", page)
+
     def test_the_legend_is_headed_confidence_with_every_step(self):
         page = self.render("# H\n\nA comprehensive plan.\n")
         self.assertIn("<b>Confidence</b>", page)

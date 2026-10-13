@@ -1401,10 +1401,11 @@ def render(skill_dir, against=None, use_tiktoken=False, agent=None):
                  % compare_block(against, skill_dir, use_tiktoken))
 
     # Possible findings are counted apart, as the text report prints them: a page of reads is not a page of defects.
-    maybe = sum(f.n for f in found if f.possible)
-    total = (len(blobs) + len(long_code) + len(hits) + len(dense) + len(redundant) + len(tables)
-             + (1 if description else 0)
-             + len((emphasis or {}).get("spans", ())) - maybe)
+    # Both counts read the rows the page lists, so a new rule cannot be subtracted as possible without being counted.
+    # Spec rows name the file rather than an instance, and stay out as they always have.
+    counted = [f for f in found if f.kind not in ("spec", "specw")]
+    maybe = sum(f.n for f in counted if f.possible)
+    total = sum(f.n for f in counted) - maybe
     strip = "".join(
         '<div><i style="background:%s"></i><b>%s</b><u>%s</u></div>' % (colour, e(n), e(label))
         for colour, n, label in (
