@@ -2,6 +2,11 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-10-19
+
+- Capture Intent: Scope (task vs outcome, plus the access it needs) and Method (practitioner's method, raw inputs, tools, external check) questions before drafting.
+- New failure modes: "Persona over method" and "Self-grading" (no outside judge for checkable output).
+
 ## 2026-10-13
 
 - Description hard cap raised from 65 to 70 words; the 55-word soft ceiling stays a warning. The HTML now shades a description between the two orange (probable, Needs work) and only past the hard cap red (Fail).

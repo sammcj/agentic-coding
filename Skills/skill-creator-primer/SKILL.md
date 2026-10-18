@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-10-13
+  version: 2026-10-19
   skill-lint:
     max-load-tokens: 10500 # primer skill accepted as being larger
 hooks:
@@ -90,6 +90,11 @@ When a user says "turn this into a skill", extract the workflow from the current
 - Corrections the user made along the way
 - Input/output formats observed
 - Patterns that repeated across the conversation
+
+Before drafting, settle:
+
+- **Scope** - ask the user whether the skill owns the task asked for or the outcome above it ("fix this crash" vs "keep the app crash-free"). Owning the outcome needs access: list the data sources, environments and mappings the agent needs to act and verify unaided.
+- **Method** - for the skill's domain, answer: what a top practitioner does that the user didn't ask for; the rawest material they start from; the methods and tools they use; what, other than the agent, shows the result is right. Encode the answers as steps (see "Persona over method" and "Self-grading" in Failure Modes).
 
 Fill gaps with the user, then proceed to skill creation.
 
@@ -352,6 +357,8 @@ Diagnose an oversized or unreliable skill against these modes and apply the cure
 - **Sprawl** - simply too long, even when every line is live and unique. Cure: progressive disclosure - split by branch (the branch test under "How Skills Actually Work") or into a separate sequenced skill.
 - **Tool compensation** - prose standing in for a missing tool mode; the usual root cause of a bloated skill. A tool that only judges the finished artefact forces the skill to describe the whole artefact up front. One that can report progress against a partial artefact needs the skill to describe only the judgement the agent supplies. Cure: add the reporting mode to the tool, then delete the prose it replaces. Check for this before compressing a long skill.
 - **No-op** - a line the model already obeys by default; a relevant line can still be a no-op. Model-relative - test by running the skill. Cure: a stronger leading word, or deletion (apply the deletion test).
+- **Persona over method** - an "act as an expert X" framing: the agent adopts the vocabulary and keeps its default method. Cure: name the practitioner's instruments, raw inputs and procedure as steps ("query the database and fit a model", not "act as a data scientist").
+- **Self-grading** - the skill's only check on checkable output is the agent's own judgement, which tends to pass its own work. Cure: name an outside judge the agent runs (tests, a validator, render-and-inspect, a fresh-context sub-agent) and loop until it passes.
 - **Buried instructions** - instructions or logic carried in paragraph prose or oversized list items, in the body or in description/frontmatter/schema fields. Cure: convert per "Structure over prose" (Skill Writing Tips); the validator's blob list locates offenders.
 - **Fossilised diff** - the body narrates its own history: ticket IDs, amendment notes, superseded mechanisms, rationale addressed to a reviewer. Cure: state current behaviour only, readable to an agent that never saw a prior version; provenance lives in the changelog and git.
 
