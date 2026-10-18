@@ -1,0 +1,8 @@
+[
+  {"query": "Every quarter I paste our metrics into the QBR slide template and have the model tidy it up. Help me be far more ambitious with it here - what should I be asking it for instead?", "should_trigger": true},
+  {"query": "We think churn is an onboarding problem and I asked the model to summarise our churn dashboard. How would a top data scientist push the model further - raw event logs, real statistical methods, and something other than the model that proves the answer?", "should_trigger": true},
+  {"query": "I'm rebuilding my personal homepage with an agent. Which other fields, specialists or tools should I pull in so this is more ambitious than a template refresh?", "should_trigger": true},
+  {"query": "Rewrite this prompt so it's clearer and better structured for ChatGPT: 'write blog post kubernetes security make it good, not too long'", "should_trigger": false},
+  {"query": "Go deeper on this review of the retry loop in client.go - check the backoff cap and the error handling too, not just naming.", "should_trigger": false},
+  {"query": "Critique the reasoning in this paragraph: 'Models amplify the self-efficacy gap, so people who believe in AI will out-earn those who don't.'", "should_trigger": false}
+]

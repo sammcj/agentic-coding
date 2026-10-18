@@ -1,0 +1,44 @@
+{
+  "skill": "ambitious-model-use",
+  "test_cases": [
+    {
+      "name": "elevate_qbr_deck",
+      "input": "Help me be more ambitious with our quarterly business review. Right now I just turn these metrics into a deck:\nmonth,revenue,active_users,churn_pct\n2026-07,412000,18300,3.1\n2026-08,398000,18050,3.6\n2026-09,401000,17720,4.2",
+      "assertions": [
+        "Diagnoses current approach as low-altitude task execution",
+        "Proposes outcome-focused rewrite (what changed, decisions needed, or better system than a deck)",
+        "Mentions need for raw data or access",
+        "Presents the brief for confirmation before executing it"
+      ]
+    },
+    {
+      "name": "deepen_churn_analysis",
+      "input": "I want a much more ambitious churn analysis. I think it's an onboarding problem. Our events table has user_id, event_name, ts, plan, and we have 14 months of history.",
+      "assertions": [
+        "Applies Depth techniques",
+        "Suggests adversarial check against raw data or logs",
+        "Asks for statistical models or simulation rather than only tables",
+        "Names an outside judge the model can run (held-out data, metric, tool), not the model's own judgement"
+      ]
+    },
+    {
+      "name": "range_homepage",
+      "input": "I need to redesign my personal homepage and want to be more ambitious than a template refresh. I'm a freelance data engineer.",
+      "assertions": [
+        "Applies Range",
+        "Suggests specialists or tools from outside web design (e.g. 3D, motion, storytelling)",
+        "Replaces noun 'homepage' with verbs or outcomes",
+        "Asks the model to do what each specialist does rather than role-play them"
+      ]
+    },
+    {
+      "name": "meta_ambition_request",
+      "input": "How can I be more ambitious with AI on this research task? I'm comparing vector database latency for our search service and so far I've only asked for a summary of vendor docs.",
+      "assertions": [
+        "Explains or applies Altitude, Depth, and/or Range",
+        "Provides concrete rewritten brief or next steps",
+        "References expert methods or cross-field approaches"
+      ]
+    }
+  ]
+}

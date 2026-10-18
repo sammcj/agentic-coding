@@ -1,11 +1,11 @@
 ---
 name: find-docs
 description: >-
-  Retrieves up-to-date documentation, API references, and code examples for any
-  developer technology. Use this skill whenever the user asks about, or when you need
-  to lookup documentation or usage reference a specific library, framework, SDK, CLI tool,
-  or cloud service - even if well-known as your training data may be outdated.
-  Prefer this over web search for library documentation and API details.
+  Retrieves up-to-date documentation, API references and code examples for any
+  developer technology. Use when the user asks about, or you need docs for, a
+  specific library, framework, SDK, CLI tool or cloud service - even well-known
+  ones, as training data may be outdated. Prefer this over web search for library
+  docs and API details.
 ---
 
 # Documentation Lookup
@@ -39,10 +39,12 @@ IMPORTANT: Do not run these commands more than 3 times per question. If you cann
 Resolves a package/product name to a Context7-compatible library ID and returns matching libraries.
 
 ```bash
-ctx7 library react "How to clean up useEffect with async operations"
-ctx7 library nextjs "How to set up app router with middleware"
-ctx7 library prisma "How to define one-to-many relations with cascade delete"
+ctx7 library React "How to clean up useEffect with async operations"
+ctx7 library "Next.js" "How to set up app router with a proxy"
+ctx7 library Prisma "How to define one-to-many relations with cascade delete"
 ```
+
+Use the official library name with its punctuation (`"Next.js"` not `nextjs`, `"Three.js"` not `threejs`). If results look wrong, try an alternate spelling such as `next.js` before changing the query.
 
 Always pass a `query` argument - it is required and directly affects result ranking. Use the user's intent to form the query, which helps disambiguate when multiple libraries share a similar name. Do not include any sensitive or confidential information such as API keys, passwords, credentials, personal data, or proprietary code in your query.
 
@@ -60,11 +62,11 @@ Each result includes:
 
 ### Selection process
 
-1. Analyze the query to understand what library/package the user is looking for
+1. Analyse the query to understand what library/package the user is looking for
 2. Select the most relevant match based on:
-   - Name similarity to the query (exact matches prioritized)
+   - Name similarity to the query (exact matches prioritised)
    - Description relevance to the query's intent
-   - Documentation coverage (prioritize libraries with higher Code Snippet counts)
+   - Documentation coverage (prioritise libraries with higher Code Snippet counts)
    - Source reputation (consider libraries with High or Medium reputation more authoritative)
    - Benchmark score (higher is better, 100 is the maximum)
 3. If multiple good matches exist, acknowledge this but proceed with the most relevant one
@@ -80,7 +82,7 @@ If the user mentions a specific version, use a version-specific library ID:
 ctx7 docs /vercel/next.js "How to set up app router"
 
 # Version-specific
-ctx7 docs /vercel/next.js/v14.3.0-canary.87 "How to set up app router"
+ctx7 docs /vercel/next.js/v16.2.9 "How to set up app router"
 ```
 
 The available versions are listed in the `ctx7 library` output. Use the closest match to what the user specified.
@@ -91,22 +93,26 @@ Retrieves up-to-date documentation and code examples for the resolved library.
 
 ```bash
 ctx7 docs /facebook/react "How to clean up useEffect with async operations"
-ctx7 docs /vercel/next.js "How to add authentication middleware to app router"
+ctx7 docs /vercel/next.js "How to add an authentication proxy to app router"
 ctx7 docs /prisma/prisma "How to define one-to-many relations with cascade delete"
+```
+
+If you know the user's programming language, add `--language` so examples in that language rank first:
+
+```bash
+ctx7 docs /websites/twilio "How to send an SMS" --language Ruby
 ```
 
 ### Writing good queries
 
-The query directly affects the quality of results. Be specific and include relevant details. Do not include any sensitive or confidential information such as API keys, passwords, credentials, personal data, or proprietary code in your query.
+The query directly affects the quality of results. Be specific and keep each query to one topic. For a question spanning distinct concepts, run a separate `docs` command per concept, unless the question is about how they interact. Do not include any sensitive or confidential information such as API keys, passwords, credentials, personal data, or proprietary code in your query.
 
-| Quality | Example |
-|---------|---------|
-| Good | `"How to set up authentication with JWT in Express.js"` |
-| Good | `"React useEffect cleanup function with async operations"` |
-| Bad | `"auth"` |
-| Bad | `"hooks"` |
+- Good: `"How to set up authentication with JWT in Express.js"`
+- Good: `"React useEffect cleanup function with async operations"`
+- Bad (vague): `"auth"`, `"hooks"`
+- Bad (multi-topic): `"routing and auth and caching in Next.js"`
 
-Use the user's full question as the query when possible, vague one-word queries return generic results.
+Describe what to look up in the docs rather than the task to complete. One-word queries return generic results. Multi-topic queries return shallow results for each topic.
 
 The output contains two types of content: **code snippets** (titled, with language-tagged blocks) and **info snippets** (prose explanations with breadcrumb context).
 
@@ -136,4 +142,5 @@ Do not silently fall back to training data - always tell the user why Context7 w
 - Library IDs require a `/` prefix - `/facebook/react` not `facebook/react`
 - Always run `ctx7 library` first - `ctx7 docs react "hooks"` will fail without a valid ID
 - Use descriptive queries, not single words - `"React useEffect cleanup function"` not `"hooks"`
+- One topic per query - split `"routing and auth and caching"` into one `docs` command per concept
 - Do not include sensitive information (API keys, passwords, credentials) in queries

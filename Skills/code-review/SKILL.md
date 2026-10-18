@@ -12,13 +12,14 @@ Run a structured review over the changes in scope. Two modes:
 
 ## Workflow
 
-1. Spawn parallel sub-agents to critically review the changes, splitting the work by review axis (below) or by area of the codebase.
-2. Compile their findings into a concise numbered list, each tagged critical/medium/low.
-3. Verify every finding against the actual code before reporting or acting on it. Sub-agents report false positives, and acting on a phantom issue makes the code worse.
+1. Search the repo for every file documenting how code should be written. `CODING_STANDARDS.md` and `CONTRIBUTING.md` must be on the list when present. Pass the list to the sub-agents.
+2. Spawn parallel sub-agents to critically review the changes, splitting the work by review axis (below) or by area of the codebase.
+3. Compile their findings into a concise numbered list, each tagged critical/medium/low.
+4. Verify every finding against the actual code before reporting or acting on it. Sub-agents report false positives, and acting on a phantom issue makes the code worse.
 
 ## Applying Fixes
 
-Fix mode only. If you were asked only to review, stop at step 3 and report your findings.
+Fix mode only. If you were asked only to review, stop at step 4 and report your findings.
 
 1. Fix the confirmed issues.
 2. Re-run the project's lint/test/build pipeline.
