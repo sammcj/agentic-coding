@@ -23,6 +23,9 @@ The hashes below are of the npm file without its source map line, so they exclud
 - `marked.esm.js`: marked 18.0.14, npm `lib/marked.esm.js`
   - Readable source: https://github.com/markedjs/marked/tree/v18.0.14/src
   - sha256 `0eab1f03c00471183d1b79febacfdca34e3f4bf506d25720883c682780f9e5e1`
+- `mermaid.min.js`: mermaid 12.2.0, npm `dist/mermaid.min.js`. A self-contained classic script that sets `globalThis.mermaid`, so it sits outside the import map. `md.js` loads it on demand. Unmodified: it has no source map line. Licences of the libraries it bundles are kept inline in the file.
+  - Readable source: https://github.com/mermaid-js/mermaid/tree/mermaid%4012.2.0/packages/mermaid/src
+  - sha256 `a8a6a6f805b074a8261a2825c86f99c8054acb3b35f50bb7e24a4f9f2c3c3b9f`
 
 ## Verify or update
 

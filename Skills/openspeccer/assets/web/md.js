@@ -47,6 +47,12 @@ const marked = new Marked({
     image({ text }) {
       return `<span class="img-alt">[image: ${escapeHtml(text)}]</span>`;
     },
+    // A placeholder showing the source until `renderDiagrams` swaps in the SVG. Other
+    // languages return false and fall through to marked's default code block.
+    code({ text, lang }) {
+      if ((lang || "").trim().split(/\s/)[0] !== "mermaid") return false;
+      return `<pre class="mermaid-src">${escapeHtml(text)}</pre>\n`;
+    },
   },
 });
 
@@ -125,11 +131,71 @@ function highlightBdd(root) {
   }
 }
 
+// -- Mermaid diagrams --
+// The bundle is several MB, so it loads on the first page that holds a diagram.
+let mermaidReady = null;
+
+function loadMermaid() {
+  mermaidReady ||= new Promise((resolve, reject) => {
+    const script = Object.assign(document.createElement("script"), { src: "/vendor/mermaid.min.js" });
+    script.onload = () => {
+      const { mermaid } = globalThis;
+      // Repository content is untrusted. Strict mode sanitises label HTML and drops click
+      // handlers; images are forbidden too, matching the markdown renderer. `secure` stops an
+      // `%%{init}%%` directive in a diagram loosening either.
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: "strict",
+        dompurifyConfig: { FORBID_TAGS: ["style", "img"] },
+        secure: ["secure", "securityLevel", "startOnLoad", "maxTextSize", "suppressErrorRendering", "maxEdges", "dompurifyConfig"],
+        theme: "neutral",
+        fontFamily: getComputedStyle(document.documentElement).getPropertyValue("--mono"),
+      });
+      resolve(mermaid);
+    };
+    script.onerror = () => {
+      mermaidReady = null;
+      script.remove();
+      reject(new Error("could not load /vendor/mermaid.min.js"));
+    };
+    document.head.append(script);
+  });
+  return mermaidReady;
+}
+
+let diagramSeq = 0;
+
+async function renderDiagrams(root) {
+  const blocks = [...root.querySelectorAll("pre.mermaid-src")];
+  if (!blocks.length) return;
+  const mermaid = await loadMermaid();
+  for (const pre of blocks) {
+    const id = `mermaid-${++diagramSeq}`;
+    try {
+      const { svg } = await mermaid.render(id, pre.textContent);
+      // A live update may have replaced this markdown while the diagram rendered.
+      if (!pre.isConnected) continue;
+      const fig = Object.assign(document.createElement("div"), { className: "mermaid-diagram", innerHTML: svg });
+      pre.replaceWith(fig);
+    } catch (err) {
+      // On a parse error mermaid can leave its scratch element in <body>.
+      document.getElementById(`d${id}`)?.remove();
+      if (!pre.isConnected || pre.nextElementSibling?.classList.contains("mermaid-error")) continue;
+      const note = Object.assign(document.createElement("div"), { className: "mermaid-error" });
+      // Parse errors span lines, with a caret under the fault, so the note keeps them.
+      note.textContent = `Diagram not rendered: ${err?.message || err}`;
+      pre.after(note);
+    }
+  }
+}
+
 export function Markdown({ src, prefix = "", bdd = true, className = "" }) {
   const ref = useRef(null);
   const rendered = renderMarkdown(src, prefix);
   useEffect(() => {
-    if (bdd && ref.current) highlightBdd(ref.current);
+    if (!ref.current) return;
+    if (bdd) highlightBdd(ref.current);
+    renderDiagrams(ref.current).catch((err) => console.warn(err));
   }, [rendered, bdd]);
   // In-document `#anchor` links would otherwise replace the router's hash.
   const onClick = (e) => {

@@ -6,11 +6,13 @@ network mounts and container bind mounts where native change events never arrive
 
 from __future__ import annotations
 
+import base64
 import gzip
 import hashlib
 import json
 import mimetypes
 import os
+import re
 import sys
 import threading
 import time
@@ -94,6 +96,20 @@ def _flag(qs: dict[str, list[str]], name: str, default: bool) -> bool:
 
 def _arg(qs: dict[str, list[str]], name: str) -> str:
     return qs.get(name, [""])[0]
+
+
+def _page_csp(page: str) -> str:
+    """Policy for the UI page: repository markdown and diagrams render into it, so nothing may
+    load from another origin. Inline scripts (the import map) are allowed by hash, computed from
+    the page served so an edit to it can't leave the hash stale. Inline styles stay allowed for
+    mermaid's per-diagram <style> and Preact's style attributes."""
+    hashes = "".join(
+        f" 'sha256-{base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()}'"
+        for s in re.findall(r"<script\b[^>]*>(.*?)</script>", page, re.S)
+        if s
+    )
+    styles = "style-src 'self' 'unsafe-inline'"
+    return f"default-src 'self'; script-src 'self'{hashes}; {styles}; img-src 'self' data:"
 
 
 def make_handler(repo: Repo, watcher: Watcher | None, default_jj: bool) -> type[BaseHTTPRequestHandler]:
@@ -193,7 +209,10 @@ def make_handler(repo: Repo, watcher: Watcher | None, default_jj: bool) -> type[
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", f"{ctype}; charset=utf-8")
             self.send_header("Cache-Control", "no-cache")
-            self._send_body(target.read_bytes())
+            body = target.read_bytes()
+            if ctype == "text/html":
+                self.send_header("Content-Security-Policy", _page_csp(body.decode()))
+            self._send_body(body)
 
         def _events(self) -> None:
             self.send_response(HTTPStatus.OK)

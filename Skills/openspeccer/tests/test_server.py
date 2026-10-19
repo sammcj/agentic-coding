@@ -1,4 +1,7 @@
+import base64
+import hashlib
 import json
+import re
 import threading
 import time
 import unittest
@@ -48,6 +51,16 @@ class ServerTest(unittest.TestCase):
         status, body = self.get("/")
         self.assertEqual(status, 200)
         self.assertIn(b"importmap", body)
+
+    def test_page_csp_allows_only_local_and_hashed_inline_scripts(self) -> None:
+        with urllib.request.urlopen(self.base + "/", timeout=5) as r:
+            csp, page = r.headers["Content-Security-Policy"], r.read().decode()
+        importmap = re.search(r'<script type="importmap">(.*?)</script>', page, re.S)
+        assert importmap and csp
+        digest = base64.b64encode(hashlib.sha256(importmap[1].encode()).digest()).decode()
+        directives = dict(d.strip().split(" ", 1) for d in csp.split(";"))
+        self.assertEqual(directives["default-src"], "'self'")
+        self.assertEqual(directives["script-src"], f"'self' 'sha256-{digest}'")
 
     def test_not_found_and_traversal(self) -> None:
         for path in (

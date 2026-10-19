@@ -245,6 +245,9 @@ a.card:hover { border-color: var(--border-strong); text-decoration: none; }
 .md pre { background: var(--soft); border: 1px solid var(--border); border-radius: 5px; padding: 10px 12px; overflow-x: auto; }
 .md pre code { background: none; padding: 0; }
 .md code.nowrap { white-space: nowrap; }
+.md .mermaid-diagram { margin: 12px 0; overflow-x: auto; }
+.md .mermaid-diagram svg { display: block; height: auto; }
+.md .mermaid-error { margin: -8px 0 12px; color: var(--accent); font-size: 12px; white-space: pre-wrap; }
 .md blockquote { margin: 0; border-left: 3px solid var(--border); padding-left: 12px; color: var(--muted); }
 .md table { border-collapse: collapse; }
 .md th, .md td { border: 1px solid var(--border); padding: 4px 8px; }
