@@ -55,12 +55,17 @@ function Board({ snap }) {
   </section>`;
 }
 
+// Spec topics that active changes add but openspec/specs does not have yet.
+function newTopics(snap) {
+  const known = new Set(snap.specs.map((s) => s.topic));
+  return [...new Set(snap.changes.filter((c) => c.status === "active").flatMap((c) => c.spec_topics))].filter((t) => !known.has(t));
+}
+
+const changesAdding = (snap, topic) => snap.changes.filter((c) => c.status === "active" && c.spec_topics.includes(topic));
+
 function SpecsInFlight({ snap }) {
   const specs = snap.specs.filter((s) => s.in_flight.length);
-  const known = new Set(snap.specs.map((s) => s.topic));
-  const added = [...new Set(snap.changes.filter((c) => c.status === "active").flatMap((c) => c.spec_topics))].filter(
-    (t) => !known.has(t),
-  );
+  const added = newTopics(snap);
   if (!specs.length && !added.length) return null;
   const byChange = new Map(snap.changes.map((c) => [c.slug, c]));
   return html`<section class="panel">
@@ -79,7 +84,7 @@ function SpecsInFlight({ snap }) {
         </li>`,
       )}
       ${added.map((topic) => {
-        const cs = snap.changes.filter((c) => c.status === "active" && c.spec_topics.includes(topic));
+        const cs = changesAdding(snap, topic);
         return html`<li>
           <span class="mono">${topic}</span> <${Badge} kind="op op-added">new<//>
           <span class="flight-changes">
@@ -112,19 +117,23 @@ export function dashboardMarkdown(snap) {
     ),
   ];
   for (const lane of LANES) {
-    const items = snap.changes.filter((c) => c.lane === lane.id);
-    out.push("", `## ${lane.label} (${items.length})`, "");
+    const all = snap.changes.filter((c) => c.lane === lane.id);
+    // Like the board: only the most recent archived changes.
+    const items = lane.id === "archived" ? all.slice(0, RECENT_ARCHIVED) : all;
+    out.push("", `## ${lane.id === "archived" ? "Recently archived" : lane.label} (${all.length})`, "");
     if (!items.length) out.push("None");
     for (const c of items) {
       const when = c.status === "archived" ? `archived ${c.archived}` : `updated ${(c.updated || "").slice(0, 10)}`;
       const tasks = c.status === "active" && c.tasks ? `, tasks ${c.tasks.done}/${c.tasks.total}` : "";
       out.push(`- ${c.name} (${when}${tasks})`);
     }
+    if (all.length > items.length) out.push(`- ${all.length - items.length} more archived`);
   }
-  const flight = snap.specs.filter((sp) => sp.in_flight.length);
-  if (flight.length) {
-    out.push("", "## Specs in flight", "", mdTable(["Spec", "Requirements", "Changes"], flight.map((sp) => [sp.topic, sp.requirement_count, sp.in_flight.join(", ")])));
-  }
+  const rows = [
+    ...snap.specs.filter((sp) => sp.in_flight.length).map((sp) => [sp.topic, sp.requirement_count, sp.in_flight.join(", ")]),
+    ...newTopics(snap).map((t) => [`${t} (new)`, "", changesAdding(snap, t).map((c) => c.slug).join(", ")]),
+  ];
+  if (rows.length) out.push("", "## Specs in flight", "", mdTable(["Spec", "Requirements", "Changes"], rows));
   return `${out.join("\n")}\n`;
 }
 

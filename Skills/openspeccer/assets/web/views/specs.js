@@ -140,9 +140,12 @@ function Diff({ topic, spec, query }) {
   </div>`;
 }
 
-export function SpecDetail({ topic, snap, query }) {
+// `expand` shows the spec and its history together, for the whole-site export. The deltas
+// stay collapsed: each history entry links to its change, which carries the full delta.
+export function SpecDetail({ topic, snap, query, expand = false }) {
   const { data: spec, error } = useApi(apiUrl("spec", { topic }));
   const tab = query.get("tab") || "spec";
+  const show = (t) => (expand ? t !== "diff" : tab === t);
   if (error) return html`<${ErrorBox} error=${error} />`;
   if (!spec) return html`<${Loading} />`;
   const meta = snap.specs.find((s) => s.topic === topic);
@@ -159,12 +162,13 @@ export function SpecDetail({ topic, snap, query }) {
       <${ExportMenu} name=${`spec-${topic}`} title=${topic} markdown=${() => spec.content} />
     <//>
     <${Chips} options=${tabs} value=${tab} onChange=${(t) => setQuery({ tab: t === "spec" ? "" : t, base: "", head: "" })} />
-    ${tab === "spec" &&
+    ${show("spec") &&
     html`<div class="with-toc">
       <div class="doc-col"><${SpecDoc} doc=${spec.doc} /></div>
       <${Toc} items=${docToc(spec.doc)} />
     </div>`}
-    ${tab === "history" && html`<${History} topic=${topic} spec=${spec} snap=${snap} />`}
+    ${expand && html`<h2>History</h2>`}
+    ${show("history") && html`<${History} topic=${topic} spec=${spec} snap=${snap} />`}
     ${tab === "diff" && html`<${Diff} topic=${topic} spec=${spec} query=${query} />`}
   </div>`;
 }

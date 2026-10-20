@@ -1,7 +1,6 @@
-import { render } from "preact";
 import { apiUrl, changeHref, href, html, pref, relative, setPref, setQuery, useApi, useState } from "../lib.js";
 import { Markdown, Toc, headings } from "../md.js";
-import { ExportMenu, mdTable } from "../export.js";
+import { ExportMenu, mdTable, renderOffscreen } from "../export.js";
 import { Badge, Chips, Empty, ErrorBox, LANES, LaneBadge, Loading, PageHeader, Progress, Select, SourceBadge, laneLabel } from "../ui.js";
 import { SpecDoc, docToc } from "./specs.js";
 
@@ -251,11 +250,8 @@ function AllTabs({ arts }) {
 async function swapInAllTabs(main, arts) {
   const region = main.querySelector(".tab-region");
   if (!region) return;
-  const box = document.createElement("div");
-  render(html`<${AllTabs} arts=${arts} />`, box);
-  // Effects such as BDD keyword highlighting run after the next frame.
-  await new Promise((r) => requestAnimationFrame(() => setTimeout(r)));
-  region.replaceWith(box.firstElementChild);
+  const { root } = await renderOffscreen([html`<${AllTabs} arts=${arts} />`]);
+  region.replaceWith(root.firstElementChild);
 }
 
 // Each artifact verbatim, in the given order, each under its file path.

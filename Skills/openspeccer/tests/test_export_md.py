@@ -46,11 +46,13 @@ CHANGE = {
 @unittest.skipUnless(shutil.which("node"), "node not installed")
 class ExportMarkdownTest(unittest.TestCase):
     def test_dashboard_lists_stats_lanes_and_specs_in_flight(self) -> None:
-        stats = dict(specs=2, requirements=5, active=1, tasks_done=1, tasks_total=3, archived=0, stale=0)
+        stats = dict(specs=2, requirements=5, active=1, tasks_done=1, tasks_total=3, archived=10, stale=0)
+        old = {"lane": "archived", "status": "archived", "archived": "2026-01-01", "spec_topics": []}
+        archived = [{**old, "name": f"old-{i}", "slug": f"old-{i}"} for i in range(10)]
         snap = {
             "repo": {"name": "demo"},
             "stats": {**stats, "avg_lifecycle_days": None},
-            "changes": [CHANGE],
+            "changes": [{**CHANGE, "spec_topics": ["auth", "billing"]}, *archived],
             "specs": [
                 {"topic": "auth", "requirement_count": 3, "in_flight": ["add-login"]},
                 {"topic": "ui", "requirement_count": 2, "in_flight": []},
@@ -61,7 +63,11 @@ class ExportMarkdownTest(unittest.TestCase):
         self.assertIn("| Active tasks | 33% (1 of 3 done) |", out)
         self.assertIn("## In progress (1)\n\n- add-login (updated 2026-10-01, tasks 1/3)", out)
         self.assertIn("## Proposed (0)\n\nNone", out)
+        self.assertIn("## Recently archived (10)", out)
+        self.assertIn("- old-7 (archived 2026-01-01)\n- 2 more archived", out)
+        self.assertNotIn("old-8", out)
         self.assertIn("| auth | 3 | add-login |", out)
+        self.assertIn("| billing (new) |  | add-login |", out)
         self.assertNotIn("| ui |", out)
 
     def test_agents_lists_skills_and_commands(self) -> None:

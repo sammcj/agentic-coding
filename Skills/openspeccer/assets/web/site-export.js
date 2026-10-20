@@ -1,7 +1,6 @@
 // Whole-site export: every page rendered off-screen into one static HTML file, with app
 // links rewritten to anchors inside the file.
-import { render } from "preact";
-import { cleanForExport, documentHtml, download, escapeHtml, fileSafe } from "./export.js";
+import { cleanForExport, documentHtml, download, escapeHtml, fileSafe, renderOffscreen } from "./export.js";
 import { apiUrl, changeHref, href, html, useState } from "./lib.js";
 import { Agents } from "./views/agents.js";
 import { ChangeDetail, ChangeList } from "./views/changes.js";
@@ -10,12 +9,6 @@ import { Dashboard } from "./views/dashboard.js";
 import { SchemaDetail, SchemaList } from "./views/schemas.js";
 import { SpecDetail, SpecsPage } from "./views/specs.js";
 import { Timeline } from "./views/timeline.js";
-
-// Still fetching, or a diagram mermaid has neither drawn nor rejected yet.
-const PENDING = ".loading, pre.mermaid-src:not(:has(+ .mermaid-error))";
-const TIMEOUT_MS = 30000;
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // An app route as an anchor id: the hash without `#` or the `tab` param, which only picks a view of the same page.
 function anchor(hash) {
@@ -36,7 +29,7 @@ async function sitePages(snap) {
   return [
     { hash: href([]), view: html`<${Dashboard} snap=${snap} />` },
     { hash: href(["specs"]), view: html`<${SpecsPage} snap=${snap} topic="" query=${none} />` },
-    ...snap.specs.map((s) => ({ hash: href(["specs", s.topic]), view: html`<${SpecDetail} topic=${s.topic} snap=${snap} query=${none} />` })),
+    ...snap.specs.map((s) => ({ hash: href(["specs", s.topic]), view: html`<${SpecDetail} topic=${s.topic} snap=${snap} query=${none} expand />` })),
     { hash: href(["changes"]), view: html`<${ChangeList} snap=${snap} query=${none} />` },
     ...snap.changes.map((c) => ({ hash: changeHref(c), view: html`<${ChangeDetail} slug=${c.slug} query=${wt(c)} expand />` })),
     { hash: href(["timeline"]), view: html`<${Timeline} snap=${snap} query=${none} />` },
@@ -47,40 +40,23 @@ async function sitePages(snap) {
   ];
 }
 
-// Renders every page into an off-screen host (in the document, so charts can measure their
-// width), waits for the data to arrive, then returns the cleaned markup.
+// Every page as one section, with links to pages in the file kept as in-file anchors.
 async function renderSite(pages, onProgress) {
-  const host = document.createElement("div");
-  host.style.cssText = `position:absolute; left:-100000px; top:0; width:${document.querySelector(".main")?.clientWidth || 1200}px`;
-  document.body.append(host);
-  try {
-    render(html`<div>${pages.map((p) => html`<section class="site-page" id=${anchor(p.hash).full} key=${p.hash}>${p.view}</section>`)}</div>`, host);
-    const until = Date.now() + TIMEOUT_MS;
-    for (;;) {
-      await sleep(100);
-      const waiting = [...host.firstElementChild.children].filter((s) => s.querySelector(PENDING)).length;
-      onProgress(pages.length - waiting, pages.length);
-      if (!waiting || Date.now() > until) break;
-    }
-    // Effects such as BDD keyword highlighting run after the next frame.
-    await new Promise((r) => requestAnimationFrame(() => setTimeout(r)));
-    const ids = new Set(pages.map((p) => anchor(p.hash).full));
-    const copy = host.firstElementChild.cloneNode(true);
-    cleanForExport(copy, (h) => {
-      const a = anchor(h);
-      if (ids.has(a.full)) return `#${a.full}`;
-      return ids.has(a.path) ? `#${a.path}` : null;
-    });
-    return copy.innerHTML;
-  } finally {
-    render(null, host);
-    host.remove();
-  }
+  const sections = pages.map((p) => html`<section class="site-page" id=${anchor(p.hash).full} key=${p.hash}>${p.view}</section>`);
+  const { root, waiting } = await renderOffscreen(sections, { onProgress });
+  const ids = new Set(pages.map((p) => anchor(p.hash).full));
+  cleanForExport(root, (h) => {
+    const a = anchor(h);
+    if (ids.has(a.full)) return `#${a.full}`;
+    return ids.has(a.path) ? `#${a.path}` : null;
+  });
+  return { body: root.innerHTML, waiting };
 }
 
+// Resolves to the number of pages still loading when the wait timed out.
 async function exportSite(snap, nav, onProgress) {
   const pages = await sitePages(snap);
-  const body = await renderSite(pages, onProgress);
+  const { body, waiting } = await renderSite(pages, onProgress);
   const links = nav
     .map((n) => `<a class="nav-item" href="#${anchor(href(n.id ? [n.id] : [])).full}"><span class="nav-icon" aria-hidden="true">${n.icon}</span>${escapeHtml(n.label)}</a>`)
     .join("");
@@ -95,6 +71,7 @@ async function exportSite(snap, nav, onProgress) {
     ".static-site { grid-template-rows: 1fr; }\n.site-page + .site-page { border-top: 2px solid var(--border-strong); }",
   );
   download(`${fileSafe(snap.repo.name)}-openspeccer.html`, doc, "text/html");
+  return waiting;
 }
 
 export function SiteExport({ snap, nav }) {
@@ -103,18 +80,20 @@ export function SiteExport({ snap, nav }) {
   const run = async () => {
     setBusy(true);
     setNote("Exporting...");
+    let msg = "";
     try {
-      await exportSite(snap, nav, (done, total) => setNote(`Exporting ${done}/${total}`));
-      setNote("");
+      const waiting = await exportSite(snap, nav, (done, total) => setNote(`Exporting ${done}/${total}`));
+      if (waiting) msg = `Exported, ${waiting} page${waiting === 1 ? "" : "s"} incomplete`;
     } catch (err) {
       console.error(err);
-      setNote("Export failed");
-      setTimeout(() => setNote(""), 2500);
+      msg = "Export failed";
     } finally {
       setBusy(false);
+      setNote(msg);
+      if (msg) setTimeout(() => setNote(""), 4000);
     }
   };
-  return html`<button type="button" class="btn site-export" disabled=${busy || !snap} title="Save every page as one static HTML file" onClick=${run}>
+  return html`<button type="button" class="btn site-export" disabled=${busy} title="Save every page as one static HTML file" onClick=${run}>
     ${note || "Export all (HTML)"}
   </button>`;
 }
