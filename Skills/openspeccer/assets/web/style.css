@@ -148,6 +148,8 @@ a.card:hover { border-color: var(--border-strong); text-decoration: none; }
 .flight-list li { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .flight-list li:last-child { border-bottom: none; }
 .flight-changes { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.panel-title.spaced { margin-top: 22px; color: var(--text); }
+.state .flight-list { color: var(--text); }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .card-grid p { margin: 6px 0; }
 
@@ -162,7 +164,7 @@ a.card:hover { border-color: var(--border-strong); text-decoration: none; }
 
 /* -- specs: tree + detail -- */
 .split { display: grid; grid-template-columns: 290px 1fr; min-height: 100%; }
-.tree-pane { border-right: 1px solid var(--border); padding: 16px 12px; background: var(--bg); position: sticky; top: 0; align-self: start; max-height: calc(100vh - var(--statusbar)); overflow-y: auto; }
+.tree-pane { border-right: 1px solid var(--border); padding: 16px 12px; background: var(--bg); position: sticky; top: 0; align-self: start; height: calc(100vh - var(--statusbar)); overflow-y: auto; }
 .tree-pane .filter { width: 100%; min-width: 0; }
 .tree-summary { margin: 6px 2px 8px; }
 .split-main { min-width: 0; }

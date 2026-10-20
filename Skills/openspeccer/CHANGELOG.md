@@ -9,4 +9,6 @@
 - Change detail export offers "This tab" and "All tabs"; default Markdown is now the current tab.
 - Sidebar "Export all (HTML)" saves every page as one static HTML file with in-file links.
 - Static HTML exports keep click-to-copy command text instead of dropping it.
+- Specs page with no main specs lists active changes proposing specs, linking to their Specs tab.
+- Spec tree pane border now runs full height when the tree is short.
 - Added CHANGELOG.md and CLAUDE.md to track future changes.

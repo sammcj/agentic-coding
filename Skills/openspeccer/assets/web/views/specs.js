@@ -188,8 +188,27 @@ export function SpecsPage({ snap, topic, query }) {
             <${PageHeader} title="Specs" sub=${`${snap.specs.length} specs`}>
               <${ExportMenu} name=${`${snap.repo.name}-specs`} title=${`${snap.repo.name} specs`} markdown=${() => specIndexMarkdown(snap)} />
             <//>
-            <${Empty}>${snap.specs.length ? "Pick a spec from the tree." : "No specs in openspec/specs yet."}<//>
+            ${snap.specs.length ? html`<${Empty}>Pick a spec from the tree.<//>` : html`<${NoSpecsYet} snap=${snap} />`}
           </div>`}
     </div>
   </div>`;
+}
+
+// Until a change is archived or synced its specs exist only as deltas, so point at those.
+function NoSpecsYet({ snap }) {
+  const proposing = snap.changes.filter((c) => c.status === "active" && c.spec_topics.length);
+  return html`<${Empty}>
+    No specs in <span class="mono">openspec/specs</span> yet. A change's specs land there when it is archived, or synced with <span class="mono">/opsx:sync</span>.
+    ${proposing.length
+      ? html`<h2 class="panel-title spaced">Proposed in active changes</h2>
+          <ul class="flight-list">
+            ${proposing.map(
+              (c) => html`<li>
+                <a href=${changeHref(c, "specs")}>${c.name}</a>
+                <span class="flight-changes">${c.spec_topics.map((t) => html`<span class="badge mono">${t}</span>`)}</span>
+              </li>`,
+            )}
+          </ul>`
+      : html` <a href=${href(["changes"])}>See changes in progress</a>.`}
+  <//>`;
 }
