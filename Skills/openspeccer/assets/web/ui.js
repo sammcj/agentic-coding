@@ -37,7 +37,8 @@ export function SourceBadge({ source }) {
 }
 
 export function Loading({ what = "Loading" }) {
-  return html`<div class="state muted">${what}...</div>`;
+  // The site export waits for `.loading` to clear before taking its copy.
+  return html`<div class="state muted loading">${what}...</div>`;
 }
 
 export function ErrorBox({ error }) {

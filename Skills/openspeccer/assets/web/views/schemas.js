@@ -1,13 +1,59 @@
 // Workflow schemas: catalogue and the artifact dependency graph of one schema.
 import { apiUrl, href, html, useApi, useState } from "../lib.js";
+import { ExportMenu, mdTable } from "../export.js";
 import { Badge, Empty, ErrorBox, Loading, PageHeader } from "../ui.js";
 
-export function SchemaList() {
+export function schemaListMarkdown(repoName, data) {
+  const out = [
+    `# ${repoName} schemas`,
+    "",
+    mdTable(
+      ["Schema", "Source", "Default", "Artifacts", "Active changes", "Description"],
+      data.schemas.map((s) => [s.name, s.source, s.is_default ? "yes" : "", s.artifact_count, s.active_changes, s.description]),
+    ),
+  ];
+  const unresolved = Object.entries(data.unresolved);
+  if (unresolved.length) out.push("", "Unresolved schemas named by active changes:", "", ...unresolved.map(([n, c]) => `- \`${n}\` (${c})`));
+  return `${out.join("\n")}\n`;
+}
+
+// Step table plus the dependency graph as a Mermaid flowchart, which most Markdown viewers draw.
+export function schemaMarkdown(data) {
+  const id = new Map(data.nodes.map((n, i) => [n.key, `n${i}`]));
+  const label = (s) => String(s).replace(/"/g, "#quot;");
+  const graph = [
+    "flowchart LR",
+    ...data.nodes.map((n) => `  ${id.get(n.key)}["${label(n.label)}"]`),
+    ...data.edges.map((e) => `  ${id.get(e.source)} ${e.derived ? "-. derived .->" : "-->"} ${id.get(e.target)}`),
+  ];
+  return [
+    `# ${data.name}`,
+    "",
+    `${data.source} schema · ${data.nodes.length - 1} artifacts · tracks ${data.tracks}`,
+    ...(data.description ? ["", data.description] : []),
+    "",
+    "```mermaid",
+    ...graph,
+    "```",
+    "",
+    mdTable(
+      ["Step", "Kind", "Generates", "Requires", "Description"],
+      data.nodes.map((n) => [n.label, n.kind, n.generates || "", n.requires.join(", "), n.description || ""]),
+    ),
+    "",
+    `Source: \`${data.path}\``,
+    "",
+  ].join("\n");
+}
+
+export function SchemaList({ snap }) {
   const { data, error } = useApi(apiUrl("schemas"));
   if (error) return html`<${ErrorBox} error=${error} />`;
   if (!data) return html`<${Loading} />`;
   return html`<div class="page">
-    <${PageHeader} title="Schemas" sub="Workflow schemas resolvable from this repo" />
+    <${PageHeader} title="Schemas" sub="Workflow schemas resolvable from this repo">
+      <${ExportMenu} name=${`${snap.repo.name}-schemas`} title=${`${snap.repo.name} schemas`} markdown=${() => schemaListMarkdown(snap.repo.name, data)} />
+    <//>
     ${data.degraded && html`<div class="notice">${data.degraded}</div>`}
     ${data.schemas.length === 0 && html`<${Empty}>No schemas found.<//>`}
     <div class="card-grid">
@@ -99,7 +145,9 @@ export function SchemaDetail({ name }) {
   if (error) return html`<${ErrorBox} error=${error} />`;
   if (!data) return html`<${Loading} />`;
   return html`<div class="detail">
-    <${PageHeader} title=${data.name} sub=${`${data.source} schema · ${data.nodes.length - 1} artifacts · tracks ${data.tracks}`} back="#/schemas" />
+    <${PageHeader} title=${data.name} sub=${`${data.source} schema · ${data.nodes.length - 1} artifacts · tracks ${data.tracks}`} back="#/schemas">
+      <${ExportMenu} name=${`schema-${data.name}`} title=${data.name} markdown=${() => schemaMarkdown(data)} />
+    <//>
     ${data.description && html`<p>${data.description}</p>`}
     <div class="dag-wrap">
       <div class="dag-scroll"><${Graph} schema=${data} selected=${selected} onSelect=${setSelected} /></div>

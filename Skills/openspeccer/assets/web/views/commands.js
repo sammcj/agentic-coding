@@ -1,5 +1,5 @@
 // Reference for the installed OpenSpec CLI, read from its own --help output.
-import { copyText } from "../export.js";
+import { ExportMenu, copyText } from "../export.js";
 import { html, useApi, useState } from "../lib.js";
 import { Empty, ErrorBox, Loading, PageHeader } from "../ui.js";
 
@@ -41,6 +41,34 @@ function Command({ cmd, children }) {
 const matches = (cmd, f) =>
   !f || `${cmd.path.join(" ")} ${cmd.description} ${cmd.options.map((o) => `${o.term} ${o.desc}`).join(" ")}`.toLowerCase().includes(f);
 
+// Commands nested under their parents, keeping a parent whose subcommand matches the filter.
+function commandTree(commands, f) {
+  const kids = (c) => commands.filter((k) => k.path.length === c.path.length + 1 && c.path.every((p, i) => k.path[i] === p));
+  const node = (c) => {
+    const sub = kids(c).map(node).filter(Boolean);
+    return matches(c, f) || sub.length ? { cmd: c, sub } : null;
+  };
+  return commands.filter((c) => c.path.length === 1).map(node).filter(Boolean);
+}
+
+const termList = (items) => items.map((i) => `- \`${i.term}\` ${i.desc}`);
+
+export function commandsMarkdown(data, f = "") {
+  const out = [`# OpenSpec CLI ${data.version || ""}`.trim()];
+  if (data.global_options.length && !f) out.push("", "## Global options", "", ...termList(data.global_options));
+  const walk = ({ cmd, sub }) => {
+    out.push("", `${"#".repeat(Math.min(cmd.path.length + 1, 6))} \`openspec ${cmd.path.join(" ")}\``, "");
+    if (cmd.usage) out.push(`Usage: \`${cmd.usage}\``, "");
+    if (cmd.aliases.length) out.push(`Alias: ${cmd.aliases.map((a) => `\`${a}\``).join(", ")}`, "");
+    out.push(cmd.description);
+    if (cmd.arguments.length) out.push("", "Arguments:", "", ...termList(cmd.arguments));
+    if (cmd.options.length) out.push("", "Options:", "", ...termList(cmd.options));
+    sub.forEach(walk);
+  };
+  commandTree(data.commands, f).forEach(walk);
+  return `${out.join("\n")}\n`;
+}
+
 export function Commands() {
   const { data, error } = useApi("/api/commands");
   const [filter, setFilter] = useState("");
@@ -54,16 +82,13 @@ export function Commands() {
     </div>`;
   }
   const f = filter.trim().toLowerCase();
-  const top = data.commands.filter((c) => c.path.length === 1);
-  const kids = (c) => data.commands.filter((k) => k.path.length === c.path.length + 1 && c.path.every((p, i) => k.path[i] === p));
-  const render = (c) => {
-    const sub = kids(c).map(render).filter(Boolean);
-    if (!matches(c, f) && !sub.length) return null;
-    return html`<${Command} key=${c.path.join(" ")} cmd=${c}>${sub.length > 0 && html`<div class="cmd-sub">${sub}</div>`}<//>`;
-  };
-  const shown = top.map(render).filter(Boolean);
+  const render = ({ cmd, sub }) =>
+    html`<${Command} key=${cmd.path.join(" ")} cmd=${cmd}>${sub.length > 0 && html`<div class="cmd-sub">${sub.map(render)}</div>`}<//>`;
+  const shown = commandTree(data.commands, f).map(render);
   return html`<div class="page">
-    <${PageHeader} title="Commands" sub=${`OpenSpec CLI ${data.version || ""} · ${data.commands.length} commands · click a command to copy it`} />
+    <${PageHeader} title="Commands" sub=${`OpenSpec CLI ${data.version || ""} · ${data.commands.length} commands · click a command to copy it`}>
+      <${ExportMenu} name="openspec-commands" title="OpenSpec CLI commands" markdown=${() => commandsMarkdown(data, f)} />
+    <//>
     <div class="toolbar">
       <input class="filter" type="search" placeholder="Filter commands and options" aria-label="Filter commands" value=${filter} onInput=${(e) => setFilter(e.currentTarget.value)} />
       ${links}

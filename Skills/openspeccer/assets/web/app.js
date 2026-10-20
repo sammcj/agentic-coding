@@ -1,5 +1,6 @@
 import { render } from "preact";
 import { apiUrl, connectLive, href, html, pref, setPref, useApi, useLive, useRoute, useState } from "./lib.js";
+import { SiteExport } from "./site-export.js";
 import { ErrorBox, Loading } from "./ui.js";
 import { Dashboard } from "./views/dashboard.js";
 import { SpecsPage } from "./views/specs.js";
@@ -94,6 +95,7 @@ function App() {
           </a>`,
         )}
       </nav>
+      ${snap && html`<${SiteExport} snap=${snap} nav=${NAV} />`}
     </aside>
     <main class="main">
       ${error && !snap ? html`<${ErrorBox} error=${error} />` : !snap ? html`<${Loading} />` : html`<${Page} route=${route} snap=${snap} />`}

@@ -17,7 +17,7 @@ export async function copyText(text) {
   }
 }
 
-function download(filename, text, type) {
+export function download(filename, text, type) {
   const url = URL.createObjectURL(new Blob([text], { type }));
   const a = Object.assign(document.createElement("a"), { href: url, download: filename });
   a.click();
@@ -32,25 +32,51 @@ export function mdTable(head, rows) {
   return [`| ${head.map(cell).join(" | ")} |`, `|${head.map(() => " --- |").join("")}`, ...rows.map((r) => `| ${r.map(cell).join(" | ")} |`)].join("\n");
 }
 
-const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+export const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
-// The page as rendered, with the app stylesheet inlined so the file stands alone.
-async function staticHtml(title) {
-  const css = await fetch("/style.css").then((r) => r.text());
-  const main = document.querySelector(".main").cloneNode(true);
-  for (const el of main.querySelectorAll(".export-menu, input, select, .toolbar .chips, button")) el.remove();
-  for (const a of main.querySelectorAll('a[href^="#"]')) a.removeAttribute("href"); // app routes go nowhere offline
+// Strips the controls from rendered app markup. App routes go nowhere offline, so each
+// `#` link is dropped unless `link` maps it to an anchor inside the exported file.
+export function cleanForExport(root, link = () => null) {
+  // Click-to-copy commands are buttons, but their text is the content.
+  for (const b of root.querySelectorAll("button.copyable")) b.replaceWith(Object.assign(document.createElement("code"), { textContent: b.textContent.trim() }));
+  for (const el of root.querySelectorAll(".export-menu, .site-export, input, select, .toolbar .chips, button")) el.remove();
+  for (const a of root.querySelectorAll('a[href^="#"]')) {
+    const to = link(a.getAttribute("href"));
+    if (to) a.setAttribute("href", to);
+    else a.removeAttribute("href");
+  }
+}
+
+// A standalone document with the app stylesheet inlined.
+export async function documentHtml(title, body, css = "") {
+  const appCss = await fetch("/style.css").then((r) => r.text());
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(title)}</title>
-<style>${css}
+<style>${appCss}
 body { overflow: auto; height: auto; }
-.main.static-export { height: auto; overflow: visible; }</style>
-</head><body><main class="main static-export">${main.innerHTML}</main></body></html>
+.main.static-export { height: auto; overflow: visible; }
+${css}</style>
+</head><body>${body}</body></html>
 `;
 }
 
-export function ExportMenu({ name, title, markdown }) {
+// The page as rendered. `swap` may rewrite the cloned page first, e.g. to replace one tab with every tab.
+async function staticHtml(title, swap) {
+  const main = document.querySelector(".main").cloneNode(true);
+  if (swap) await swap(main);
+  cleanForExport(main);
+  return documentHtml(title, `<main class="main static-export">${main.innerHTML}</main>`);
+}
+
+const ACTIONS = [
+  { id: "md", label: "Save as Markdown" },
+  { id: "copy", label: "Copy as Markdown" },
+  { id: "html", label: "Save as static HTML" },
+];
+
+// `all`, when given, adds the same actions for every tab: { name, markdown, swap }.
+export function ExportMenu({ name, title, markdown, all }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
   const ref = useRef(null);
@@ -69,19 +95,20 @@ export function ExportMenu({ name, title, markdown }) {
     setNote(msg);
     setTimeout(() => setNote(""), 1800);
   };
-  const run = async (action) => {
+  const run = async (action, target) => {
     setOpen(false);
-    const base = fileSafe(name);
-    if (action === "md") download(`${base}.md`, markdown(), "text/markdown");
-    if (action === "copy") flash((await copyText(markdown())) ? "Copied" : "Copy failed");
-    if (action === "html") download(`${base}.html`, await staticHtml(title || name), "text/html");
+    const base = fileSafe(target.name);
+    if (action === "md") download(`${base}.md`, target.markdown(), "text/markdown");
+    if (action === "copy") flash((await copyText(target.markdown())) ? "Copied" : "Copy failed");
+    if (action === "html") download(`${base}.html`, await staticHtml(title || name, target.swap), "text/html");
   };
+  const items = (target) => ACTIONS.map((a) => html`<button type="button" role="menuitem" onClick=${() => run(a.id, target)}>${a.label}</button>`);
   return html`<div class="export-menu" ref=${ref}>
     <button type="button" class="btn" aria-haspopup="menu" aria-expanded=${open} onClick=${() => setOpen(!open)}>${note || "Export"} ▾</button>
     ${open && html`<div class="menu" role="menu">
-      <button type="button" role="menuitem" onClick=${() => run("md")}>Save as Markdown</button>
-      <button type="button" role="menuitem" onClick=${() => run("copy")}>Copy as Markdown</button>
-      <button type="button" role="menuitem" onClick=${() => run("html")}>Save as static HTML</button>
+      ${all && html`<div class="menu-group" role="presentation">This tab</div>`}
+      ${items({ name, markdown })}
+      ${all && html`<div class="menu-group" role="presentation">All tabs</div>${items(all)}`}
     </div>`}
   </div>`;
 }

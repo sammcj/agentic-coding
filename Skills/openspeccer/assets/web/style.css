@@ -345,6 +345,11 @@ mark { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 .menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; display: flex; flex-direction: column; min-width: 200px; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 5px; box-shadow: 0 6px 18px rgb(0 0 0 / 0.12); padding: 4px 0; }
 .menu button { border: none; background: none; text-align: left; padding: 7px 14px; cursor: pointer; font: inherit; font-size: 12.5px; color: var(--text); }
 .menu button:hover, .menu button:focus-visible { background: var(--soft); }
+.menu-group { padding: 6px 14px 2px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+.menu-group:not(:first-child) { margin-top: 4px; border-top: 1px solid var(--border); padding-top: 8px; }
+.site-export { margin-top: auto; width: 100%; }
+.site-export:disabled { cursor: progress; color: var(--muted); }
+.all-tabs > section + section { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border-strong); }
 .page-header .export-menu { align-self: flex-start; }
 
 /* -- burndown -- */

@@ -5,6 +5,8 @@ context: |
 
   A change's artifacts (proposal, specs, design, tasks) say what to build, why, and the approach. The implementer decides how to write the code.
 
+  Where a design goes into implementation detail, treat that detail as a starting point. If implementation finds a simpler or better approach, use it. Record the deviation in the design when it changes user-visible behaviour, a contract, or the security posture. Otherwise just build it.
+
   Contracts are the exception - anything that would force a change outside the code being written and its own tests if it changed. Specify contracts exactly.
 
 rules:
@@ -23,5 +25,9 @@ rules:
 operations:
   apply:
     guidance:
-      - "If the implementation changes a requirement or a contract, update the specs or design to match. If it only changes implementation details, leave the artifacts as they are."
+      - "If the implementation changes a requirement, a contract or the security posture, update the specs or design to match and note it in the summary. If it only changes implementation details, leave the artifacts as they are."
       - "If there is a CHANGELOG.md, update it after completing new features or fixes."
+      - "After the first end-to-end slice of a change works, and again when all tasks are done, run a step-back review for over-engineering (single-implementation abstractions no contract needs, unused options, speculative extension points, duplicated config or state). Remove what it finds before continuing."
+  archive:
+    guidance:
+      - "Before archiving, confirm the step-back review ran on the finished change and its findings were resolved or recorded with a reason."

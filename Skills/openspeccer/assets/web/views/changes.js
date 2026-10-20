@@ -1,3 +1,4 @@
+import { render } from "preact";
 import { apiUrl, changeHref, href, html, pref, relative, setPref, setQuery, useApi, useState } from "../lib.js";
 import { Markdown, Toc, headings } from "../md.js";
 import { ExportMenu, mdTable } from "../export.js";
@@ -165,7 +166,8 @@ function ArtifactView({ art }) {
   </div>`;
 }
 
-export function ChangeDetail({ slug, query }) {
+// `expand` stacks every tab instead of showing one, for the whole-site export.
+export function ChangeDetail({ slug, query, expand = false }) {
   const wt = query.get("wt") || "";
   const { data: c, error } = useApi(apiUrl("change", { slug, wt }));
   const [sortMode, setSortMode] = useState(pref("artifact-sort", "modified"));
@@ -181,6 +183,8 @@ export function ChangeDetail({ slug, query }) {
     setSortMode(mode);
     setPref("artifact-sort", mode);
   };
+  // Every tab in the chosen sort, ignoring the filter, so "all tabs" means all of them.
+  const allArts = () => sortArtifacts(c.artifacts, sortMode, order);
   const expected = order ? order.length : null;
   const present = new Set(c.artifacts.map((a) => a.schema_artifact).filter(Boolean)).size;
   const sub = [
@@ -194,11 +198,22 @@ export function ChangeDetail({ slug, query }) {
       <${LaneBadge} lane=${c.lane} />
       <${SourceBadge} source=${c.source} />
       ${c.tasks && html`<${Progress} done=${c.tasks.done} total=${c.tasks.total} />`}
-      <${ExportMenu} name=${c.slug} title=${c.name} markdown=${() => changeMarkdown(c, sub, sortArtifacts(c.artifacts, sortMode, order))} />
+      <${ExportMenu}
+        name=${c.artifacts.length > 1 ? `${c.slug}-${current.id}` : c.slug}
+        title=${c.name}
+        markdown=${() => changeMarkdown(c, sub, current ? [current] : [])}
+        all=${c.artifacts.length > 1 && {
+          name: c.slug,
+          markdown: () => changeMarkdown(c, sub, allArts()),
+          swap: (main) => swapInAllTabs(main, allArts()),
+        }}
+      />
     <//>
     ${c.artifacts.length === 0
       ? html`<${Empty}>This change has no artifacts yet.<//>`
-      : html`<div class="tabbar">
+      : expand
+      ? html`<${AllTabs} arts=${allArts()} />`
+      : html`<div class="tab-region"><div class="tabbar">
           <div class="tabs" role="tablist">
             ${arts.map(
               (a) => html`<button type="button" role="tab" aria-selected=${a === current}
@@ -215,13 +230,36 @@ export function ChangeDetail({ slug, query }) {
         </div>
         ${current.kind !== "specs" && html`<div class="artifact-path muted small mono">${current.path}</div>`}
         <${ArtifactView} key=${current.id} art=${current} />
-        <${PrevNext} arts=${arts} current=${current} />`}
+        <${PrevNext} arts=${arts} current=${current} /></div>`}
     <${MetaCard} meta=${c.meta} />
   </div>`;
 }
 
-// Every artifact verbatim, in the tab order, each under its file path.
-function changeMarkdown(c, sub, arts) {
+// Every artifact stacked under its path, for the static HTML exports.
+function AllTabs({ arts }) {
+  return html`<div class="all-tabs">
+    ${arts.map(
+      (a) => html`<section key=${a.id}>
+        <h2 class="artifact-path mono">${a.kind === "specs" ? a.title : a.path}</h2>
+        <${ArtifactView} art=${a} />
+      </section>`,
+    )}
+  </div>`;
+}
+
+// Renders every tab off-screen and puts it in place of the one tab showing in the cloned page.
+async function swapInAllTabs(main, arts) {
+  const region = main.querySelector(".tab-region");
+  if (!region) return;
+  const box = document.createElement("div");
+  render(html`<${AllTabs} arts=${arts} />`, box);
+  // Effects such as BDD keyword highlighting run after the next frame.
+  await new Promise((r) => requestAnimationFrame(() => setTimeout(r)));
+  region.replaceWith(box.firstElementChild);
+}
+
+// Each artifact verbatim, in the given order, each under its file path.
+export function changeMarkdown(c, sub, arts) {
   const parts = [`# ${c.name}`, "", sub];
   const file = (path, body) => parts.push("", "---", "", `**\`${path}\`**`, "", body.trim());
   for (const a of arts) {

@@ -140,7 +140,7 @@ function Diff({ topic, spec, query }) {
   </div>`;
 }
 
-function SpecDetail({ topic, snap, query }) {
+export function SpecDetail({ topic, snap, query }) {
   const { data: spec, error } = useApi(apiUrl("spec", { topic }));
   const tab = query.get("tab") || "spec";
   if (error) return html`<${ErrorBox} error=${error} />`;

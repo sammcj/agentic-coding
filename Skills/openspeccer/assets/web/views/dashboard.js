@@ -1,5 +1,6 @@
 import { changeHref, href, html, relative } from "../lib.js";
-import { Badge, LANES, Progress, SourceBadge } from "../ui.js";
+import { ExportMenu, mdTable } from "../export.js";
+import { Badge, LANES, PageHeader, Progress, SourceBadge } from "../ui.js";
 
 const RECENT_ARCHIVED = 8;
 
@@ -90,10 +91,50 @@ function SpecsInFlight({ snap }) {
   </section>`;
 }
 
+const tasksPct = (s) => (s.tasks_total ? Math.round((100 * s.tasks_done) / s.tasks_total) : null);
+
+export function dashboardMarkdown(snap) {
+  const s = snap.stats;
+  const pct = tasksPct(s);
+  const out = [
+    `# ${snap.repo.name} dashboard`,
+    "",
+    mdTable(
+      ["Metric", "Value"],
+      [
+        ["Specs", `${s.specs} (${s.requirements} requirements)`],
+        ["Active changes", s.active],
+        ["Active tasks", pct === null ? "no tasks yet" : `${pct}% (${s.tasks_done} of ${s.tasks_total} done)`],
+        ["Archived", s.archived],
+        ["Avg lifecycle", s.avg_lifecycle_days === null ? "-" : `${s.avg_lifecycle_days}d`],
+        ["Stale (active, untouched 30d+)", s.stale],
+      ],
+    ),
+  ];
+  for (const lane of LANES) {
+    const items = snap.changes.filter((c) => c.lane === lane.id);
+    out.push("", `## ${lane.label} (${items.length})`, "");
+    if (!items.length) out.push("None");
+    for (const c of items) {
+      const when = c.status === "archived" ? `archived ${c.archived}` : `updated ${(c.updated || "").slice(0, 10)}`;
+      const tasks = c.status === "active" && c.tasks ? `, tasks ${c.tasks.done}/${c.tasks.total}` : "";
+      out.push(`- ${c.name} (${when}${tasks})`);
+    }
+  }
+  const flight = snap.specs.filter((sp) => sp.in_flight.length);
+  if (flight.length) {
+    out.push("", "## Specs in flight", "", mdTable(["Spec", "Requirements", "Changes"], flight.map((sp) => [sp.topic, sp.requirement_count, sp.in_flight.join(", ")])));
+  }
+  return `${out.join("\n")}\n`;
+}
+
 export function Dashboard({ snap }) {
   const s = snap.stats;
-  const pct = s.tasks_total ? Math.round((100 * s.tasks_done) / s.tasks_total) : null;
+  const pct = tasksPct(s);
   return html`<div class="page">
+    <${PageHeader} title="Dashboard" sub=${snap.repo.name}>
+      <${ExportMenu} name=${`${snap.repo.name}-dashboard`} title=${`${snap.repo.name} dashboard`} markdown=${() => dashboardMarkdown(snap)} />
+    <//>
     <section class="stats">
       <${Stat} label="Specs" value=${s.specs} sub=${`${s.requirements} requirements`} link="#/specs" />
       <${Stat} label="Active changes" value=${s.active} link=${href(["changes"], { status: "active" })} />
