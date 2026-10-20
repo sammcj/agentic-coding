@@ -169,6 +169,7 @@ Be goal oriented when undertaking significant development tasks: **Define succes
 - Stopping a service or process you started: capture its PID at launch (`SRV=$!`) and `kill "$SRV"`. Never `killall`/`pkill`/`kill $(pgrep -f ...)` by process name - name matching hits unrelated processes (browsers, editors, other agents)
 - For long-running services, prefer Bash `run_in_background` so the harness owns the process lifecycle and no `kill` is needed
 - You should use `rg` (ripgrep) rather than `grep` and `fd` rather than `find` on the command line
+- You must use `gh` outside the sandbox so it is authenticated
 
 ### Tool Priorities
 Proactively use tools and skills:
