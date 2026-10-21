@@ -160,11 +160,11 @@ a.guide-box:hover, a.guide-step:hover { border-color: var(--text); text-decorati
 .guide-path { font-weight: 700; margin-bottom: 4px; }
 .guide-arrow { text-align: center; color: var(--lane-archived); font-size: 12px; line-height: 1.3; }
 .guide-flow { list-style: none; padding: 0; margin: 0 0 8px; border: 1px solid var(--border); border-radius: 5px; counter-reset: flow; }
-.guide-flow-step { display: grid; grid-template-columns: 150px 1fr; gap: 14px; padding: 10px 14px; border-top: 1px solid var(--border); counter-increment: flow; }
+.guide-flow-step { display: grid; grid-template-columns: 200px 1fr; gap: 14px; padding: 10px 14px; border-top: 1px solid var(--border); counter-increment: flow; }
 .guide-flow-step:first-child { border-top: none; }
-.guide-flow-verb { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-.guide-flow-verb::before { content: counter(flow) ". "; color: var(--muted); }
-.guide-flow-verb .muted { display: block; }
+ol.guide-flow .guide-cmds::before { content: counter(flow) "."; color: var(--muted); }
+.guide-more { margin: 12px 0 0; }
+.guide-more > summary { cursor: pointer; font-weight: 600; margin-bottom: 6px; }
 .guide-cmds { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
 .guide-steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(5, minmax(140px, 1fr)); gap: 18px; overflow-x: auto; }
 .guide-steps li { position: relative; }
