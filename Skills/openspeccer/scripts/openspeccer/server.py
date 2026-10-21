@@ -9,6 +9,7 @@ from __future__ import annotations
 import base64
 import gzip
 import hashlib
+import ipaddress
 import json
 import mimetypes
 import os
@@ -16,6 +17,7 @@ import re
 import sys
 import threading
 import time
+from collections.abc import Iterable
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -28,7 +30,6 @@ from .repo import NotFound, Repo
 
 ASSETS = Path(__file__).resolve().parents[2] / "assets" / "web"
 _HEARTBEAT = 15.0
-_WILDCARD_HOSTS = ("0.0.0.0", "::", "")
 _WORKTREE_RECHECK = 5  # ticks between worktree list refreshes, which spawn git
 
 
@@ -112,7 +113,24 @@ def _page_csp(page: str) -> str:
     return f"default-src 'self'; script-src 'self'{hashes}; {styles}; img-src 'self' data:"
 
 
-def make_handler(repo: Repo, watcher: Watcher | None, default_jj: bool) -> type[BaseHTTPRequestHandler]:
+def host_allowed(header: str, bound: str, port: int, allowed: Iterable[str] = ()) -> bool:
+    """Whether a request's Host names this server. A page on another site can rebind its own
+    hostname to 127.0.0.1 and then read the API as same-origin, but its Host header still names
+    that site. An IP literal cannot be rebound, so any is fine, even on a wildcard bind."""
+    name, sep, given = header.rpartition(":")
+    if not sep or given != str(port):
+        return False
+    name = name.lower().removeprefix("[").removesuffix("]")
+    try:
+        ipaddress.ip_address(name)
+        return True
+    except ValueError:
+        return bool(name) and name in {"localhost", bound.lower(), *(a.lower() for a in allowed)}
+
+
+def make_handler(
+    repo: Repo, watcher: Watcher | None, default_jj: bool, allowed_hosts: Iterable[str] = ()
+) -> type[BaseHTTPRequestHandler]:
     commands = CommandCatalog(repo.root)
 
     class Handler(BaseHTTPRequestHandler):
@@ -142,14 +160,8 @@ def make_handler(repo: Repo, watcher: Watcher | None, default_jj: bool) -> type[
                 self._json({"error": str(e)}, HTTPStatus.INTERNAL_SERVER_ERROR)
 
         def _host_allowed(self) -> bool:
-            """Refuse a Host the server was not reached by. A page on another site can rebind its
-            own hostname to 127.0.0.1 and then read the API as same-origin; its Host header still
-            names that site."""
             bound, port = cast(tuple[str, int], self.server.server_address)[:2]
-            if bound in _WILDCARD_HOSTS:
-                return True  # listening on every interface is an explicit choice to accept any name
-            names = {bound, "localhost", "127.0.0.1", "[::1]"}
-            return self.headers.get("Host", "") in {f"{n}:{port}" for n in names}
+            return host_allowed(self.headers.get("Host", ""), bound, port, allowed_hosts)
 
         def _api(self, path: str, qs: dict[str, list[str]]) -> Any:
             scope = {"include_jj": _flag(qs, "jj", default_jj), "aggregate": _flag(qs, "aggregate", True)}
@@ -249,8 +261,10 @@ class Server(ThreadingHTTPServer):
     allow_reuse_address = sys.platform != "win32"
 
 
-def serve(repo: Repo, host: str, port: int, interval: float, include_jj: bool) -> tuple[Server, Watcher]:
+def serve(
+    repo: Repo, host: str, port: int, interval: float, include_jj: bool, allowed_hosts: Iterable[str] = ()
+) -> tuple[Server, Watcher]:
     watcher = Watcher(repo, interval, include_jj)
-    server = Server((host, port), make_handler(repo, watcher, include_jj))
+    server = Server((host, port), make_handler(repo, watcher, include_jj, tuple(allowed_hosts)))
     watcher.start()
     return server, watcher

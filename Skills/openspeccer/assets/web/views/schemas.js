@@ -20,11 +20,14 @@ export function schemaListMarkdown(repoName, data) {
 // Step table plus the dependency graph as a Mermaid flowchart, which most Markdown viewers draw.
 export function schemaMarkdown(data) {
   const id = new Map(data.nodes.map((n, i) => [n.key, `n${i}`]));
-  const label = (s) => String(s).replace(/"/g, "#quot;");
+  // Mermaid entities for quotes and backticks, so a label can neither end its string nor the code fence.
+  const label = (s) => String(s).replace(/"/g, "#quot;").replace(/`/g, "#96;").replace(/\s+/g, " ");
   const graph = [
     "flowchart LR",
     ...data.nodes.map((n) => `  ${id.get(n.key)}["${label(n.label)}"]`),
-    ...data.edges.map((e) => `  ${id.get(e.source)} ${e.derived ? "-. derived .->" : "-->"} ${id.get(e.target)}`),
+    ...data.edges
+      .filter((e) => id.has(e.source) && id.has(e.target))
+      .map((e) => `  ${id.get(e.source)} ${e.derived ? "-. derived .->" : "-->"} ${id.get(e.target)}`),
   ];
   return [
     `# ${data.name}`,

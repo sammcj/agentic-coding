@@ -8,6 +8,10 @@
 - Change Specs tab diffs each MODIFIED requirement against the main spec, flagging names archive won't match.
 - Spec Diff tab no longer drops changed lines starting with `--` or `++`.
 - Guide page fills the full panel width instead of a 1000px column.
+- Fixed XSS: text after a raw `<pre>`, `<code>`, `<kbd>` or `<script>` tag rendered unescaped.
+- Static HTML exports carry a CSP that blocks scripts and network loads.
+- Schema Markdown export no longer breaks Mermaid on newlines, backticks or dangling edges.
+- 0.0.0.0 binds refuse unknown Host names; `--allow-host NAME` adds one. IP literals always pass.
 
 ## 2026-10-20
 

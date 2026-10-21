@@ -77,11 +77,13 @@ export function cleanForExport(root, link = () => null) {
   }
 }
 
-// A standalone document with the app stylesheet inlined.
+// A standalone document with the app stylesheet inlined. It needs no script or network, so the
+// CSP stops any repository markup that slipped through rendering from running when opened.
 export async function documentHtml(title, body, css = "") {
   const appCss = await fetch("/style.css").then((r) => r.text());
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">
 <title>${escapeHtml(title)}</title>
 <style>${appCss}
 body { overflow: auto; height: auto; }

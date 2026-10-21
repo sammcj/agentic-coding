@@ -25,6 +25,11 @@ const marked = new Marked({
     html({ text }) {
       return escapeHtml(text);
     },
+    // Inline text after a raw <pre>, <code>, <kbd> or <script> tag comes flagged as already
+    // escaped, and marked would emit it raw. Everything else falls through to marked.
+    text(t) {
+      return t.escaped && !t.tokens ? escapeHtml(t.text) : false;
+    },
     heading({ tokens, depth, text }) {
       const base = slugify(text);
       const n = slugCounts.get(base) || 0;

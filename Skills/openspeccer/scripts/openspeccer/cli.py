@@ -78,6 +78,13 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="openspeccer", description="Read-only OpenSpec dashboard.")
     p.add_argument("repo", nargs="?", default=".", help="repository path (default: nearest with openspec/)")
     p.add_argument("--host", default="127.0.0.1")
+    p.add_argument(
+        "--allow-host",
+        action="append",
+        default=[],
+        metavar="NAME",
+        help="also accept requests addressed to this hostname, e.g. the machine's name on a 0.0.0.0 bind",
+    )
     p.add_argument("--port", type=int, default=None, help=f"port (default {DEFAULT_PORT}, next free if busy)")
     p.add_argument("--no-open", action="store_true", help="do not open a browser")
     p.add_argument(
@@ -118,7 +125,7 @@ def main(argv: list[str] | None = None) -> int:
                 webbrowser.open(url)
             return 0
         try:
-            server, watcher = serve(repo, args.host, port, args.interval, args.jj)
+            server, watcher = serve(repo, args.host, port, args.interval, args.jj, args.allow_host)
         except OSError as e:
             if e.errno == errno.EADDRINUSE and not args.port:
                 continue

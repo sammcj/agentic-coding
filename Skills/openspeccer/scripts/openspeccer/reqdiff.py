@@ -10,11 +10,13 @@ from __future__ import annotations
 import difflib
 import re
 
-_REQUIREMENT_RE = re.compile(r"^###\s*Requirement:\s*(.+)\s*$", re.IGNORECASE)
-_SECTION_RE = re.compile(r"^##\s+(.+)$")
+# OpenSpec writes these with adjacent overlapping quantifiers (`\s*(.+)\s*$`), which can
+# backtrack in polynomial time. These match the same lines; callers do the trimming instead.
+_REQUIREMENT_RE = re.compile(r"^###\s*Requirement:(.+)$", re.IGNORECASE)
+_SECTION_RE = re.compile(r"^##\s(.+)$")
 _TOP_LEVEL_RE = re.compile(r"^##\s+")
 _MAIN_SECTION_RE = re.compile(r"^##\s+Requirements\s*$", re.IGNORECASE)
-_RENAME_RE = re.compile(r"^\s*[-*+]?\s*(FROM|TO):\s*`?###\s*Requirement:\s*(.+?)`?\s*$")
+_RENAME_RE = re.compile(r"^\s*(?:[-*+]\s*)?(FROM|TO):\s*`?###\s*Requirement:(.+)$")
 _FENCE_OPEN_RE = re.compile(r"^\s*(`{3,}|~{3,})")
 _FENCE_CLOSE_RE = re.compile(r"^\s*(`{3,}|~{3,})\s*$")
 
@@ -119,7 +121,7 @@ def _blocks(src: Lines) -> list[tuple[str, str]]:
             if current is not None:
                 out.append((name, "\n".join(current).rstrip()))
             current = [line] if header else None
-            name = _requirement_name(header.group(1)) if header else ""
+            name = _requirement_name(header.group(1).lstrip()) if header else ""
         elif current is not None:
             current.append(line)
     if current is not None:
@@ -135,7 +137,8 @@ def _rename_map(delta: Lines) -> dict[str, str]:
         for i, line in enumerate(lines):
             if mask[i] or not (m := _RENAME_RE.match(line)):
                 continue
-            name = _requirement_name(m.group(2))
+            raw = m.group(2).strip()
+            name = _requirement_name(raw[:-1] if len(raw) > 1 and raw.endswith("`") else raw)
             if m.group(1) == "FROM":
                 pending = name
             elif pending is not None:
@@ -146,7 +149,11 @@ def _rename_map(delta: Lines) -> dict[str, str]:
 
 def _requirement_name(raw: str) -> str:
     # A closing `#` run ends the heading only after a space or tab, so `C#` keeps its `#`.
-    return re.sub(r"[ \t]+#+[ \t]*$", "", raw).strip()
+    text = raw.rstrip(" \t")
+    bare = text.rstrip("#")
+    if bare != text and bare.endswith((" ", "\t")):
+        text = bare
+    return text.strip()
 
 
 def _fold(name: str) -> str:

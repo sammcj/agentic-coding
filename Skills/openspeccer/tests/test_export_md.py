@@ -110,6 +110,21 @@ class ExportMarkdownTest(unittest.TestCase):
         self.assertIn(graph + "  n0 --> n1\n  n1 -. derived .-> n0\n```", out)
         self.assertIn("| Apply | apply | tasks.md | proposal |  |", out)
 
+    def test_schema_graph_survives_awkward_labels_and_dangling_edges(self) -> None:
+        data = {
+            "name": "odd",
+            "source": "project",
+            "tracks": None,
+            "path": "/x/schema.yaml",
+            "description": "",
+            "nodes": [{"key": "a", "label": "Two\nlines ```fence```", "kind": "artifact", "requires": []}],
+            "edges": [{"source": "a", "target": "gone"}],
+        }
+        out = call("views/schemas.js", "schemaMarkdown", data)
+        graph = out.split("```mermaid\n", 1)[1].split("\n```", 1)[0]
+        self.assertEqual(graph, 'flowchart LR\n  n0["Two lines #96;#96;#96;fence#96;#96;#96;"]')
+        self.assertNotIn("undefined", out)
+
     def test_commands_follow_filter_and_keep_matching_parents(self) -> None:
         data = {
             "version": "1.2.0",

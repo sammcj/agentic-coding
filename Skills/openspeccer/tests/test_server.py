@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import http.client
 import json
 import re
 import threading
@@ -10,7 +11,7 @@ import urllib.request
 
 from helpers import make_repo, write
 from openspeccer.repo import Repo
-from openspeccer.server import serve
+from openspeccer.server import host_allowed, serve
 
 
 class ServerTest(unittest.TestCase):
@@ -98,6 +99,32 @@ class ServerTest(unittest.TestCase):
         after = {c["name"]: c for c in self.json("/api/snapshot")["changes"]}
         self.assertNotEqual(before, after)
         self.assertEqual(after["idea-sso"]["lane"], "planned")
+
+    def test_foreign_host_header_is_refused(self) -> None:
+        port = self.server.server_address[1]
+        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+        conn.request("GET", "/api/ping", headers={"Host": f"evil.example:{port}"})
+        self.assertEqual(conn.getresponse().status, 403)
+        conn.close()
+
+
+class HostAllowedTest(unittest.TestCase):
+    def test_loopback_bind_accepts_loopback_names_on_its_port(self) -> None:
+        for h in ("localhost:4381", "LocalHost:4381", "127.0.0.1:4381", "[::1]:4381"):
+            self.assertTrue(host_allowed(h, "127.0.0.1", 4381), h)
+        for h in ("evil.example:4381", "localhost:9999", "localhost", "", "127.0.0.1.nip.io:4381"):
+            self.assertFalse(host_allowed(h, "127.0.0.1", 4381), h)
+
+    def test_wildcard_bind_accepts_ip_literals_but_not_names(self) -> None:
+        for h in ("192.168.1.5:4381", "[fe80::1]:4381", "localhost:4381"):
+            self.assertTrue(host_allowed(h, "0.0.0.0", 4381), h)
+        for h in ("evil.example:4381", "mybox.local:4381"):
+            self.assertFalse(host_allowed(h, "0.0.0.0", 4381), h)
+
+    def test_named_bind_and_allowed_names(self) -> None:
+        self.assertTrue(host_allowed("mybox.local:4381", "0.0.0.0", 4381, ("MyBox.local",)))
+        self.assertTrue(host_allowed("mybox.local:4381", "mybox.local", 4381))
+        self.assertFalse(host_allowed("other.local:4381", "0.0.0.0", 4381, ("mybox.local",)))
 
 
 if __name__ == "__main__":

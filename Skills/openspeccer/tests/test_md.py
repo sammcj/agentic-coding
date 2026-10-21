@@ -40,6 +40,17 @@ class MarkdownTest(unittest.TestCase):
         self.assertIn('<code class="language-python">', out)
         self.assertNotIn("mermaid-src", out)
 
+    def test_text_after_raw_tag_stays_escaped(self) -> None:
+        # marked flags inline text after <pre>, <code>, <kbd> or <script> as pre-escaped.
+        for tag in ("pre", "code", "kbd", "script"):
+            [out] = render(f"x <{tag}><img src=x onerror=alert(1)//")
+            self.assertNotIn("<img", out, tag)
+            self.assertIn("&lt;img", out, tag)
+
+    def test_entities_in_plain_text_render_once(self) -> None:
+        [out] = render("a & b &amp; c")
+        self.assertIn("a &amp; b &amp; c", out)
+
 
 if __name__ == "__main__":
     unittest.main()
