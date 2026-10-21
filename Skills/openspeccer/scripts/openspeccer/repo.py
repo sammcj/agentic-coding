@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import difflib
 import functools
 import threading
 import time
@@ -13,6 +12,7 @@ from typing import Any
 from . import vcs
 from .agents import detect_agents
 from .docs import parse_spec, parse_tasks
+from .reqdiff import line_diff, requirement_changes
 from .scan import (
     Change,
     ScanCache,
@@ -173,6 +173,13 @@ class Repo:
                     for t, p in discover_specs(root / "specs").items()
                     for c in (_read(p),)
                 ]
+                if change.status == "active":
+                    # Diff against the main specs archive would merge into: the ones in the
+                    # change's own working copy (openspec/changes/<slug> -> openspec/specs).
+                    main = discover_specs(root.parents[1] / "specs")
+                    for s in item["specs"]:
+                        base = _read(main[s["topic"]]) if s["topic"] in main else None
+                        s["requirement_changes"] = requirement_changes(s["content"], base)
             else:
                 content = _read(root / a.path)
                 item["content"] = content
@@ -239,24 +246,7 @@ class Repo:
                 raise NotFound(rev)
             return text
 
-        a, b = content_at(base), content_at(head)
-        lines = []
-        added = removed = 0
-        for line in difflib.unified_diff(a.splitlines(), b.splitlines(), lineterm="", n=3):
-            if line.startswith(("---", "+++")):
-                continue
-            tag = line[:1] if line[:1] in "+-@" else " "
-            added += tag == "+"
-            removed += tag == "-"
-            lines.append({"t": tag, "text": line[1:] if tag != "@" else line})
-        return {
-            "topic": topic,
-            "base": base,
-            "head": head,
-            "lines": lines,
-            "added": added,
-            "removed": removed,
-        }
+        return {"topic": topic, "base": base, "head": head, **line_diff(content_at(base), content_at(head))}
 
     def _spec_path(self, topic: str) -> Path:
         if not is_safe_topic(topic):

@@ -75,7 +75,7 @@ function Anatomy() {
 
 const WORKFLOW = [
   { verb: "explore", optional: true, what: "Think an idea through with your agent. Nothing is written." },
-  { verb: "propose", alt: ["new", "continue", "ff"], what: "Describe the change. The agent writes the proposal, spec deltas, design and tasks. Review them on the Changes page." },
+  { verb: "propose", alt: ["new", "continue"], what: "Describe the change. The agent writes the proposal, spec deltas, design and tasks. Review them on the Changes page." },
   { verb: "apply", what: "The agent implements the change, ticking tasks.md as it goes." },
   { verb: "verify", optional: true, what: "Check the code matches the change's specs and tasks." },
   { verb: "archive", what: "Merge the deltas into openspec/specs/ and file the change away." },
@@ -83,14 +83,17 @@ const WORKFLOW = [
 
 // How to invoke a step with what is installed: `opsx/propose.md` is `/opsx:propose`,
 // `opsx-propose.md` is `/opsx-propose`, and a skill such as `openspec-apply-change` is named as is.
+// A skill only shows for an agent with no command for the step. Returns [text, tools] pairs.
 function invocations(agents, verb) {
-  const found = new Set();
+  const found = new Map();
+  const add = (text, tools) => found.set(text, [...new Set([...(found.get(text) || []), ...tools])]);
   for (const a of agents) {
-    for (const c of a.commands) {
+    const cmds = a.commands.flatMap((c) => {
       const m = c.match(/opsx([/:-])([\w-]+?)(?:\.prompt)?\.\w+$/);
-      if (m && m[2] === verb) found.add(m[1] === "-" ? `/opsx-${verb}` : `/opsx:${verb}`);
-    }
-    for (const s of a.skills) if (s === `openspec-${verb}` || s.startsWith(`openspec-${verb}-`)) found.add(s);
+      return m && m[2] === verb ? [m[1] === "-" ? `/opsx-${verb}` : `/opsx:${verb}`] : [];
+    });
+    const skills = a.skills.filter((s) => ["openspec-", "opsx-"].some((p) => s === p + verb || s.startsWith(`${p}${verb}-`)));
+    for (const text of cmds.length ? cmds : skills) add(text, a.tools);
   }
   return [...found];
 }
@@ -103,9 +106,10 @@ function Workflow({ agents }) {
       return html`<li class="guide-flow-step">
         <div class="guide-flow-verb">${step.verb}${step.optional && html` <span class="muted small">optional</span>`}</div>
         <div>
-          ${cmds.length > 0 && html`<div class="guide-cmds">${cmds.map((c) => html`<${Copyable} text=${c} />`)}</div>`}
+          ${cmds.length > 0 &&
+          html`<div class="guide-cmds">${cmds.map(([text, tools]) => html`<${Copyable} text=${text} title=${`${tools.join(", ")}: click to copy`} />`)}</div>`}
           <div>${step.what}</div>
-          ${alts.length > 0 && html`<div class="muted small">One artifact at a time: ${alts.join(", ")}</div>`}
+          ${alts.length > 0 && html`<div class="muted small">Step by step: ${alts.map(([text]) => text).join(", ")}</div>`}
         </div>
       </li>`;
     })}
@@ -113,7 +117,7 @@ function Workflow({ agents }) {
   <p class="muted small">
     ${agents.length
       ? html`Commands found in this repo's agent config. See <a href="#/agents">Agents</a> for every tool, <a href="#/commands">Commands</a> for the CLI.`
-      : html`No agent commands installed. Run <span class="mono">openspec init</span>, or ask your agent in plain words.`}
+      : html`No agent commands installed. See <a href="#/commands">Commands</a> to set OpenSpec up, or ask your agent in plain words.`}
   </p>`;
 }
 

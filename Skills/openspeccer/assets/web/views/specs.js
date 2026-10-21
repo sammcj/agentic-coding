@@ -134,10 +134,16 @@ function Diff({ topic, spec, query }) {
       </select></label>
       ${data && html`<span class="diff-stat"><span class="add">+${data.added}</span> <span class="del">-${data.removed}</span></span>`}
     </div>
-    ${error ? html`<${ErrorBox} error=${error} />` : !data ? html`<${Loading} />` : data.lines.length === 0 ? html`<${Empty}>No differences.<//>` : html`<pre class="diff">${data.lines.map(
-      (l) => html`<div class=${`dl dl-${{ "+": "add", "-": "del", "@": "hunk", " ": "ctx" }[l.t]}`}><span class="dl-sign">${l.t === "@" ? "" : l.t}</span>${l.text}</div>`,
-    )}</pre>`}
+    ${error ? html`<${ErrorBox} error=${error} />` : !data ? html`<${Loading} />` : data.lines.length === 0 ? html`<${Empty}>No differences.<//>` : html`<${DiffLines} lines=${data.lines} />`}
   </div>`;
+}
+
+const DL_KIND = { "+": "add", "-": "del", "@": "hunk", " ": "ctx" };
+
+export function DiffLines({ lines }) {
+  return html`<pre class="diff">${lines.map(
+    (l) => html`<div class=${`dl dl-${DL_KIND[l.t]}`}><span class="dl-sign">${l.t === "@" ? "" : l.t}</span>${l.text}</div>`,
+  )}</pre>`;
 }
 
 // `expand` shows the spec and its history together, for the whole-site export. The deltas

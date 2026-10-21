@@ -1,8 +1,8 @@
 import { apiUrl, changeHref, href, html, pref, relative, setPref, setQuery, useApi, useState } from "../lib.js";
 import { Markdown, Toc, headings } from "../md.js";
 import { ExportMenu, mdTable, renderOffscreen } from "../export.js";
-import { Badge, Chips, Empty, ErrorBox, LANES, LaneBadge, Loading, PageHeader, Progress, Select, SourceBadge, laneLabel } from "../ui.js";
-import { SpecDoc, docToc } from "./specs.js";
+import { Badge, Chips, Empty, ErrorBox, LANES, LaneBadge, Loading, OpBadge, PageHeader, Progress, Select, SourceBadge, laneLabel } from "../ui.js";
+import { DiffLines, SpecDoc, docToc } from "./specs.js";
 
 // -- list --
 
@@ -127,6 +127,27 @@ function TaskList({ tasks }) {
   </div>`;
 }
 
+// What each MODIFIED requirement does to the main spec text it replaces on archive.
+function RequirementChanges({ changes }) {
+  if (!changes?.length) return null;
+  return html`<section class="req-changes">
+    <div class="req-changes-title">Changes to existing requirements <span class="muted">${changes.length}</span></div>
+    ${changes.map(
+      (r) => html`<div class="req-change">
+        <div class="req-change-head">
+          <${OpBadge} op="MODIFIED" />
+          <span class="req-change-name">${r.name}</span>
+          ${r.found && html`<span class="diff-stat"><span class="add">+${r.added}</span> <span class="del">-${r.removed}</span></span>`}
+          ${!r.found
+            ? html`<${Badge} kind="warn" title="Archive will fail to merge this">not in main spec<//>`
+            : !r.exact && html`<${Badge} kind="warn" title="Archive matches names exactly">main spec says "${r.base_name}"<//>`}
+        </div>
+        ${r.found && (r.lines.length ? html`<${DiffLines} lines=${r.lines} />` : html`<div class="muted small">No text changes.</div>`)}
+      </div>`,
+    )}
+  </section>`;
+}
+
 function SpecsTab({ art }) {
   const toc = [];
   art.specs.forEach((s, i) => {
@@ -141,6 +162,7 @@ function SpecsTab({ art }) {
             <span class="mono">${s.path}</span>
             <a class="small" href=${href(["specs", s.topic])}>main spec</a>
           </header>
+          <${RequirementChanges} changes=${s.requirement_changes} />
           <${SpecDoc} doc=${s.doc} prefix=${`f${i}-`} />
         </section>`,
       )}

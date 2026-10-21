@@ -154,7 +154,6 @@ a.card:hover { border-color: var(--border-strong); text-decoration: none; }
 .card-grid p { margin: 6px 0; }
 
 /* -- guide -- */
-.guide-hint { margin: 0 0 16px; padding: 10px 14px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 5px; background: var(--soft); }
 .guide .panel { max-width: 1000px; }
 .guide-folders { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; }
 .guide-box { display: block; border: 1px solid var(--border-strong); border-radius: 6px; padding: 14px 16px; color: var(--text); background: var(--soft); }
@@ -250,6 +249,11 @@ a.guide-box:hover, a.guide-step:hover { border-color: var(--text); text-decorati
 .artifact-path { margin: 8px 0 0; }
 .delta-file { margin-bottom: 28px; }
 .file-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; border: 1px solid var(--border); border-radius: 5px; padding: 8px 12px; background: var(--soft); font-weight: 700; scroll-margin-top: 12px; }
+.req-changes { margin: 14px 0 6px; padding-left: 12px; border-left: 3px solid var(--op-modified); }
+.req-changes-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 8px; }
+.req-change { margin-bottom: 14px; }
+.req-change-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 6px; }
+.req-change-name { font-weight: 700; }
 .code-block { border: 1px solid var(--border); border-radius: 5px; background: var(--soft); padding: 12px 14px; overflow-x: auto; font-size: 12.5px; }
 .tasks { margin-top: 4px; }
 .task-section-title { font-size: 14px; margin: 18px 0 8px; }
@@ -354,6 +358,10 @@ mark { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
   .main { grid-row: 2; }
   .split { grid-template-columns: 1fr; }
   .tree-pane { position: static; max-height: 40vh; }
+  .guide-file, .guide-flow-step { grid-template-columns: 1fr auto; }
+  .guide-file > :last-child, .guide-flow-step > :last-child { grid-column: 1 / -1; }
+  .guide-folders { grid-template-columns: 1fr; }
+  .guide-path { overflow-wrap: anywhere; }
 }
 
 /* -- change detail extras -- */

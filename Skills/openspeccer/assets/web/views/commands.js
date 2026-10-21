@@ -10,14 +10,14 @@ const LINKS = [
   { href: `${DOCS}/getting-started.md`, label: "Getting started" },
 ];
 
-export function Copyable({ text }) {
+export function Copyable({ text, title = "Copy to clipboard" }) {
   const [done, setDone] = useState(false);
   const copy = async () => {
     if (!(await copyText(text))) return;
     setDone(true);
     setTimeout(() => setDone(false), 1500);
   };
-  return html`<button type="button" class=${`copyable ${done ? "done" : ""}`} title="Copy to clipboard" onClick=${copy}>
+  return html`<button type="button" class=${`copyable ${done ? "done" : ""}`} title=${title} onClick=${copy}>
     ${text}${done ? " ✓ copied" : ""}
   </button>`;
 }

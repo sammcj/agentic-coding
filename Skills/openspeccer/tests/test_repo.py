@@ -66,6 +66,22 @@ class SnapshotTest(unittest.TestCase):
         self.assertEqual(arts["tasks"]["tasks"]["total"], 2)
         self.assertEqual(arts["specs"]["specs"][0]["doc"]["groups"][0]["op"], "ADDED")
         self.assertEqual(d["meta"], {"schema": "spec-driven", "created": "2026-09-01"})
+        self.assertEqual(arts["specs"]["specs"][0]["requirement_changes"], [])
+
+    def test_change_detail_diffs_modified_against_own_working_copy_main_spec(self) -> None:
+        write(
+            self.root,
+            "openspec/changes/add-passkeys/specs/auth/spec.md",
+            "## MODIFIED Requirements\n\n### Requirement: Lockout\nAccounts MUST lock after 3 failures.\n",
+        )
+        [spec] = {a["id"]: a for a in self.repo.change_detail("add-passkeys")["artifacts"]}["specs"]["specs"]
+        [r] = spec["requirement_changes"]
+        self.assertEqual((r["name"], r["found"], r["added"], r["removed"]), ("Lockout", True, 1, 1))
+
+    def test_archived_change_has_no_requirement_changes(self) -> None:
+        d = self.repo.change_detail("2026-08-01-init-auth")
+        specs = {a["id"]: a for a in d["artifacts"]}["specs"]["specs"]
+        self.assertNotIn("requirement_changes", specs[0])
 
     def test_spec_detail_history_and_diff(self) -> None:
         d = self.repo.spec_detail("auth")

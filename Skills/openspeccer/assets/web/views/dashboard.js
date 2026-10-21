@@ -144,7 +144,7 @@ export function Dashboard({ snap }) {
     <${PageHeader} title="Dashboard" sub=${snap.repo.name}>
       <${ExportMenu} name=${`${snap.repo.name}-dashboard`} title=${`${snap.repo.name} dashboard`} markdown=${() => dashboardMarkdown(snap)} />
     <//>
-    ${!snap.changes.length && html`<p class="guide-hint">No changes yet. New to OpenSpec? Start with the <a href="#/guide">Guide</a>.</p>`}
+    ${!snap.changes.length && html`<p class="notice">No changes yet. New to OpenSpec? Start with the <a href="#/guide">Guide</a>.</p>`}
     <section class="stats">
       <${Stat} label="Specs" value=${s.specs} sub=${`${s.requirements} requirements`} link="#/specs" />
       <${Stat} label="Active changes" value=${s.active} link=${href(["changes"], { status: "active" })} />
