@@ -6,6 +6,7 @@ import { Agents } from "./views/agents.js";
 import { ChangeDetail, ChangeList } from "./views/changes.js";
 import { Commands } from "./views/commands.js";
 import { Dashboard } from "./views/dashboard.js";
+import { Guide } from "./views/guide.js";
 import { SchemaDetail, SchemaList } from "./views/schemas.js";
 import { SpecDetail, SpecsPage } from "./views/specs.js";
 import { Timeline } from "./views/timeline.js";
@@ -37,6 +38,7 @@ async function sitePages(snap) {
     ...schemas.map((s) => ({ hash: href(["schemas", s.name]), view: html`<${SchemaDetail} snap=${snap} name=${s.name} />` })),
     { hash: href(["agents"]), view: html`<${Agents} snap=${snap} />` },
     { hash: href(["commands"]), view: html`<${Commands} />` },
+    { hash: href(["guide"]), view: html`<${Guide} snap=${snap} />` },
   ];
 }
 

@@ -10,6 +10,7 @@ import { SchemaDetail, SchemaList } from "./views/schemas.js";
 import { Agents } from "./views/agents.js";
 import { SearchPage } from "./views/search.js";
 import { Commands } from "./views/commands.js";
+import { Guide } from "./views/guide.js";
 
 const NAV = [
   { id: "", label: "Dashboard", icon: "▦" },
@@ -19,6 +20,7 @@ const NAV = [
   { id: "schemas", label: "Schemas", icon: "◇" },
   { id: "agents", label: "Agents", icon: "◎" },
   { id: "commands", label: "Commands", icon: "$" },
+  { id: "guide", label: "Guide", icon: "?" },
 ];
 
 function SearchBox({ initial }) {
@@ -73,6 +75,8 @@ function Page({ route, snap }) {
       return html`<${Agents} snap=${snap} />`;
     case "commands":
       return html`<${Commands} />`;
+    case "guide":
+      return html`<${Guide} snap=${snap} />`;
     case "search":
       return html`<${SearchPage} query=${q.get("q") || ""} />`;
     default:

@@ -10,7 +10,7 @@ const LINKS = [
   { href: `${DOCS}/getting-started.md`, label: "Getting started" },
 ];
 
-function Copyable({ text }) {
+export function Copyable({ text }) {
   const [done, setDone] = useState(false);
   const copy = async () => {
     if (!(await copyText(text))) return;
