@@ -7,6 +7,7 @@
 - Guide page: OpenSpec concepts and workflow, using live repo counts and installed agent commands.
 - Change Specs tab diffs each MODIFIED requirement against the main spec, flagging names archive won't match.
 - Spec Diff tab no longer drops changed lines starting with `--` or `++`.
+- Guide page fills the full panel width instead of a 1000px column.
 
 ## 2026-10-20
 
