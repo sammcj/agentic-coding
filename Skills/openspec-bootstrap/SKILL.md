@@ -2,7 +2,7 @@
 name: openspec-bootstrap
 description: Use when setting up OpenSpec in a repo for the first time, or editing a repo's `openspec/config.yaml`
 metadata:
-  version: 2026-10-12
+  version: 2026-10-22
 ---
 
 The config steers every artifact agents write later. Its main job is keeping a change's artifacts at the outcome level. Artifacts that prescribe implementation detail go stale as soon as the implementation drifts, and agents then spend effort resyncing them. The template's `context` states that principle, with contracts as the one exception.
@@ -27,5 +27,7 @@ The config steers every artifact agents write later. Its main job is keeping a c
 - Rules are appended to the schema's built-in artifact instructions (`schemas/<schema>/schema.yaml` in the installed OpenSpec package). Those already cover spec scope, per-task verification and per-group tests. Write rules only for what the repo needs beyond them.
 - `context` should point to files (CLAUDE.md, decision docs) rather than copying their commands or facts, which then drift.
 - `operations` supports only `apply` and `archive`. OpenSpec only warns about other keys at instruction time, so a YAML parse misses them.
-- Archive blocks on unchecked task boxes. If the repo has human-only checks, have tasks list them as plain bullets, not checkboxes.
+- Explore reads only `context` and `rules`. Behaviour wanted outside a single artifact or apply/archive goes in `context`.
+- Archive blocks on unchecked task boxes, so the template's Human checks rule uses plain bullets. Keep that wording when merging into an existing config.
+- Sub-agents never read the config. Rules they must follow go in `apply` guidance as something the main agent puts in each brief.
 - Changes already in flight keep their current artifacts. The new rules apply to new changes.

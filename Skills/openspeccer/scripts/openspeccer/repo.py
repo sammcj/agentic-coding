@@ -10,7 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from . import vcs
-from .agents import detect_agents
+from .agents import detect_agents, instruction_files
+from .config import project_config
 from .docs import parse_spec, parse_tasks
 from .reqdiff import line_diff, requirement_changes
 from .scan import (
@@ -295,6 +296,12 @@ class Repo:
             "tracks": schema.tracks,
             "nodes": [asdict(n) for n in nodes],
             "edges": [asdict(e) for e in edges],
+        }
+
+    def config(self) -> dict:
+        return {
+            **project_config(self.openspec, self.catalog),
+            "instructions": [asdict(f) for f in instruction_files(self.root)],
         }
 
     def search(self, query: str, include_jj: bool = False, aggregate: bool = True) -> list[dict]:

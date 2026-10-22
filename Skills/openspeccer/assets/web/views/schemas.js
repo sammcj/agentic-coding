@@ -53,11 +53,16 @@ export function SchemaList({ snap }) {
   const { data, error } = useApi(apiUrl("schemas"));
   if (error) return html`<${ErrorBox} error=${error} />`;
   if (!data) return html`<${Loading} />`;
+  const degraded = data.degraded && html`<div class="notice">${data.degraded}</div>`;
+  // A list of one is a detour: show that schema directly.
+  if (data.schemas.length === 1 && !Object.keys(data.unresolved).length) {
+    return html`<${SchemaDetail} name=${data.schemas[0].name} back=${null}>${degraded}<//>`;
+  }
   return html`<div class="page">
     <${PageHeader} title="Schemas" sub="Workflow schemas resolvable from this repo">
       <${ExportMenu} name=${`${snap.repo.name}-schemas`} title=${`${snap.repo.name} schemas`} markdown=${() => schemaListMarkdown(snap.repo.name, data)} />
     <//>
-    ${data.degraded && html`<div class="notice">${data.degraded}</div>`}
+    ${degraded}
     ${data.schemas.length === 0 && html`<${Empty}>No schemas found.<//>`}
     <div class="card-grid">
       ${data.schemas.map(
@@ -142,15 +147,16 @@ function NodePanel({ schema, nodeKey }) {
   </aside>`;
 }
 
-export function SchemaDetail({ name }) {
+export function SchemaDetail({ name, back = "#/schemas", children }) {
   const { data, error } = useApi(apiUrl("schema", { name }));
   const [selected, setSelected] = useState(null);
   if (error) return html`<${ErrorBox} error=${error} />`;
   if (!data) return html`<${Loading} />`;
   return html`<div class="detail">
-    <${PageHeader} title=${data.name} sub=${`${data.source} schema · ${data.nodes.length - 1} artifacts · tracks ${data.tracks}`} back="#/schemas">
+    <${PageHeader} title=${data.name} sub=${`${data.source} schema · ${data.nodes.length - 1} artifacts · tracks ${data.tracks}`} back=${back}>
       <${ExportMenu} name=${`schema-${data.name}`} title=${data.name} markdown=${() => schemaMarkdown(data)} />
     <//>
+    ${children}
     ${data.description && html`<p>${data.description}</p>`}
     <div class="dag-wrap">
       <div class="dag-scroll"><${Graph} schema=${data} selected=${selected} onSelect=${setSelected} /></div>

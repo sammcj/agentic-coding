@@ -9,6 +9,8 @@ context: |
 
   Contracts are the exception - anything that would force a change outside the code being written and its own tests if it changed. Specify contracts exactly.
 
+  When asking the user a group of questions, use a multiple-choice question tool if appropriate.
+
 rules:
   specs:
     - Only specify feature requirements the user has stated or agreed to. Raise any others as questions instead of adding them.
@@ -18,16 +20,23 @@ rules:
     - List every contract under a `## Contracts` heading with its exact name or format.
     - Consider a mermaid diagram where it explains architecture, data flow or an external contract more clearly than prose.
     - Briefly state the testing approach - what needs proving and at which level.
+    - If mocks are used and agreed to, ensure they're referenced in the tasks.
     - Note security considerations only where the change touches them - auth, untrusted input, secrets, data exposure.
   tasks:
     - State each task as a goal plus an observable check that shows it is done. Code-level detail appears only when it is listed under the design's `## Contracts`.
+    - Under each group heading, name the earlier groups it depends on. Groups with no dependency between them that touch separate modules can be built in parallel.
+    - Put steps that need a person (manual testing, logins, hardware or UI interaction) in a final "Human checks" section as plain bullets. Each group's automated tests stay in that group.
 
 operations:
   apply:
     guidance:
+      - "Delegate independent task groups to sub-agents and run them in parallel where it makes sense to do so. Keep dependent groups in order. Brief each sub-agent with the change name, its group, the design's relevant contracts and the files it owns."
+      - "Tell each sub-agent to run only the tests covering its own group, using the repo's targeted test command, and to run the full suite only if the brief demands it."
+      - "Complete every task that doesn't need a person before asking for one. If a group is blocked on a person, move on to independent groups. Then give the user the Human checks list in one batch."
       - "If the implementation changes a requirement, a contract or the security posture, update the specs or design to match and note it in the summary. If it only changes implementation details, leave the artifacts as they are."
       - "If there is a CHANGELOG.md, update it after completing new features or fixes."
       - "After the first end-to-end slice of a change works, and again when all tasks are done, run a step-back review for over-engineering (single-implementation abstractions no contract needs, unused options, speculative extension points, duplicated config or state). Remove what it finds before continuing."
+      - "Aim to keep files under 1000 lines. Run fallow if available at the end of significant milestones and act on new complexity hotspots."
   archive:
     guidance:
       - "Before archiving, confirm the step-back review ran on the finished change and its findings were resolved or recorded with a reason."

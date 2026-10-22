@@ -183,6 +183,8 @@ def make_handler(
                     return repo.schemas(**scope)
                 case "/api/schema":
                     return repo.schema_detail(_arg(qs, "name"))
+                case "/api/config":
+                    return repo.config()
                 case "/api/commands":
                     return commands.get()
                 case "/api/search":

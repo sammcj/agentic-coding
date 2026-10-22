@@ -4,6 +4,7 @@ import { cleanForExport, documentHtml, download, escapeHtml, fileSafe, renderOff
 import { apiUrl, changeHref, href, html, useState } from "./lib.js";
 import { Agents } from "./views/agents.js";
 import { ChangeDetail, ChangeList } from "./views/changes.js";
+import { Config } from "./views/config.js";
 import { Commands } from "./views/commands.js";
 import { Dashboard } from "./views/dashboard.js";
 import { Guide } from "./views/guide.js";
@@ -36,6 +37,7 @@ async function sitePages(snap) {
     { hash: href(["timeline"]), view: html`<${Timeline} snap=${snap} query=${none} />` },
     { hash: href(["schemas"]), view: html`<${SchemaList} snap=${snap} />` },
     ...schemas.map((s) => ({ hash: href(["schemas", s.name]), view: html`<${SchemaDetail} snap=${snap} name=${s.name} />` })),
+    { hash: href(["config"]), view: html`<${Config} snap=${snap} />` },
     { hash: href(["agents"]), view: html`<${Agents} snap=${snap} />` },
     { hash: href(["commands"]), view: html`<${Commands} />` },
     { hash: href(["guide"]), view: html`<${Guide} snap=${snap} />` },

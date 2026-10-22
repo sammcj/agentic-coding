@@ -8,6 +8,7 @@ import { ChangeDetail, ChangeList } from "./views/changes.js";
 import { Timeline } from "./views/timeline.js";
 import { SchemaDetail, SchemaList } from "./views/schemas.js";
 import { Agents } from "./views/agents.js";
+import { Config } from "./views/config.js";
 import { SearchPage } from "./views/search.js";
 import { Commands } from "./views/commands.js";
 import { Guide } from "./views/guide.js";
@@ -18,6 +19,7 @@ const NAV = [
   { id: "changes", label: "Changes", icon: "⑂" },
   { id: "timeline", label: "Timeline", icon: "═" },
   { id: "schemas", label: "Schemas", icon: "◇" },
+  { id: "config", label: "Config", icon: "¶" },
   { id: "agents", label: "Agents", icon: "◎" },
   { id: "commands", label: "Commands", icon: "$" },
   { id: "guide", label: "Guide", icon: "?" },
@@ -71,6 +73,8 @@ function Page({ route, snap }) {
       return html`<${Timeline} snap=${snap} query=${q} />`;
     case "schemas":
       return rest.length ? html`<${SchemaDetail} snap=${snap} name=${rest[0]} />` : html`<${SchemaList} snap=${snap} />`;
+    case "config":
+      return html`<${Config} snap=${snap} />`;
     case "agents":
       return html`<${Agents} snap=${snap} />`;
     case "commands":

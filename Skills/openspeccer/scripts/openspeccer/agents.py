@@ -64,6 +64,47 @@ AGENT_ROOTS: dict[str, list[str]] = {
 }
 
 
+# Where agents look for project instructions that sit beside OpenSpec's own. Files in an
+# ad hoc place (a build directory, a scratch note) are invisible to agents too, so are not sought.
+INSTRUCTION_FILES = [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "CLAUDE.local.md",
+    ".claude/CLAUDE.md",
+    "GEMINI.md",
+    ".github/copilot-instructions.md",
+]
+INSTRUCTION_DIRS = [".claude/rules", ".claude/agents", ".cursor/rules", ".github/instructions"]
+_MAX_INSTRUCTION_BYTES = 256 * 1024
+
+
+@dataclass
+class InstructionFile:
+    path: str
+    bytes: int
+    content: str
+
+
+def instruction_files(repo: Path) -> list[InstructionFile]:
+    # As in walk_files, a symlink counts only if it resolves inside the repo. AGENTS.md -> CLAUDE.md
+    # is common; a link out of the repo would let the server read arbitrary files.
+    real = repo.resolve()
+    candidates = (repo / name for name in INSTRUCTION_FILES)
+    paths = [p for p in candidates if p.is_file() and p.resolve().is_relative_to(real)]
+    for d in INSTRUCTION_DIRS:
+        if (repo / d).is_dir():
+            paths += sorted(f for f in walk_files(repo / d) if f.suffix in (".md", ".mdc"))
+    found = []
+    for p in paths:
+        try:
+            size = p.stat().st_size
+            text = p.read_text(encoding="utf-8") if size <= _MAX_INSTRUCTION_BYTES else ""
+        except (OSError, UnicodeDecodeError):
+            continue
+        found.append(InstructionFile(p.relative_to(repo).as_posix(), size, text))
+    return found
+
+
 @dataclass
 class AgentSetup:
     root: str

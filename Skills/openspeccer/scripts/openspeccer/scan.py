@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from .config import config_path
 from .docs import count_tasks, parse_spec
 from .schemas import SchemaDef, artifact_for_file
 from .vcs import Worktree
@@ -129,7 +130,8 @@ def read_yaml(path: Path) -> dict:
 
 
 def default_schema(openspec_dir: Path) -> str | None:
-    value = read_yaml(openspec_dir / "config.yaml").get("schema")
+    path = config_path(openspec_dir)
+    value = read_yaml(path).get("schema") if path else None
     return str(value) if value else None
 
 

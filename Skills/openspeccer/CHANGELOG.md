@@ -5,6 +5,9 @@
 ## 2026-10-22
 
 - Guide shows every core `/opsx:` command, with opt-in expanded commands in a collapsed section.
+- Config page: context, artifact rules, operation guidance, settings OpenSpec ignores, agent instruction files.
+- Schemas and Agents pages open the item directly when there is only one.
+- Default schema is also read from `openspec/config.yml`.
 
 ## 2026-10-21
 

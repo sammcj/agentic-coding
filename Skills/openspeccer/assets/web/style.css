@@ -337,6 +337,15 @@ ol.guide-flow .guide-cmds::before { content: counter(flow) "."; color: var(--mut
 .dag-panel { border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; }
 .dag-panel > div { margin: 6px 0; }
 
+/* -- config -- */
+.config-note { margin: -6px 0 8px; }
+.config-list { margin: 6px 0 0; padding-left: 18px; }
+.config-list li + li { margin-top: 4px; }
+.config-op + .config-op { margin-top: 10px; }
+.config-file + .config-file { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+.config-file summary, .config-raw summary { cursor: pointer; }
+.config-raw pre { white-space: pre-wrap; margin: 8px 0 0; }
+
 /* -- agents, search -- */
 .agent-group { margin-top: 10px; }
 .agent-group-title { font-weight: 700; margin-bottom: 4px; }
