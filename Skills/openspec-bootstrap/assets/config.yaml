@@ -5,6 +5,8 @@ context: |
 
   A change's artifacts (proposal, specs, design, tasks) say what to build, why, and the approach. The implementer decides how to write the code.
 
+  Propose one change at a time, just before it is applied, against the code as it stands. Don't draft later changes in advance. When a contract depends on how a third-party tool or platform behaves, prove that behaviour with a spike before specifying it.
+
   Where a design goes into implementation detail, treat that detail as a starting point. If implementation finds a simpler or better approach, use it. Record the deviation in the design when it changes user-visible behaviour, a contract, or the security posture. Otherwise just build it.
 
   Contracts are the exception - anything that would force a change outside the code being written and its own tests if it changed. Specify contracts exactly.
@@ -12,9 +14,13 @@ context: |
   When asking the user a group of questions, use a multiple-choice question tool if appropriate.
 
 rules:
+  proposal:
+    - End with an `## Open questions` list of every decision the user needs to make, each with a recommended answer, so the user can decide without reading the specs.
   specs:
     - Only specify feature requirements the user has stated or agreed to. Raise any others as questions instead of adding them.
+    - Keep a change small, at most about 10 requirements. Give each a happy-path scenario and at most one failure scenario. Leave out cases that existing validation or an earlier change already covers. Split a change that needs more.
   design:
+    - Keep the design under about 150 lines. Only contracts get exact detail.
     - Choose the simplest approach that meets the specs. Add no abstractions, options or extension points the specs don't need.
     - Cover the approach, key decisions and trade-offs, not the code. Describe interfaces between modules or parallel task groups by the data they pass and how they behave. Existing code may be named so it can be found.
     - List every contract under a `## Contracts` heading with its exact name or format.
@@ -23,6 +29,9 @@ rules:
     - If mocks are used and agreed to, ensure they're referenced in the tasks.
     - Note security considerations only where the change touches them - auth, untrusted input, secrets, data exposure.
   tasks:
+    - Keep to about 20 tasks.
+    - Prove each requirement once, at the cheapest test level that can. Keep slow integration tests (real external tools, services or UI) for contract boundaries.
+    - If a group builds UI against agreed mocks, end it with one task that renders the group's screens and compares them with the mocks. Other UI tasks need no renders.
     - State each task as a goal plus an observable check that shows it is done. Code-level detail appears only when it is listed under the design's `## Contracts`.
     - Under each group heading, name the earlier groups it depends on. Groups with no dependency between them that touch separate modules can be built in parallel.
     - Put steps that need a person (manual testing, logins, hardware or UI interaction) in a final "Human checks" section as plain bullets. Each group's automated tests stay in that group.
@@ -35,8 +44,9 @@ operations:
       - "Complete every task that doesn't need a person before asking for one. If a group is blocked on a person, move on to independent groups. Then give the user the Human checks list in one batch."
       - "If the implementation changes a requirement, a contract or the security posture, update the specs or design to match and note it in the summary. If it only changes implementation details, leave the artifacts as they are."
       - "If there is a CHANGELOG.md, update it after completing new features or fixes."
-      - "After the first end-to-end slice of a change works, and again when all tasks are done, run a step-back review for over-engineering (single-implementation abstractions no contract needs, unused options, speculative extension points, duplicated config or state). Remove what it finds before continuing."
+      - "When all tasks are done, one reviewer reviews the whole change for bugs, deviations from the specs and over-engineering (single-implementation abstractions no contract needs, unused options, speculative extension points, duplicated config or state). One sub-agent then fixes what it finds. Don't add per-task or per-group reviewers or a mid-change step-back."
+      - "If the repo has a fast test target that skips slow integration tests, sub-agents use it plus only the integration tests covering their change."
       - "Aim to keep files under 1000 lines. Run fallow if available at the end of significant milestones and act on new complexity hotspots."
   archive:
     guidance:
-      - "Before archiving, confirm the step-back review ran on the finished change and its findings were resolved or recorded with a reason."
+      - "Before archiving, confirm the end-of-change review ran and its findings were resolved or recorded with a reason."
