@@ -2,7 +2,7 @@
 name: openspec-bootstrap
 description: Use when setting up OpenSpec in a repo for the first time, or editing a repo's `openspec/config.yaml`
 metadata:
-  version: 2026-10-22
+  version: 2026-10-24
 ---
 
 The config steers every artifact agents write later. Its main job is keeping a change's artifacts at the outcome level. Artifacts that prescribe implementation detail go stale as soon as the implementation drifts, and agents then spend effort resyncing them. The template's `context` states that principle, with contracts as the one exception.

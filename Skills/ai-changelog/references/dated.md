@@ -61,6 +61,12 @@ After a change that alters behaviour - new capability, breaking change, removal,
 
 If a CLAUDE.md already exists, append just the `## Update CHANGELOG.md after changes` section to it; don't add a second top-level title. Name the project's own content in the opening line if it helps (e.g. "a change that alters how this skill behaves - SKILL.md, references, scripts").
 
+If the project already has a date stamp (e.g. a skill's `SKILL.md` frontmatter `metadata.version: YYYY-MM-DD`), add this bullet to the snippet, then set the stamp to today:
+
+```markdown
+- When you add a changelog entry, set `metadata.version` in `SKILL.md` to the same date.
+```
+
 ## Gotchas
 
 - No script means nothing enforces this; the CLAUDE.md instruction is the only mechanism. Keep it terse and imperative so agents actually follow it.
