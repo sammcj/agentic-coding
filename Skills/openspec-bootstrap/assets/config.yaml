@@ -9,6 +9,8 @@ context: |
 
   Where a design goes into implementation detail, treat that detail as a starting point. If implementation finds a simpler or better approach, use it. Record the deviation in the design when it changes user-visible behaviour, a contract, or the security posture. Otherwise just build it.
 
+  When a third-party tool or platform behaves differently from what a spec or design assumed, and what the user sees and the security posture don't change, decide the handling, record it as a short decision note in the design (updating any contract it affects), and continue.
+
   Contracts are the exception - anything that would force a change outside the code being written and its own tests if it changed. Specify contracts exactly.
 
   When asking the user a group of questions, use a multiple-choice question tool if appropriate.
@@ -40,12 +42,12 @@ operations:
   apply:
     guidance:
       - "Delegate independent task groups to sub-agents and run them in parallel where it makes sense to do so. Keep dependent groups in order. Brief each sub-agent with the change name, its group, the design's relevant contracts and the files it owns."
-      - "Tell each sub-agent to run only the tests covering its own group, using the repo's targeted test command, and to run the full suite only if the brief demands it."
+      - "Sub-agents never run the full suite. One that changes code runs the repo's fast test target if it has one, plus only the slow integration tests covering its change. Reviewers run no tests. The coordinator runs the full suite once after merging a batch. Put this in every sub-agent brief."
       - "Complete every task that doesn't need a person before asking for one. If a group is blocked on a person, move on to independent groups. Then give the user the Human checks list in one batch."
       - "If the implementation changes a requirement, a contract or the security posture, update the specs or design to match and note it in the summary. If it only changes implementation details, leave the artifacts as they are."
       - "If there is a CHANGELOG.md, update it after completing new features or fixes."
       - "When all tasks are done, one reviewer reviews the whole change for bugs, deviations from the specs and over-engineering (single-implementation abstractions no contract needs, unused options, speculative extension points, duplicated config or state). One sub-agent then fixes what it finds. Don't add per-task or per-group reviewers or a mid-change step-back."
-      - "If the repo has a fast test target that skips slow integration tests, sub-agents use it plus only the integration tests covering their change."
+      - "View UI renders at most once per screen, as small compressed images (for example JPEG around 1200 px wide), never full-size PNGs. Don't send renders to the user unless asked. Put this in every UI sub-agent brief."
       - "Aim to keep files under 1000 lines. Run fallow if available at the end of significant milestones and act on new complexity hotspots."
   archive:
     guidance:
