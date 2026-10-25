@@ -269,12 +269,13 @@ After PDF export, regenerate the wisdom library index to include the new entry:
 uv run <skill-dir>/scripts/wisdom.py index
 ```
 
-### Step 6: Surface The One-Minute Read And Sharing Blurb
+### Step 6: Surface The One-Minute Read And Sharing Blurb, Open The Directory
 
 Output both of these to the conversation, in this order:
 
 1. The `## One-Minute Read` section, verbatim from the analysis file, so the user gets the fast read without opening anything.
 2. The frontmatter `description` field as a plain text message suitable for sharing the source on Slack. If it needs improvement at this stage, update the frontmatter first. Plain text, no markdown formatting, no bullet points.
+3. Open the containing directory of the created wisdom (e.g. `open <path-to-directory>`).
 
 Then stop unless further instructions are given.
 
@@ -312,7 +313,7 @@ Subtitle transcripts open each paragraph with a `[m:ss]` or `[h:mm:ss]` marker, 
 
 - `wisdom.py`: Single Python script (PEP 723) handling transcript download, web article fetch, markdown formatting, PDF rendering, ePub export, metadata backfill, library indexing, full-text search, related-entry lookup, and tag management. Run via `uv run`. Subcommands: `transcript`, `frames`, `fetch`, `output-dir`, `create-dir`, `rename`, `format`, `pdf`, `index`, `epub`, `migrate-sources`, `backfill`, `search`, `related`, `tags`. Run `--help` on a subcommand for its flags.
 
-### Querying the corpus
+### Querying the wisdom database
 
 The `index` command builds a `wisdom-search.db` (SQLite FTS5) and a `wisdom-related.json` cache alongside `index.html`. These power three agent-friendly subcommands:
 
