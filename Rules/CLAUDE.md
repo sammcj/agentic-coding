@@ -154,6 +154,7 @@ Be goal oriented when undertaking significant development tasks: **Define succes
 ## Tool Usage
 
 - When it will not affect the end result, edit files surgically rather than rewriting them whole, to minimise tokens.
+- Make multi-line or scripted file edits with Edit or Write. CC Safety Net blocks `python3 - <<EOF` and inline python or perl rewrites.
 - In a single Bash call, don't `cd` into a directory and then reference relative paths in later commands (joined by `&&`, `;` or newlines). Either pass absolute paths to each command, or run a lone `cd`-free command with the directory as an argument (`rg pat "/abs/dir/src"`). A plain `cd` on its own, or relative paths without a preceding `cd`, are fine.
 - Bash output must be bounded. Every command that can emit an unknown number of lines pipes to `head`/`tail`, uses a count flag (`-n`, `-m`, `--max-count`), or redirects to a file. Never emit a whole file or an unbounded diff into the conversation.
 - Read a file without `limit` only when you are about to Edit it. To understand or search a file, read a line range or process it in the sandbox.
