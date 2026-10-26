@@ -7,6 +7,8 @@ context: |
 
   Propose one change at a time, just before it is applied, against the code as it stands. Don't draft later changes in advance. When a contract depends on how a third-party tool or platform behaves, prove that behaviour with a spike before specifying it.
 
+  A bug fix that restores behaviour the specs already describe needs no change: write the failing test, fix, commit. Propose a change, or add a delta to an open one, only when user-visible behaviour, a contract or the security posture changes.
+
   Where a design goes into implementation detail, treat that detail as a starting point. If implementation finds a simpler or better approach, use it. Record the deviation in the design when it changes user-visible behaviour, a contract, or the security posture. Otherwise just build it.
 
   When a third-party tool or platform behaves differently from what a spec or design assumed, and what the user sees and the security posture don't change, decide the handling, record it as a short decision note in the design (updating any contract it affects), and continue.
@@ -46,9 +48,10 @@ operations:
       - "Complete every task that doesn't need a person before asking for one. If a group is blocked on a person, move on to independent groups. Then give the user the Human checks list in one batch."
       - "If the implementation changes a requirement, a contract or the security posture, update the specs or design to match and note it in the summary. If it only changes implementation details, leave the artifacts as they are."
       - "If there is a CHANGELOG.md, update it after completing new features or fixes."
-      - "When all tasks are done, one reviewer reviews the whole change for bugs, deviations from the specs and over-engineering (single-implementation abstractions no contract needs, unused options, speculative extension points, duplicated config or state). One sub-agent then fixes what it finds. Don't add per-task or per-group reviewers or a mid-change step-back."
-      - "View UI renders at most once per screen, as small compressed images (for example JPEG around 1200 px wide), never full-size PNGs. Don't send renders to the user unless asked. Put this in every UI sub-agent brief."
+      - "Where the repo has, or can cheaply add, a harness that drives real input events through its UI framework, UI focus, keyboard and click handling is tested through it."
+      - "When all tasks are done in a change of more than about 5 tasks, one reviewer reviews the whole change for bugs, deviations from the specs and over-engineering (single-implementation abstractions no contract needs, unused options, speculative extension points, duplicated config or state). One sub-agent then fixes what it finds. Don't add per-task or per-group reviewers or a mid-change step-back."
       - "Aim to keep files under 1000 lines. Run fallow if available at the end of significant milestones and act on new complexity hotspots."
   archive:
     guidance:
-      - "Before archiving, confirm the end-of-change review ran and its findings were resolved or recorded with a reason."
+      - "Archive a change once its delta specs are synced and any human checks it still needs are moved to an open change that tracks them, so open changes don't carry conflicting deltas for the same requirement."
+      - "Before archiving, confirm the end-of-change review ran (where the change had one) and its findings were resolved or recorded with a reason."
