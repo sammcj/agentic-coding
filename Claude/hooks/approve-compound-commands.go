@@ -1,6 +1,8 @@
 package main
 
-// Claude Code PreToolUse hook for compound/subshell/pipe commands.
+// Claude Code PreToolUse hook for compound/subshell/pipe commands, plus a
+// denied-host guard for every matched tool (see denied_hosts.go). The guard is
+// the only path that denies; everything else here can only add approvals.
 
 // Auto-approves compound commands (&&, ||, ;, newline), pipes (|), background
 // (&), and subshells when every individual command is in the "allow" list
@@ -37,7 +39,7 @@ package main
 // cd /untrusted && git status ❌ (git after cd)
 // cd ~/Library/Keychains && ls ❌ (cd outside working directories)
 
-// Build with: go build -ldflags="-s -w" ./approve-compound-commands.go
+// Build with: go build -ldflags="-s -w" -o approve-compound-commands .
 
 // Permissions are merged from (in load order):
 // - /Library/Application Support/ClaudeCode/managed-settings.json (managed, macOS)
@@ -50,7 +52,7 @@ package main
 // "hooks": {
 // 	"PreToolUse": [
 // 		{
-// 			"matcher": "Bash",
+// 			"matcher": "Bash|WebFetch|Monitor|mcp__.*",
 // 			"hooks": [
 // 				{
 // 					"type": "command",
@@ -79,14 +81,19 @@ type Permissions struct {
 
 type Settings struct {
 	Permissions Permissions `json:"permissions"`
+	Sandbox     struct {
+		Enabled          *bool    `json:"enabled"`
+		ExcludedCommands []string `json:"excludedCommands"`
+		Network          struct {
+			DeniedDomains []string `json:"deniedDomains"`
+		} `json:"network"`
+	} `json:"sandbox"`
 }
 
 type HookInput struct {
-	ToolName  string `json:"tool_name"`
-	ToolInput struct {
-		Command string `json:"command"`
-	} `json:"tool_input"`
-	Cwd string `json:"cwd"`
+	ToolName  string          `json:"tool_name"`
+	ToolInput json.RawMessage `json:"tool_input"`
+	Cwd       string          `json:"cwd"`
 }
 
 // policy holds the compiled rule sets so each invocation compiles every
@@ -133,12 +140,29 @@ func main() {
 		passThrough()
 		return
 	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		passThrough()
+		return
+	}
+	settings := loadAllSettings(home, projectDir(input.Cwd))
+
+	// The host guard runs for every matched tool, before any approval.
+	if host := newHostGuard(settings).deniedHost(input.ToolName, input.ToolInput); host != "" {
+		fmt.Println(denyOutput(host))
+		return
+	}
+
 	if input.ToolName != "" && input.ToolName != "Bash" {
 		passThrough()
 		return
 	}
 
-	cmd := input.ToolInput.Command
+	var bash struct {
+		Command string `json:"command"`
+	}
+	_ = json.Unmarshal(input.ToolInput, &bash)
+	cmd := bash.Command
 	isCompound := strings.ContainsAny(cmd, "&|;")
 	isSubshell := strings.HasPrefix(strings.TrimSpace(cmd), "(")
 	if !isCompound && !isSubshell {
@@ -146,17 +170,21 @@ func main() {
 		return
 	}
 
-	home, err := os.UserHomeDir()
-	if err != nil {
-		passThrough()
-		return
-	}
-	p := compilePolicy(loadAllSettings(home, input.Cwd), home, input.Cwd)
+	p := compilePolicy(settings, home, input.Cwd)
 	if !decide(cmd, input.Cwd, p) {
 		passThrough()
 		return
 	}
 	fmt.Println(`{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"Auto-approved compound/subshell"}}`)
+}
+
+// projectDir is where project settings live. The hook's cwd follows Bash cd
+// into subdirectories, so prefer the project root Claude Code exports.
+func projectDir(cwd string) string {
+	if dir := os.Getenv("CLAUDE_PROJECT_DIR"); dir != "" {
+		return dir
+	}
+	return cwd
 }
 
 func passThrough() {
@@ -235,6 +263,13 @@ func loadAllSettings(home, projectDir string) Settings {
 		merged.Permissions.Ask = append(merged.Permissions.Ask, s.Permissions.Ask...)
 		merged.Permissions.Deny = append(merged.Permissions.Deny, s.Permissions.Deny...)
 		merged.Permissions.AdditionalDirectories = append(merged.Permissions.AdditionalDirectories, s.Permissions.AdditionalDirectories...)
+		merged.Sandbox.Network.DeniedDomains = append(merged.Sandbox.Network.DeniedDomains, s.Sandbox.Network.DeniedDomains...)
+		merged.Sandbox.ExcludedCommands = append(merged.Sandbox.ExcludedCommands, s.Sandbox.ExcludedCommands...)
+		// Any scope turning the sandbox off wins, so the host guard scans
+		// Bash rather than trusting a proxy that may not be running.
+		if e := s.Sandbox.Enabled; e != nil && (merged.Sandbox.Enabled == nil || !*e) {
+			merged.Sandbox.Enabled = e
+		}
 	}
 	return merged
 }

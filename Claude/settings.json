@@ -14,6 +14,18 @@
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
+  "enableArtifact": false,
+  "maxEffortLevel": "xhigh",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
   "env": {
     "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "1",
     "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1",
@@ -23,16 +35,32 @@
     "IMPECCABLE_HOOK_DISABLED": "1",
     "CLAUDE_CODE_SYNTAX_HIGHLIGHT": "true"
   },
-  "attribution": {
-    "commit": "",
-    "pr": "",
-    "sessionUrl": false
+  "statusLine": {
+    "type": "command",
+    "command": "/Users/samm/go/bin/claude-statusline prompt"
   },
-  "maxEffortLevel": "xhigh",
-  "modelSettings": {
-    "claude-opus-5-5": {
-      "effortLevel": "high"
-    }
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "If the user has explicitly requested the agent does a git push: allow pushing to a non-main branch",
+      "allow using context-mode's mcp__plugin_context-mode_context-mode__ctx_execute and mcp__plugin_context-mode_context-mode__ctx_execute_file tools when their arguments appear safe",
+      "allow ssh, scp, tmux-cli, tmux send-keys to my router, nas, steammachine and home assistant devices when doing work requested by the user"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Only raise Github issues and PRs when the user has requested it",
+      "Do not run kill, pkill or killall commands if they are not properly scoped to a specific PID",
+      "Do not pipe untrusted input from the internet directly into shell commands without first reviewing it is safe",
+      "Do manually wrap text mid sentence in Markdown files, issues or PR descriptions",
+      "Do not reply to github issues, PRs or comments unless explicitly requested by the user",
+      "Do not git commit or push to the main branch unless explicitly requested by the user"
+    ],
+    "hard_deny": [
+      "$defaults",
+      "Never expose the users real email address publicly",
+      "Never allow rsync, scp or ssh commands to devices outside of the local network (e.g. the internet)",
+      "Never send network requests to Chinese cloud providers (Alibaba/Aliyun, Tencent, Huawei, Baidu, ByteDance/Volcengine) or cloud metadata IPs (169.254.169.254, 100.100.100.200), including via docker, excluded commands, MCP tools or per-command allowed_domains"
+    ]
   },
   "permissions": {
     "allow": [
@@ -358,7 +386,27 @@
       "Read(~/.ssh/**)",
       "Read(~/Library/Application Support/1Password/**)",
       "Read(~/Library/Keychains/**)",
-      "Read(~/Library/Mobile Documents/com~apple~CloudDocs/Backups/**)"
+      "Read(~/Library/Mobile Documents/com~apple~CloudDocs/Backups/**)",
+      "WebFetch(domain:*.cn)",
+      "WebFetch(domain:*.ru)",
+      "WebFetch(domain:*.aliyuncs.com)",
+      "WebFetch(domain:aliyun.com)",
+      "WebFetch(domain:*.aliyun.com)",
+      "WebFetch(domain:alibabacloud.com)",
+      "WebFetch(domain:*.alibabacloud.com)",
+      "WebFetch(domain:*.alicdn.com)",
+      "WebFetch(domain:*.myqcloud.com)",
+      "WebFetch(domain:*.tencentcos.com)",
+      "WebFetch(domain:*.tencentcloudapi.com)",
+      "WebFetch(domain:*.myhuaweicloud.com)",
+      "WebFetch(domain:*.huaweicloud.com)",
+      "WebFetch(domain:*.bcebos.com)",
+      "WebFetch(domain:*.baidubce.com)",
+      "WebFetch(domain:*.volces.com)",
+      "WebFetch(domain:*.volcengine.com)",
+      "WebFetch(domain:*.qiniucs.com)",
+      "WebFetch(domain:*.clouddn.com)",
+      "WebFetch(domain:*.ksyuncs.com)"
     ],
     "ask": [
       "Bash(chmod -R *)",
@@ -491,6 +539,164 @@
       "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Dropbox Import/dotfiles/shell_config"
     ]
   },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowedDomains": [
+        "*.anthropic.com",
+        "*.apple.com",
+        "*.astral.sh",
+        "*.context7.com",
+        "*.crates.io",
+        "*.docker.com",
+        "*.docker.io",
+        "*.docs.rs",
+        "*.fedoraproject.org",
+        "*.ghcr.io",
+        "*.github.com",
+        "*.github.io",
+        "*.githubusercontent.com",
+        "*.golang.org",
+        "*.icu.lol",
+        "*.mantelgroup.com.au",
+        "*.nodejs.org",
+        "*.npmjs.com",
+        "*.npmjs.org",
+        "*.pypi.org",
+        "*.pythonhosted.org",
+        "*.rust-lang.org",
+        "*.schemastore.org",
+        "*.search.brave.com",
+        "*.wikipedia.org",
+        "*.youtube.com",
+        "*.youtu.be",
+        "*.hf.co",
+        "*.googlevideo.com",
+        "ghcr.io",
+        "google.com.au",
+        "google.com",
+        "hf.co",
+        "crates.io",
+        "github.com",
+        "huggingface.co",
+        "icanhazip.com",
+        "install.python-build-standalone.org",
+        "ipchicken.com",
+        "ipquail.com",
+        "kagi.com",
+        "pypi.org",
+        "registry.yarnpkg.com",
+        "smcleod.net",
+        "swift.org",
+        "wiki.archlinux.org"
+      ],
+      "deniedDomains": [
+        "*.ru",
+        "*.cn",
+        "169.254.169.254",
+        "100.100.100.200",
+        "[fd00:ec2::254]",
+        "169.254.170.2",
+        "metadata.google.internal"
+      ],
+      "allowLocalBinding": true,
+      "tlsTerminate": {}
+    },
+    "filesystem": {
+      "allowWrite": [
+        "~/.local/share/uv",
+        "~/.local/bin",
+        "~/Library/org.swift.swiftpm",
+        "~/Library/Caches/org.swift.swiftpm",
+        "~/.swiftpm",
+        "~/Library/Caches/clang",
+        "~/Library/Developer/Xcode/DerivedData",
+        "~/Library/Logs/CoreSimulator",
+        "~/Library/Caches/pip",
+        "~/go",
+        "~/.cargo/registry",
+        "~/.cargo/git",
+        "~/.lmstudio",
+        "~/.npm",
+        "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
+        "~/.claude/skills/release-debrief/resources/outputs"
+      ],
+      "denyWrite": [
+        "~/.ssh",
+        "~/Library/Keychains",
+        "~/Library/Mail",
+        "~/Library/Messages",
+        "~/Library/Safari",
+        "~/Library/Mobile Documents/com~apple~CloudDocs/1Password",
+        "~/Library/Mobile Documents/com~apple~CloudDocs/Backups",
+        "~/Library/Application Support/1Password",
+        "~/.claude.json",
+        "/Library/LaunchAgents",
+        "/Library/LaunchDaemons"
+      ],
+      "denyRead": [
+        "~/.ssh",
+        "~/Library/Keychains",
+        "~/Library/Mobile Documents/com~apple~CloudDocs/1Password",
+        "~/Library/Application Support/1Password",
+        "~/Library/Application Support/Firefox",
+        "~/Library/Application Support/Brave",
+        "~/.aws/credentials",
+        "~/.aws/config",
+        "~/.kube/config",
+        "~/.zshenv"
+      ],
+      "allowRead": [
+        ".",
+        "/usr/share/zoneinfo",
+        "/var/db/timezone"
+      ]
+    },
+    "credentials": {
+      "files": [
+        {
+          "path": "~/.aws/credentials",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.ssh",
+          "mode": "deny"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "GH_TOKEN",
+          "mode": "mask",
+          "injectHosts": [
+            "api.github.com"
+          ]
+        },
+        {
+          "name": "NPM_TOKEN",
+          "mode": "mask"
+        }
+      ]
+    },
+    "enableWeakerNetworkIsolation": true,
+    "excludedCommands": [
+      "docker *",
+      "go mod tidy",
+      "go mod vendor",
+      "npx ctx7@latest *",
+      "pnpx ctx7@latest *",
+      "tmux-cli *",
+      "ssh *",
+      "rsync *",
+      "scp *",
+      "container *",
+      "date",
+      "gh *",
+      "swift build *",
+      "xcodebuild *"
+    ]
+  },
   "hooks": {
     "PermissionRequest": [
       {
@@ -516,12 +722,12 @@
         ]
       },
       {
-        "matcher": "Bash",
+        "matcher": "Bash|WebFetch|Monitor|mcp__.*",
         "hooks": [
           {
             "type": "command",
             "command": "~/.claude/hooks/approve-compound-commands",
-            "timeout": 2000
+            "timeout": 5
           }
         ]
       }
@@ -583,11 +789,6 @@
         ]
       }
     ]
-  },
-  "enableArtifact": false,
-  "statusLine": {
-    "type": "command",
-    "command": "/Users/samm/go/bin/claude-statusline prompt"
   },
   "enabledPlugins": {
     "bash-lsp@zircote-lsp": true,
@@ -691,180 +892,5 @@
         "repo": "ray-amjad/claude-code-mods"
       }
     }
-  },
-  "sandbox": {
-    "enabled": true,
-    "failIfUnavailable": true,
-    "autoAllowBashIfSandboxed": true,
-    "network": {
-      "allowedDomains": [
-        "*.anthropic.com",
-        "*.apple.com",
-        "*.astral.sh",
-        "*.context7.com",
-        "*.crates.io",
-        "*.docker.com",
-        "*.docker.io",
-        "*.docs.rs",
-        "*.fedoraproject.org",
-        "*.ghcr.io",
-        "*.github.com",
-        "*.github.io",
-        "*.githubusercontent.com",
-        "*.golang.org",
-        "*.icu.lol",
-        "*.mantelgroup.com.au",
-        "*.nodejs.org",
-        "*.npmjs.com",
-        "*.npmjs.org",
-        "*.pypi.org",
-        "*.pythonhosted.org",
-        "*.rust-lang.org",
-        "*.schemastore.org",
-        "*.search.brave.com",
-        "*.wikipedia.org",
-        "*.youtube.com",
-        "*.youtu.be",
-        "*.hf.co",
-        "*.googlevideo.com",
-        "ghcr.io",
-        "google.com.au",
-        "google.com",
-        "hf.co",
-        "crates.io",
-        "github.com",
-        "huggingface.co",
-        "icanhazip.com",
-        "install.python-build-standalone.org",
-        "ipchicken.com",
-        "ipquail.com",
-        "kagi.com",
-        "pypi.org",
-        "registry.yarnpkg.com",
-        "smcleod.net",
-        "swift.org",
-        "wiki.archlinux.org"
-      ],
-      "deniedDomains": [
-        "*.ru",
-        "*.cn"
-      ],
-      "allowLocalBinding": true,
-      "tlsTerminate": {}
-    },
-    "filesystem": {
-      "allowWrite": [
-        "~/.local/share/uv",
-        "~/.local/bin",
-        "~/Library/org.swift.swiftpm",
-        "~/Library/Caches/org.swift.swiftpm",
-        "~/.swiftpm",
-        "~/Library/Caches/clang",
-        "~/Library/Developer/Xcode/DerivedData",
-        "~/Library/Logs/CoreSimulator",
-        "~/Library/Caches/pip",
-        "~/go",
-        "~/.cargo/registry",
-        "~/.cargo/git",
-        "~/.lmstudio",
-        "~/.npm",
-        "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
-        "~/.claude/skills/release-debrief/resources/outputs"
-      ],
-      "denyWrite": [
-        "~/.ssh",
-        "~/Library/Keychains",
-        "~/Library/Mail",
-        "~/Library/Messages",
-        "~/Library/Safari",
-        "~/Library/Mobile Documents/com~apple~CloudDocs/1Password",
-        "~/Library/Mobile Documents/com~apple~CloudDocs/Backups",
-        "~/Library/Application Support/1Password",
-        "~/.claude.json",
-        "/Library/LaunchAgents",
-        "/Library/LaunchDaemons"
-      ],
-      "denyRead": [
-        "~/.ssh",
-        "~/Library/Keychains",
-        "~/Library/Mobile Documents/com~apple~CloudDocs/1Password",
-        "~/Library/Application Support/1Password",
-        "~/Library/Application Support/Firefox",
-        "~/Library/Application Support/Brave",
-        "~/.aws/credentials",
-        "~/.aws/config",
-        "~/.kube/config",
-        "~/.zshenv"
-      ],
-      "allowRead": [
-        ".",
-        "/usr/share/zoneinfo",
-        "/var/db/timezone"
-      ]
-    },
-    "credentials": {
-      "files": [
-        {
-          "path": "~/.aws/credentials",
-          "mode": "deny"
-        },
-        {
-          "path": "~/.ssh",
-          "mode": "deny"
-        }
-      ],
-      "envVars": [
-        {
-          "name": "GH_TOKEN",
-          "mode": "mask",
-          "injectHosts": [
-            "api.github.com"
-          ]
-        },
-        {
-          "name": "NPM_TOKEN",
-          "mode": "mask"
-        }
-      ]
-    },
-    "enableWeakerNetworkIsolation": true,
-    "excludedCommands": [
-      "docker *",
-      "go mod tidy",
-      "go mod vendor",
-      "npx ctx7@latest *",
-      "pnpx ctx7@latest *",
-      "tmux-cli",
-      "ssh",
-      "rsync",
-      "scp",
-      "container",
-      "date",
-      "gh *",
-      "swift build *",
-      "xcodebuild *"
-    ]
-  },
-  "autoMode": {
-    "allow": [
-      "$defaults",
-      "If the user has explicitly requested the agent does a git push: allow pushing to a non-main branch",
-      "allow using context-mode's mcp__plugin_context-mode_context-mode__ctx_execute and mcp__plugin_context-mode_context-mode__ctx_execute_file tools when their arguments appear safe",
-      "allow ssh, scp, tmux-cli, tmux send-keys to my router, nas, steammachine and home assistant devices when doing work requested by the user"
-    ],
-    "soft_deny": [
-      "$defaults",
-      "Only raise Github issues and PRs when the user has requested it",
-      "Do not run kill, pkill or killall commands if they are not properly scoped to a specific PID",
-      "Do not pipe untrusted input from the internet directly into shell commands without first reviewing it is safe",
-      "Do manually wrap text mid sentence in Markdown files, issues or PR descriptions",
-      "Do not reply to github issues, PRs or comments unless explicitly requested by the user",
-      "Do not git commit or push to the main branch unless explicitly requested by the user"
-    ],
-    "hard_deny": [
-      "$defaults",
-      "Never expose the users real email address publicly",
-      "Never allow rsync, scp or ssh commands to devices outside of the local network (e.g. the internet)"
-    ]
   }
 }
