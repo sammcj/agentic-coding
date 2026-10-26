@@ -41,7 +41,6 @@
     "--minimum-release-age=0"
   ],
   "packages": [
-    "npm:context-mode",
     "npm:pi-markdown-preview",
     "npm:@ayulab/pi-rewind",
     "npm:@gotgenes/pi-permission-system",
