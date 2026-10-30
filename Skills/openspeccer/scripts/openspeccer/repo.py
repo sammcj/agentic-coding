@@ -31,7 +31,7 @@ from .scan import (
     scan_specs,
     stats,
 )
-from .schemas import SchemaCatalog, build_graph, schema_order
+from .schemas import SchemaCatalog, SchemaDef, build_graph, schema_order
 from .search import search
 
 _AGENTS_TTL = 30.0  # seconds; see Repo._agents_now
@@ -46,6 +46,7 @@ class Repo:
         self.root = root.resolve()
         self.openspec = self.root / "openspec"
         self.catalog = SchemaCatalog(self.root)
+        self._catalogs: dict[Path, SchemaCatalog] = {self.root: self.catalog}
         self._lock = threading.Lock()
         self._version = 0
         self._snapshots: dict[tuple[bool, bool], tuple[int, dict[str, Any], list[Change], list[Spec]]] = {}
@@ -71,7 +72,16 @@ class Repo:
         found = vcs.list_worktrees(self.root, include_jj)
         return found if aggregate else found[:1]
 
-    def _context(self) -> ScanContext:
+    def catalog_for(self, root: Path) -> SchemaCatalog:
+        """The schemas a working copy resolves: a worktree can add or change project schemas
+        and its config's default, as the CLI run there would see them."""
+        root = root.resolve()
+        with self._lock:
+            if root not in self._catalogs:
+                self._catalogs[root] = SchemaCatalog(root)
+            return self._catalogs[root]
+
+    def _context(self, worktrees: list[vcs.Worktree] | None = None) -> ScanContext:
         head = vcs.head(self.root)
         cached_head, commits = self._first_commits
         if head is None:
@@ -79,16 +89,27 @@ class Repo:
         elif head != cached_head:
             commits = vcs.change_first_commits(self.root)
             self._first_commits = (head, commits)
-        return ScanContext(
-            default_schema=default_schema(self.openspec),
-            schema_of=functools.cache(self.catalog.get),  # one lookup per schema per scan
-            first_commits=commits,
-            cache=self._scan_cache,
-        )
+
+        def for_root(root: Path) -> ScanContext:
+            return ScanContext(
+                default_schema=default_schema(root / "openspec"),
+                schema_of=functools.cache(self.catalog_for(root).get),  # one lookup per schema per scan
+                first_commits=commits,
+                cache=self._scan_cache,
+            )
+
+        ctx = for_root(self.root)
+        for wt in worktrees or []:
+            if Path(wt.path).resolve() != self.root:
+                ctx.trees[wt.key] = for_root(Path(wt.path))
+        return ctx
 
     def schemas_changed(self) -> None:
         """Schema definitions moved: drop everything derived from them."""
-        self.catalog.invalidate()
+        with self._lock:
+            catalogs = list(self._catalogs.values())
+        for catalog in catalogs:
+            catalog.invalidate()
         self._scan_cache.archived.clear()
 
     def _agents_now(self) -> list[dict[str, Any]]:
@@ -113,8 +134,8 @@ class Repo:
     def _scan_now(self, key: tuple[bool, bool]) -> tuple[dict[str, Any], list[Change], list[Spec]]:
         aggregate, include_jj = key
         version = self._version
-        ctx = self._context()
         worktrees = self.worktrees(aggregate, include_jj)
+        ctx = self._context(worktrees)
         main = worktrees[0]
         archived = scan_archived(self.openspec, Source.of(main), ctx)
         active = scan_active(worktrees, {c.name for c in archived}, ctx)
@@ -157,7 +178,8 @@ class Repo:
             if wt.key == wt_key:
                 d = Path(wt.path) / "openspec" / "changes" / slug
                 if d.is_dir() and not d.is_symlink():
-                    return scan_change(d, "active", Source.of(wt), self._context())
+                    ctx = self._context([wt])
+                    return scan_change(d, "active", Source.of(wt), ctx.trees.get(wt.key, ctx))
         raise NotFound(slug)
 
     def change_detail(
@@ -187,7 +209,9 @@ class Repo:
                 if a.kind == "tasks":
                     item["tasks"] = asdict(parse_tasks(content))
             artifacts.append(item)
-        schema = self.catalog.get(change.schema) if change.schema else None
+        # An active change's working copy is openspec/changes/<slug> below it; archived ones are main's.
+        own = self.catalog_for(root.parents[2]) if change.status == "active" else self.catalog
+        schema = own.get(change.schema) if change.schema else None
         detail = asdict(change)
         detail["artifacts"] = artifacts
         detail["schema_order"] = schema_order(schema) if schema else None
@@ -263,10 +287,20 @@ class Repo:
         listed, degraded = self.catalog.summaries()
         snap, changes, _ = self._scan(aggregate, include_jj)
         default = snap["default_schema"]
+        roots = {w["key"]: Path(w["path"]) for w in snap["worktrees"]}
+        names = {s.get("name") for s in listed}
         usage: dict[str, int] = {}
+        # Schemas main can't resolve but a change's own worktree can, with that worktree's label.
+        elsewhere: dict[str, tuple[SchemaDef, str]] = {}
         for c in changes:
-            if c.status == "active":
-                usage[c.schema or default or "?"] = usage.get(c.schema or default or "?", 0) + 1
+            if c.status != "active":
+                continue
+            name = c.schema or default or "?"
+            usage[name] = usage.get(name, 0) + 1
+            if name not in names and name not in elsewhere and c.source.key in roots:
+                found = self.catalog_for(roots[c.source.key]).get(name)
+                if found:
+                    elsewhere[name] = (found, c.source.label)
         items = [
             {
                 "name": s.get("name"),
@@ -277,6 +311,16 @@ class Repo:
                 "is_default": s.get("name") == default,
             }
             for s in listed
+        ] + [
+            {
+                "name": name,
+                "description": d.description,
+                "artifact_count": len(d.artifacts),
+                "source": f"worktree {label}",
+                "active_changes": usage[name],
+                "is_default": name == default,
+            }
+            for name, (d, label) in elsewhere.items()
         ]
         known = {i["name"] for i in items}
         unresolved = {k: v for k, v in usage.items() if k not in known}
@@ -284,6 +328,12 @@ class Repo:
 
     def schema_detail(self, name: str) -> dict:
         schema = self.catalog.get(name)
+        if schema is None:
+            # Only reached for a name main can't resolve, such as a worktree's own project schema.
+            for wt in self.worktrees(True, False):
+                schema = self.catalog_for(Path(wt.path)).get(name)
+                if schema:
+                    break
         if schema is None:
             raise NotFound(name)
         nodes, edges = build_graph(schema)

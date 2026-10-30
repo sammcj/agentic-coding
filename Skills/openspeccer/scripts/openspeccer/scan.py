@@ -246,6 +246,8 @@ class ScanContext:
     schema_of: Callable[[str], SchemaDef | None]
     first_commits: dict[str, str]
     cache: ScanCache = field(default_factory=ScanCache)
+    # Per linked worktree (by key): its own default schema and schema lookup. Main uses this one.
+    trees: dict[str, ScanContext] = field(default_factory=dict)
 
 
 def valid_date(value: object) -> str | None:
@@ -368,7 +370,7 @@ def scan_active(worktrees: list[Worktree], archived_names: set[str], ctx: ScanCo
             continue
         if len(found) == 1:
             wt, d = found[0]
-            result.append(scan_change(d, "active", Source.of(wt), ctx))
+            result.append(scan_change(d, "active", Source.of(wt), ctx.trees.get(wt.key, ctx)))
             continue
         sigs = {d: tree_signature(d) for _, d in found}
         prints = {d: fingerprint(d, sigs[d], ctx.cache) for _, d in found}
@@ -381,7 +383,7 @@ def scan_active(worktrees: list[Worktree], archived_names: set[str], ctx: ScanCo
                     wt, d = cand_wt, cand_d
         else:
             wt, d = next((c for c in found if c[0].is_main), found[0])
-        change = scan_change(d, "active", Source.of(wt), ctx)
+        change = scan_change(d, "active", Source.of(wt), ctx.trees.get(wt.key, ctx))
         change.variants = len(set(prints.values()))
         result.append(change)
     result.sort(key=lambda c: c.updated, reverse=True)

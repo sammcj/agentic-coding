@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from helpers import git, make_repo, write
+from helpers import LOOP_SCHEMA, git, make_repo, write
 from openspeccer.repo import NotFound, Repo
 from openspeccer.scan import discover_specs
 
@@ -148,6 +148,27 @@ class WorktreeTest(unittest.TestCase):
 
         main_only = Repo(self.root).snapshot(aggregate=False)
         self.assertNotIn("wt-only", {c["name"] for c in main_only["changes"]})
+
+    def test_schema_only_in_a_worktree_resolves_for_its_changes(self) -> None:
+        # The worktree adds a project schema and makes it its default; main has neither.
+        write(self.wt, "openspec/schemas/lean/schema.yaml", LOOP_SCHEMA.replace("name: loop", "name: lean"))
+        write(self.wt, "openspec/config.yaml", "schema: lean\n")
+        write(self.wt, "openspec/changes/wt-lean/.openspec.yaml", "schema: lean\n")
+        write(self.wt, "openspec/changes/wt-lean/loop/checks.md", "- [x] a\n- [ ] b\n")
+        write(self.wt, "openspec/changes/wt-default/loop/checks.md", "- [x] a\n")
+        repo = Repo(self.root)
+        cs = by_name(repo.snapshot())
+        self.assertEqual(cs["wt-lean"]["tasks"], {"done": 1, "total": 2})
+        self.assertEqual(cs["wt-default"]["schema"], "lean")
+        self.assertEqual(cs["wt-default"]["tasks"], {"done": 1, "total": 1})
+        listed = repo.schemas()
+        self.assertEqual(listed["unresolved"], {"spec-driven": 2})
+        lean = next(s for s in listed["schemas"] if s["name"] == "lean")
+        self.assertEqual(lean["active_changes"], 2)
+        nodes = repo.schema_detail("lean")["nodes"]
+        self.assertEqual([n["key"] for n in nodes], ["intake", "checks", "apply"])
+        key = next(w["key"] for w in repo.snapshot()["worktrees"] if not w["is_main"])
+        self.assertIsNotNone(repo.change_detail("wt-lean", key)["schema_order"])
 
     def test_detail_by_worktree_key(self) -> None:
         write(self.wt, "openspec/changes/wt-only/proposal.md", "from the worktree\n")

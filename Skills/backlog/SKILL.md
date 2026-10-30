@@ -43,3 +43,4 @@ GitHub:
 ## Notes
 
 - Keep the contents concise, quick and easy to read.
+- Use the users wording, if you have context you may add it, if clarification is required: ask, do not make up requirements.
