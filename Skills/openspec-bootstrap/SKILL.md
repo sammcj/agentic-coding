@@ -25,10 +25,10 @@ The config steers every artifact agents write later. Its main job is keeping a c
 
 ## Gotchas
 
-- Rules are appended to the schema's artifact instructions (`openspec/schemas/lean/schema.yaml`). Those already cover spec scope, open questions, per-task verification, per-group tests and size targets. Write rules only for what the repo needs beyond them. A rule that contradicts the schema gets half-followed; edit the project's schema copy instead.
+- Rules are appended to the schema's artifact instructions (`openspec/schemas/lean/schema.yaml`). Those already cover spec scope, user decisions, per-task verification, per-group tests and size targets. Write rules only for what the repo needs beyond them. A rule that contradicts the schema gets half-followed; edit the project's schema copy instead.
 - Every rule tends to add a section to every change. Prefer limits ("only when ...") to requests ("include ...").
 - Size targets in lines don't bind: agents write long lines. Use words.
-- `lean` is a fork of OpenSpec 1.15.0's `spec-driven`. After an OpenSpec upgrade, compare it with `openspec schema fork spec-driven` output and carry over upstream fixes.
+- `lean` is a fork of OpenSpec 1.15.0's `spec-driven`. After an OpenSpec upgrade, compare it with `openspec schema fork spec-driven` output and carry over upstream fixes. `lean` keeps prose unwrapped while upstream wraps it, so compare with `git diff --no-index --word-diff`.
 - `context` should point to files (CLAUDE.md, decision docs) rather than copying their commands or facts, which then drift.
 - `operations` supports only `apply` and `archive`. OpenSpec only warns about other keys at instruction time, so a YAML parse misses them.
 - Explore reads only `context` and `rules`. Behaviour wanted outside a single artifact or apply/archive goes in `context`.
