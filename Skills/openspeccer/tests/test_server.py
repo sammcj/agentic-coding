@@ -53,6 +53,13 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn(b"importmap", body)
 
+    def test_api_config(self) -> None:
+        write(self.root, "openspec/config.yaml", "schema: spec-driven\n")
+        write(self.root, "AGENTS.md", "# Rules\n")
+        cfg = self.json("/api/config")
+        self.assertEqual((cfg["path"], cfg["schema"]), ("openspec/config.yaml", "spec-driven"))
+        self.assertEqual([f["content"] for f in cfg["instructions"]], ["# Rules\n"])
+
     def test_page_csp_allows_only_local_and_hashed_inline_scripts(self) -> None:
         with urllib.request.urlopen(self.base + "/", timeout=5) as r:
             csp, page = r.headers["Content-Security-Policy"], r.read().decode()

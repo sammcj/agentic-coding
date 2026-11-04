@@ -43,10 +43,11 @@ class AgentFinding(NamedTuple):
 def load_agent_findings(path):
     """[AgentFinding] from a JSON array, or "-" for stdin. Raises ValueError naming the first bad entry, since the
     agent that wrote the file is the one reading the error."""
-    text = sys.stdin.read() if path == "-" else Path(path).read_text(encoding="utf-8")
+    # Bytes, so json detects the encoding: a BOM, or a console code page on stdin, would otherwise garble or reject it.
+    raw = sys.stdin.buffer.read() if path == "-" else Path(path).read_bytes()
     try:
-        data = json.loads(text)
-    except json.JSONDecodeError as err:
+        data = json.loads(raw)
+    except ValueError as err:
         raise ValueError("--findings is not valid JSON: %s" % err) from None
     if not isinstance(data, list):
         raise ValueError("--findings must be a JSON array of finding objects")
@@ -57,6 +58,10 @@ def load_agent_findings(path):
         if not isinstance(item.get("grade"), str) or item["grade"] not in GRADES:
             raise ValueError("--findings entry %d: \"grade\" must be one of %s"
                              % (i, ", ".join(GRADES)))
+        unknown = sorted(set(item) - set(AgentFinding._fields))
+        if unknown:
+            raise ValueError("--findings entry %d: unknown key %s, expected %s"
+                             % (i, ", ".join(unknown), ", ".join(AgentFinding._fields)))
         out.append(AgentFinding(**{k: str(item.get(k) or "").strip() for k in AgentFinding._fields}))
     return out
 
@@ -546,8 +551,8 @@ BLOCK_RULE = {"blob": "blob", "code": "code", "dense": "dense-run", "table": "ta
               "redundant": "when-to-use", "desc": "description-length", "descw": "description-length",
               # No span in the source: a spec finding names the file. Listed with the rest, never shaded.
               "spec": "spec-error", "specw": "spec-warning"}
-# What the margin label prints beside each block, since every block now takes a shade from the same ramp and the
-# colour alone no longer says which kind fired.
+# What the margin label prints beside each block. Every block takes a shade from the same ramp, so colour alone cannot
+# say which kind fired.
 BLOCK_LABEL = {"blob": "%dw blob", "code": "%dL code", "dense": "%d units, dense run",
                "table": "%d prose cells, table", "redundant": '%dL "when to use"',
                "desc": "%dw description", "descw": "%dw description", "wrap": "%dL wrapped"}

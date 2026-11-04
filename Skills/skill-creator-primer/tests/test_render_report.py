@@ -1292,6 +1292,35 @@ class LoadAgentFindingsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "not valid JSON"):
             self.load("[")
 
+    def test_rejects_invalid_utf8_as_bad_json(self):
+        with tempfile.NamedTemporaryFile("wb", suffix=".json", delete=False) as fh:
+            fh.write(b'[{"grade": "spec", "finding": "\xff"}]')
+        self.addCleanup(lambda: os.unlink(fh.name))
+        with self.assertRaisesRegex(ValueError, "not valid JSON"):
+            rr.load_agent_findings(fh.name)
+
+    def test_rejects_an_unknown_key_by_name(self):
+        with self.assertRaisesRegex(ValueError, "entry 0.*location"):
+            self.load('[{"grade": "spec", "finding": "x", "location": "SKILL.md:9"}]')
+
+    def test_a_byte_order_mark_is_accepted(self):
+        with tempfile.NamedTemporaryFile("wb", suffix=".json", delete=False) as fh:
+            fh.write(b'\xef\xbb\xbf[{"grade": "spec", "finding": "x"}]')
+        self.addCleanup(lambda: os.unlink(fh.name))
+        self.assertEqual(rr.load_agent_findings(fh.name), [rm.AgentFinding("spec", "x")])
+
+    def test_stdin_is_utf8_whatever_the_console_code_page(self):
+        raw = '[{"grade": "spec", "finding": "café"}]'.encode()
+        with unittest.mock.patch("sys.stdin", io.TextIOWrapper(io.BytesIO(raw), encoding="cp1252")):
+            self.assertEqual(rr.load_agent_findings("-"), [rm.AgentFinding("spec", "café")])
+
+
+class GotoForTests(unittest.TestCase):
+    def test_a_forward_slash_finding_lands_on_a_backslash_key(self):
+        with unittest.mock.patch.object(rr.os, "sep", "\\"):
+            goto = rr.goto_for("references/x.md:12", {"SKILL.md": 0, "references\\x.md": 1})
+        self.assertEqual(goto, rr.anchor(1, 12))
+
 
 if __name__ == "__main__":
     unittest.main()

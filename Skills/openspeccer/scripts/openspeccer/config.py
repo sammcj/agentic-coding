@@ -16,10 +16,14 @@ _KNOWN = {"schema", "context", "rules", "operations"}
 
 
 def config_path(openspec_dir: Path) -> Path | None:
+    # A link out of the project would put an arbitrary file on the Config page and in exports. Both roots
+    # count because openspec/ can itself be a link, placing its files outside the project dir.
     for name in ("config.yaml", "config.yml"):
         p = openspec_dir / name
         if p.is_file():
-            return p
+            real = p.resolve()
+            if any(real.is_relative_to(r.resolve()) for r in (openspec_dir.parent, openspec_dir)):
+                return p
     return None
 
 

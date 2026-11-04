@@ -267,7 +267,7 @@ def findings_block(found):
     legend += "".join('<span><i class="key k-%s"></i>%s</span>' % (k, e(d)) for k, d in KINDS)
     # The caption holds the reason for whatever is hovered or chosen, so why a thing is flagged does not depend on
     # finding a tooltip.
-    return (            '<div class="scroll"><table>%s</table></div>'
+    return ('<div class="scroll"><table>%s</table></div>'
             '<div class="foot" id="foot"><p id="why" class="why"></p>'
             '<div class="legend">%s</div></div>'
             % (rows, legend))
@@ -276,6 +276,7 @@ def findings_block(found):
 def goto_for(where, index_of):
     """The anchor an agent finding's path:line lands on, or "" when it names no loadable line."""
     rel, _, line = where.partition(":")
+    rel = rel.replace("/", os.sep)  # Findings use forward slashes on every platform; index_of keys use the native one.
     return anchor(index_of[rel], int(line)) if rel in index_of and line.isdigit() else ""
 
 

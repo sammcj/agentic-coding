@@ -205,8 +205,7 @@ pre { margin: 0; font: 400 13px/1.65 var(--mono); white-space: pre-wrap;
 /* The ramp rewrite-slop uses, shared so a reader moving between the two reports reads one scale: a dense run is
    possible (yellow); a long paragraph, a prose table and an over-long fence are probable (orange); the two deletable
    findings are certain (red). A run often contains a blob, which keeps its deeper shade inside it.
-   Every shade is a block of the same weight, so the kind is carried by the margin label rather than by the colour -
-   the earlier pale grey on code was invisible at reading distance and said nothing the label does not. */
+   Every shade is a block of the same weight, so the kind is carried by the margin label rather than by the colour. */
 .l.dense { background: #fffbe6; border-left-color: var(--maybe-rule); }
 /* Possible like a dense run, but lighter: a whole file can be wrapped, and a full-strength shade on every paragraph
    would drown the findings that matter. */

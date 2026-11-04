@@ -1,8 +1,10 @@
+import os
+import shutil
 import unittest
 from unittest import mock
 
 from helpers import make_repo, write
-from openspeccer.config import CONTEXT_LIMIT
+from openspeccer.config import CONTEXT_LIMIT, config_path
 from openspeccer.repo import Repo
 
 CONFIG = """schema: spec-driven
@@ -89,6 +91,69 @@ class ConfigTest(unittest.TestCase):
             ".claude/agents/reviewer.md": "Review only.\n",
         }
         self.assertEqual(found, expected)
+
+    def test_personal_instructions_stay_out(self) -> None:
+        write(self.root, "CLAUDE.local.md", "My own notes.\n")
+        self.assertEqual(self.repo.config()["instructions"], [])
+
+    def test_instruction_dir_linked_out_of_the_repo_is_not_read(self) -> None:
+        write(self.root.parent, "outside/secret.md", "Not the project's.\n")
+        os.symlink(self.root.parent / "outside", self.root / ".claude/rules")
+        self.assertEqual(self.repo.config()["instructions"], [])
+
+    def test_instruction_dir_linked_within_the_repo_is_read(self) -> None:
+        write(self.root, "shared/rules/swift.md", "Use Swift 6.\n")
+        os.symlink(self.root / "shared/rules", self.root / ".claude/rules")
+        paths = [f["path"] for f in self.repo.config()["instructions"]]
+        self.assertEqual(paths, [".claude/rules/swift.md"])
+
+    def test_config_linked_out_of_the_repo_is_not_read(self) -> None:
+        write(self.root.parent, "outside.yaml", "schema: leaked\n")
+        (self.root / "openspec/config.yaml").unlink()
+        os.symlink(self.root.parent / "outside.yaml", self.root / "openspec/config.yaml")
+        cfg = self.repo.config()
+        self.assertIsNone(cfg["path"])
+        self.assertEqual(cfg["raw"], "")
+
+    def test_config_linked_within_the_repo_is_read(self) -> None:
+        write(self.root, "shared/openspec.yaml", "schema: loop\n")
+        (self.root / "openspec/config.yaml").unlink()
+        os.symlink(self.root / "shared/openspec.yaml", self.root / "openspec/config.yaml")
+        self.assertEqual(self.repo.config()["schema"], "loop")
+
+    def test_config_inside_a_linked_openspec_dir_is_read(self) -> None:
+        write(self.root.parent, "shared/openspec/config.yaml", "schema: loop\n")
+        linked = self.root.parent / "linked"
+        linked.mkdir()
+        os.symlink(self.root.parent / "shared/openspec", linked / "openspec")
+        self.assertIsNotNone(config_path(linked / "openspec"))
+
+    def test_openspec_linked_to_its_own_repo_does_not_widen_the_check(self) -> None:
+        write(self.root.parent, "outside.yaml", "schema: leaked\n")
+        repo = self.root.parent / "dotlink"
+        repo.mkdir()
+        os.symlink(".", repo / "openspec")
+        os.symlink("../outside.yaml", repo / "config.yaml")
+        self.assertIsNone(config_path(repo / "openspec"))
+
+    def test_a_looped_openspec_link_has_no_config(self) -> None:
+        repo = self.root.parent / "looped"
+        repo.mkdir()
+        os.symlink("openspec", repo / "openspec")
+        self.assertIsNone(config_path(repo / "openspec"))
+
+    def test_config_yml_linked_out_of_the_repo_is_not_read(self) -> None:
+        write(self.root.parent, "outside.yaml", "schema: leaked\n")
+        (self.root / "openspec/config.yaml").unlink()
+        os.symlink(self.root.parent / "outside.yaml", self.root / "openspec/config.yml")
+        self.assertIsNone(self.repo.config()["path"])
+
+    def test_claude_dir_linked_out_of_the_repo_is_not_read(self) -> None:
+        write(self.root.parent, "outside/CLAUDE.md", "Not the project's.\n")
+        write(self.root.parent, "outside/rules/x.md", "Not the project's.\n")
+        shutil.rmtree(self.root / ".claude")
+        os.symlink(self.root.parent / "outside", self.root / ".claude")
+        self.assertEqual(self.repo.config()["instructions"], [])
 
     def test_missing_and_broken(self) -> None:
         (self.root / "openspec/config.yaml").unlink()

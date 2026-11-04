@@ -66,10 +66,10 @@ AGENT_ROOTS: dict[str, list[str]] = {
 
 # Where agents look for project instructions that sit beside OpenSpec's own. Files in an
 # ad hoc place (a build directory, a scratch note) are invisible to agents too, so are not sought.
+# CLAUDE.local.md is left out: it is personal, and this list ends up in shared site exports.
 INSTRUCTION_FILES = [
     "AGENTS.md",
     "CLAUDE.md",
-    "CLAUDE.local.md",
     ".claude/CLAUDE.md",
     "GEMINI.md",
     ".github/copilot-instructions.md",
@@ -92,7 +92,7 @@ def instruction_files(repo: Path) -> list[InstructionFile]:
     candidates = (repo / name for name in INSTRUCTION_FILES)
     paths = [p for p in candidates if p.is_file() and p.resolve().is_relative_to(real)]
     for d in INSTRUCTION_DIRS:
-        if (repo / d).is_dir():
+        if (repo / d).is_dir() and (repo / d).resolve().is_relative_to(real):
             paths += sorted(f for f in walk_files(repo / d) if f.suffix in (".md", ".mdc"))
     found = []
     for p in paths:
