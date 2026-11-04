@@ -29,11 +29,7 @@ Multi-source projects (e.g. a Cargo workspace with a `VERSION` file too) get all
 .PHONY: stamp-version
 stamp-version:
 	@V=$$(cat VERSION | tr -d '[:space:]'); \
-	if command -v uv >/dev/null 2>&1; then \
-		uv run scripts/version.py stamp --version "$$V" --changelog-only; \
-	else \
-		python3 scripts/version.py stamp --version "$$V" --changelog-only; \
-	fi
+	uv run scripts/version.py stamp --version "$$V" --changelog-only
 
 # Bump version: writes VERSION (and any discovered manifest), freezes CHANGELOG.
 # Usage: make version V=0.2.0
@@ -45,11 +41,7 @@ version:
 	@if ! echo "$(V)" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$$'; then \
 		echo "ERROR: '$(V)' is not a valid semver string"; exit 1; \
 	fi
-	@if command -v uv >/dev/null 2>&1; then \
-		uv run scripts/version.py stamp --version "$(V)"; \
-	else \
-		python3 scripts/version.py stamp --version "$(V)"; \
-	fi
+	@uv run scripts/version.py stamp --version "$(V)"
 ```
 
 `make version V=0.2.0` rewrites `VERSION` in place via the script's `VERSION` handler and freezes `[Unreleased]` as `[0.2.0]`.
@@ -137,6 +129,8 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - uses: astral-sh/setup-uv@v10
+
       - name: Stamp version
         id: version
         env:
@@ -150,7 +144,7 @@ jobs:
           fi
           V=$(tr -d '[:space:]' < VERSION)
           echo "version=$V" >> "$GITHUB_OUTPUT"
-          python3 scripts/version.py stamp --version "$V" --changelog-only
+          uv run scripts/version.py stamp --version "$V" --changelog-only
 ```
 
 ## Gotchas

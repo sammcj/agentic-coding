@@ -1,9 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "syncClaudeAiSkills": false,
-  "tengu_groovy_ember": {
-    "mode": "short"
-  },
   "env": {
     "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "1",
     "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1",
@@ -566,7 +563,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/sh -c 'rex __internal session-start --agent claude 2>/dev/null || true'",
+            "command": "/bin/sh -c 'rex __internal session-start --agent claude --feature-session-naming=false 2>/dev/null || true'",
             "timeout": 5
           }
         ]
@@ -904,5 +901,8 @@
       "Never allow rsync, scp or ssh commands to devices outside of the local network (e.g. the internet)",
       "Never send network requests to Chinese cloud providers (Alibaba/Aliyun, Tencent, Huawei, Baidu, ByteDance/Volcengine) or cloud metadata IPs (169.254.169.254, 100.100.100.200), including via docker, excluded commands, MCP tools or per-command allowed_domains"
     ]
+  },
+  "tengu_groovy_ember": {
+    "mode": "short"
   }
 }

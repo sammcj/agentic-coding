@@ -69,7 +69,7 @@ Flags: `--version X.Y.Z` (required for SemVer; optional override for CalVer), `-
 
 The script is scheme-agnostic. With no `--version`, it auto-computes CalVer; with `--version`, it stamps whatever string you give it. Validation lives in the build system, so SemVer recipes always pass `--version` and reject malformed input before invoking the script. See `references/semver.md` for why this split matters.
 
-Run via `uv run scripts/version.py stamp` or `python3 scripts/version.py stamp` (no external dependencies).
+Run via `uv run scripts/version.py stamp` (stdlib only). uv supplies the Python 3.12+ its inline metadata requires.
 
 ## Gotchas
 
@@ -79,6 +79,7 @@ Run via `uv run scripts/version.py stamp` or `python3 scripts/version.py stamp` 
 - **A changelog is not a commit log.** Two rules keep it useful, and both must appear in the HTML comment and the CLAUDE.md snippet: log only reader-visible changes (git history covers the rest), and keep entries to one line unless the change is genuinely complex. Without them agents log formatting tweaks and write paragraphs for one-line fixes.
 - **The HTML comment is the agent's instruction source.** The `<!-- AI agents: ... -->` comment in CHANGELOG.md tells future agents how to write entries. Don't omit it.
 - **Known Bugs stays pinned.** The stamp script preserves `## Known Bugs` above `## [Unreleased]`. If you add it, agents should maintain it there.
-- **SemVer + auto-CalVer = silent footgun.** If a Makefile in a SemVer project calls `python3 scripts/version.py stamp` without `--version`, the script auto-computes CalVer and writes that into the changelog. The recipes in `references/semver.md` always pass `--version`; preserve that contract in any custom integration.
+- **SemVer + auto-CalVer = silent footgun.** If a Makefile in a SemVer project calls `uv run scripts/version.py stamp` without `--version`, the script auto-computes CalVer and writes that into the changelog. The recipes in `references/semver.md` always pass `--version`; preserve that contract in any custom integration.
+- **Run it with `uv`, not `python3`.** macOS's stock `python3` is 3.9 and fails on the script's `str | None` hints with a `TypeError`.
 - **Config file stamping is first-match-only for TOML.** The regex replaces only the first `version = "..."` line, which is the package version. Dependency versions are unaffected.
 - **VERSION file stamping requires existing semver-shaped content.** The script's `VERSION` handler only rewrites the file if its current content matches `^\d+\.\d+\.\d+`. Build numbers, tag-prefixed versions, or other formats are left alone.

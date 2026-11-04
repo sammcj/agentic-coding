@@ -4,8 +4,8 @@ Use this when the project has no existing version convention, or has explicitly 
 
 ## Versioning behaviour
 
-- `python3 scripts/version.py version` prints today's CalVer to stdout
-- `python3 scripts/version.py stamp` (no `--version`) auto-computes CalVer and stamps both CHANGELOG.md and any discovered config files (`package.json`, `Cargo.toml`, `pyproject.toml`, `tauri.conf.json`, `VERSION`)
+- `uv run scripts/version.py version` prints today's CalVer to stdout
+- `uv run scripts/version.py stamp` (no `--version`) auto-computes CalVer and stamps both CHANGELOG.md and any discovered config files (`package.json`, `Cargo.toml`, `pyproject.toml`, `tauri.conf.json`, `VERSION`)
 - Manual override: `--version X.Y.Z`
 - The version increases monotonically as long as commits accumulate; CI must use `fetch-depth: 0`
 
@@ -90,6 +90,8 @@ jobs:
         with:
           fetch-depth: 0  # required for CalVer commit count
           persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v10
 
       - name: Stamp version
         id: version
