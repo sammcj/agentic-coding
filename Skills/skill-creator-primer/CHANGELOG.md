@@ -4,7 +4,7 @@
 
 ## 2026-11-04
 
-- `--findings` rejects unknown keys by name, and reads BOM-prefixed or non-UTF-8-console input correctly.
+- `--findings` rejects unknown keys by name, and reads BOM-prefixed files and UTF-8 stdin on any console code page.
 - Agent findings written with forward slashes now jump to their line on Windows.
 
 ## 2026-10-19
