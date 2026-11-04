@@ -1,0 +1,19 @@
+// Gated update service. Deploy with `npx wrangler@4 deploy` from this directory.
+{
+  "name": "myapp-updates",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-04",
+  "workers_dev": false,
+  // A hostname two levels deep is outside Universal SSL. The custom domain gets its own certificate.
+  "routes": [{ "pattern": "myapp.updates.example.com", "custom_domain": true }],
+  // KV namespace ids are not secret.
+  "kv_namespaces": [{ "binding": "BETA_TOKENS", "id": "00000000000000000000000000000000" }],
+  "r2_buckets": [{ "binding": "UPDATES", "bucket_name": "myapp-updates" }],
+  // Counted per Cloudflare location. namespace_id is unique per account.
+  "ratelimits": [
+    // Feed checks per registered token.
+    { "name": "TOKEN_LIMITER", "namespace_id": "3001", "simple": { "limit": 2, "period": 60 } },
+    // Every request per client IP, before the token lookup. One update is about three requests.
+    { "name": "IP_LIMITER", "namespace_id": "3002", "simple": { "limit": 20, "period": 60 } },
+  ],
+}
