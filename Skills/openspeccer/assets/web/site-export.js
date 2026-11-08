@@ -21,7 +21,12 @@ function anchor(hash) {
   return { full: rest ? `${path}?${rest}` : path, path };
 }
 
-async function sitePages(snap) {
+export const withoutArchived = (snap) => ({ ...snap, changes: snap.changes.filter((c) => c.status !== "archived") });
+
+// `excludeArchived` applies to the change list and change pages only. The timeline's burndown needs
+// archived changes, and the dashboard's archived lane would otherwise contradict its archived count.
+async function sitePages(snap, excludeArchived) {
+  const listed = excludeArchived ? withoutArchived(snap) : snap;
   const schemas = await fetch(apiUrl("schemas"))
     .then((r) => r.json())
     .then((d) => d.schemas || [])
@@ -32,8 +37,8 @@ async function sitePages(snap) {
     { hash: href([]), view: html`<${Dashboard} snap=${snap} />` },
     { hash: href(["specs"]), view: html`<${SpecsPage} snap=${snap} topic="" query=${none} />` },
     ...snap.specs.map((s) => ({ hash: href(["specs", s.topic]), view: html`<${SpecDetail} topic=${s.topic} snap=${snap} query=${none} expand />` })),
-    { hash: href(["changes"]), view: html`<${ChangeList} snap=${snap} query=${none} />` },
-    ...snap.changes.map((c) => ({ hash: changeHref(c), view: html`<${ChangeDetail} slug=${c.slug} query=${wt(c)} expand />` })),
+    { hash: href(["changes"]), view: html`<${ChangeList} snap=${listed} query=${none} />` },
+    ...listed.changes.map((c) => ({ hash: changeHref(c), view: html`<${ChangeDetail} slug=${c.slug} query=${wt(c)} expand />` })),
     { hash: href(["timeline"]), view: html`<${Timeline} snap=${snap} query=${none} />` },
     { hash: href(["schemas"]), view: html`<${SchemaList} snap=${snap} />` },
     ...schemas.map((s) => ({ hash: href(["schemas", s.name]), view: html`<${SchemaDetail} snap=${snap} name=${s.name} />` })),
@@ -58,8 +63,8 @@ async function renderSite(pages, onProgress) {
 }
 
 // Resolves to the number of pages still loading when the wait timed out.
-async function exportSite(snap, nav, onProgress) {
-  const pages = await sitePages(snap);
+async function exportSite(snap, nav, excludeArchived, onProgress) {
+  const pages = await sitePages(snap, excludeArchived);
   const { body, waiting } = await renderSite(pages, onProgress);
   const links = nav
     .map((n) => `<a class="nav-item" href="#${anchor(href(n.id ? [n.id] : [])).full}"><span class="nav-icon" aria-hidden="true">${n.icon}</span>${escapeHtml(n.label)}</a>`)
@@ -69,7 +74,7 @@ async function exportSite(snap, nav, onProgress) {
   const doc = await documentHtml(
     `${snap.repo.name} - openspeccer`,
     `<div class="shell static-site">
-<aside class="sidebar"><span class="wordmark">OPENSPECCER</span><div class="muted small">${escapeHtml(snap.repo.name)} · exported ${stamp}</div><nav class="nav">${links}</nav></aside>
+<aside class="sidebar"><span class="wordmark">OPENSPECCER</span><div class="muted small">${escapeHtml(snap.repo.name)} · exported ${stamp}${excludeArchived ? " · archived change pages excluded" : ""}</div><nav class="nav">${links}</nav></aside>
 <main class="main">${body}</main>
 </div>`,
     ".static-site { grid-template-rows: 1fr; }\n.site-page + .site-page { border-top: 2px solid var(--border-strong); }",
@@ -81,12 +86,13 @@ async function exportSite(snap, nav, onProgress) {
 export function SiteExport({ snap, nav }) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
+  const [excludeArchived, setExcludeArchived] = useState(false);
   const run = async () => {
     setBusy(true);
     setNote("Exporting...");
     let msg = "";
     try {
-      const waiting = await exportSite(snap, nav, (done, total) => setNote(`Exporting ${done}/${total}`));
+      const waiting = await exportSite(snap, nav, excludeArchived, (done, total) => setNote(`Exporting ${done}/${total}`));
       if (waiting) msg = `Exported, ${waiting} page${waiting === 1 ? "" : "s"} incomplete`;
     } catch (err) {
       console.error(err);
@@ -97,7 +103,13 @@ export function SiteExport({ snap, nav }) {
       if (msg) setTimeout(() => setNote(""), 4000);
     }
   };
-  return html`<button type="button" class="btn site-export" disabled=${busy} title="Save every page as one static HTML file" onClick=${run}>
-    ${note || "Export all (HTML)"}
-  </button>`;
+  return html`<div class="site-export">
+    <button type="button" class="btn" disabled=${busy} title="Save every page as one static HTML file" onClick=${run}>
+      ${note || "Export all (HTML)"}
+    </button>
+    <label class="muted small">
+      <input type="checkbox" checked=${excludeArchived} disabled=${busy} onChange=${(e) => setExcludeArchived(e.currentTarget.checked)} />
+      Exclude archived change pages
+    </label>
+  </div>`;
 }

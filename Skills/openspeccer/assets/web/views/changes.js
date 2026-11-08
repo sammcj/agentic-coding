@@ -187,6 +187,8 @@ function ArtifactView({ art }) {
   </div>`;
 }
 
+const TAB_ICON = { tasks: "☑", specs: "§", data: "{}", markdown: "¶" };
+
 // `expand` stacks every tab instead of showing one, for the whole-site export.
 export function ChangeDetail({ slug, query, expand = false }) {
   const wt = query.get("wt") || "";
@@ -204,7 +206,7 @@ export function ChangeDetail({ slug, query, expand = false }) {
     setSortMode(mode);
     setPref("artifact-sort", mode);
   };
-  // Every tab in the chosen sort, ignoring the filter, so "all tabs" means all of them.
+  // Every tab in the chosen sort, ignoring the filter, so an export has all of them.
   const allArts = () => sortArtifacts(c.artifacts, sortMode, order);
   const expected = order ? order.length : null;
   const present = new Set(c.artifacts.map((a) => a.schema_artifact).filter(Boolean)).size;
@@ -220,14 +222,10 @@ export function ChangeDetail({ slug, query, expand = false }) {
       <${SourceBadge} source=${c.source} />
       ${c.tasks && html`<${Progress} done=${c.tasks.done} total=${c.tasks.total} />`}
       <${ExportMenu}
-        name=${c.artifacts.length > 1 ? `${c.slug}-${current.id}` : c.slug}
+        name=${c.slug}
         title=${c.name}
-        markdown=${() => changeMarkdown(c, sub, current ? [current] : [])}
-        all=${c.artifacts.length > 1 && {
-          name: c.slug,
-          markdown: () => changeMarkdown(c, sub, allArts()),
-          swap: (main) => swapInAllTabs(main, allArts()),
-        }}
+        markdown=${() => changeMarkdown(c, sub, allArts())}
+        swap=${(main) => swapInAllTabs(main, allArts())}
       />
     <//>
     ${c.artifacts.length === 0
@@ -240,7 +238,7 @@ export function ChangeDetail({ slug, query, expand = false }) {
               (a) => html`<button type="button" role="tab" aria-selected=${a === current}
                 class=${`tab ${a === current ? "on" : ""}`} title=${a.path}
                 onClick=${() => setQuery({ tab: a.id })}>
-                <span class=${`tab-kind kind-${a.kind}`} aria-hidden="true">${{ tasks: "☑", specs: "§", data: "{}", markdown: "¶" }[a.kind]}</span>${a.title}
+                <span class=${`tab-kind kind-${a.kind}`} aria-hidden="true">${TAB_ICON[a.kind]}</span>${a.title}
               </button>`,
             )}
           </div>
@@ -256,11 +254,11 @@ export function ChangeDetail({ slug, query, expand = false }) {
   </div>`;
 }
 
-// Every artifact stacked under its path, for the static HTML exports.
+// Every artifact stacked under its path. `cleanForExport` turns the stack into tabs.
 function AllTabs({ arts }) {
   return html`<div class="all-tabs">
     ${arts.map(
-      (a) => html`<section key=${a.id}>
+      (a) => html`<section key=${a.id} data-tab=${a.title} data-icon=${TAB_ICON[a.kind]}>
         <h2 class="artifact-path mono">${a.kind === "specs" ? a.title : a.path}</h2>
         <${ArtifactView} art=${a} />
       </section>`,
@@ -271,9 +269,10 @@ function AllTabs({ arts }) {
 // Renders every tab off-screen and puts it in place of the one tab showing in the cloned page.
 async function swapInAllTabs(main, arts) {
   const region = main.querySelector(".tab-region");
-  if (!region) return;
-  const { root } = await renderOffscreen([html`<${AllTabs} arts=${arts} />`]);
+  if (!region) return 0;
+  const { root, waiting } = await renderOffscreen([html`<${AllTabs} arts=${arts} />`]);
   region.replaceWith(root.firstElementChild);
+  return waiting;
 }
 
 // Each artifact verbatim, in the given order, each under its file path.

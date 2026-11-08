@@ -271,10 +271,10 @@ ol.guide-flow .guide-cmds::before { content: counter(flow) "."; color: var(--mut
 .md h2 { font-size: 16px; margin-top: 22px; }
 .md h3 { font-size: 14.5px; }
 .md h1, .md h2, .md h3, .md h4 { scroll-margin-top: 12px; }
-.md code { background: var(--panel); padding: 1px 5px; border-radius: 3px; font-size: 12.5px; }
+.md code { background: var(--panel); padding: 1px 5px; border-radius: 3px; font-size: 12.5px; white-space: nowrap; }
 .md pre { background: var(--soft); border: 1px solid var(--border); border-radius: 5px; padding: 10px 12px; overflow-x: auto; }
-.md pre code { background: none; padding: 0; }
-.md code.nowrap { white-space: nowrap; }
+.md pre code { background: none; padding: 0; white-space: inherit; }
+.md code.wrap { white-space: normal; }
 .md .mermaid-diagram { margin: 12px 0; overflow-x: auto; }
 .md .mermaid-diagram svg { display: block; height: auto; }
 .md .mermaid-error { margin: -8px 0 12px; color: var(--accent); font-size: 12px; white-space: pre-wrap; }
@@ -388,11 +388,23 @@ mark { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 .menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; display: flex; flex-direction: column; min-width: 200px; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 5px; box-shadow: 0 6px 18px rgb(0 0 0 / 0.12); padding: 4px 0; }
 .menu button { border: none; background: none; text-align: left; padding: 7px 14px; cursor: pointer; font: inherit; font-size: 12.5px; color: var(--text); }
 .menu button:hover, .menu button:focus-visible { background: var(--soft); }
-.menu-group { padding: 6px 14px 2px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
-.menu-group:not(:first-child) { margin-top: 4px; border-top: 1px solid var(--border); padding-top: 8px; }
-.site-export { margin-top: auto; width: 100%; }
-.site-export:disabled { cursor: progress; color: var(--muted); }
-.all-tabs > section + section { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border-strong); }
+.site-export { margin-top: auto; width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.site-export .btn { width: 100%; }
+.site-export .btn:disabled { cursor: progress; color: var(--muted); }
+.site-export label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+/* Script-free tabs in static exports: radio, label and panel repeat, and `order` lifts the labels into one row. */
+.static-tabs { position: relative; display: flex; flex-wrap: wrap; }
+.static-tabs > .tab { order: 0; z-index: 1; }
+.static-tabs > section { order: 1; display: none; width: 100%; min-width: 0; border-top: 1px solid var(--border-strong); }
+.tab-radio { position: absolute; opacity: 0; pointer-events: none; }
+.tab-radio:checked + .tab { border-bottom-color: var(--accent); font-weight: 700; }
+.tab-radio:focus-visible + .tab { outline: 2px solid var(--accent); outline-offset: -2px; }
+.tab-radio:checked + .tab + section { display: block; }
+@media print {
+  .static-tabs { display: block; }
+  .static-tabs > .tab, .tab-radio { display: none; }
+  .static-tabs > section { display: block; margin-top: 32px; padding-top: 20px; }
+}
 .page-header .export-menu { align-self: flex-start; }
 
 /* -- burndown -- */

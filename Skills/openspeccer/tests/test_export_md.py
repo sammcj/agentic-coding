@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import unittest
 from pathlib import Path
+from typing import Any
 
 WEB = Path(__file__).resolve().parent.parent / "assets" / "web"
 
@@ -22,7 +23,7 @@ console.log(JSON.stringify(mod[fn](...args)));
 """
 
 
-def call(module: str, fn: str, *args) -> str:
+def call(module: str, fn: str, *args) -> Any:
     job = json.dumps({"module": module, "fn": fn, "args": args})
     cmd = ["node", "--input-type=module", "-e", RUN, str(WEB), job]
     out = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30)
@@ -139,6 +140,30 @@ class ExportMarkdownTest(unittest.TestCase):
         self.assertIn("### `openspec spec show`", filtered)
         self.assertNotIn("openspec list", filtered)
         self.assertNotIn("Global options", filtered)
+
+    def test_minify_html_drops_whitespace_between_blocks_only(self) -> None:
+        src = "<ul>\n<li>a</li>\n  <li><b>x</b> <i>y</i></li>\n</ul>\n<p>one\ntwo</p>\n"
+        out = call("export.js", "minifyHtml", src)
+        self.assertEqual(out, "<ul><li>a</li><li><b>x</b> <i>y</i></li></ul><p>one\ntwo</p>\n")
+
+    def test_minify_html_leaves_preformatted_and_diagram_markup_alone(self) -> None:
+        pre = "<pre><code>a\n\n<div>  </div>\n  b</code></pre>"
+        svg = "<svg><foreignObject><div> <p>x</p> </div></foreignObject></svg>"
+        out = call("export.js", "minifyHtml", f"<div>\n{pre}\n{svg}\n</div>")
+        self.assertEqual(out, f"<div>{pre}\n{svg}</div>")
+
+    def test_minify_css_drops_comments_and_layout_whitespace(self) -> None:
+        src = '/* note */\n.a b,\n.c {\n  content: "x y";\n  margin: 0 1px;\n}\n@media (width < 9px) {\n  .d { top: 0; }\n}\n'  # noqa: E501
+        out = call("export.js", "minifyCss", src)
+        want = '.a b,.c{content: "x y";margin: 0 1px;}@media (width < 9px){.d{top: 0;}}'
+        self.assertEqual(out, want)
+
+    def test_without_archived_keeps_other_changes_and_snapshot_fields(self) -> None:
+        old = {**CHANGE, "slug": "old", "status": "archived"}
+        snap = {"repo": {"name": "demo"}, "changes": [CHANGE, old]}
+        out = call("site-export.js", "withoutArchived", snap)
+        self.assertEqual([c["slug"] for c in out["changes"]], ["add-login"])
+        self.assertEqual(out["repo"], {"name": "demo"})
 
     def test_change_markdown_includes_only_given_tabs(self) -> None:
         arts = [

@@ -43,11 +43,11 @@ const marked = new Marked({
       const t = title ? ` title="${escapeHtml(title)}"` : "";
       return `<a href="${escapeHtml(href)}"${t} target="_blank" rel="noreferrer">${inner}</a>`;
     },
-    // Browsers break after "/", splitting a path or package name across lines. A short span
-    // stays whole; a long one may still wrap rather than overflow the column.
+    // Browsers break after "/", splitting a path or package name across lines, so `.md code`
+    // stays whole by default. A long span may still wrap rather than overflow the column. Only
+    // the rare long span carries a class because a large export has thousands of these.
     codespan({ text }) {
-      const whole = text.length <= 60;
-      return `<code${whole ? ' class="nowrap"' : ""}>${escapeHtml(text)}</code>`;
+      return `<code${text.length > 60 ? ' class="wrap"' : ""}>${escapeHtml(text)}</code>`;
     },
     image({ text }) {
       return `<span class="img-alt">[image: ${escapeHtml(text)}]</span>`;

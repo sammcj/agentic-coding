@@ -1,6 +1,6 @@
 # Bento slides format reference
 
-Fields and runtime rules `agents-1.2.3.md` lacks (its upstream text stops at 1.0.18) or gets wrong. Authoritative key list: https://bento.page/schema/slides.json (`window.bento.schema()` in the app).
+Fields and runtime rules `agents-1.2.12.md` lacks (its upstream text stops at 1.0.18) or gets wrong. Authoritative key list: https://bento.page/schema/slides.json (`window.bento.schema()` in the app).
 
 Contents: Compact form | Elements and fields | Slide, present, theme | Date and time patterns | Chart rules | window.bento signatures. Text html rules: SKILL.md gotchas. Animation: `motion.md`.
 
@@ -20,7 +20,7 @@ Contents: Compact form | Elements and fields | Slide, present, theme | Date and 
 
 ## Elements and fields
 
-- Every element may carry `shadow` (`{x,y,blur,color}` or an array to stack), `blur` (px), `blend` (mix-blend-mode), `backdropFilter` (px, screen only, pair with translucent `fill` for PDF), `link`, `group`, `showOnHover`, `themeRefs`.
+- Every element may carry `shadow` (`{x,y,blur,color}` or an array to stack), `blur` (px), `blend` (mix-blend-mode), `backdropFilter` (px, screen only, pair with translucent `fill` for PDF), `link`, `group`, `showOnHover`, `themeRefs`, `locked` (clicks and marquee drags skip it in the editor; present, print and export unchanged; 1.2.11+).
 - `link`: a slide id (jump, the state-slide idiom) or an http(s) URL (opens a new tab). Editor clicks do not follow it. Text `html` may also carry `<a href="https://…">`.
 - `themeRefs`: `{"fill":"accent1 -20%"}` re-derives the literal from `theme.palette` on every change, overwriting the literal. Slots: bg1, tx1, accent1 (from theme.background/color/accent), bg2, tx2, accent2-6, hlink.
 - Text extras: `letterSpacing` (px), `textStroke` `{width,color,fill?}` (`fill:"none"` for hollow glyphs), `colorGradient` (wins over `color`). Empty `html` with `placeholder` is hidden in present mode. Text never autoshrinks.
@@ -41,7 +41,7 @@ Contents: Compact form | Elements and fields | Slide, present, theme | Date and 
 
 ## Date and time patterns
 
-`{{date:PATTERN}}` and `{{time:PATTERN}}` pin the shape (field list in `agents-1.2.3.md` "Dynamic fields"): tokens YYYY YY MMMM MMM MM M DD D HH H hh h mm ss A a; bracket literal words `[at]`. Examples `{{date:D MMMM YYYY}}`, `{{time:h:mm a}}`.
+`{{date:PATTERN}}` and `{{time:PATTERN}}` pin the shape (field list in `agents-1.2.12.md` "Dynamic fields"): tokens YYYY YY MMMM MMM MM M DD D HH H hh h mm ss A a; bracket literal words `[at]`. Examples `{{date:D MMMM YYYY}}`, `{{time:h:mm a}}`.
 
 ## Chart rules
 

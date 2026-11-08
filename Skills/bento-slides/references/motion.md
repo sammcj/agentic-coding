@@ -47,6 +47,8 @@ Both under `fx.loop`. Do not combine with `fx.enter` on the same element (`entra
 
 Same-id `code` elements across slides morph token by token. Needs a 1.2.0+ shell and a slower `present.morphSeconds`.
 
+`fx:{typeWriter:true}` on a `code` element types it out in the show (1.2.10+). `present.typeWriterSeconds` (0.08-1, default 0.08) sets seconds per character; no block runs past six seconds. A morph keeps unchanged lines and types only the new ones.
+
 ## Checks
 
 - `validate()` codes: `overridden-enter-fx`, `entrance-on-motion-path`, `inert-countup`, `dash-march-no-dash`, `morph-key-collision`.

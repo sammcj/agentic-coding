@@ -47,6 +47,12 @@ class MarkdownTest(unittest.TestCase):
             self.assertNotIn("<img", out, tag)
             self.assertIn("&lt;img", out, tag)
 
+    def test_short_code_span_has_no_class_and_long_one_may_wrap(self) -> None:
+        long = "a/" * 31
+        [out] = render(f"`src/app.js` and `{long}`")
+        self.assertIn("<code>src/app.js</code>", out)
+        self.assertIn(f'<code class="wrap">{long}</code>', out)
+
     def test_entities_in_plain_text_render_once(self) -> None:
         [out] = render("a & b &amp; c")
         self.assertIn("a &amp; b &amp; c", out)

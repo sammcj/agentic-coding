@@ -2,6 +2,13 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. Log only changes a reader would care about - new capability, changed or broken behaviour, removals, real fixes. Skip cosmetic and housekeeping edits (wording, formatting, typos, file moves); git history covers those. One line per change, aim under 15 words - say what changed, not how it was implemented. Write more only when the change is genuinely complex and the reasoning cannot be recovered from the source or git history. No versioning is required. -->
 
+## 2026-11-06
+
+- "Export all (HTML)" can exclude archived change pages.
+- Change export always covers every tab; the "This tab" and "All tabs" groups are gone.
+- Static HTML exports show a change's artifacts as working tabs, without JavaScript.
+- Static HTML exports are minified and smaller.
+
 ## 2026-11-04
 
 - Config page ignores config files and instruction dirs symlinked out of the repo.

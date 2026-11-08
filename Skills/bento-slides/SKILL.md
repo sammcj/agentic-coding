@@ -11,14 +11,17 @@ A Bento deck is one self-contained `.bento.html` file: a compressed app runtime 
 <script type="application/bento+json" id="bento-doc"> { "format":"bento/slides", ... } </script>
 ```
 
-- Edit that block only, in place. Leave the runtime untouched.
+- Edit that block only, in place. Only `upgrade_deck.mjs` replaces the runtime.
 - `render_check.mjs --write` writes the block for you. A hand-written splice must escape every `<` in the JSON as its unicode escape (a backslash followed by `u003c`), so the block never contains a literal `</script>` and a build script can find the block's end at the first `</script>` after the opening tag.
 - Chat context (no filesystem): the user copies the JSON out (Save > Copy compact JSON) and pastes your replacement back (Save > Replace from JSON). `window.bento.loadDoc(json)` does the same from the console.
 
 ## Before touching an existing deck
 
 - **Ask the user to close the deck in their browser.** A save from the open tab overwrites your edit. Autosave keeps a recovery snapshot in IndexedDB keyed by `docId`, so a stale tab offers to "restore" the old version on the next open; tell the user to pick Discard.
-- If the `#bento-doc` block contains `"format":"bento/enc"`, the deck is password-encrypted. Stop and tell the user; plain JSON written over it destroys the ciphertext.
+- If the `#bento-doc` block contains `"format":"bento/enc"`, the deck is password-encrypted. Stop and tell the user; plain JSON written over it destroys the ciphertext. `upgrade_deck.mjs` is the one script that works on it, and it leaves the ciphertext intact.
+- **Check the runtime:** `node scripts/upgrade_deck.mjs <deck> --check`.
+  - Exit 2: the deck is behind. Tell the user and offer the upgrade. On yes, run it without `--check`, then `render_check.mjs` (unless encrypted), because rendering can change between versions.
+  - Exit 1 on the manifest: re-run outside the sandbox.
 - **Leave `collab` as found.** Keys mint at creation and every save writes them, so nearly every saved deck carries `ownerPriv`: anyone with the file can join its live session.
   - Deleting `collab` severs the owner from their own room while sent copies keep the old one.
   - Tell the user once that the file contains session keys. Hand-outs: Share > View-only copy. Leaked file: Share > Reset access.
@@ -41,7 +44,7 @@ Verify the download contains `id="bento-doc"`. The block is empty on disk (a bro
 When the user asks for a themed deck or names a theme from [bento-themes](https://github.com/sammcj/bento-themes), use the local clone at `~/git/sammcj/bento-themes` if it exists (it may hold unreleased work). Otherwise clone it there: `git clone https://github.com/sammcj/bento-themes ~/git/sammcj/bento-themes`.
 
 - Pick a theme from the repo README (one section per theme) and `themes/<name>/preview/*.png`.
-- Shell: copy `themes/<name>/<Name>.bento.html` to `<Topic>.bento.html`.
+- Shell: fetch the latest release as in "Starting from nothing". A theme's own `.bento.html` holds the older runtime it was built on.
 - Document: start `doc.json` from `themes/<name>/<Name>.doc.json` (full form). Keep `theme`, `fonts`, `assets`, `present`, `meta` and `layouts`. Delete `collab`, `docId` and `template` so the deck is not a template and `--write` saves it with sharing off.
 - Slides: copy the demo slide for each layout you need (its element ids match the layout), give it a unique slide `id`, and replace its text, data and notes. A layout with a detail state needs its state slide copied too, with `stateOf` and `link` updated. Theme layouts carry no `role`, so compact role placement does not apply.
 
@@ -49,7 +52,7 @@ When the user asks for a themed deck or names a theme from [bento-themes](https:
 
 Create a task per step below, each with its completion criterion, then work them to completion.
 
-1. **Read the references.** `references/agents-1.2.3.md` (element shapes, chart/state/hidden-slide rules, column arithmetic) and `references/format-reference.md` (compact form, fields since 1.0.18, runtime rules). Every key, generated from the runtime: https://bento.page/schema/slides.json.
+1. **Read the references.** `references/agents-1.2.12.md` (element shapes, chart/state/hidden-slide rules, column arithmetic) and `references/format-reference.md` (compact form, fields since 1.0.18, runtime rules). Every key, generated from the runtime: https://bento.page/schema/slides.json.
 2. **Find the document** (existing deck). Parse the `#bento-doc` JSON. Note `doc.size`, `doc.theme`, element `id`s, `docId`, and whether `template` or `readonly` is set. Keep `docId` unchanged.
 3. **Classify the source material.** For each piece: a stat, a table, a process, a definition to expand, a photo, code?
 4. **Map each piece to a feature.** This step makes it a Bento deck:
@@ -92,7 +95,8 @@ Bento's examples use a display band (`y:72 h:84`, content from `y:208`, 96px bot
 
 ## Scripts
 
-- `node scripts/render_check.mjs <deck> [--doc doc.json [--write <deck>]]` boots the deck in headless Brave/Chrome with DNS off, prints the load report, `validate()` findings and the skill's own checks, and saves one PNG per page. `--help` lists the options.
+- `node scripts/render_check.mjs <deck> [--doc doc.json [--write <deck>]]` boots the deck in headless Brave/Chrome with DNS off, reads the latest version from bento.page, prints the load report, `validate()` findings and the skill's own checks, and saves one PNG per page. `--help` lists the options.
+- `node scripts/upgrade_deck.mjs <deck> [--check]` moves the document unchanged into the latest release and keeps a backup beside the deck.
 - `node scripts/inflate_runtime.mjs <deck>` extracts the compressed runtime as searchable minified JS; `rg` it to settle a question about app behaviour.
 - The browser needs its profile directory under `$TMPDIR`; a sandbox that blocks it kills the run, so run outside it. Outside the sandbox `$TMPDIR` differs: keep `doc.json` and the deck on project paths.
 

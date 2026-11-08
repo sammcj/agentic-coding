@@ -2,6 +2,14 @@
 
 <!-- AI agents: After completing changes to this skill, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. Log only changes a reader would care about - new capability, changed or broken behaviour, removals, real fixes. Skip cosmetic and housekeeping edits (wording, formatting, typos, file moves); git history covers those. One line per change, aim under 15 words - say what changed, not how it was implemented. Write more only when the reasoning cannot be recovered from the source or git history. No versioning is required. When refreshing references/agents-<version>.md, log the Bento version and the date it was read. -->
 
+## 2026-11-06
+
+- Themed decks start from the latest release shell instead of the theme's pinned one
+- `upgrade_deck.mjs` moves an existing deck into the latest release; offered when a deck is behind
+- `render_check.mjs` compares a deck's runtime with the live release, not only the references
+- `render_check.mjs --write` removes the whole first-page preview; it used to leave stale markup above the app
+- Refreshed `references/agents-1.2.12.md` (Bento 1.2.12, read 2026-11-06)
+
 ## 2026-09-23
 
 - Starting from a bento-themes theme: reuse `~/git/sammcj/bento-themes`, copy demo slides per layout

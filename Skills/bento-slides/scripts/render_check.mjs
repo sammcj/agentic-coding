@@ -5,6 +5,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFile
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { compareVersions, DOC_BLOCK, latestRelease, PREVIEW_BLOCK } from "./bento_file.mjs";
 
 const HELP = `Usage: node render_check.mjs <deck.bento.html> [options]
 
@@ -36,7 +37,8 @@ Options:
   --motion           The user asked for animation: skip the motion-in-static-deck warning (fx, loops, transitions
                      other than none/fade)
   --online           Let the browser reach the network. Off by default: a shared deck (collab.on) would otherwise join
-                     its live room on boot and validate() would report the owner's open tab, not the file
+                     its live room on boot and validate() would report the owner's open tab, not the file.
+                     Either way the script itself GETs the release manifest from bento.page to report the latest version
   -h, --help         Show this help
 
 Compact JSON (see the skill) is accepted only by loadDoc, never by the on-disk block: author compact, then
@@ -101,7 +103,6 @@ if (docPath) {
   try { head = JSON.parse(raw); } catch (e) { fail(`--doc is not valid JSON: ${e.message}`); }
   if (head?.format === "bento/enc") fail("--doc is an encrypted envelope; open it with its password in the app instead");
 }
-const DOC_BLOCK = /(<script type="application\/bento\+json" id="bento-doc">)([\s\S]*?)(<\/script>)/;
 const deckBlock = readFileSync(deck, "utf8").match(DOC_BLOCK);
 if (!deckBlock) fail("No #bento-doc block in the deck; is this a .bento.html file?");
 if (/"format"\s*:\s*"bento\/enc"/.test(deckBlock[2])) fail("This deck is password-encrypted; the app must open it with its password before any edit");
@@ -213,9 +214,13 @@ const refVersion = (() => {
     return f && f.slice("agents-".length, -".md".length);
   } catch { return undefined; }
 })();
-console.log(`Runtime: Bento ${runtimeVersion ?? "unknown (no schema())"}${refVersion ? ` | skill references: ${refVersion}` : ""}`);
+const latest = (await latestRelease().catch(() => null))?.version;
+console.log(`Runtime: Bento ${runtimeVersion ?? "unknown (no schema())"} | latest: ${latest ?? "unknown (manifest unreachable)"}${refVersion ? ` | skill references: ${refVersion}` : ""}`);
+// Notes, not [warning]s: upgrading an existing deck is the user's call, and a fix-every-warning loop would never end.
+if (runtimeVersion && latest && compareVersions(runtimeVersion, latest) < 0) {
+  console.log(`  note: the deck is behind the latest Bento; offer the user scripts/upgrade_deck.mjs`);
+}
 if (runtimeVersion && refVersion && runtimeVersion !== refVersion) {
-  // Informational, not a [warning]: nothing in the deck can fix it, and a fix-every-warning loop would never end.
   console.log(`  note: the deck runs Bento ${runtimeVersion} but the skill describes ${refVersion}; treat https://bento.page/schema/slides.json as authoritative where they differ`);
 }
 
@@ -384,8 +389,7 @@ if (writePath) {
   const json = JSON.stringify(ordered).replace(/</g, "\\u003c");
   let shell = readFileSync(deck, "utf8");
   // A stale first-page preview from an earlier save would show the old slide 1 in file managers; the next app save rewrites it anyway.
-  // Older saves parked the preview in <noscript>; current ones use a <div> plus a remover <script>.
-  shell = shell.replace(/<(div|noscript) data-bento-preview[^>]*>[\s\S]*?<\/\1>(\s*<script data-bento-preview[^>]*>[\s\S]*?<\/script>)?/, "");
+  shell = shell.replace(PREVIEW_BLOCK, "");
   shell = shell.replace(DOC_BLOCK, (_, open, __, close) => `${open}${json}${close}`);
   // Decks often live outside git; the previous file is the only undo.
   if (existsSync(writePath)) copyFileSync(writePath, `${writePath}.bak`);
