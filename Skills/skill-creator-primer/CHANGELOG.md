@@ -2,6 +2,10 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-11-10
+
+- "When to use" detector no longer flags headings that name a tool or branch ("When to use test.fixme"). It now also catches "When should I use this" and trailing "?".
+
 ## 2026-11-04
 
 - `--findings` rejects unknown keys by name, and reads BOM-prefixed files and UTF-8 stdin on any console code page.

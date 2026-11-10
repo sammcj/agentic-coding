@@ -85,17 +85,27 @@ class InstructionFile:
     content: str
 
 
-def instruction_files(repo: Path) -> list[InstructionFile]:
-    # As in walk_files, a symlink counts only if it resolves inside the repo. AGENTS.md -> CLAUDE.md
-    # is common; a link out of the repo would let the server read arbitrary files.
+def instruction_paths(repo: Path) -> list[Path]:
+    # A symlink counts only if its target is markdown inside the repo. AGENTS.md -> CLAUDE.md and
+    # .claude/rules/x.md -> ../../shared/x.md are common; checking the link's own name instead would
+    # let rules/x.md -> ../../.env publish secrets on the Config page and in exports.
     real = repo.resolve()
     candidates = (repo / name for name in INSTRUCTION_FILES)
-    paths = [p for p in candidates if p.is_file() and p.resolve().is_relative_to(real)]
+    paths = [p for p in candidates if p.is_file() and _markdown_in(p, real)]
     for d in INSTRUCTION_DIRS:
         if (repo / d).is_dir() and (repo / d).resolve().is_relative_to(real):
-            paths += sorted(f for f in walk_files(repo / d) if f.suffix in (".md", ".mdc"))
+            paths += sorted(f for f in walk_files(repo / d, contain=repo) if _markdown_in(f, real))
+    return paths
+
+
+def _markdown_in(path: Path, root: Path) -> bool:
+    target = path.resolve()
+    return target.suffix in (".md", ".mdc") and target.is_relative_to(root)
+
+
+def instruction_files(repo: Path) -> list[InstructionFile]:
     found = []
-    for p in paths:
+    for p in instruction_paths(repo):
         try:
             size = p.stat().st_size
             text = p.read_text(encoding="utf-8") if size <= _MAX_INSTRUCTION_BYTES else ""

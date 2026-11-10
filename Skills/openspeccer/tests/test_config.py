@@ -107,6 +107,26 @@ class ConfigTest(unittest.TestCase):
         paths = [f["path"] for f in self.repo.config()["instructions"]]
         self.assertEqual(paths, [".claude/rules/swift.md"])
 
+    def test_instruction_file_linked_elsewhere_in_the_repo_is_read(self) -> None:
+        write(self.root, "shared/rule.md", "Shared rule.\n")
+        (self.root / ".claude/rules").mkdir(parents=True)
+        os.symlink("../../shared/rule.md", self.root / ".claude/rules/shared.md")
+        found = {f["path"]: f["content"] for f in self.repo.config()["instructions"]}
+        self.assertEqual(found, {".claude/rules/shared.md": "Shared rule.\n"})
+
+    def test_instruction_link_to_a_non_markdown_repo_file_is_not_read(self) -> None:
+        write(self.root, ".env", "TOKEN=secret\n")
+        (self.root / ".claude/rules").mkdir(parents=True)
+        os.symlink("../../.env", self.root / ".claude/rules/env.md")
+        os.symlink(".env", self.root / "AGENTS.md")
+        self.assertEqual(self.repo.config()["instructions"], [])
+
+    def test_instruction_file_linked_out_of_the_repo_is_not_read(self) -> None:
+        write(self.root.parent, "outside/secret.md", "Not the project's.\n")
+        (self.root / ".claude/rules").mkdir(parents=True)
+        os.symlink(self.root.parent / "outside/secret.md", self.root / ".claude/rules/secret.md")
+        self.assertEqual(self.repo.config()["instructions"], [])
+
     def test_config_linked_out_of_the_repo_is_not_read(self) -> None:
         write(self.root.parent, "outside.yaml", "schema: leaked\n")
         (self.root / "openspec/config.yaml").unlink()

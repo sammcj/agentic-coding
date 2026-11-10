@@ -948,7 +948,7 @@ class DeleteFirstTests(unittest.TestCase):
 
     def test_both_rules_reach_the_brief_with_their_reason(self):
         page, _ = self.render("# H\n\n## When to use\n\nUse it.\n", self.over_cap())
-        brief = html.unescape(re.search(r'<pre id="brief" hidden>(.*?)</pre>', page, re.S).group(1))
+        brief = html.unescape(re.search(r'<pre id="brief" hidden>(.*?)</pre>', page, re.DOTALL).group(1))
         self.assertIn("description-length", brief)
         self.assertIn("when-to-use", brief)
         self.assertIn("every turn of every session", brief)

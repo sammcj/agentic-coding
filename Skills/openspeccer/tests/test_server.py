@@ -11,7 +11,7 @@ import urllib.request
 
 from helpers import make_repo, write
 from openspeccer.repo import Repo
-from openspeccer.server import host_allowed, serve
+from openspeccer.server import Watcher, host_allowed, serve
 
 
 class ServerTest(unittest.TestCase):
@@ -113,6 +113,17 @@ class ServerTest(unittest.TestCase):
         conn.request("GET", "/api/ping", headers={"Host": f"evil.example:{port}"})
         self.assertEqual(conn.getresponse().status, 403)
         conn.close()
+
+
+class WatcherTest(unittest.TestCase):
+    def test_instruction_file_edit_changes_the_signature(self) -> None:
+        tmp, root = make_repo(with_git=False)
+        self.addCleanup(tmp.cleanup)
+        write(root, "AGENTS.md", "# Rules\n")
+        watcher = Watcher(Repo(root), 1.0, False)
+        before = watcher.signature()
+        write(root, "AGENTS.md", "# Rules\n\nUse Australian English.\n")
+        self.assertNotEqual(watcher.signature()[0], before[0])
 
 
 class HostAllowedTest(unittest.TestCase):

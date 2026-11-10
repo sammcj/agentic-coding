@@ -295,7 +295,8 @@ class Repo:
         for c in changes:
             if c.status != "active":
                 continue
-            name = c.schema or default or "?"
+            # scan_change already folded the owning worktree's default in; main's is not the fallback.
+            name = c.schema or "?"
             usage[name] = usage.get(name, 0) + 1
             if name not in names and name not in elsewhere and c.source.key in roots:
                 found = self.catalog_for(roots[c.source.key]).get(name)

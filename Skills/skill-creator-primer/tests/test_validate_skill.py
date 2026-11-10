@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -999,11 +1000,12 @@ class MainPathTests(unittest.TestCase):
             cwd = os.getcwd()
             os.chdir(skill_dir)
             try:
-                with mock.patch.object(vs, "validate_one", fake_validate_one), mock.patch.object(
-                    sys, "argv", ["validate_skill.py", ".", "--report-only"]
+                with (
+                    mock.patch.object(vs, "validate_one", fake_validate_one),
+                    mock.patch.object(sys, "argv", ["validate_skill.py", ".", "--report-only"]),
+                    self.assertRaises(SystemExit) as ctx,
                 ):
-                    with self.assertRaises(SystemExit) as ctx:
-                        vs.main()
+                    vs.main()
             finally:
                 os.chdir(cwd)
         self.assertEqual(ctx.exception.code, 0)
@@ -1034,7 +1036,9 @@ class RedundantSectionTests(unittest.TestCase):
     def test_wording_variants_fire(self):
         for heading in ("## When to use", "### When you should use this",
                         "## When to apply this skill", "## When this skill applies",
-                        "## When to reach for it", "## when to invoke"):
+                        "## When to reach for it", "## when to invoke",
+                        "## When to use:", "## When to use ##", "## When to use this skill #",
+                        "## When to use this skill?", "## When should I use this"):
             with self.subTest(heading=heading):
                 self.assertEqual(len(self.sections(f"# T\n\n{heading}\n\nX.\n")), 1)
 
@@ -1043,6 +1047,19 @@ class RedundantSectionTests(unittest.TestCase):
                         "## When to use X vs Y", "## When to use it, and when never to"):
             with self.subTest(heading=heading):
                 self.assertEqual(self.sections(f"# T\n\n{heading}\n\nX.\n"), [])
+
+    def test_heading_naming_a_tool_or_branch_is_left_alone(self):
+        # Picks between options after the skill has loaded, so it still changes behaviour.
+        for heading in ("## When to use test.fixme", "## When to use the data profile",
+                        "## When to use test.fixme ##", "## When to use C#", "## When to use #1"):
+            with self.subTest(heading=heading):
+                self.assertEqual(self.sections(f"# T\n\n{heading}\n\nX.\n"), [])
+
+    def test_padded_heading_does_not_backtrack(self):
+        heading = "## When to use" + " " * 20000 + "test.fixme"
+        start = time.perf_counter()
+        self.assertEqual(self.sections(f"# T\n\n{heading}\n\nX.\n"), [])
+        self.assertLess(time.perf_counter() - start, 0.5)
 
     def test_prose_mentioning_the_phrase_is_not_a_heading(self):
         self.assertEqual(self.sections("# T\n\nWhen to use this, read the description.\n"), [])

@@ -349,7 +349,7 @@ def spec_rows(spec, skill_dir):
     # Only a long description has a row of its own to carry these; a too-short one stays a spec row, or the page would
     # drop a finding the validator lists under FACTS.
     description = vs.skill_description(skill_dir)
-    own = (set(sum(vs.description_findings(description), []))
+    own = (set().union(*vs.description_findings(description))
            if vs.description_word_count(description) > vs.DESCRIPTION_WORDS_WARN else set())
     out = []
     for kind, rule, unit, group in (("spec", "spec-error", "error", errors),

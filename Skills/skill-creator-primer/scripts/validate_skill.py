@@ -641,13 +641,17 @@ FILLER_LOCATIONS_MAX = 6
 # A "When to use" section in the body. The body is only read once the description has already fired, so a section
 # telling the agent when to use the skill is guidance for a decision made before the file was opened. It spends
 # always-loaded tokens restating the frontmatter, and the restatement is usually looser than the description it copies.
-# Negative and comparative headings are exempt: "When not to use" and "When to use X instead of Y" narrow a trigger the
-# description could not carry, and are read at the point they still change behaviour.
+# Anchored so it fires only when the heading stops at the skill itself. "When not to use", "When to use X instead of Y"
+# and "When to use <a tool or branch>" narrow or pick something the description could not carry, and are read at the
+# point they still change behaviour. The tail class absorbs punctuation and an ATX closing sequence ("## When to use ##")
+# but not "C#" or "#1", which need a non-class character first. Backtracking stays linear: each optional `\s+` must be
+# followed by a fixed word, and the tail is a single class anchored to the end.
 _REDUNDANT_HEADING = re.compile(
-    r"^#{1,6}\s+(?:when\s+(?:to|you\s+should|i\s+should)\s+"
-    r"(?:use|apply|invoke|trigger|reach\s+for)|when\s+this\s+skill\s+applies)\b",
+    r"^#{1,6}\s+(?:when\s+(?:to|you\s+should|i\s+should|should\s+(?:i|you))\s+"
+    r"(?:use|apply|invoke|trigger|reach\s+for)"
+    r"(?:\s+(?:this|the|it|them|these))?(?:\s+(?:skill|primer))?"
+    r"|when\s+this\s+skill\s+applies)[\s:?.#]*$",
     re.IGNORECASE)
-_HEADING_EXEMPT = re.compile(r"\b(not|never|don'?t|instead|rather|vs\.?|versus)\b", re.IGNORECASE)
 
 
 def _redundant_sections(skill_dir: Path) -> list[tuple[int, str, int, int, str]]:
@@ -684,8 +688,7 @@ def _redundant_sections(skill_dir: Path) -> list[tuple[int, str, int, int, str]]
             if open_at is not None and depth <= open_at[1]:
                 found.append((lineno - open_at[0], rel, open_at[0], lineno - 1, open_at[2]))
                 open_at = None
-            if (open_at is None and _REDUNDANT_HEADING.match(stripped)
-                    and not _HEADING_EXEMPT.search(stripped)):
+            if open_at is None and _REDUNDANT_HEADING.match(stripped):
                 open_at = (lineno, depth, stripped)
         if open_at is not None:
             end = lines[-1][0] if lines else open_at[0]

@@ -170,6 +170,15 @@ class WorktreeTest(unittest.TestCase):
         key = next(w["key"] for w in repo.snapshot()["worktrees"] if not w["is_main"])
         self.assertIsNotNone(repo.change_detail("wt-lean", key)["schema_order"])
 
+    def test_change_in_a_worktree_without_a_default_is_not_counted_against_main(self) -> None:
+        (self.wt / "openspec/config.yaml").unlink()
+        write(self.wt, "openspec/changes/wt-bare/proposal.md", "x\n")
+        repo = Repo(self.root)
+        self.assertIsNone(by_name(repo.snapshot())["wt-bare"]["schema"])
+        listed = repo.schemas()
+        self.assertEqual(listed["unresolved"].get("?"), 1)
+        self.assertEqual(listed["unresolved"]["spec-driven"], 2)
+
     def test_detail_by_worktree_key(self) -> None:
         write(self.wt, "openspec/changes/wt-only/proposal.md", "from the worktree\n")
         repo = Repo(self.root)

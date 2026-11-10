@@ -139,10 +139,11 @@ def iso(ts: float) -> str:
     return datetime.fromtimestamp(ts, UTC).isoformat(timespec="seconds")
 
 
-def walk_files(root: Path, skip_top: tuple[str, ...] = ()) -> Iterator[Path]:
+def walk_files(root: Path, skip_top: tuple[str, ...] = (), contain: Path | None = None) -> Iterator[Path]:
     """Files under root, skipping dot entries and symlinked directories, to a bounded depth. A
-    symlinked file is kept only if it resolves inside root, so a link cannot expose files beyond it."""
-    root_real = root.resolve()
+    symlinked file is kept only if it resolves inside `contain` (default root), so a link cannot
+    expose files beyond it."""
+    root_real = (contain or root).resolve()
 
     def walk(d: Path, depth: int) -> Iterator[Path]:
         try:

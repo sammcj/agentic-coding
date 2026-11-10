@@ -25,6 +25,7 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlparse
 
 from . import __version__
+from .agents import instruction_paths
 from .commands import CommandCatalog
 from .repo import NotFound, Repo
 
@@ -34,7 +35,8 @@ _WORKTREE_RECHECK = 5  # ticks between worktree list refreshes, which spawn git
 
 
 class Watcher(threading.Thread):
-    """Bumps the repo version whenever any file under a watched `openspec/` tree changes."""
+    """Bumps the repo version whenever any file under a watched `openspec/` tree, or an agent
+    instruction file in the main checkout, changes."""
 
     def __init__(self, repo: Repo, interval: float, include_jj: bool) -> None:
         super().__init__(daemon=True, name="openspeccer-watcher")
@@ -70,6 +72,14 @@ class Watcher(threading.Thread):
                     everything.update(entry)
                     if dirpath.startswith(schema_dir):
                         schemas.update(entry)
+        # The Config page shows agent instruction files, which live outside openspec/. Stat only:
+        # reading them every tick would cost up to the per-file size cap each poll.
+        for path in instruction_paths(self.repo.root):
+            try:
+                st = path.stat()
+            except OSError:
+                continue
+            everything.update(f"{path}:{st.st_mtime_ns}:{st.st_size}".encode())
         return everything.hexdigest(), schemas.hexdigest()
 
     def run(self) -> None:

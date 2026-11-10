@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-11-04
+  version: 2026-11-10
   skill-lint:
     max-load-tokens: 10500 # primer skill accepted as being larger
 hooks:
@@ -280,7 +280,7 @@ Skills should only contain files that directly support functionality.
 - Context about the creation process itself
 - Fluff, filler, otherwise inconsequential content that doesn't support execution of the skill's function
 - A table of contents or index of the main SKILL.md content
-- A "When to use" section - the body is only read once the description fired, so it answers a settled question. Move its triggers into the description. Keep "When not to use" and "When to use X instead of Y": those still change what happens
+- A "When to use" section - the body is only read once the description fired, so it answers a settled question. Move its triggers into the description. Keep "When not to use", "When to use X instead of Y" and "When to use <a tool or branch>": those still change what happens
 - Content that an agent could easily infer or would know to access without the skill
 - Rich file formats (e.g. zip, pptx, png, pdf etc.) unless they're a template (AI is most efficient with text and tools, bundled file formats add overhead and complexity)
 
