@@ -2,6 +2,12 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-11-11
+
+- Added `references/fable-5-2.md`, a review lens for skills running on Claude Fable 5.2 or Mythos 5.2, with a gated pointer in SKILL.md.
+- New steering rule "Write absolute rules whole"; the compression pass now keeps the reason and exception attached to an absolute rule.
+- Self-Review fan-out now needs 3+ references of 1000+ lines each.
+
 ## 2026-11-10
 
 - "When to use" detector no longer flags headings that name a tool or branch ("When to use test.fixme"). It now also catches "When should I use this" and trailing "?".

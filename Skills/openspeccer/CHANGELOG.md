@@ -2,6 +2,12 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. Log only changes a reader would care about - new capability, changed or broken behaviour, removals, real fixes. Skip cosmetic and housekeeping edits (wording, formatting, typos, file moves); git history covers those. One line per change, aim under 15 words - say what changed, not how it was implemented. Write more only when the change is genuinely complex and the reasoning cannot be recovered from the source or git history. No versioning is required. -->
 
+## 2026-11-12
+
+- "Export all" HTML shows one page at a time, navigated from the sidebar.
+- "Export all" leaves out Commands and Schemas when the OpenSpec CLI gives them no content.
+- OpenSpec CLI calls run with telemetry and update check off, no stdin, and a 30s timeout (Windows).
+
 ## 2026-11-10
 
 - Config page refreshes live when agent instruction files change.

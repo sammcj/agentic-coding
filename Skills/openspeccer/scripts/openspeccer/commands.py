@@ -12,8 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-from . import vcs
-from .schemas import cli
+from .schemas import cli, run_cli
 
 _SECTION_RE = re.compile(r"^([A-Z][\w ]*):\s*$")
 _COLUMN_GAP_RE = re.compile(r"\s{2,}")
@@ -91,11 +90,12 @@ class CommandCatalog:
             return self._cached
 
     def _help(self, path: list[str]) -> str | None:
-        proc = vcs.run_result([cli(), *path, "--help"], self.cwd)
+        proc = run_cli([*path, "--help"], self.cwd)
         return proc.stdout if proc and proc.returncode == 0 and proc.stdout.strip() else None
 
     def _fetch(self) -> dict[str, Any]:
-        version = vcs.run([cli(), "--version"], self.cwd)
+        proc = run_cli(["--version"], self.cwd)
+        version = proc.stdout if proc and proc.returncode == 0 else None
         root_help = self._help([])
         if root_help is None:
             error = f"could not run `{cli()} --help`"

@@ -32,18 +32,25 @@ def worktree_key(path: str) -> str:
     return hashlib.blake2b(path.encode(), digest_size=4).hexdigest()
 
 
-def run_result(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str] | None:
+def run_result(
+    args: list[str], cwd: Path, timeout: float = _TIMEOUT, env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str] | None:
     """The finished process whatever its exit code; None only when it could not run or timed out."""
     try:
         # An explicit codec: the locale default (cp1252 on Windows) garbles or rejects UTF-8 output.
         return subprocess.run(
             args,
             cwd=cwd,
+            env=env,
+            # The server's stdin may be a closed or borrowed handle, and nothing here is interactive.
+            stdin=subprocess.DEVNULL,
             capture_output=True,
             encoding="utf-8",
             errors="replace",
-            timeout=_TIMEOUT,
+            timeout=timeout,
             check=False,
+            # Windows opens a console window per child when the server has none of its own.
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     except (OSError, subprocess.TimeoutExpired):
         return None

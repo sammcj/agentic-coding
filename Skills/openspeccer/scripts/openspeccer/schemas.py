@@ -11,6 +11,7 @@ import fnmatch
 import json
 import os
 import shutil
+import subprocess
 import threading
 import time
 from dataclasses import dataclass, field
@@ -23,6 +24,8 @@ from .yamlish import YamlError, loads
 _TTL = (
     300.0  # the watcher invalidates on any openspec/ change, so this only bounds staleness of package schemas
 )
+# Node starts slowly on Windows (npm's cmd shim, antivirus scanning), more so with several at once.
+_CLI_TIMEOUT = 30
 
 
 @dataclass
@@ -89,8 +92,8 @@ class SchemaCatalog:
         with self._lock:
             if self._list and time.monotonic() - self._list[0] < _TTL:
                 return self._list[1], None
-        out = vcs.run([cli(), "schemas", "--json"], self.repo)
-        parsed = _json_list(out)
+        proc = run_cli(["schemas", "--json"], self.repo)
+        parsed = _json_list(proc.stdout if proc and proc.returncode == 0 else None)
         if parsed is not None:
             with self._lock:
                 self._list = (time.monotonic(), parsed)
@@ -128,12 +131,12 @@ class SchemaCatalog:
 
     def _resolve(self, name: str) -> tuple[Path | None, str, bool]:
         """(schema.yaml path, source, whether the CLI answered)."""
-        proc = vcs.run_result([cli(), "schema", "which", name, "--json"], self.repo)
+        proc = run_cli(["schema", "which", name, "--json"], self.repo)
         out = proc.stdout if proc else ""
         if out:
             try:
                 data = json.loads(out[out.index("{") :])
-                if isinstance(data, dict) and data.get("path"):
+                if isinstance(data, dict) and data.get("path") and isinstance(data["path"], str):
                     return Path(data["path"]) / "schema.yaml", str(data.get("source", "unknown")), True
             except ValueError:
                 pass
@@ -157,6 +160,15 @@ def cli() -> str:
     # in the repo being viewed, so it is not trusted.
     found = shutil.which(name)
     return found if found and os.path.dirname(found) != os.curdir else name
+
+
+def run_cli(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str] | None:
+    """Run the OpenSpec CLI; None when it could not run or timed out."""
+    # The CLI's usage ping and update check each wait on the network and write its global config,
+    # which made calls slow behind a proxy and collide when several ran at once. A dashboard
+    # polling the CLI is not a person using it, so both are switched off.
+    env = {**os.environ, "OPENSPEC_TELEMETRY": "0", "OPENSPEC_NO_UPDATE_CHECK": "1"}
+    return vcs.run_result([cli(), *args], cwd, timeout=_CLI_TIMEOUT, env=env)
 
 
 def is_safe_name(name: str) -> bool:

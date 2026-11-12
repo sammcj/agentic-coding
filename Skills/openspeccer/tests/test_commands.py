@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest import mock
 
 from openspeccer.commands import CommandCatalog, parse_help
+from openspeccer.schemas import run_cli
 
 ROOT_HELP = """Usage: openspec [options] [command]
 
@@ -101,6 +102,17 @@ class CommandCatalogTest(unittest.TestCase):
         self.assertEqual(first["commands"], [])
         with mock.patch.dict(os.environ, {"OPENSPECCER_OPENSPEC_BIN": str(cli)}):
             self.assertEqual(len(catalog.get()["commands"]), 2)
+
+    def test_cli_runs_without_stdin_telemetry_or_update_check(self) -> None:
+        script = self.dir / "probe"
+        # `cat` would wait forever on an inherited terminal; an empty stdin ends it at once.
+        script.write_text('#!/bin/sh\ncat\necho "$OPENSPEC_TELEMETRY $OPENSPEC_NO_UPDATE_CHECK"\n')
+        script.chmod(0o755)
+        env = {"OPENSPECCER_OPENSPEC_BIN": str(script), "OPENSPEC_TELEMETRY": "1"}
+        with mock.patch.dict(os.environ, env):
+            proc = run_cli(["--version"], self.dir)
+        assert proc is not None
+        self.assertEqual(proc.stdout.strip(), "0 1")
 
     def test_missing_cli_is_retried_and_an_answer_is_kept(self) -> None:
         missing = self.dir / "nowhere" / "openspec"

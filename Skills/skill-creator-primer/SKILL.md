@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-11-10
+  version: 2026-11-11
   skill-lint:
     max-load-tokens: 10500 # primer skill accepted as being larger
 hooks:
@@ -24,6 +24,8 @@ Route to an entry point by the task in front of you (which-one routing per "Rout
 - Reviewing a skill, or a diff to one -> "Reviewing a Skill".
 - Tuning a description or its triggering -> "Writing Effective Descriptions".
 - Producing a report, page or visual of a skill's findings -> `references/html-report.md`.
+
+**Read `references/fable-5-2.md`** when running as, or authoring for, Claude Fable 5.2 or Mythos 5.2.
 
 ## Predictable Process, Not Identical Output
 
@@ -195,6 +197,7 @@ Think of the agent exploring a path: a narrow bridge with cliffs needs guardrail
 
 - **Avoid railroading the agent.** Skills are reused across many prompts and contexts, so overly rigid instructions (heavy MUSTs, exact step sequences) break when the context shifts. Give the agent the information it needs and leave flexibility to adapt. Calibrate prescriptiveness with "Degrees of Freedom" above.
 - **Avoid pink elephant guidance.** Naming specific unwanted behaviour activates it ("Never use the word delve" plants delve). Prefer positive instructions stating the desired behaviour. If you must prohibit something, pair it with the concrete alternative so the agent has somewhere to land. Specific banned-item lists (e.g. exact phrases to avoid) are fine when paired with replacements.
+- **Write absolute rules whole.** A never, always or approval rule states its exact actions, reason and exception in one sentence. A separate-line exception gets ignored.
 - **Steer with leading words.** Pick one plain pretrained, meaning-dense term per concept and repeat it throughout (always "field", never a mix of "field", "box", "element"); the agent echoes the term in its reasoning and its prior steers behaviour - a coined term carries no prior. **Read `references/steering.md`** when a skill won't comply (ignored instruction, skipped or early-finished step), when choosing or strengthening a leading word, or when multi-step procedures need completion criteria - it covers leading words, completion criteria, and defending against premature completion.
 - **Make task-tracking the first step of any encoded workflow.** Write the workflow's first step as an instruction to the agent: create a task (todo) per step, phrased with its completion criterion, then work them to completion - the same defence against premature completion this primer applies to itself (see "Track Each Step as a Task").
 
@@ -364,7 +367,7 @@ Diagnose an oversized or unreliable skill against these modes and apply the cure
 
 ## Self-Review Protocol
 
-When a skill spans 3+ references, fan the per-file read-only passes out to parallel sub-agents (each reviews its own files for low-value prose and within-file repetition, returning a summary) - reads don't collide. Cross-file checks (e.g. duplication between SKILL.md and references) can't be split; the main agent reconciles those from the summaries. Keep edits to one agent, or give each sub-agent non-overlapping files.
+When a skill spans 3+ references of 1000+ lines each, fan the per-file read-only passes out to parallel sub-agents (each reviews its own files for low-value prose and within-file repetition, returning a summary) - reads don't collide. Cross-file checks (e.g. duplication between SKILL.md and references) can't be split; the main agent reconciles those from the summaries. Keep edits to one agent, or give each sub-agent non-overlapping files.
 
 After creating or updating a skill, you **MUST** always perform a critical self-review using the primer. **Create and complete tasks / TODOs for each of the following**:
 
@@ -373,12 +376,12 @@ After creating or updating a skill, you **MUST** always perform a critical self-
 3. Thin the language - make important information prominent while reducing word count.
 4. Run the validator (see "Validating a Skill"); at an OK or Poor rating, first rule out "Tool compensation" (Failure Modes), then run a compression pass:
    - Extract a checklist of every rule, step, and gotcha from the current draft.
-   - Dispatch a fresh-context sub-agent (never the drafting context - it's attached to its own prose) to rewrite at ~75% (OK) or ~60% (Poor) of the word count, converting instruction-bearing paragraphs into steps and bullets, deleting provenance and justification riders, and returning only the rewrite. Prefer a `compression-editor` agent when the environment defines one.
+   - Dispatch a fresh-context sub-agent (never the drafting context - it's attached to its own prose) to rewrite at ~75% (OK) or ~60% (Poor) of the word count, converting instruction-bearing paragraphs into steps and bullets, deleting provenance and justification riders (absolute rules keep their reason and exception), and returning only the rewrite. Prefer a `compression-editor` agent when the environment defines one.
    - Accept the rewrite only after verifying every checklist item survives; one round is the default. State the token delta in your change summary.
 5. Verify the description is concise (short) yet complete enough for triggering (see the Writing Effective Descriptions checklist)
-6. Decide the invocation mode: model-invoked for mid-task discovery, user-invoked (`disable-model-invocation: true`) when occasional and user-remembered; in doubt, offer the user both (see "Invocation mode is a trade-off").
+6. Decide the invocation mode (see "Invocation mode is a trade-off").
 7. Ensure no extraneous files were created
-8. Frame guidance positively to avoid the pink elephant effect (see Skill Writing Tips). Rewrite "don't do X" as "do Y", or pair the prohibition with the concrete alternative
+8. Frame guidance positively to avoid the pink elephant effect (see Skill Writing Tips)
 9. Deterministic tools are used for deterministic outcomes. If a script can perform a task, have the agent call that script rather than relying on interpreted instructions.
 10. If the skill has evals, the evals are up to date and run without issue.
 11. For a newly created skill: once the steps above pass, dispatch a fresh-context sub-agent (not a fork - see "Skills vs Custom Agents") to activate the skill-creator-primer and skill-creator skills and review the new skill read-only per "Reviewing a Skill" below, returning graded findings. Action the spec and primer violations, decide each judgement call, then re-validate; one round is the default. Without sub-agents, ask the user to run the review in a fresh session.

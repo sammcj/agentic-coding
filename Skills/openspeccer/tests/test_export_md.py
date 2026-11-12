@@ -165,6 +165,20 @@ class ExportMarkdownTest(unittest.TestCase):
         self.assertEqual([c["slug"] for c in out["changes"]], ["add-login"])
         self.assertEqual(out["repo"], {"name": "demo"})
 
+    def test_site_css_shows_one_page_and_marks_its_nav_entry(self) -> None:
+        out = call("site-export.js", "siteCss", [{"id": ""}, {"id": "specs"}])
+        self.assertIn(".site-page { display: none; }", out)
+        self.assertIn(".main:not(:has(.site-page:target)) > .site-page:first-child { display: block; }", out)
+        specs = '[data-nav="specs"]'
+        self.assertIn(f".static-site:has(.site-page{specs}:target) .nav-item{specs}", out)
+        # With no fragment the dashboard is the page on screen.
+        self.assertIn('.static-site:not(:has(.site-page:target)) .nav-item[data-nav=""]', out)
+
+    def test_nav_drops_entries_whose_section_was_left_out(self) -> None:
+        nav = [{"id": ""}, {"id": "schemas"}, {"id": "commands"}, {"id": "guide"}]
+        out = call("site-export.js", "navWithPages", nav, ["#/", "#/schemas/loop", "#/guide"])
+        self.assertEqual([n["id"] for n in out], ["", "schemas", "guide"])
+
     def test_change_markdown_includes_only_given_tabs(self) -> None:
         arts = [
             {"kind": "markdown", "path": "proposal.md", "content": "# Proposal\n"},
