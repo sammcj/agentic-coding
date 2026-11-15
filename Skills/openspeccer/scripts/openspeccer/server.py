@@ -120,7 +120,9 @@ def _page_csp(page: str) -> str:
         if s
     )
     styles = "style-src 'self' 'unsafe-inline'"
-    return f"default-src 'self'; script-src 'self'{hashes}; {styles}; img-src 'self' data:"
+    # These four don't inherit default-src, so each is closed by name.
+    closed = "object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    return f"default-src 'self'; script-src 'self'{hashes}; {styles}; img-src 'self' data:; {closed}"
 
 
 def host_allowed(header: str, bound: str, port: int, allowed: Iterable[str] = ()) -> bool:
@@ -192,7 +194,7 @@ def make_handler(
                 case "/api/schemas":
                     return repo.schemas(**scope)
                 case "/api/schema":
-                    return repo.schema_detail(_arg(qs, "name"))
+                    return repo.schema_detail(_arg(qs, "name"), **scope)
                 case "/api/config":
                     return repo.config()
                 case "/api/commands":

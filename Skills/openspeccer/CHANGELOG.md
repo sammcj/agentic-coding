@@ -2,6 +2,15 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. Log only changes a reader would care about - new capability, changed or broken behaviour, removals, real fixes. Skip cosmetic and housekeeping edits (wording, formatting, typos, file moves); git history covers those. One line per change, aim under 15 words - say what changed, not how it was implemented. Write more only when the change is genuinely complex and the reasoning cannot be recovered from the source or git history. No versioning is required. -->
 
+## 2026-11-16
+
+- Symlinked `.openspec.yaml` files are no longer read, so a link can't expose outside files.
+- Archived changes rescan when their `.openspec.yaml` is edited.
+- Average lifecycle no longer counts negative days when created follows the archive date.
+- Schema detail honours the worktree scope, so jj-only schemas open.
+- Page CSP also closes plugins, `<base>`, form posts and framing.
+- SKILL.md workflow splits into status-question and dashboard branches.
+
 ## 2026-11-12
 
 - "Export all" HTML shows one page at a time, navigated from the sidebar.

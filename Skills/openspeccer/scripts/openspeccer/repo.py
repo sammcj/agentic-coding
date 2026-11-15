@@ -327,11 +327,11 @@ class Repo:
         unresolved = {k: v for k, v in usage.items() if k not in known}
         return {"schemas": items, "degraded": degraded, "unresolved": unresolved, "default": default}
 
-    def schema_detail(self, name: str) -> dict:
+    def schema_detail(self, name: str, include_jj: bool = False, aggregate: bool = True) -> dict:
         schema = self.catalog.get(name)
         if schema is None:
             # Only reached for a name main can't resolve, such as a worktree's own project schema.
-            for wt in self.worktrees(True, False):
+            for wt in self.worktrees(aggregate, include_jj):
                 schema = self.catalog_for(Path(wt.path)).get(name)
                 if schema:
                     break

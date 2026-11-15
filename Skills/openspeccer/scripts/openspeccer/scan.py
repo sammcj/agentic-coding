@@ -122,6 +122,10 @@ def discover_specs(specs_root: Path) -> dict[str, Path]:
 
 
 def read_yaml(path: Path) -> dict:
+    """A mapping from a YAML file, or {} if it is unreadable. A symlink is never followed: the
+    API echoes what is parsed, so a link could put any file on the machine in a response."""
+    if path.is_symlink():
+        return {}
     try:
         data = loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, YamlError):
@@ -131,7 +135,8 @@ def read_yaml(path: Path) -> dict:
 
 def default_schema(openspec_dir: Path) -> str | None:
     path = config_path(openspec_dir)
-    value = read_yaml(path).get("schema") if path else None
+    # config_path has already confined a link to the project, so its target is safe to read.
+    value = read_yaml(path.resolve()).get("schema") if path else None
     return str(value) if value else None
 
 
@@ -318,7 +323,9 @@ def change_dirs(changes_root: Path) -> list[Path]:
 def tree_signature(change_dir: Path) -> tuple:
     """(relpath, mtime_ns, size) per file plus the directory's own mtime: moves when any file does."""
     entries: list[tuple] = []
-    for f in walk_files(change_dir):
+    # walk_files skips dot entries, but this one sets the change's schema and created date.
+    meta = change_dir / ".openspec.yaml"
+    for f in (*walk_files(change_dir), *(() if meta.is_symlink() else (meta,))):
         try:
             st = f.stat()
         except OSError:
@@ -437,7 +444,8 @@ def stats(specs: list[Spec], changes: list[Change], today: datetime | None = Non
     active = [c for c in changes if c.status == "active"]
     archived = [c for c in changes if c.status == "archived"]
     lifecycles = [
-        (datetime.fromisoformat(c.archived) - datetime.fromisoformat(c.created)).days
+        # A created date that falls back to the first commit can land after the archive date.
+        max(0, (datetime.fromisoformat(c.archived) - datetime.fromisoformat(c.created)).days)
         for c in archived
         if c.created and c.archived
     ]

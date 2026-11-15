@@ -69,6 +69,9 @@ class ServerTest(unittest.TestCase):
         directives = dict(d.strip().split(" ", 1) for d in csp.split(";"))
         self.assertEqual(directives["default-src"], "'self'")
         self.assertEqual(directives["script-src"], f"'self' 'sha256-{digest}'")
+        # None of these fall back to default-src.
+        for name in ("object-src", "base-uri", "form-action", "frame-ancestors"):
+            self.assertEqual(directives.get(name), "'none'", name)
 
     def test_not_found_and_traversal(self) -> None:
         for path in (

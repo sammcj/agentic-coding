@@ -167,6 +167,8 @@ class WorktreeTest(unittest.TestCase):
         self.assertEqual(lean["active_changes"], 2)
         nodes = repo.schema_detail("lean")["nodes"]
         self.assertEqual([n["key"] for n in nodes], ["intake", "checks", "apply"])
+        with self.assertRaises(NotFound):
+            repo.schema_detail("lean", aggregate=False)
         key = next(w["key"] for w in repo.snapshot()["worktrees"] if not w["is_main"])
         self.assertIsNotNone(repo.change_detail("wt-lean", key)["schema_order"])
 
@@ -219,6 +221,48 @@ class DiscoveryTest(unittest.TestCase):
             cs = by_name(Repo(root).snapshot())
             self.assertIsNone(cs["idea-sso"]["created"])
             self.assertEqual(cs["idea-sso"]["schema"], "spec-driven")
+        finally:
+            tmp.cleanup()
+
+    def test_symlinked_change_yaml_is_not_read(self) -> None:
+        tmp, root = make_repo(with_git=False)
+        try:
+            secret = write(root.parent, "outside.yaml", "schema: loop\ntoken: hunter2\n")
+            os.symlink(secret, root / "openspec/changes/idea-sso/.openspec.yaml")
+            repo = Repo(root)
+            self.assertEqual(by_name(repo.snapshot())["idea-sso"]["schema"], "spec-driven")
+            self.assertEqual(repo.change_detail("idea-sso")["meta"], {})
+        finally:
+            tmp.cleanup()
+
+    def test_config_symlinked_inside_the_project_still_sets_the_default(self) -> None:
+        tmp, root = make_repo(with_git=False)
+        try:
+            config = root / "openspec/config.yaml"
+            config.unlink()
+            os.symlink(write(root, "shared/config.yaml", "schema: loop\n"), config)
+            self.assertEqual(by_name(Repo(root).snapshot())["idea-sso"]["schema"], "loop")
+        finally:
+            tmp.cleanup()
+
+    def test_archived_change_rescans_when_its_yaml_changes(self) -> None:
+        tmp, root = make_repo(with_git=False)
+        try:
+            repo = Repo(root)
+            self.assertEqual(by_name(repo.snapshot())["init-auth"]["created"], "2026-07-20")
+            meta = "openspec/changes/archive/2026-08-01-init-auth/.openspec.yaml"
+            write(root, meta, "schema: spec-driven\ncreated: 2026-07-25\n")
+            repo.bump()
+            self.assertEqual(by_name(repo.snapshot())["init-auth"]["created"], "2026-07-25")
+        finally:
+            tmp.cleanup()
+
+    def test_lifecycle_is_not_negative_when_created_follows_the_archive_date(self) -> None:
+        tmp, root = make_repo(with_git=False)
+        try:
+            write(root, "openspec/changes/archive/2026-08-01-late/.openspec.yaml", "created: 2026-09-01\n")
+            write(root, "openspec/changes/archive/2026-08-01-late/tasks.md", "- [x] done\n")
+            self.assertEqual(Repo(root).snapshot()["stats"]["avg_lifecycle_days"], 6.0)
         finally:
             tmp.cleanup()
 
