@@ -117,13 +117,14 @@ tr.agent small b { color: var(--ink); font-weight: 400; }
 
 /* per-file bars: one grey ramp, the accent reserved for the file that leads */
 .bar { display: grid; grid-template-columns: 190px 1fr 44px; align-items: center;
-       gap: 8px; margin-bottom: 4px; font: 400 12px var(--mono); }
+       gap: 8px; margin-bottom: 4px; font: 400 12px var(--mono); cursor: pointer; }
 .bar u { text-decoration: none; color: var(--muted); overflow: hidden;
          text-overflow: ellipsis; white-space: nowrap; }
 .bar s { text-decoration: none; height: 13px; background: #d4d4d4; display: block; }
 /* The accent marks the file to cut. Set explicitly: as `:first-of-type` it
    matched the band div above these rows and never reached a bar at all. */
 .bar.lead s { background: var(--accent); }
+.bar:hover u { color: var(--ink); text-decoration: underline; }
 .bar em { font-style: normal; text-align: right; color: var(--muted); }
 
 table { border-collapse: collapse; width: 100%; font: 400 13px var(--mono); }

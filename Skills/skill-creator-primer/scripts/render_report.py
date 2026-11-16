@@ -166,13 +166,16 @@ def budget_block(load, sized, advice, ceiling, within_budget):
     return "".join(out)
 
 
-def files_block(sized):
-    """Bars under the rating: what each loadable file costs."""
+def files_block(sized, index_of):
+    """Bars under the rating: what each loadable file costs, each jumping to its file in the source."""
     if not sized:
         return ""
     top = max(sized.values()) or 1
-    rows = "".join('<div class="bar%s"><u>%s</u><s style="width:%.1f%%"></s><em>%d</em></div>'
-                   % (" lead" if i == 0 else "", e(name), 100.0 * n / top, n)
+    # The label is cut to fit its column, so the title carries the full path.
+    rows = "".join('<div class="bar%s" data-goto="%s" title="%s"><u>%s</u>'
+                   '<s style="width:%.1f%%"></s><em>%d</em></div>'
+                   % (" lead" if i == 0 else "", anchor(index_of.get(name, 0), 0), e(name), e(name),
+                      100.0 * n / top, n)
                    for i, (name, n) in enumerate(sized.items()))
     return '<h2 class="sub">Tokens by file</h2>%s' % rows
 
@@ -385,7 +388,7 @@ def marked_source(skill_dir, blobs, long_code, filler, emphasis=None, dense=(), 
 
     out = []
     for index, (rel, path) in enumerate(loadable_files(skill_dir)):
-        out.append('<h3 class="file">%s</h3><pre>' % e(rel))
+        out.append('<h3 class="file" id="%s">%s</h3><pre>' % (anchor(index, 0), e(rel)))
         text = path.read_text(encoding="utf-8-sig", errors="ignore")
         for lineno, line in enumerate(text.splitlines(), start=1):
             marked = (mark_line(line, bold.get((rel, lineno), ()))
@@ -570,7 +573,7 @@ def render(skill_dir, against=None, use_tiktoken=False, agent=None):
         "when": datetime.datetime.now().astimezone().date().isoformat(),
         "verdict": verdict_block(issues, agent is not None, spec_skipped),
         "budget": budget_block(load, sized, advice, ceiling, within_budget),
-        "files": files_block(sized),
+        "files": files_block(sized, index_of),
         "structure": structure_block(pct, found, rows),
         "findings": findings_block(found),
         "extra": extra,

@@ -2,6 +2,10 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-11-16
+
+- HTML report: "Tokens by file" bars now jump to their file in the source pane on click and show the full path on hover.
+
 ## 2026-11-11
 
 - Added `references/fable-5-2.md`, a review lens for skills running on Claude Fable 5.2 or Mythos 5.2, with a gated pointer in SKILL.md.

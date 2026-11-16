@@ -166,7 +166,7 @@ class SpanShadingTests(unittest.TestCase):
     def test_each_finding_row_jumps_to_the_line_it_names(self):
         page = self.render("# H\n\n" + BLOB + "\n")
         # The fixture is hard-wrapped as well as a blob, so both rows jump to its first line.
-        goto = re.findall(r'data-goto="([^"]+)"', page)
+        goto = re.findall(r'<tr[^>]* data-goto="([^"]+)"', page)
         self.assertEqual(goto, ["L-0-8", "L-0-8"])
         self.assertIn('id="L-0-8"', page)
 
@@ -261,9 +261,22 @@ class BudgetCellTests(unittest.TestCase):
         skill_dir = build_skill(Path(tmp.name), "# H\n\nSee references/extra.md.\n" + "word " * 400)
         (skill_dir / "references" / "extra.md").write_text("# Extra\n", encoding="utf-8")
         page = rr.render(skill_dir)
-        lead = re.search(r'<div class="bar lead"><u>([^<]+)</u>', page)
+        lead = re.search(r'<div class="bar lead"[^>]*><u>([^<]+)</u>', page)
         self.assertIsNotNone(lead)
         self.assertEqual(lead.group(1), "SKILL.md")  # pyright: ignore
+
+    def test_each_bar_jumps_to_its_file_and_names_it_in_full_on_hover(self):
+        # The label is cut to fit its column, so a long reference path is only readable from the hover title.
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        rel = "references/a-rather-long-reference-file-name-that-gets-cut.md"
+        skill_dir = build_skill(Path(tmp.name), "# H\n\nSee %s.\n" % rel)
+        (skill_dir / "references" / rel.split("/")[1]).write_text("# Extra\n", encoding="utf-8")
+        page = rr.render(skill_dir)
+        bars = dict(re.findall(r'<div class="bar[^"]*" data-goto="([^"]+)" title="([^"]+)"', page))
+        heads = dict(re.findall(r'<h3 class="file" id="([^"]+)">([^<]+)</h3>', page))
+        self.assertEqual(sorted(bars.values()), sorted(["SKILL.md", rel]))
+        self.assertEqual(bars, heads)
 
 
 class SpecCellTests(unittest.TestCase):
