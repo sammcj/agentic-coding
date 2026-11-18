@@ -6,6 +6,12 @@ import { chromium } from "playwright";
 
 // Headless capture has no mouse pointer; this draws one that follows real mouse events.
 function cursorOverlay(hideSelectors) {
+  // html zoom also scales the fixed-position cursor's offsets, so the cursor takes the inverse to stay under the mouse.
+  window.__demoZoom = (z) => {
+    let s = document.getElementById("__zoom");
+    if (!s) document.head.append(Object.assign((s = document.createElement("style")), { id: "__zoom" }));
+    s.textContent = z === 1 ? "" : `html { zoom: ${z}; } #__cursor { zoom: ${1 / z}; }`;
+  };
   const install = () => {
     const style = document.createElement("style");
     style.textContent = `
@@ -66,7 +72,8 @@ function writeConcat(path, frames, endTs) {
   writeFileSync(path, `${lines.join("\n")}\n`);
 }
 
-export async function record({ outDir, width = 1920, height = 1080, scale = 2, hide = [], permissions = [], run }) {
+// pace scales every h.wait (the demo author's baseline); paces holds fit.mjs's per-scene multipliers on top of it.
+export async function record({ outDir, width = 1920, height = 1080, scale = 2, hide = [], permissions = [], pace = 1, paces = {}, run }) {
   // The screencast ignores Playwright's emulated deviceScaleFactor and sends CSS-pixel frames. A real device
   // scale from the launch flag, with the window as the viewport, gets full-density frames over the same layout.
   const browser = await chromium.launch({
@@ -78,14 +85,33 @@ export async function record({ outDir, width = 1920, height = 1080, scale = 2, h
   const stop = await startScreencast(page, `${outDir}/frames`, width * scale, height * scale);
   const marks = [];
   let pos = { x: width / 2, y: height / 2 };
+  let lastLoad = 0;
+  let leadFrom = 0;
+  page.on("load", () => (lastLoad = Date.now() / 1000));
 
-  const wait = (ms) => page.waitForTimeout(ms);
+  const pause = (ms) => page.waitForTimeout(ms); // fixed beats inside a gesture; never paced
+  const waited = {}; // seconds of h.wait per scene before fitting, which fit.mjs needs to solve for a new pace
+  const wait = (ms) => {
+    const scene = marks.at(-1)?.name;
+    if (scene) waited[scene] = (waited[scene] ?? 0) + (ms * pace) / 1000;
+    return pause(ms * pace * (paces[scene] ?? 1));
+  };
   const loc = (target) => (typeof target === "string" ? page.locator(target).first() : target);
   const h = {
     page,
     wait,
     // Marks where a narrated section starts; encode.sh turns these into the timing table.
-    scene: (name) => marks.push({ name, at: Date.now() / 1000 }),
+    scene(name) {
+      if (marks.some((m) => m.name === name)) throw new Error(`scene "${name}" marked twice; scene names must be unique`);
+      // The lead-in encode.sh keeps before the first scene must not reach back into a page that was still loading:
+      // a blank first frame becomes the video's poster. 0.15s covers first paint after the load event.
+      if (!marks.length) leadFrom = lastLoad + 0.15;
+      marks.push({ name, at: Date.now() / 1000 });
+    },
+    // Enlarges the current page for apps whose text is too small on video; call again after a full navigation.
+    zoom: (z) => page.evaluate((v) => window.__demoZoom(v), z),
+    // Hides or shows the overlay cursor on the current page, e.g. on a title card with nothing to point at.
+    cursor: (show) => page.evaluate((v) => (document.getElementById("__cursor").style.display = v ? "" : "none"), show),
     async moveTo(target, { steps = 30, dx = 0, dy = 0 } = {}) {
       let x, y;
       if (typeof target === "object" && "x" in target && "y" in target) ({ x, y } = target);
@@ -101,9 +127,9 @@ export async function record({ outDir, width = 1920, height = 1080, scale = 2, h
     },
     async click(target, opts) {
       await h.moveTo(target, opts);
-      await wait(250); // a beat on the target so the viewer sees what is about to be clicked
+      await pause(250); // a beat on the target so the viewer sees what is about to be clicked
       await page.mouse.down();
-      await wait(90);
+      await pause(90);
       await page.mouse.up();
     },
     async type(target, text, { delay = 120 } = {}) {
@@ -114,7 +140,7 @@ export async function record({ outDir, width = 1920, height = 1080, scale = 2, h
     async scroll(dy, { step = 40, ms = 16 } = {}) {
       for (let done = 0; Math.abs(done) < Math.abs(dy); done += Math.sign(dy) * step) {
         await page.mouse.wheel(0, Math.sign(dy) * step);
-        await wait(ms);
+        await pause(ms);
       }
     },
     get pos() {
@@ -135,11 +161,20 @@ export async function record({ outDir, width = 1920, height = 1080, scale = 2, h
   const t0 = frames[0].ts;
   const endTs = marks.at(-1)?.at ?? frames.at(-1).ts;
   writeConcat(`${outDir}/frames.ffconcat`, frames, endTs);
-  const scenes = marks.map((m) => ({ name: m.name, start: Math.max(0, m.at - t0) }));
+  const scenes = marks.map((m) => ({
+    name: m.name,
+    start: Math.max(0, m.at - t0),
+    waits: Number((waited[m.name] ?? 0).toFixed(3)),
+    pace: paces[m.name] ?? 1,
+  }));
   const fps = frames.length / (endTs - t0);
   writeFileSync(
     `${outDir}/scenes.json`,
-    JSON.stringify({ frames: "frames.ffconcat", width: width * scale, height: height * scale, scenes }, null, 2),
+    JSON.stringify(
+      { frames: "frames.ffconcat", width: width * scale, height: height * scale, leadFrom: Math.max(0, leadFrom - t0), scenes },
+      null,
+      2,
+    ),
   );
   return { scenes, frames: frames.length, fps };
 }

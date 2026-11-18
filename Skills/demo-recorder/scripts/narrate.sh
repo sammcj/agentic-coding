@@ -10,6 +10,7 @@ Usage: narrate.sh <script.md> <audioDir> [timings.tsv]
 
 Writes <audioDir>/N.wav for every "## N. Title" section of script.md, ready for dub.sh.
 A section's text is every line after its heading except blank lines and _italic_ stage notes.
+A section with no spoken text is a silent scene (a title card, say): it gets no clip.
 With timings.tsv (from encode.sh) each clip is fitted to scene N: the shortest of TAKES renders
 is kept, then sped up by at most MAX_TEMPO if it still runs past the scene.
 
@@ -21,7 +22,8 @@ Delete <audioDir>/.narrate/N.* to re-render one clip; FORCE=1 re-renders them al
 
 Environment:
   VOICE        Cloney character name or UUID (default Attenborough)
-  ENGINE       qwen3 | moss | dots | breeze (default breeze, i.e. Breeze-TTS-2)
+  ENGINE       qwen3 | moss | dots | breeze (default breeze, i.e. Breeze-TTS-2); a product name
+               such as dots.tts, moss-tts or Breeze-TTS-2 is accepted and reduced to its engine
   REFERENCE    character reference name, UUID or 1-based index (default: the character's default)
   SEED         RNG seed; take k uses SEED+k (default: random)
   TAKES        renders per clip, shortest verified take kept (default 1)
@@ -51,7 +53,8 @@ script="$1"
 audio="$2"
 timings="${3:-}"
 voice="${VOICE:-Attenborough}"
-engine="${ENGINE:-breeze}"
+engine=$(tr '[:upper:]' '[:lower:]' <<< "${ENGINE:-breeze}")
+engine="${engine%%[.-]tts*}" # users name engines as the app shows them: dots.tts, moss-tts, Breeze-TTS-2
 takes="${TAKES:-1}"
 max_tempo="${MAX_TEMPO:-1.1}"
 gap=0.3 # dub.sh's gap between clips; a clip this much shorter than its scene never pushes the next one back
@@ -151,8 +154,9 @@ for n in "${sections[@]}"; do
     fi
   fi
   if [ ! -s "$txt" ]; then
-    row "$n" "${scene:--}" - "FAILED (no spoken text)"
-    failed=1
+    ours "$n" && rm -f "$wav" # the section had text on an earlier run
+    rm -f "$cache/$n".*
+    row "$n" "${scene:--}" - "silent (no spoken text)"
     continue
   fi
 

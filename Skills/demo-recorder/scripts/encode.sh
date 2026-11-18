@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: encode.sh <outDir>  - turns frames.ffconcat + scenes.json into demo.mp4 (no audio), timings.tsv and review stills.
+# Usage: encode.sh <outDir>  - turns frames.ffconcat + scenes.json into demo.mp4 (no audio), timings.tsv and stills/ (a frame per scene, plus a contact sheet for each scene over 4s).
 # Env: OUT_HEIGHT sets the output height (default 1620, i.e. 3K); "native" keeps the capture size (2160 at scale 2).
 set -euo pipefail
 
@@ -9,8 +9,9 @@ lead=0.3 # seconds kept before the first scene so the video doesn't open mid-mot
 
 # scene<TAB>start<TAB>end<TAB>duration, relative to the trimmed video; the first row carries the trim offset.
 node -e '
-  const { scenes } = JSON.parse(require("fs").readFileSync(process.argv[1] + "/scenes.json", "utf8"));
-  const trim = Math.max(0, scenes[0].start - Number(process.argv[2]));
+  const { scenes, leadFrom = 0 } = JSON.parse(require("fs").readFileSync(process.argv[1] + "/scenes.json", "utf8"));
+  // leadFrom is when the page of the first scene had painted; starting earlier would open the video on a blank frame.
+  const trim = Math.min(scenes[0].start, Math.max(0, scenes[0].start - Number(process.argv[2]), leadFrom));
   if (scenes.length < 2) throw new Error("no scenes in scenes.json; call h.scene() in the demo");
   console.log("trim\t" + trim.toFixed(2) + "\t" + (scenes.at(-1).start - trim).toFixed(2));
   for (let i = 0; i < scenes.length - 1; i++) {
@@ -42,7 +43,14 @@ n=0
 tail -n +2 "$out/timings.tsv" | while IFS=$'\t' read -r name start _end secs; do
   n=$((n + 1))
   at=$(awk -v s="$start" -v d="$secs" 'BEGIN { print s + (d < 3 ? d / 2 : 1.5) }') # short scenes still get their own still
-  ffmpeg -nostdin -loglevel error -y -ss "$at" -i "$out/demo.mp4" -frames:v 1 "$out/stills/$(printf %02d "$n")-$name.png"
+  still="$out/stills/$(printf %02d "$n")-$name"
+  ffmpeg -nostdin -loglevel error -y -ss "$at" -i "$out/demo.mp4" -frames:v 1 "$still.png"
+  # One frame cannot show a missed click later in a long scene. A frame every 2s, stretched so 12 tiles span the scene.
+  if awk -v d="$secs" 'BEGIN { exit !(d > 4) }'; then
+    every=$(awk -v d="$secs" 'BEGIN { e = d / 12; printf "%.2f", (e > 2 ? e : 2) }')
+    ffmpeg -nostdin -loglevel error -y -ss "$start" -t "$secs" -i "$out/demo.mp4" \
+      -vf "fps=1/$every,scale=960:-2,tile=4x3" -frames:v 1 "$still.sheet.png"
+  fi
 done
 
 size=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$out/demo.mp4")

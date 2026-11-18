@@ -1,6 +1,6 @@
 # OpenSpeccer demo - narration script
 
-Timed to `openspeccer.mp4` (1:26). Word counts sit under about 2.2 words per second so there's room to breathe.
+Narration for `openspeccer.mjs`, one section per scene. The recording is fitted to the rendered clips, so sections carry no word budget.
 
 ## 1. Dashboard (0:00 - 0:12)
 
