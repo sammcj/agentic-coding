@@ -1176,6 +1176,207 @@ class DescriptionSpanTests(unittest.TestCase):
         self.assertIn("description-length", vs.CERTAIN)
 
 
+class LoaderFindingTests(unittest.TestCase):
+    """Loader behaviours: what Claude Code rewrites lands in FACTS, what only Codex or Copilot mishandle lands in
+    PORTABILITY, and a full run prints both."""
+
+    def report(self, body: str = "# T\n\nA line.\n", metadata: str = "", report_only: bool = False) -> str:
+        with tempfile.TemporaryDirectory() as tmp:
+            return vs.build_report(build_skill(Path(tmp), body, metadata=metadata), report_only=report_only)[0]
+
+    def section(self, text: str, heading: str) -> str:
+        """The lines under one report heading, up to the next heading."""
+        out, inside = [], False
+        for line in text.splitlines():
+            if not line.startswith(" "):
+                inside = line.startswith(heading)
+            elif inside:
+                out.append(line)
+        return "\n".join(out)
+
+    def test_a_price_in_a_skill_without_arguments_is_a_fact(self):
+        text = self.report("# T\n\nThe plan costs $5 a month.\n")
+        self.assertIn("CC-DOLLAR-N", self.section(text, "FACTS"))
+
+    def test_an_awk_field_inside_a_fence_is_a_fact(self):
+        text = self.report("# T\n\n```\nawk '{print $1}' file\n```\n")
+        self.assertIn("CC-DOLLAR-N", self.section(text, "FACTS"))
+
+    def test_a_placeholder_in_a_skill_that_takes_arguments_is_left_alone(self):
+        text = self.report("# T\n\nFix issue $0 in $1.\n", metadata="argument-hint: '[issue] [file]'\n")
+        self.assertNotIn("CC-DOLLAR-N", text)
+
+    def test_a_price_in_a_skill_that_takes_arguments_is_still_a_fact(self):
+        text = self.report("# T\n\nFix issue $0. Budget $4.50.\n", metadata="argument-hint: '[issue]'\n")
+        self.assertIn("CC-DOLLAR-N", self.section(text, "FACTS"))
+
+    def test_a_number_too_large_for_an_argument_is_still_a_fact(self):
+        text = self.report("# T\n\nFix issue $0. Budget $20.\n", metadata="argument-hint: '[issue]'\n")
+        self.assertIn("CC-DOLLAR-N", self.section(text, "FACTS"))
+
+    def test_a_declared_arguments_list_keeps_its_placeholders(self):
+        text = self.report("# T\n\nFix issue $0.\n", metadata="arguments: [issue]\n")
+        self.assertNotIn("CC-DOLLAR-N", text)
+
+    def test_a_body_using_the_arguments_placeholder_keeps_its_placeholders(self):
+        text = self.report("# T\n\nReview " + "$" + "ARGUMENTS. Fix issue $0 in $1.\n")
+        self.assertNotIn("CC-DOLLAR-N", text)
+
+    def test_a_currency_prefix_does_not_hide_the_token(self):
+        self.assertIn("CC-DOLLAR-N", self.report("# T\n\nIt costs US$5 or A$20.\n"))
+
+    def test_a_token_claude_code_leaves_alone_is_not_flagged(self):
+        """A letter straight after the digits, or a backslash before the dollar sign, stops the substitution."""
+        self.assertNotIn("CC-DOLLAR-N", self.report("# T\n\nRaised $5k then $1M. Escaped \\$5.\n"))
+
+    def test_a_placeholder_in_a_reference_outside_the_skill_is_named_by_its_path(self):
+        placeholder = "$" + "{CLAUDE_SKILL_DIR}"
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nRead ../outside.md first.\n")
+            (Path(tmp) / "outside.md").write_text(f"Run {placeholder}/x.py\n", encoding="utf-8")
+            facts = self.section(vs.build_report(skill_dir)[0], "FACTS")
+        self.assertIn("outside.md:1", facts)
+
+    def test_an_environment_variable_is_not_a_dollar_digit_token(self):
+        self.assertNotIn("CC-DOLLAR-N", self.report("# T\n\nRun it from $HOME or ${TMPDIR}.\n"))
+
+    def test_the_skill_directory_placeholder_is_a_fact_in_a_reference_too(self):
+        placeholder = "$" + "{CLAUDE_SKILL_DIR}"
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nRead references/a.md first.\n")
+            (skill_dir / "references" / "a.md").write_text(f"Run {placeholder}/scripts/x.py\n", encoding="utf-8")
+            facts = self.section(vs.build_report(skill_dir)[0], "FACTS")
+        self.assertIn("references/a.md:1", facts)
+
+    def test_the_skill_directory_placeholder_in_the_body_is_a_portability_finding(self):
+        text = self.report("# T\n\nRun " + "$" + "{CLAUDE_SKILL_DIR}/scripts/x.py now.\n")
+        self.assertIn("CX-SKILL-DIR", self.section(text, "PORTABILITY"))
+        self.assertNotIn("placeholder", self.section(text, "FACTS"))
+
+    def test_the_skill_directory_placeholder_in_frontmatter_is_a_fact(self):
+        text = self.report(metadata="x-command: " + "$" + "{CLAUDE_SKILL_DIR}/scripts/x.py\n", report_only=True)
+        self.assertIn("placeholder in frontmatter", self.section(text, "FACTS"))
+
+    def test_duplicate_frontmatter_keys_are_a_portability_finding(self):
+        text = self.report(metadata="license: MIT\nlicense: Apache-2.0\n")
+        self.assertIn("license", self.section(text, "PORTABILITY"))
+        self.assertNotIn("STRICT-YAML", self.section(text, "FACTS"))
+
+    def test_allowed_tools_as_a_mapping_is_a_portability_finding(self):
+        text = self.report(metadata="allowed-tools:\n  Read: true\n")
+        self.assertIn("CP-ALLOWED-TOOLS-MAP", self.section(text, "PORTABILITY"))
+
+    def test_allowed_tools_as_a_list_or_string_is_left_alone(self):
+        forms = (
+            "allowed-tools: Read Write\n",
+            "allowed-tools: [Read]\n",
+            "allowed-tools:\n  - Read\n",
+            "allowed-tools:\n  Bash(git:*) Read\n",
+        )
+        for form in forms:
+            self.assertNotIn("CP-ALLOWED-TOOLS-MAP", self.report(metadata=form), form)
+
+    def test_a_mapping_in_a_crlf_file_is_still_found(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nA line.\n", metadata="allowed-tools:\n  Read: true\n")
+            manifest = skill_dir / "SKILL.md"
+            manifest.write_bytes(manifest.read_bytes().replace(b"\n", b"\r\n"))
+            text = vs.build_report(skill_dir)[0]
+        self.assertIn("CP-ALLOWED-TOOLS-MAP", self.section(text, "PORTABILITY"))
+
+    def test_the_arguments_placeholder_is_a_portability_finding(self):
+        text = self.report("# T\n\nReview " + "$" + "ARGUMENTS now.\n")
+        self.assertIn("CX-ARGUMENTS", self.section(text, "PORTABILITY"))
+
+    def test_a_nested_manifest_is_a_portability_finding(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nA line.\n")
+            (skill_dir / "examples" / "inner").mkdir(parents=True)
+            (skill_dir / "examples" / "inner" / "SKILL.md").write_text("---\nname: inner\n---\n", encoding="utf-8")
+            text = vs.build_report(skill_dir)[0]
+        self.assertIn("examples/inner/SKILL.md", self.section(text, "PORTABILITY"))
+
+    def test_a_manifest_codex_would_not_load_is_not_a_nested_finding(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nA line.\n")
+            for folder, name in ((".cache", "SKILL.md"), ("node_modules/p", "SKILL.md"), ("examples", "skill.md")):
+                (skill_dir / folder).mkdir(parents=True, exist_ok=True)
+                (skill_dir / folder / name).write_text("---\nname: inner\n---\n", encoding="utf-8")
+            text = vs.build_report(skill_dir)[0]
+        self.assertNotIn("CX-NESTED", text)
+
+    def test_a_symlinked_manifest_is_a_portability_finding(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nA line.\n")
+            real = Path(tmp) / "real.md"
+            (skill_dir / "SKILL.md").rename(real)
+            (skill_dir / "SKILL.md").symlink_to(real)
+            text = vs.build_report(skill_dir)[0]
+        self.assertIn("CX-SYMLINK-FILE", self.section(text, "PORTABILITY"))
+
+    def test_a_manifest_over_the_codex_read_limit_is_a_portability_finding(self):
+        over = "# T\n\n" + "\n\n".join(["Run the build."] * (vs.loader_checks.CODEX_SHELL_READ_BYTES // 16 + 1))
+        self.assertIn("CX-SHELL-READ", self.section(self.report(over), "PORTABILITY"))
+        self.assertNotIn("CX-SHELL-READ", self.report())
+
+    def test_the_post_edit_hook_run_leaves_portability_out_and_keeps_facts(self):
+        body = "# T\n\nCosts $4.50. Review " + "$" + "ARGUMENTS now.\n"
+        text = self.report(body, report_only=True)
+        self.assertNotIn("PORTABILITY", text)
+        self.assertIn("CC-DOLLAR-N", text)
+
+    def test_a_portable_skill_has_no_portability_section(self):
+        self.assertNotIn("PORTABILITY", self.report())
+
+    def test_a_portability_finding_does_not_fail_or_downgrade_the_run(self):
+        if vs.yaml is None:
+            self.skipTest("PyYAML not installed")
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nReview " + "$" + "ARGUMENTS now.\n")
+            lines, ok = vs.validate_one(skill_dir)
+        self.assertTrue(ok)
+        self.assertEqual(lines[-1], "Skill is valid!")
+
+
+class ManifestCasingTests(unittest.TestCase):
+    def test_a_lower_case_manifest_fails_the_run_and_names_the_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = build_skill(Path(tmp), "# T\n\nA line.\n")
+            (skill_dir / "SKILL.md").rename(skill_dir / "skill.md")
+            lines, ok = vs.validate_one(skill_dir, report_only=True)
+        self.assertFalse(ok)
+        self.assertIn("'skill.md'", lines[0])
+
+    def test_an_exact_manifest_is_not_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertIsNone(vs.loader_checks.manifest_name(build_skill(Path(tmp), "# T\n")))
+
+
+class FrontmatterLoaderTests(unittest.TestCase):
+    """Frontmatter a strict loader rejects, and text in it that no agent ever reads. Needs PyYAML."""
+
+    def setUp(self):
+        if vs.yaml is None:
+            self.skipTest("PyYAML not installed")
+
+    def lint(self, extra: str):
+        with tempfile.TemporaryDirectory() as tmp:
+            return vs.lint(build_skill(Path(tmp), "# T\n\nA line.\n", metadata=extra))
+
+    def test_a_long_unrecognised_field_is_told_its_text_never_loads(self):
+        _, warnings = self.lint(f"instructions: {words(80)}\n")
+        self.assertTrue(any("CC-FM-STRIPPED" in w for w in warnings))
+
+    def test_text_spread_over_several_unrecognised_fields_is_counted_together(self):
+        _, warnings = self.lint(f"note-one: {'x' * 150}\nnote-two: {'y' * 150}\n")
+        self.assertEqual(sum("CC-FM-STRIPPED" in w for w in warnings), 1)
+
+    def test_a_short_unrecognised_field_gets_the_plain_warning(self):
+        _, warnings = self.lint("some-future-field: true\n")
+        self.assertTrue(warnings)
+        self.assertFalse(any("CC-FM-STRIPPED" in w for w in warnings))
+
+
 class RealSkillTests(unittest.TestCase):
     """The primer is the validator's own most-exercised subject; if the script
     cannot rate it, the report an agent reads after every edit is broken."""

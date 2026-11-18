@@ -2,7 +2,7 @@
 name: skill-creator-primer
 description: You **MUST** load this skill before the skill-creator skill AND before making ANY change to, or conducting a review of ANY Agent Skill. Triggers include creating, editing, reviewing, or contributing to any part of an Agent Skill (description, frontmatter, body, references, scripts, trigger evals, conflicts, etc).
 metadata:
-  version: 2026-11-16
+  version: 2026-11-18
   skill-lint:
     max-load-tokens: 10500 # primer skill accepted as being larger
 hooks:
@@ -289,11 +289,12 @@ Skills should only contain files that directly support functionality.
 
 ## Write Skills to Run Across Agents
 
-Skills should work on any tool that supports standard Agent Skills. Claude Code is our primary target, but GitHub Copilot and others read the same format, so keep wording and tooling portable rather than silently Claude Code-only:
+Claude Code is our primary target, but other agents read the same format, so keep wording and tooling portable:
 
 - Say "the agent", not "Claude Code" or "Copilot", when referring to whatever runs the skill.
 - Favour the spec's standard frontmatter and portable commands; reach for the Claude Code-specific extension fields below only when the skill genuinely needs them.
 - Omit `compatibility:` by default. Add it only when a skill is genuinely tied to one tool, to declare that in frontmatter rather than baking the assumption into prose - e.g. `compatibility: claude-code`, `github-copilot`, or `microsoft-cowork`. A tool-agnostic skill leaves it unset.
+- **Read `references/other-agents.md`** when a skill must run on an agent other than Claude Code.
 
 ## Claude Code Frontmatter & Extensions
 

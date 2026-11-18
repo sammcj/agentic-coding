@@ -21,6 +21,8 @@ try:
 except ModuleNotFoundError:
     yaml = None
 
+import loader_checks  # pyright: ignore[reportMissingImports]  # sibling module
+
 _FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
 
 # Description word-count rule from the primer's Skill Description Checklist: soft ceiling 55 words, hard cap 70.
@@ -980,6 +982,10 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False,
     if invisible:
         facts.append(f"  Invisible characters ({len(invisible)}) - replace with a plain space, or delete:")
         facts.extend(_filler_listing([("invisible", rel, lineno, name) for rel, lineno, _s, _e, name in invisible]))
+    loader_facts, portability = loader_checks.findings(
+        skill_dir, referenced_md_files(skill_dir), portable=not report_only
+    )
+    facts.extend(loader_facts)
     # A reference driving the rating is a branch-loaded cost, so its cure belongs under SIGNALS - FACTS is labelled
     # always-loaded.
     if advice and driver_is_main:
@@ -1058,6 +1064,10 @@ def build_report(skill_dir: Path, use_tiktoken: bool = False,
     if signals:
         out.append("SIGNALS (branch-loaded - judge each: earned detail or waffle?):")
         out.extend(signals)
+    # Empty on the post-edit hook's run: a Claude Code-only skill would otherwise be told about Codex after every edit.
+    if portability:
+        out.append("PORTABILITY (Codex and GitHub Copilot - act on these only when the skill must run there):")
+        out.extend(portability)
     out.append("INFO:")
     if pct is not None:
         out.append(f"  Structure: {pct}% of body words in paragraph prose")
@@ -1184,12 +1194,21 @@ def lint(skill_dir: Path) -> tuple[list[str], list[str]]:
 
     # Unknown fields are warnings, not errors: a typo, or a field newer than this linter. Either way, surface it without
     # failing the build.
+    unknown = sorted(set(metadata) - known_fields)
     warnings = [
         f"Unrecognised frontmatter field '{field}' "
         "(typo, or newer than this linter knows). "
         "See https://code.claude.com/docs/en/skills#frontmatter-reference"
-        for field in sorted(set(metadata) - known_fields)
+        for field in unknown
     ]
+    values = (metadata[field] for field in unknown)
+    chars = sum(len(value if isinstance(value, str) else yaml.safe_dump(value)) for value in values)
+    if chars > loader_checks.FRONTMATTER_FIELD_CHARS:
+        warnings.append(
+            f"Unrecognised frontmatter fields hold {chars} characters: Claude Code and Copilot strip frontmatter "
+            "before the agent reads the skill, so none of that text reaches it - move instructions into the body "
+            "[CC-FM-STRIPPED]"
+        )
 
     # Run the spec's real checks as hard errors. Strip non-spec fields first so skills-ref's own allowlist doesn't
     # re-flag the extensions we just allowed.
@@ -1211,6 +1230,13 @@ def validate_one(
     skill_dir = Path(skill_dir)
     if not skill_dir.is_dir():
         return [f"Error: directory does not exist: {skill_dir}"], False
+    # Before the existence check: on a case-sensitive filesystem a wrongly cased manifest is otherwise reported missing.
+    if (actual := loader_checks.manifest_name(skill_dir)) is not None:
+        casing = (
+            f"Error: manifest is named '{actual}', not SKILL.md, in {skill_dir} - Codex never loads another casing, "
+            "and Claude Code and Copilot load it only on a case-insensitive filesystem [CC-CASING]"
+        )
+        return [casing], False
     if not (skill_dir / "SKILL.md").is_file():
         return [f"Error: no SKILL.md in {skill_dir}"], False
 

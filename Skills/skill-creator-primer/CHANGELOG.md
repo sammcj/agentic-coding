@@ -2,6 +2,13 @@
 
 <!-- AI agents: After completing changes to this project, add a terse TLDR style bullet describing the change under today's date heading (## YYYY-MM-DD), newest date first. Create the date heading if it does not exist. No versioning is required. -->
 
+## 2026-11-18
+
+- Validator: new loader checks. FACTS flag dollar-digit tokens Claude Code rewrites as arguments and the skill-directory placeholder in frontmatter or a reference; a wrongly cased manifest fails the run; a long unrecognised frontmatter field is told its text never loads.
+- Validator: new PORTABILITY section (full runs only) for what Codex and GitHub Copilot drop or pass through: duplicate frontmatter keys, `allowed-tools` as a mapping, a symlinked or nested manifest, the arguments and skill-directory placeholders, and a SKILL.md over 40,000 bytes.
+- `list_descriptions.py` now prints total description characters, notes when the set is over the skill-list budget or Copilot's 32-skill limit, and reports duplicate names.
+- Added `references/other-agents.md`, gated on a skill needing to run outside Claude Code, pointing to SkillEvaluator's `harness-check`.
+
 ## 2026-11-16
 
 - HTML report: "Tokens by file" bars now jump to their file in the source pane on click and show the full path on hover.
