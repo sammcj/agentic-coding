@@ -712,7 +712,7 @@
     "typescript-lsp@claude-plugins-official": true,
     "yaml-lsp@zircote-lsp": false,
     "ralph-loop@claude-plugins-official": false,
-    "context-mode@context-mode": true,
+    "context-mode@context-mode": false,
     "kicad-happy@kicad-happy": false,
     "playwright@claude-plugins-official": false,
     "session-report@claude-plugins-official": true,
