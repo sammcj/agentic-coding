@@ -18,6 +18,7 @@ The repository is organised with tool-agnostic content at the root level:
 - [Custom Agents](./Claude/agents/) - Custom defined agents (use sparingly).
 - [Agent Rules](./Rules/) - Agent instruction files
   - [Rules/CLAUDE.md](./Rules/CLAUDE.md) is usually the most up to date and comprehensive
+  - [Rules/rules](./Rules/rules/) glob scoped rules
 - [Agent Commands](./Claude/commands/) - (Prompt templates)
 - [Claude Local Marketplace](./Claude/plugins/local-marketplace/) - My local marketplace (plugins) for Claude Code, including LSP definitions.
 
