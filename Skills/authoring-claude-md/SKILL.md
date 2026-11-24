@@ -1,11 +1,11 @@
 ---
 name: authoring-claude-md
-description: Creating and maintaining CLAUDE.md project memory files and .claude/rules/ rule files that provide non-obvious codebase context. Use when (1) creating a new CLAUDE.md for a project, (2) adding architectural patterns or design decisions to existing CLAUDE.md, (3) capturing project-specific conventions that aren't obvious from code inspection, (4) organising instructions into path-scoped rule files.
+description: Use when creating, editing, auditing or pruning CLAUDE.md, AGENTS.md or .claude/rules/ files.
 ---
 
-# CLAUDE.md and Rules Authoring
+# CLAUDE.md, AGENTS.md and Rules Authoring
 
-Create effective CLAUDE.md files and `.claude/rules/` rule files that serve as project-specific memory for AI coding agents.
+Create effective CLAUDE.md, AGENTS.md and `.claude/rules/` files that serve as project-specific memory for AI coding agents. Guidance for CLAUDE.md also applies to AGENTS.md and rule files unless stated otherwise: signal over noise, actionable context, no obvious information.
 
 ## Purpose
 
@@ -25,36 +25,35 @@ CLAUDE.md files and rule files provide AI agents with:
 
 ## Structure
 
-Use headings for clear organisation. Common sections: Architecture, Conventions, Gotchas, Testing. Use 2-4 sections and only include what adds value.
+Use headings for clear organisation. Common sections: Commands, Conventions, Gotchas. Use 2-4 sections and only include what adds value.
 
-## When to Use `.claude/rules/` Instead
+## Where Each Instruction Belongs
 
-For larger projects, break instructions into separate files under `.claude/rules/`. Each `.md` file covers one topic. Prefer rules over a single CLAUDE.md when:
+- Every session needs it: root CLAUDE.md, or root AGENTS.md if the repo uses it
+- One directory, maintained by its owners: nested CLAUDE.md, or nested AGENTS.md if the repo uses it
+- One file type, or scattered paths: path-scoped rule
+- Multi-step procedure, or reference only some tasks need: skill
+- Must hold every time without exception: hook or permission deny rule. CLAUDE.md is guidance the agent can judge not to apply
+- Personal, all projects: `~/.claude/CLAUDE.md` or `~/.claude/rules/`
+- Personal, one project: gitignored `CLAUDE.local.md` (see AGENTS.md below first)
 
-- Instructions are growing beyond 200 lines
-- Different rules apply to different parts of the codebase (frontend vs backend, API vs CLI)
-- Multiple team members maintain different sections
-- Some instructions only matter when working with specific file types
+`@path` imports organise content but load with the importing file, so they save no context.
 
-### Rule File Basics
+## AGENTS.md
 
-```
-your-project/
-├── .claude/
-│   ├── CLAUDE.md           # Main project instructions
-│   └── rules/
-│       ├── code-style.md   # Always loaded
-│       ├── testing.md      # Always loaded
-│       └── security.md     # Always loaded
-```
+By default Claude Code reads AGENTS.md only when there is no `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` in the working directory or above. `~/.claude/CLAUDE.md` doesn't count. Adding one stops every AGENTS.md loading for sessions started in that directory or below, parent directories included, except those imported. A nested one also replaces its sibling AGENTS.md when the session starts above it. Some versions and sessions can't read AGENTS.md directly and need the import too.
 
-Files are discovered recursively, so subdirectories like `frontend/` and `backend/` work. Rules without `paths` frontmatter load at launch with the same priority as `.claude/CLAUDE.md`.
+- Repo uses AGENTS.md: put shared instructions there
+- Claude-specific content needed: create a CLAUDE.md starting with `@AGENTS.md`, with only the Claude-specific lines below it. Parent and nested AGENTS.md files then each need a sibling CLAUDE.md importing them, or the setting below
+- `CLAUDE.local.md` needed and no CLAUDE.md imports AGENTS.md: have the user set **Project instructions** to `claude-md-and-agents-md` in `/config`. The setting is personal, so use imports for anything teammates need
+- CLAUDE.md says in prose to read AGENTS.md: replace the sentence with an `@AGENTS.md` import
+- CLAUDE.md is a symlink to AGENTS.md: edit AGENTS.md, as Edit and Write refuse to write through the link
 
-The same authoring principles apply to rule files: signal over noise, actionable context, no obvious information.
+## Rule Files
 
-### Path-Specific Rules
+Each `.md` file under `.claude/rules/` covers one topic and is discovered recursively. Move part-specific content to path-scoped rules when CLAUDE.md approaches 200 lines, or when conventions differ by file type or area (one whole directory: see Where Each Instruction Belongs).
 
-Scope rules to specific files using YAML frontmatter with the `paths` field. These only load when Claude reads files matching the glob patterns, reducing noise and saving context.
+Scope a rule with `paths` frontmatter, the only field Claude Code reads:
 
 ```markdown
 ---
@@ -62,32 +61,22 @@ paths:
   - "src/api/**/*.ts"
 ---
 
-# API Development Rules
-
-- All API endpoints must include input validation
-- Use the standard error response format
-- Include OpenAPI documentation comments
+- Validate request bodies with the schemas in `src/api/schemas/`
 ```
 
-Rules without a `paths` field apply unconditionally. Path-scoped rules trigger on file read, not on every tool use.
-
-### User-Level Rules
-
-Personal rules that apply across all your projects live at `~/.claude/rules/`. These load before project rules, giving project rules higher priority.
-
-```
-~/.claude/rules/
-├── preferences.md    # Personal coding preferences
-└── workflows.md      # Preferred workflows
-```
-
-### Rules vs Skills
-
-Rules load every session (or when matching files are opened). For task-specific instructions that don't need constant context, use skills instead. Skills load only when invoked or when Claude determines they're relevant.
+- Loads when the agent reads, writes or edits a matching file, including a simple `cat` or `head` of one
+- Without `paths`, or with YAML that doesn't parse, it loads every session
+- User-level and project rules both load and neither overrides the other. The agent may follow either, so keep them consistent
 
 ## What to Include
 
-**Architectural decisions**: Why microservices over monolith, event-driven patterns, state management
+**Verification commands**: exact test, single-test, lint, typecheck and build commands. The command that checks the work is often the most useful line in the file.
+
+**Misleading code**:
+- "`src/legacy/` is live but don't copy its patterns into new code"
+- "`tools/shim/` looks unused, the release job imports it"
+
+**Architectural decisions**: the reason for a choice the code can't show, such as why services communicate by events
 
 **Non-obvious conventions**:
 - "Use `_internal` suffix for private APIs not caught by linter"
@@ -104,14 +93,16 @@ Rules load every session (or when matching files are opened). For task-specific 
 
 - Line numbers: files change and references break. Use descriptive paths: "in `src/auth/middleware.ts`" not "line 42"
 - Obvious information: "We use React" (visible in package.json). LLMs are in-context learners and pick up patterns from codebase exploration.
+- Architecture and layout descriptions: the agent reads the repo itself. Keep only the decisions and reasons.
+- Lines that push effort or delegation: "think harder", "be thorough", "double-check your work", "use subagents", token budgets, hard word caps. These add cost or side effects on current models. Set effort in the agent's settings and give a check to run instead.
 - Code style guidelines: formatting rules, naming conventions, or patterns that linters enforce. Use ESLint, Prettier, Black, golangci-lint or similar, and Claude Code Hooks to run formatters.
 - Generic advice: "Write good tests" adds no project-specific value.
 - Setup steps: belong in README unless highly non-standard.
 - Duplicate content: if it's in the README or existing docs, link to it rather than repeat it.
-- Task-specific minutiae: database schemas, API specifications, deployment procedures belong in their own docs. Link to them rather than duplicating.
+- Task-specific minutiae: database schemas, API specifications, deployment procedures belong in their own docs or a skill. Link to them rather than duplicating.
 - Temporary notes: TODOs, one-off bug fixes, and temporary workarounds belong in code comments.
 - Verbose descriptions: keep entries terse, drop long explanations.
-- Kitchen sink entries: not every gotcha belongs here. Ask "Is this relevant across most coding sessions?" If no, it belongs in code comments or specific docs.
+- Kitchen sink entries: not every gotcha belongs here. Ask "Is this relevant across most coding sessions?" If no, it belongs in a path-scoped rule, code comments or specific docs.
 - Formatting over-emphasis: don't bold the start of every sentence or bullet, reserve emphasis for warnings that truly warrant it.
 
 ## Conflict Audit
@@ -130,16 +121,8 @@ Path-scoped rules refine the root CLAUDE.md for the files they match; they shoul
 
 Point to existing docs rather than duplicating content. Provide context about when to read them:
 
-**Good**:
-```markdown
-# Architecture
-Event-driven architecture using AWS EventBridge.
-
-- For database schema: see src/database/SCHEMA.md when working with data models
-- For auth flows: see src/auth/README.md when working with authentication
-```
-
-**Bad**: Copying schema tables, pasting deployment steps, or duplicating API flows into CLAUDE.md
+- Good: "Database schema: see src/database/SCHEMA.md when working with data models"
+- Bad: Copying schema tables, pasting deployment steps, or duplicating API flows into CLAUDE.md
 
 ## Writing Style
 
@@ -151,16 +134,27 @@ Event-driven architecture using AWS EventBridge.
 - Bad: "It's important to note that when working with our database layer, you should be aware that..."
 - Good: "Database queries: Use Prisma for CRUD, raw SQL for complex reports in `/queries`"
 
-**Use active voice**:
-- Bad: "Migrations should be run before deployment"
-- Good: "Run migrations before deployment: `npm run migrate:prod`"
+**State rules plainly**, with scope, reason and any exception together. Current models take "never" literally and over-apply ALL CAPS or IMPORTANT. If a plain line is still missed, shorten the file or use a hook.
+- Bad: "IMPORTANT: NEVER edit migrations"
+- Good: "Don't edit a migration already on main, as it has run in production. Add a new one"
+
+Keep the strength of an existing ban. Turn it into "ask before" only if the user wants the agent to have that option.
+
+**Name approvals exactly**, including the routine steps that need none:
+- Bad: "Be careful and check before making changes"
+- Good: "Ask before force-pushing or dropping a table. Retrying failed commands and running tests need no approval"
+
+**Code ownership**: add "You are the owner and long-term maintainer of this codebase, and its design is up to you." only when the user wants the agent to restructure as it works. It also brings unrequested changes, and a scope rule doesn't cancel it.
 
 ## When to Update
 
-Add to CLAUDE.md when:
-- Discovering a non-obvious pattern after codebase exploration or complex problem resolution
-- Solving an issue that took significant investigation that will be encountered again by other agents
-- Finding a gotcha that's not immediately clear from code
+Add an entry when the user asks, or when:
+- The agent makes the same mistake a second time
+- A review catches something the agent should have known about this codebase
+- The user retypes a correction from an earlier session
+- A new contributor would need the same context
+
+Prune an entry when its reason has gone, a path or command it names no longer exists, a linter or hook now enforces it, or the code now shows it. Check with the user before removing or loosening a safety rule.
 
 Don't add anything covered under What to Exclude (one-off fixes, temporary workarounds, info already in docs, verbose explanations).
 
@@ -171,40 +165,35 @@ Always use Australian English spelling
 ## Example Structure
 
 ```markdown
-# Architecture
-Event-driven architecture using AWS EventBridge. Services communicate via events, not direct calls.
-
-Auth: JWT tokens with refresh mechanism. See src/auth/README.md for detailed flows when working on authentication.
-Database schema and relationships: see src/database/SCHEMA.md when working with data models.
+# Commands
+- Test: `pnpm test`, one file: `pnpm vitest run path/to/file.test.ts`
+- Lint and typecheck: `pnpm lint && pnpm tsc --noEmit`
 
 # Conventions
-- API routes: Plural nouns (`/users`, `/orders`), no verbs in paths
-- Error codes: 4-digit format `ERRR-1001`, defined in src/errors/codes.ts
-- Feature flags: Check in middleware, not in business logic
-- Dates: Always UTC in database, format client-side via src/utils/dates.ts
-- Documentation: Use DocBlocks for public functions, never use "smart" formatting markdown
+- Errors: use the helpers in src/lib/errors.ts rather than raw strings
+- Feature flags: check in middleware, not in business logic
+- Dates: UTC in the database, format client-side via src/utils/dates.ts
+- Auth: see src/auth/README.md when changing token flows
 
 # Gotchas
-
-**Cache race conditions**: Always acquire lock before checking cache status
-
-**Background job authentication**: Tokens expire after 1 hour. Refresh using
-`refreshToken()` in src/auth/refresh.ts before making API calls.
-
-# Testing
-
-- Tests should never have external API calls or dependencies.
-- Run `make test` before committing.
+- src/legacy/ is live but don't copy its patterns into new code
+- Cache: acquire the lock before checking status, as concurrent workers race
 ```
 
 ## Token Budget
 
-Aim for 1k-4k tokens for CLAUDE.md. Most projects fit in 100-300 lines. A single CLAUDE.md is fine for most projects - if exceeding budget, consider whether splitting into `.claude/rules/` files would help (especially if some content only applies to specific file types). If exceeding:
+Aim for under 200 lines and 1k-4k tokens per CLAUDE.md. A single CLAUDE.md is fine for most projects. If exceeding:
 1. Reword to be more concise
 2. Remove generic advice
 3. Ensure there's no duplicated content
+4. Move content that only some files or tasks need (see Where Each Instruction Belongs)
 
 Estimate token count with `wc -c CLAUDE.md`, then divide the character count by roughly 4.
+
+## Verification
+
+- Loading: ask the user to run `/context all` and check **Memory files**. Nested CLAUDE.md files and path-scoped rules load on demand, so they won't be listed.
+- Audits and large rewrites: run the bundled `claude-api` skill with `prompt-audit <path>` (users can type `/doctor prompt-audit <path>`) and judge each finding. Skip it for small edits, as it loads a lot of context.
 
 ## Review Checklist
 
@@ -215,5 +204,5 @@ Before finalising:
 - [ ] Simple formatting, no smart quotes, no em dashes, no excessive bolding
 - [ ] Information is unlikely to become stale quickly
 - [ ] Prefer positive rules with a substitute ("use semicolons or periods to separate clauses") over bare prohibitions ("never use em-dashes")
-- [ ] Focused on stable, long-term patterns
+- [ ] Every named path and command exists
 - [ ] Content is tight, concise and actionable, not verbose or narrative driven
