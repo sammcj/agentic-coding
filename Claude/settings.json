@@ -720,7 +720,8 @@
     "cc-safety-net@cc-marketplace": true,
     "cc-plugin-you-should-know@builtin": true,
     "deploy-on-aws@agent-plugins-for-aws": false,
-    "nono@nolabs-ai": true
+    "nono@nolabs-ai": true,
+    "floorplan@floorplan": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -796,6 +797,12 @@
       "source": {
         "source": "github",
         "repo": "ray-amjad/claude-code-mods"
+      }
+    },
+    "floorplan": {
+      "source": {
+        "source": "github",
+        "repo": "haydenschmitty/floorplan"
       }
     }
   },

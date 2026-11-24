@@ -156,6 +156,7 @@ Be goal oriented when undertaking significant development tasks: **Define succes
 - For long-running services, prefer Bash `run_in_background` so the harness owns the process lifecycle and no `kill` is needed
 - You should use `rg` (ripgrep) rather than `grep` and `fd` rather than `find` on the command line
 - You must use `gh` outside the sandbox so it is authenticated
+- Run Playwright/Chromium outside the sandbox on the first attempt, as it cannot start inside it. Only for local or trusted pages. Keep the browser step in its own Bash call
 
 ### Tool Priorities
 Proactively use tools and skills:
