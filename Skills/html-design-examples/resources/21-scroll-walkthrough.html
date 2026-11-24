@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en-AU" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A diagram the reader scrolls through</title>
+<!-- The only external request in the file. Without it the stacks fall back to ui-monospace and the page still works. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Kode+Mono:wght@400;500;600;700&display=swap">
+<style>
+  /* light is the default, the toggle sets data-theme on <html>; everything else is derived from these tokens */
+  :root, [data-theme="light"] {
+    color-scheme: light;
+    --bg: #f7f4ec; --card: #fffdf8; --ink: #211e19; --ink-2: #544f46; --ink-3: #6a645a; --body-ink: #2b2822;
+    --violet: #5a43c8; --orange: #a9421a; --blue: #1c5fae; --green: #0b6e4c; --pink: #b32560;
+    --shade: rgba(33,30,25,.075); --drop: rgba(33,30,25,.28);
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0f1012; --card: #17181a; --ink: #e9dfc9; --ink-2: #aaa495; --ink-3: #8c877b; --body-ink: #eceef1;
+    --violet: #b7aafa; --orange: #f08a5d; --blue: #5b9df0; --green: #4fd0a0; --pink: #f277a6;
+    --shade: rgba(233,223,201,.055); --drop: rgba(0,0,0,.52);
+  }
+  :root {
+    --line: color-mix(in srgb, var(--ink) 16%, transparent); --hair: color-mix(in srgb, var(--ink) 32%, transparent);
+    --lab: "Kode Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --body: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --ease: cubic-bezier(.22, 1, .36, 1); --fast: 160ms; --med: 320ms; --slow: 620ms;
+    --col: 720px;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); scroll-padding-top: 40px; }
+  body { margin: 0; color: var(--body-ink); font: 400 15px/1.75 var(--body); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: calc(var(--col) + 40px); margin: 0 auto; padding: 0 20px; }
+  p { margin: 0 0 18px; text-wrap: pretty; }
+  b { font-weight: 500; }
+  a { color: inherit; }
+  code { font: 500 .86em var(--body); color: var(--ink); background: color-mix(in srgb, var(--violet) 14%, transparent); border: 1px solid color-mix(in srgb, var(--violet) 28%, transparent); padding: 1px 6px; border-radius: 2px; }
+  .caps, .btn, .tldr-h, .fig-h, .leg, .lbl { font-family: var(--lab); font-weight: 500; text-transform: uppercase; letter-spacing: .1em; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+  /* chrome: segmented progress, floating contents */
+  .progress { position: fixed; inset: 0 0 auto; height: 2px; display: flex; gap: 3px; z-index: 20; pointer-events: none; }
+  .progress i { flex: 1; background: var(--line); overflow: hidden; }
+  .progress i::after { content: ""; display: block; height: 100%; background: var(--violet); transform: scaleX(var(--p, 0)); transform-origin: left; }
+  .toc { display: none; position: fixed; top: 132px; left: calc(50% + var(--col) / 2 + 56px); width: 208px; transition: opacity var(--med) var(--ease), visibility var(--med); font: 400 12px/1.45 var(--lab); }
+  .toc h4 { margin: 0 0 14px; font: 500 11px/1 var(--lab); letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
+  .toc a { display: block; padding: 5px 0 5px 13px; color: var(--ink-3); text-decoration: none; border-left: 1px solid var(--line); text-wrap: balance; transition: color var(--fast) var(--ease), border-color var(--fast) var(--ease); }
+  .toc a:hover, .toc a.on { color: var(--ink); }
+  .toc a.on { border-left-color: var(--violet); }
+  .toc.away { opacity: 0; visibility: hidden; }
+  @media (min-width: 1300px) { .toc { display: block; } }
+
+  h1 { margin: 10px 0 24px; font: 500 clamp(30px, 5vw, 42px)/1.14 var(--lab); letter-spacing: -.01em; color: var(--ink); text-wrap: balance; }
+  h2 { margin: 84px 0 14px; font: 500 15px/1.6 var(--body); }
+  h2::before { content: "# "; color: var(--ink-3); }
+  h2.flash { animation: flash var(--slow) var(--ease); }
+  @keyframes flash { from { color: var(--violet); } }
+  .crumb { padding-top: 72px; margin: 0; font: 400 12px/1 var(--body); color: var(--ink-3); }
+  .crumb b { color: var(--violet); }
+
+  /* dropcap: canvas lattice, size reserved so the paragraph never reflows */
+  .dc { min-height: 118px; }
+  #cap { float: left; width: 104px; height: 112px; margin: 4px 16px 0 0; color: var(--ink); font: 700 96px/112px var(--lab); }
+  #cap canvas { display: block; width: 104px; height: 112px; }
+
+  .btn { appearance: none; cursor: pointer; background: none; color: var(--ink-2); border: 1px solid color-mix(in srgb, var(--ink) 24%, transparent); border-radius: 0; font-size: 11px; line-height: 1; padding: 9px 12px; white-space: nowrap; transition: color var(--fast) var(--ease), background-color var(--fast) var(--ease), border-color var(--fast) var(--ease), transform var(--fast) var(--ease); }
+  .btn:active { transform: scale(.97); }
+  .btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .btn:disabled { opacity: .3; cursor: default; }
+  @media (hover: hover) { .btn:not(:disabled):not([aria-pressed="true"]):hover { color: var(--ink); border-color: color-mix(in srgb, var(--ink) 55%, transparent); } }
+  @media (pointer: coarse) { .btn { min-height: 40px; } }
+  .theme { position: absolute; top: 20px; right: 20px; z-index: 25; background: var(--bg); }
+  @media (min-width: 1340px) { .theme { position: fixed; } }
+  :focus-visible { outline: 1px solid var(--violet); outline-offset: 3px; }
+
+  .tldr { margin: 34px 0; border-block: 1px solid var(--line); padding: 16px 0 4px; }
+  .tldr-h { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-bottom: 10px; }
+  .tldr-h b { color: var(--ink); }
+  .tldr a { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: baseline; padding: 9px 4px; text-decoration: none; color: var(--ink-2); font-size: 14.5px; line-height: 1.6; border-top: 1px solid var(--line); transition: background-color var(--fast) var(--ease); }
+  .tldr a:first-of-type { border-top: 0; }
+  .tldr a i { font: 500 11px/1 var(--lab); color: var(--k); }
+  .tldr a b { color: var(--ink); }
+  .tldr a u { text-decoration: none; color: var(--ink-3); transition: transform var(--fast) var(--ease), color var(--fast) var(--ease); }
+  @media (hover: hover) { .tldr a:hover { background: color-mix(in srgb, var(--k) 6%, transparent); } .tldr a:hover u { transform: translateX(3px); color: var(--k); } }
+
+  /* bare figures: a rule and a small-caps title, no card around the chart */
+  .fig { margin: 38px 0 46px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .fig-h { font-size: 11px; line-height: 1.4; color: var(--ink-3); margin-bottom: 18px; }
+  .row { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 16px; }
+  .lbl { font-size: 11px; color: var(--ink-3); margin-right: 6px; }
+  .leg { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 11px; color: var(--ink-2); margin-top: 10px; }
+  .leg span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--k); margin-right: 7px; }
+  figcaption { margin-top: 14px; font: 400 12px/1.6 var(--lab); color: var(--ink-2); text-wrap: pretty; }
+
+  .tip { position: fixed; left: 0; top: 0; z-index: 60; max-width: min(300px, calc(100vw - 16px)); padding: 11px 13px; border-radius: 2px; background: var(--ink); color: var(--bg); font: 400 12px/1.5 var(--body); box-shadow: 0 12px 30px var(--drop); pointer-events: none; visibility: hidden; opacity: 0; transform: translateY(4px); transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease); }
+  .tip.show { visibility: visible; opacity: 1; transform: none; }
+  .tip > b { display: block; font: 600 11px/1.3 var(--lab); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 5px; }
+  .tip div { display: grid; grid-template-columns: 8px 1fr auto; gap: 8px; align-items: center; }
+  .tip div i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 60%, transparent); }
+  .gloss { border-bottom: 1px dotted var(--ink-3); cursor: help; }
+
+  /* tokens */
+  .sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .sw button { appearance: none; text-align: left; cursor: pointer; padding: 10px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 0; color: var(--ink-2); font: 400 11.5px/1.5 var(--body); box-shadow: 5px 5px 0 var(--shade); transition: border-color var(--fast) var(--ease), transform var(--fast) var(--ease); }
+  .sw button::before { content: ""; display: block; height: 26px; margin-bottom: 9px; background: var(--k); outline: 1px solid var(--line); }
+  .sw b { display: block; font: 500 11px/1.4 var(--lab); letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
+  @media (hover: hover) { .sw button:hover { border-color: var(--k); transform: translate(-1px, -1px); } }
+
+  /* pinned walkthrough */
+  .walk { position: relative; margin: 44px 0; }
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; max-width: 1240px; margin: 0 auto; overflow: hidden; }
+  .stage > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .stage text { font-family: var(--lab); fill: var(--ink-2); }
+  .hd { font-size: 11px; font-weight: 500; letter-spacing: .12em; }
+  .stage text.hd { fill: var(--ink); }
+  .hs { font-size: 10px; letter-spacing: .09em; }
+  .stage text.hs { fill: var(--ink-3); }
+  .pt { cursor: pointer; transition: opacity var(--med) var(--ease); }
+  .pt.dim { opacity: .4; }
+  .pt .bx { fill: var(--card); stroke: var(--hair); stroke-width: 1.2; transition: stroke var(--fast) var(--ease), fill var(--fast) var(--ease); }
+  .pt.hot .bx { stroke: var(--k, var(--ink)); fill: color-mix(in srgb, var(--k, var(--ink)) 12%, var(--bg)); }
+  .pt.hot text.hs { fill: var(--ink-2); }
+  .stage[data-on] .pt { opacity: .3; }
+  .stage[data-on] .pt.is { opacity: 1; }
+  .pt:focus-visible { outline: none; }
+  .pt:focus-visible .bx { stroke: var(--violet); stroke-dasharray: 3 3; }
+  .side { position: absolute; right: 24px; top: max(84px, calc(50% - 250px)); width: clamp(320px, 34%, 420px); max-height: calc(100% - 100px); overflow: hidden auto; padding: 0 8px 8px 0; }
+  .rail { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .rail button { appearance: none; background: none; border: 0; padding: 8px 0 4px; text-align: left; cursor: pointer; color: var(--ink-3); font: 600 12px/1 var(--lab); }
+  .rail i { display: block; height: 2px; margin-bottom: 7px; background: var(--line); }
+  .rail u { display: block; height: 100%; width: 0; background: var(--ink-2); }
+  .rail .lp u { background: var(--violet); }
+  .rail [aria-current] { color: var(--ink); }
+  .rail .lp[aria-current] { color: var(--violet); }
+  .nav { display: flex; gap: 4px; margin: 8px 0 20px; }
+  .nav .btn:last-child { margin-left: auto; }
+  .k { margin: 0; display: flex; gap: 10px; font: 600 11px/1.3 var(--lab); letter-spacing: .14em; color: var(--ink-2); }
+  .k i { font-style: normal; color: var(--ink-3); }
+  .k i:last-child { margin-left: auto; font-weight: 500; letter-spacing: .1em; }
+  .text.swap { animation: swap var(--med) var(--ease); }
+  @keyframes swap { from { opacity: 0; translate: 0 6px; } }
+  .k.lp span { color: var(--violet); }
+  .s { margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: var(--ink); min-height: 4.8em; }
+  .readout { margin-top: 18px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); box-shadow: 6px 6px 0 var(--shade); }
+  .readout pre { margin: 0 0 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); font: 400 11.5px/1.65 var(--body); color: var(--ink); white-space: pre-wrap; }
+  .readout div { display: flex; justify-content: space-between; font: 500 11px/1.9 var(--lab); letter-spacing: .08em; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .readout div b { color: var(--ink); }
+  @media (max-width: 820px) {
+    .side { inset: auto 0 0; width: auto; height: 47%; padding: 8px 16px 12px; background: var(--bg); border-top: 1px solid var(--line); overflow-y: auto; }
+    .nav { margin: 4px 0 10px; }
+    .s { font-size: 13.5px; min-height: 0; }
+    .readout { margin-top: 10px; }
+    .readout pre { display: none; }
+  }
+
+  /* prose-linked strip */
+  .term { border-bottom: 1px dashed var(--ink-3); cursor: pointer; transition: background-color var(--fast) var(--ease); }
+  .term.on { background: color-mix(in srgb, var(--k) 20%, transparent); border-color: var(--k); }
+  .strip { position: relative; display: flex; gap: 16px; margin: 30px 0 34px; }
+  .strip > div { flex: var(--n) 1 0; transition: opacity var(--med) var(--ease); }
+  .strip[data-on] > div { opacity: .4; }
+  .strip > div.on { opacity: 1; }
+  .strip span { display: flex; gap: 3px; }
+  .strip span i { flex: 1; height: 28px; border: 1px solid color-mix(in srgb, var(--k) 60%, var(--bg)); background: color-mix(in srgb, var(--k) 12%, transparent); border-radius: 1px; transition: background-color var(--fast) var(--ease); }
+  .strip span i.hot, .strip > div.on span i { background: color-mix(in srgb, var(--k) 50%, transparent); }
+  .strip small { display: block; margin-top: 9px; font: 500 11px/1.5 var(--lab); letter-spacing: .08em; color: var(--ink-3); }
+  .strip small b { display: block; color: var(--k); }
+  .strip em { position: absolute; left: -4px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 2px var(--bg); }
+
+  /* looping comparison */
+  .phases { flex: 1 1 260px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-left: 8px; }
+  .phases button { appearance: none; background: none; border: 0; padding: 6px 0; text-align: left; cursor: pointer; font: 500 11px/1 var(--lab); letter-spacing: .06em; color: var(--ink-3); }
+  .phases i { display: block; height: 2px; margin-bottom: 7px; background: var(--line); }
+  .phases u { display: block; height: 100%; width: 0; background: var(--violet); }
+  .phases [aria-pressed="true"] { color: var(--ink); }
+  .cmp { width: 100%; height: auto; display: block; overflow: visible; }
+  .cmp text { font: 500 11px var(--lab); letter-spacing: .08em; fill: var(--ink-3); }
+  .cmp text.nm { fill: var(--ink); }
+  .scroll-x { overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--ink-3) transparent; padding-bottom: 6px; }
+  .scroll-x svg { min-width: 640px; }
+  .say { min-height: 3.4em; margin: 14px 0 0; font: 400 13px/1.6 var(--body); color: var(--ink-2); }
+
+  /* charts */
+  .plot { outline-offset: 6px; touch-action: pan-y; }
+  .plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .plot text { font: 400 11px var(--lab); fill: var(--ink-2); }
+  .plot .gr { stroke: color-mix(in srgb, var(--ink) 11%, transparent); }
+  .plot .ln { fill: none; stroke-width: 2.3; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset var(--slow) var(--ease); }
+  .plot.in .ln { stroke-dashoffset: 0; }
+  .meter { display: grid; grid-template-columns: 130px 1fr 70px; gap: 9px 12px; align-items: center; margin-top: 24px; font: 500 11px/1.3 var(--lab); letter-spacing: .05em; color: var(--ink); }
+  .meter span { height: 10px; background: color-mix(in srgb, var(--ink) 9%, transparent); }
+  .meter i { display: block; height: 100%; width: 0; background: var(--k); transition: width var(--slow) var(--ease) calc(var(--i) * 40ms); }
+  .meter.in i { width: var(--w); }
+  .meter em { font-style: normal; text-align: right; }
+
+  .rules { list-style: none; margin: 0 0 24px; padding: 0; }
+  .rules li { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.6; color: var(--ink-2); }
+  .rules b { font: 500 11px/2 var(--lab); letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
+  footer { margin: 90px 0 60px; font: 400 12px/1.6 var(--lab); color: var(--ink-3); }
+  @media (max-width: 620px) { .rules li { grid-template-columns: 1fr; gap: 0; } .strip { gap: 6px; } .strip span { gap: 1px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .plot .ln { stroke-dashoffset: 0; } }
+</style>
+</head>
+<body>
+<div class="progress" aria-hidden="true"></div>
+<nav class="toc" aria-label="On this page"><h4>On this page</h4></nav>
+<button class="btn theme"></button>
+<main>
+<section class="wrap">
+  <p class="crumb">examples <i>&rsaquo;</i> <b>scroll walkthrough</b></p>
+  <h1>A diagram the reader scrolls through</h1>
+  <p class="dc"><span id="cap">A</span> pinned diagram turns a long explanation into one picture. Scrolling moves a camera over it, lights one part at a time and runs a short animation that the reader can stop, reverse or skip. This page documents that style by using it. The walkthrough below draws the <span class="gloss" tabindex="0" data-tip="The code in this file that turns a scroll position into a drawn frame.">scroll engine</span> that is driving it, with live values.</p>
+  <div class="tldr">
+    <div class="tldr-h"><b>TL;DR</b><span>Click any to jump</span></div>
+    <a href="#look" style="--k:var(--violet)"><i>01</i><span><b>Mono, hairlines, flat shadows.</b> Warm ink on paper or near-black. Five hues, each with one job across the figures.</span><u>&rarr;</u></a>
+    <a href="#engine" style="--k:var(--violet)"><i>02</i><span><b>Scroll is the clock.</b> The drawing is a function of smoothed scroll position, so it plays backwards for free.</span><u>&rarr;</u></a>
+    <a href="#why" style="--k:var(--violet)"><i>03</i><span><b>Scrubbed state cannot drift.</b> A triggered tween disagrees with the page as soon as the reader turns round.</span><u>&rarr;</u></a>
+    <a href="#step" style="--k:var(--violet)"><i>04</i><span><b>Arrive, play, leave.</b> The camera only moves at the edges of a step, never while something plays.</span><u>&rarr;</u></a>
+    <a href="#motion" style="--k:var(--violet)"><i>05</i><span><b>One curve, three durations.</b> Interface transitions share an ease and settle in 160, 320 or 620 ms.</span><u>&rarr;</u></a>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2 id="look">Look</h2>
+  <p>Everything is monospaced. Labels, axes and buttons are small tracked capitals in Kode Mono, sentences are IBM Plex Mono. Figures sit bare on the page under a rule. Depth comes from a flat offset shadow. Click a colour to copy it.</p>
+  <div class="fig"><div class="fig-h">Palette and the job of each colour</div><div class="sw"></div></div>
+</section>
+
+<section>
+  <div class="wrap"><h2 id="engine">How a frame is drawn</h2>
+  <p>These stages run on each animation frame while the page is moving. Only the panel waits for a step change. Scroll through them, use Prev and Next, or select any part.</p></div>
+  <figure class="walk"><div class="stage">
+    <svg role="group" aria-label="The scroll engine from top to bottom: scroll position, smoothing, segment lookup, camera, render, panel and paint, inside a loop that repeats until the drawing catches up with the page."></svg>
+    <aside class="side">
+      <div class="rail" role="group" aria-label="Steps"></div>
+      <div class="nav"><button class="btn" data-dir="-1">&lsaquo; Prev</button><button class="btn" data-dir="1">Next &rsaquo;</button><button class="btn" data-skip>Skip &darr;</button></div>
+      <div class="text"><div aria-live="polite"><p class="k"></p><p class="s"></p></div><div class="readout"></div></div>
+    </aside>
+  </div></figure>
+</section>
+
+<section class="wrap">
+  <h2 id="why">Why scrubbing beats triggering</h2>
+  <p>Many scroll animations start a timer when an element enters the viewport. That works for a chart drawing itself once. It fails for an explanation, because the reader moves both ways.</p>
+  <figure class="fig" id="cmp"><div class="fig-h">The same scroll, driven two ways</div>
+    <div class="row"><button class="btn" data-play>Pause</button><div class="phases"></div></div>
+    <div class="scroll-x"><svg class="cmp" viewBox="0 0 720 206" role="img" aria-label="Top: a triggered tween drifts from the scroll position. Bottom: a scrubbed animation stays with it."></svg></div>
+    <p class="say"></p></figure>
+</section>
+
+<section class="wrap">
+  <h2 id="step">Anatomy of one step</h2>
+  <p>A step owns a stretch of scroll. The camera <span class="term" tabindex="0" data-part="arrive" style="--k:var(--orange)">arrives in the first 12%</span>, the animation <span class="term" tabindex="0" data-part="play" style="--k:var(--violet)">plays over the next 72%</span>, and the camera <span class="term" tabindex="0" data-part="leave" style="--k:var(--blue)">leaves over the last 16%</span>. Underlined phrases and the strip highlight each other.</p>
+  <div class="strip">
+    <div data-part="arrive" style="--n:3;--k:var(--orange)"></div><div data-part="play" style="--n:18;--k:var(--violet)"></div><div data-part="leave" style="--n:4;--k:var(--blue)"></div><em aria-hidden="true"></em>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2 id="motion">Motion grammar</h2>
+  <p>The lag filter smooths wheel ticks into continuous movement. Interface transitions use <code>cubic-bezier(.22, 1, .36, 1)</code>. Scroll-scrubbed movement uses smoothstep, because it is symmetric and reads the same in reverse.</p>
+  <figure class="fig" id="chart"><div class="fig-h">Response curves</div>
+    <div class="row"><span class="lbl">Show</span><button class="btn" data-tab="lag" aria-pressed="true">Lag filter</button><button class="btn" data-tab="ease" aria-pressed="false">Easing</button></div>
+    <p class="sr" aria-live="polite"></p><div class="plot" tabindex="0" role="group" aria-label="Interactive chart. Left and right arrow keys inspect points."></div><div class="leg"></div><div class="meter"></div>
+    <figcaption></figcaption></figure>
+</section>
+
+<section class="wrap">
+  <h2 id="rules">Rules to carry over</h2>
+  <ul class="rules"></ul>
+  <button class="btn" id="copy">Copy as prompt</button>
+  <footer>After DrHB, "What a 26B looped transformer actually does inside its loop" (drhb.github.io). The dark palette, type and interaction patterns follow that post.</footer>
+</section>
+</main>
+<div class="tip" id="tip" role="tooltip"></div>
+<script>
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), lerp = (a, b, u) => a + (b - a) * u;
+const seg = (t, a, b) => clamp((t - a) / (b - a)), smooth = (u) => u * u * (3 - 2 * u), bump = (t, a, b) => Math.sin(Math.PI * seg(t, a, b));
+const whileVisible = (el, fn, margin = '0px') => new IntersectionObserver((e) => fn(e.at(-1).isIntersecting), { rootMargin: margin }).observe(el);
+
+/* ---------- one tooltip for glossary, charts and diagram ---------- */
+const tip = (() => {
+  const el = $('.tip');
+  return {
+    at(html, x, y) {
+      el.innerHTML = html; el.classList.add('show');
+      const below = y + 18 + el.offsetHeight < innerHeight;
+      el.style.left = clamp(x + 14, 8, innerWidth - el.offsetWidth - 8) + 'px';
+      el.style.top = (below ? y + 18 : Math.max(8, y - el.offsetHeight - 12)) + 'px';
+    },
+    hide() { el.classList.remove('show'); },
+  };
+})();
+let active = null;   // the one open tip: { el, leave, pinned, since }
+function release() { if (!active) return; const { leave } = active; active = null; leave(); tip.hide(); }
+function hover(el, html, enter = () => {}, leave = () => {}) {
+  el.setAttribute('aria-describedby', 'tip');
+  const mine = () => active?.el === el;
+  const open = ([x, y], pinned) => { if (!mine()) release(); enter(); tip.at(html(), x, y); active = { el, leave, pinned, since: performance.now() }; };
+  const toggle = (xy) => mine() && active.pinned ? release() : open(xy, true);
+  el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' && !active?.pinned) open([e.clientX, e.clientY], false); });
+  el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && mine() && !active.pinned) release(); });
+  el.addEventListener('click', (e) => toggle([e.clientX, e.clientY]));
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(mid(el)); } });
+  el.addEventListener('focus', () => { if (el.matches(':focus-visible')) open(mid(el), false); });
+  el.addEventListener('blur', () => { if (mine()) release(); });
+}
+addEventListener('scroll', () => { if (active && performance.now() - active.since > 200) release(); }, { passive: true });   // focusing a part can itself scroll the page
+addEventListener('pointerdown', (e) => { if (active && !active.el.contains(e.target)) release(); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape') release(); });
+const mid = (el) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+$$('.gloss').forEach((g) => hover(g, () => '<b>' + g.textContent + '</b>' + g.dataset.tip));
+
+/* ---------- theme: light by default; canvas and swatches listen for 'theme' because they hold resolved colours ---------- */
+{
+  const b = $('.theme'), root = document.documentElement;
+  const name = () => { const to = root.dataset.theme === 'dark' ? 'light' : 'dark'; b.textContent = to; b.setAttribute('aria-label', 'Switch to ' + to + ' theme'); return to; };
+  b.onclick = () => { root.dataset.theme = name(); name(); dispatchEvent(new Event('theme')); };
+  name();
+}
+
+/* ---------- chrome ---------- */
+{
+  const heads = $$('h2[id]'), toc = $('.toc'), bar = $('.progress');
+  heads.forEach((h) => { toc.insertAdjacentHTML('beforeend', '<a href="#' + h.id + '">' + h.textContent + '</a>'); bar.append(document.createElement('i')); });
+  const links = $$('a', toc), bars = [...bar.children], walk = $('.walk');
+  let queued = false;
+  const update = () => {
+    queued = false;
+    const line = innerHeight * .35, tops = heads.map((h) => h.getBoundingClientRect().top - line);
+    const end = document.documentElement.scrollHeight - innerHeight - scrollY, cur = end < 2 ? heads.length - 1 : tops.findLastIndex((t) => t < 0);
+    links.forEach((a, i) => a.classList.toggle('on', i === cur));
+    bars.forEach((b, i) => { const tail = i + 1 === tops.length, z = tail ? end : tops[i + 1], a = tail ? Math.min(tops[i], end - 200) : tops[i]; b.style.setProperty('--p', clamp(-a / (z - a)).toFixed(3)); });   // the last heading may never reach the line
+    const w = walk.getBoundingClientRect();
+    toc.classList.toggle('away', w.top < innerHeight * .8 && w.bottom > 120);   // the stage is wider than the column
+  };
+  const ask = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
+  addEventListener('scroll', ask, { passive: true }); addEventListener('resize', ask); update();
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="#"]'); if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    const h = $(a.getAttribute('href')); e.preventDefault();
+    h.scrollIntoView({ behavior: still ? 'auto' : 'smooth' }); history.replaceState(null, '', a.hash); h.tabIndex = -1; h.focus({ preventScroll: true });
+    h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash');
+  });
+}
+
+/* ---------- dropcap: the glyph as a dot lattice with a comet circling it ---------- */
+document.fonts.ready.then(async () => {
+  const host = $('#cap'), ch = host.textContent, SIZE = [104, 112], STEP = 8, DPR = devicePixelRatio || 1;
+  try { await document.fonts.load('700 96px "Kode Mono"'); } catch {}
+  const [w, h] = SIZE, probe = new OffscreenCanvas(w, h).getContext('2d');
+  probe.font = '700 100px ' + getComputedStyle(host).fontFamily;
+  const m = probe.measureText(ch), box = [m.actualBoundingBoxLeft + m.actualBoundingBoxRight, m.actualBoundingBoxAscent + m.actualBoundingBoxDescent];
+  probe.scale(w / box[0], h / box[1]); probe.fillText(ch, m.actualBoundingBoxLeft, m.actualBoundingBoxAscent);
+  const inked = (x, y) => { const d = probe.getImageData(x, y, STEP, STEP).data; let n = 0; for (let i = 3; i < d.length; i += 4) n += d[i]; return n / (STEP * STEP * 255) > .5; };
+  const dots = [], bonds = new Path2D(), seen = new Set();
+  for (let y = 0; y < h; y += STEP) for (let x = 0; x < w; x += STEP) if (inked(x, y)) {
+    const px = x + STEP / 2, py = y + STEP / 2; dots.push([px, py, Math.atan2(py - h / 2, px - w / 2) / (2 * Math.PI)]); seen.add(px + ',' + py);
+    for (const [bx, by] of [[px - STEP, py], [px, py - STEP]]) if (seen.has(bx + ',' + by)) { bonds.moveTo(bx, by); bonds.lineTo(px, py); }
+  }
+  if (!dots.length) return;
+  const cv = Object.assign(document.createElement('canvas'), { width: w * DPR, height: h * DPR }), c = cv.getContext('2d');
+  cv.setAttribute('aria-hidden', 'true'); host.innerHTML = '<span class="sr">' + ch + '</span>'; host.append(cv); c.scale(DPR, DPR);
+  const paint = (turn) => {
+    c.clearRect(0, 0, w, h); c.strokeStyle = token('ink-3'); c.globalAlpha = .7; c.stroke(bonds); c.globalAlpha = 1;
+    for (const [x, y, angle] of dots) {
+      const behind = (((turn - angle) % 1) + 1) % 1, heat = Math.exp(-behind * 16);   // 1 at the head, about .2 a tenth of a turn back
+      c.fillStyle = heat > .6 ? token('orange') : heat > .25 ? token('violet') : token('ink');
+      c.beginPath(); c.arc(x, y, 2 + heat * 1.4, 0, 2 * Math.PI); c.fill();
+    }
+  };
+  if (still) { addEventListener('theme', () => paint(.6)); return paint(.6); }
+  let id = 0; const spin = (now) => { paint(now / 3400); id = requestAnimationFrame(spin); };
+  whileVisible(cv, (v) => { cancelAnimationFrame(id); if (v) id = requestAnimationFrame(spin); });
+});
+
+/* ---------- palette ---------- */
+const SWATCHES = [['ink', 'Figures, labels'], ['violet', 'Active, loops'], ['orange', 'Category A'], ['blue', 'Category B'], ['green', 'Correct, settled'], ['pink', 'Wrong, drift'], ['card', 'Surface']];
+let tokens = {}; addEventListener('theme', () => { tokens = {}; });
+const token = (n) => tokens[n] ??= getComputedStyle(document.documentElement).getPropertyValue('--' + n).trim();
+const paletteOf = (theme, names) => { const d = document.createElement('div'); d.dataset.theme = theme; document.body.append(d); const s = getComputedStyle(d), out = names.map((n) => n + ' ' + s.getPropertyValue('--' + n).trim()).join(', '); d.remove(); return out; };
+const copy = async (btn, text, label) => { try { await navigator.clipboard.writeText(text); label('Copied'); } catch { label('Copy blocked'); } setTimeout(() => label(null), 1400); };
+SWATCHES.forEach(([n, use]) => {
+  const b = document.createElement('button'); b.style.setProperty('--k', 'var(--' + n + ')'); b.innerHTML = '<b>' + n + '</b>' + use + '<br><span>' + token(n) + '</span>';
+  b.onclick = () => copy(b, token(n), (s) => { $('span', b).textContent = s || token(n); });
+  addEventListener('theme', () => { $('span', b).textContent = token(n); });
+  $('.sw').append(b);
+});
+
+/* ---------- pinned walkthrough ----------
+   Scroll distance is the drawing's only clock. render() depends on the smoothed position alone, so reversing and jumping need no extra code. */
+{
+  const root = $('.walk'), stage = $('.stage'), svg = $('.stage > svg'), side = $('.side');
+  const HALF_LIFE = .063, ARRIVE = .12, LEAVE = .84, ZMAX = 2.3;   // half-life in seconds: 95% caught up in about 270 ms
+  const WORLD = { x0: -6, x1: 426, y0: -8, y1: 794 };
+  const STEPS = [
+    { n: 'SCROLL', on: ['scroll'], foc: [-8, 118], lp: 1, s: 'The figure is several screens tall and its stage is sticky. How far the top edge has moved past the viewport, measured in steps, is the target position.', code: 'target = clamp(-root.top / unit)', live: (v) => [['Target', v.target.toFixed(3)], ['Total', v.total.toFixed(1)]] },
+    { n: 'SMOOTH', on: ['smooth'], foc: [146, 240], lp: 1, s: 'A mouse wheel arrives in jumps. The shown position closes part of the gap each frame, scaled by elapsed time so it looks the same at 60 and 120 Hz.', code: 'gap = shown - target\nshown = target + gap * 2 ** (-dt / .063)', live: (v) => [['Target', v.target.toFixed(3)], ['Shown', v.shown.toFixed(3)]] },
+    { n: 'SEGMENT', on: ['segment'], foc: [230, 312], lp: 1, s: 'Steps have different lengths. The shown position picks the step, and the remainder says how far through it the reader is.', code: 'i = last step that starts before shown\nf = (shown - start[i]) / length[i]', live: (v) => [['Step', String(v.i)], ['Through', Math.round(v.f * 100) + '%']] },
+    { n: 'CAMERA', on: ['camera'], foc: [306, 412], lp: 1, s: 'Each step frames one region of the drawing. Between two steps the zoom is interpolated geometrically, so moving in and out feels even.', code: 'zoom = a.z * (b.z / a.z) ** ease(t)\nsvg.viewBox = box(zoom, centre)', live: (v) => [['Zoom', v.z.toFixed(2) + 'x'], ['Centre', Math.round(v.cy) + ' / ' + WORLD.y1]] },
+    { n: 'RENDER', on: ['render'], foc: [408, 516], lp: 1, s: 'Every moving part is set from the step and its local time. Values are cached, so only attributes that changed reach the DOM.', code: 'if (cache[key] !== value) write(value)', live: (v) => [['Writes last frame', String(v.writes)], ['Elements cached', String(v.parts)]] },
+    { n: 'PANEL', on: ['panel'], foc: [508, 622], lp: 1, s: 'The text beside the drawing is replaced only when the step changes, with one short fade. It stays readable while the drawing moves.', code: 'if (i !== current) replacePanel(i)', live: (v) => [['Replaced', v.swaps + ' times'], ['Fade', '320 ms']] },
+    { n: 'REPEAT', on: ['rail', 'scroll', 'smooth', 'segment', 'camera', 'render', 'panel', 'paint'], foc: [-8, 794], lp: 1, w: 1.3, s: 'If the drawing has not caught up, another frame is requested. Once it has, the loop stops and the page costs nothing until the next scroll.', code: 'if (gap is over half a pixel)\n  requestAnimationFrame(frame)', live: (v) => [['Loop', v.busy ? 'running' : 'idle'], ['Gap', Math.abs(v.target - v.shown).toFixed(3)]] },
+  ];
+  const OVER = { n: 'THE WHOLE ENGINE', foc: [-8, 794], w: .6, s: 'Scroll position is read at the top and a frame is painted at the bottom. Everything in the violet frame repeats until the two agree.', code: 'scroll -> frame', live: STEPS[0].live };
+  const SEGS = [OVER, ...STEPS, { ...OVER, w: .8, s: 'The drawing has no timeline of its own. Scroll back up and every stage runs in reverse.' }];
+  const LEN = SEGS.map((s) => s.w || 1), START = LEN.map((_, i) => LEN.slice(0, i).reduce((a, b) => a + b, 0)), TOTAL = LEN.reduce((a, b) => a + b, 0), LAST = SEGS.length - 1;
+  const TIPS = {
+    scroll: ['Scroll', 'Read from the layout each frame. No scroll events are counted.'], smooth: ['Smooth', 'Exponential lag filter. Off under reduced motion.'],
+    segment: ['Segment', 'Widths are the real step lengths of this figure.'], camera: ['Camera', 'The outline is the area of the drawing on screen now.'],
+    render: ['Render', 'One lit cell per attribute written in the last frame.'], panel: ['Panel', 'Dashed because it runs only on a step change.'],
+    rail: ['Next frame', 'Violet marks the loop everywhere on this page.'], paint: ['Paint', 'The browser draws the new attributes.'],
+  };
+
+  // Drawing. Parts are groups with a data-k so a step can name them.
+  const X0 = 112, X1 = 352, CX = 232, W0 = 128, W1 = 336, RX = 388;
+  const Y = { scroll: [16, 80], smooth: [156, 72], segment: [250, 52], camera: [324, 78], render: [424, 78], panel: [524, 60], paint: [664, 84] };
+  const rect = (x, y, w, h, a = '') => '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" ' + a + '/>';
+  const text = (x, y, s, cls = 'hs', a = '') => '<text x="' + x + '" y="' + y + '" class="' + cls + '" ' + a + '>' + s + '</text>';
+  const part = (k, title, sub, inner, dash) => {
+    const [y, h] = Y[k];
+    return '<g class="pt" data-k="' + k + '" tabindex="0" role="button" aria-label="' + TIPS[k].join('. ') + '" style="--k:var(--' + (STEPS.find((s) => s.on[0] === k)?.lp ? 'violet' : 'ink') + ')">' +
+      rect(X0 + 5, y + 5, X1 - X0, h, 'rx="7" fill="var(--shade)"') + rect(X0, y, X1 - X0, h, 'rx="7" class="bx"' + (dash ? ' stroke-dasharray="4 4"' : '')) +
+      text(96, y + h / 2, title, 'hd', 'text-anchor="end"') + text(96, y + h / 2 + 13, sub, 'hs', 'text-anchor="end"') + inner + '</g>';
+  };
+  const RAIL = 'M' + CX + ' 768H' + RX + 'V56H' + (X1 + 8), RAILLEN = (RX - CX) + 712 + (RX - X1 - 8), K = (W1 - W0) / TOTAL;
+  const lane = ['scroll', 'smooth', 'segment', 'camera', 'render', 'panel', 'paint'].map((k, i, all) => all[i + 1] ? 'M' + CX + ' ' + (Y[k][0] + Y[k][1]) + 'V' + Y[all[i + 1]][0] : '').join('');
+  svg.innerHTML =
+    rect(106, 8, 314, 784, 'rx="14" fill="color-mix(in srgb, var(--violet) 9%, var(--bg))"') + rect(100, 2, 314, 784, 'rx="14" fill="color-mix(in srgb, var(--violet) 5%, var(--bg))" stroke="color-mix(in srgb, var(--violet) 60%, var(--bg))" stroke-width="1.3"') +
+    '<path d="' + lane + '" stroke="color-mix(in srgb, var(--ink) 25%, transparent)"/>' +
+    part('scroll', 'SCROLL', 'PAGE', text(W0, 40, 'TARGET') + text(W1, 40, '', 'hs', 'text-anchor="end" id="w-t"') + rect(W0, 62, W1 - W0, 3, 'fill="var(--line)"') + START.map((s) => rect(W0 + s * K, 58, 1, 11, 'fill="color-mix(in srgb, var(--ink) 30%, transparent)"')).join('') + rect(0, 54, 8, 19, 'rx="2" fill="var(--ink)" id="w-thumb"')) +
+    part('smooth', 'SMOOTH', 'LAG FILTER', text(W0, 171, 'TARGET') + text(W0, 204, 'SHOWN') + '<line id="w-gap" y1="182" y2="216" stroke="var(--ink-3)" stroke-dasharray="2 3"/><circle id="w-a" cy="182" r="4.5" fill="none" stroke="var(--ink)" stroke-width="1.3"/><circle id="w-b" cy="216" r="4.5" fill="var(--violet)"/>') +
+    part('segment', 'SEGMENT', 'WHICH STEP', SEGS.map((_, i) => rect(W0 + START[i] * K + 1, 268, LEN[i] * K - 2, 16, 'rx="1" class="w-seg" stroke="color-mix(in srgb, var(--violet) 55%, var(--bg))"')).join('') + rect(0, 263, 1.6, 26, 'fill="var(--ink)" id="w-cur"')) +
+    part('camera', 'CAMERA', 'VIEWBOX', '<clipPath id="w-cp">' + rect(X0 + 2, 326, X1 - X0 - 4, 74) + '</clipPath><g clip-path="url(#w-cp)">' + rect(214, 331, 36, 64, 'fill="color-mix(in srgb, var(--ink) 10%, transparent)" stroke="var(--ink-3)" stroke-width=".8"') + rect(0, 0, 0, 0, 'id="w-vb" fill="color-mix(in srgb, var(--violet) 16%, transparent)" stroke="var(--violet)" stroke-width="1.2"') + '</g>' + text(W0 - 4, 344, '', 'hs', 'id="w-z"')) +
+    part('render', 'RENDER', 'PURE FUNCTION', Array.from({ length: 96 }, (_, i) => rect(W0 + (i % 24) * 8.75, 438 + Math.floor(i / 24) * 13, 6.4, 9, 'rx=".6" class="w-cell"')).join('')) +
+    part('panel', 'PANEL', 'ON STEP CHANGE', [0, 1, 2].map((i) => rect(W0, 540 + i * 11, [150, 190, 96][i], 4, 'class="w-line" fill="var(--ink-2)"')).join(''), true) +
+    '<g class="pt" data-k="rail" tabindex="0" role="button" aria-label="' + TIPS.rail.join('. ') + '"><path d="' + RAIL + '" fill="none" stroke="color-mix(in srgb, var(--ink) 25%, transparent)" stroke-dasharray="2 3"/><path id="w-rail" d="' + RAIL + '" fill="none" stroke="var(--violet)" stroke-width="1.7" stroke-dasharray="' + RAILLEN + '"/><path id="w-pulse" d="' + RAIL + '" fill="none" stroke="var(--ink)" stroke-width="2.6" stroke-dasharray="26 ' + (RAILLEN + 60) + '"/><path d="M' + CX + ' 748V768M' + (X1 + 14) + ' 52l-6 4l6 4M' + (RX - 4) + ' 420l4 -6l4 6" fill="none" stroke="var(--violet)"/><circle cx="' + CX + '" cy="768" r="2.4" fill="var(--violet)"/><path d="' + RAIL + '" fill="none" stroke="transparent" stroke-width="16"/>' + text(RX + 15, 400, 'NEXT FRAME', 'hs', 'text-anchor="middle" transform="rotate(-90 ' + (RX + 15) + ' 400)"') + '</g>' +
+    part('paint', 'PAINT', 'SCREEN', rect(W0, 678, W1 - W0, 56, 'fill="none" stroke="var(--hair)"') + [0, 1, 2, 3].map((i) => rect(W0 + 22, 684 + i * 12, 58, 8, 'class="w-mini" fill="var(--line)"')).join('') + rect(W0 + 128, 694, 60, 3, 'fill="var(--ink-3)"') + rect(W0 + 128, 701, 44, 3, 'fill="var(--ink-3)"') + rect(W0 + 128, 709, 60, 16, 'fill="color-mix(in srgb, var(--ink) 10%, transparent)"')) +
+    '<g id="w-pk" pointer-events="none">' + [0, 1, 2, 3].map((i) => rect(CX - 5, i * 4, 10, 3.3, 'rx=".5" fill="var(--ink)" opacity="' + [1, .6, .82, .45][i] + '"')).join('') + '</g>';
+
+  // Cached attribute writes. v.writes feeds the RENDER grid and read-out.
+  const v = { target: 0, shown: 0, i: 0, f: 0, z: 1, cy: 0, writes: 0, parts: 0, swaps: 0, busy: false, total: TOTAL };
+  const held = new Map(); let writes = 0;
+  function put(el, name, raw) {
+    if (!held.has(el)) held.set(el, {});
+    const now = held.get(el), value = typeof raw === 'number' ? raw.toFixed(2) : raw;
+    if (now[name] === value) return;
+    now[name] = value; writes++;
+    if (name === 'text') el.textContent = value; else el.setAttribute(name, value);
+  }
+  const id = (s) => $('#w-' + s, svg), parts = $$('.pt', svg), segs = $$('.w-seg', svg), cells = $$('.w-cell', svg), minis = $$('.w-mini', svg), lines = $$('.w-line', svg);
+  const E = Object.fromEntries(['t', 'thumb', 'gap', 'a', 'b', 'cur', 'vb', 'z', 'rail', 'pulse', 'pk'].map((s) => [s, id(s)]));
+
+  let W = 0, H = 0, unit = 800, S, cams = [];
+  const fit = ([a, b]) => ({ z: Math.min(S.w / (WORLD.x1 - WORLD.x0), S.h / (b - a), ZMAX), cy: (a + b) / 2 });
+  function camera(i, f) {
+    const edge = f < ARRIVE && i > 0 ? [i - 1, i, .5 + f / ARRIVE / 2] : f > LEAVE && i < LAST ? [i, i + 1, (f - LEAVE) / (1 - LEAVE) / 2] : [i, i, 0];
+    const a = cams[edge[0]], b = cams[edge[1]], t = smooth(edge[2]);
+    v.z = a.z * (b.z / a.z) ** t; v.cy = lerp(a.cy, b.cy, t);
+    const w = W / v.z, h = H / v.z, x = (WORLD.x0 + WORLD.x1) / 2 - (S.x + S.w / 2) / v.z, y = v.cy - (S.y + S.h / 2) / v.z;
+    put(svg, 'viewBox', [x, y, w, h].map((n) => n.toFixed(2)).join(' '));
+    const q = 64 / (WORLD.y1 - WORLD.y0), mx = 214, my = 331 - WORLD.y0 * q;
+    put(E.vb, 'x', mx + (WORLD.x0 + (WORLD.x1 - WORLD.x0) / 2 - S.w / v.z / 2) * q); put(E.vb, 'y', my + (v.cy - S.h / v.z / 2) * q); put(E.vb, 'width', S.w / v.z * q); put(E.vb, 'height', S.h / v.z * q);
+    put(E.z, 'text', v.z.toFixed(2) + 'X');
+  }
+  function render(i, u) {
+    const si = i - 1, st = STEPS[si], at = (p) => W0 + p * K;
+    parts.forEach((p) => { p.classList.toggle('dim', !!st && !st.on.includes(p.dataset.k)); p.classList.toggle('hot', !!st && st.on[0] === p.dataset.k && u > .3); });
+    put(E.t, 'text', v.target.toFixed(2)); put(E.thumb, 'x', at(v.target) - 4);
+    put(E.a, 'cx', at(v.target)); put(E.b, 'cx', at(v.shown)); put(E.gap, 'x1', at(v.target)); put(E.gap, 'x2', at(v.shown));
+    put(E.cur, 'x', at(v.shown)); segs.forEach((r, j) => put(r, 'fill', j === i ? 'var(--violet)' : j < i ? 'color-mix(in srgb, var(--violet) 30%, var(--bg))' : 'var(--bg)'));
+    cells.forEach((c, j) => put(c, 'fill', j < v.writes ? 'var(--violet)' : 'color-mix(in srgb, var(--ink) 10%, transparent)'));
+    lines.forEach((l, j) => put(l, 'opacity', si === 5 ? .3 + .7 * seg(u, .1 + j * .2, .35 + j * .2) : .7));
+    const names = ['scroll', 'smooth', 'segment', 'camera', 'render', 'panel'], from = names[si - 1], to = names[si], moving = from && to;
+    put(E.pk, 'opacity', moving ? 1 - seg(u, .5, .62) : 0);
+    if (moving) put(E.pk, 'transform', 'translate(0 ' + lerp(Y[from][0] + Y[from][1] - 8, Y[to][0] + 5, smooth(seg(u, 0, .5))).toFixed(2) + ')');
+    const r = si === 6 ? seg(u, .08, .62) : si > 6 ? 1 : 0;
+    put(E.rail, 'stroke-dashoffset', RAILLEN * (1 - r)); put(E.pulse, 'stroke-dashoffset', 26 - r * (RAILLEN + 26)); put(E.pulse, 'opacity', r > 0 && r < 1 ? 1 : 0);
+    minis.forEach((m, j) => put(m, 'fill', si === 6 && bump(u, .6 + j * .06, .85 + j * .05) > .3 || si > 6 ? 'var(--violet)' : 'var(--line)'));
+  }
+
+  // Panel and rail
+  $('.rail').innerHTML = STEPS.map((s, i) => '<button class="' + (s.lp ? 'lp' : '') + '" aria-label="Step ' + (i + 1) + ': ' + s.n.toLowerCase() + '"><i><u></u></i>0' + (i + 1) + '</button>').join('');
+  const btns = $$('.rail button'), fills = $$('.rail u'), [prev, next] = $$('.nav [data-dir]'), kEl = $('.k'), sEl = $('.s'), rEl = $('.readout'), textEl = $('.side .text');
+  let shownSeg = -1, liveEls = [];
+  function panel(i) {
+    const st = SEGS[i], si = i - 1; shownSeg = i; v.swaps++;
+    kEl.className = 'k' + (st.lp ? ' lp' : ''); kEl.innerHTML = (STEPS[si] ? '<i>0' + i + ' / 07</i>' : '') + '<span>' + st.n + '</span><i>' + (matchMedia('(hover: none)').matches ? 'TAP' : 'HOVER') + ' ANY PART</i>'; sEl.textContent = st.s;
+    rEl.innerHTML = '<pre></pre>' + st.live(v).map(([n]) => '<div>' + n + '<b></b></div>').join(''); $('pre', rEl).textContent = st.code; liveEls = $$('b', rEl);
+    btns.forEach((b, j) => j === si ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
+    prev.disabled = i === 0; next.disabled = i === LAST;
+    if (still) return;
+    const named = parts.find((p) => p.dataset.k === STEPS[si]?.on[0]);
+    textEl.classList.remove('swap'); requestAnimationFrame(() => textEl.classList.add('swap'));
+    named?.animate({ opacity: [1, .35, 1] }, { duration: 620, iterations: 2, easing: 'cubic-bezier(.22, 1, .36, 1)' });
+  }
+  function draw() {
+    writes = 0;
+    const i = Math.max(0, START.findLastIndex((s) => s <= v.shown)), f = clamp((v.shown - START[i]) / LEN[i]);
+    v.i = i; v.f = f; v.parts = held.size;
+    if (i !== shownSeg) panel(i);
+    fills.forEach((el, j) => { el.style.width = (j + 1 < i ? 100 : j + 1 === i ? f * 100 : 0) + '%'; });
+    camera(i, f); render(i, seg(f, ARRIVE, LEAVE)); v.writes = writes;
+    SEGS[i].live(v).forEach(([, x], j) => { if (liveEls[j]) liveEls[j].textContent = x; });
+  }
+
+  // Frame loop: asks for another frame only while the drawing is visibly behind the page
+  let pending = false, prevTime = null;
+  const position = () => clamp(-root.getBoundingClientRect().top / unit, 0, TOTAL);
+  function ask() { if (!pending) { pending = true; requestAnimationFrame(frame); } }
+  function frame(now) {
+    pending = false;
+    const dt = prevTime === null ? 1 / 60 : (now - prevTime) / 1000;
+    v.target = position();
+    const gap = (v.shown - v.target) * (still ? 0 : 2 ** (-dt / HALF_LIFE));
+    v.busy = Math.abs(gap) * unit > .5;                        // half a scrolled pixel
+    v.shown = v.busy ? v.target + gap : v.target;
+    prevTime = v.busy ? now : null;
+    draw(); if (v.busy) ask();
+  }
+  function layout() {
+    W = stage.clientWidth; H = stage.clientHeight;
+    const sheet = getComputedStyle(side).left === '0px', edge = side.getBoundingClientRect(), origin = stage.getBoundingClientRect();
+    S = sheet ? { x: 8, y: 14, w: W - 16, h: edge.top - origin.top - 24 } : { x: 24, y: 40, w: edge.left - origin.left - 54, h: H - 72 };
+    const inside = position() > 0 && position() < TOTAL, at = position();
+    unit = Math.max(540, H * .9); root.style.height = TOTAL * unit + H + 'px';
+    if (inside) scrollTo({ top: root.getBoundingClientRect().top + scrollY + at * unit, behavior: 'instant' });   // keep the reader's place
+    cams = SEGS.map((s) => fit(s.foc)); v.shown = v.target = position(); draw();
+  }
+  // A phone's address bar changes the height by under a fifth. That is not worth a relayout mid-scroll.
+  let size = [0, 0];
+  new ResizeObserver(([e]) => { const { width: w, height: h } = e.contentRect; if (w === size[0] && Math.abs(h - size[1]) < size[1] / 5) return; size = [w, h]; layout(); }).observe(stage);
+  addEventListener('scroll', ask, { passive: true });
+  const go = (i) => { i = clamp(i, 0, LAST); const rest = START[i] + LEN[i] * (i ? .62 : 0); scrollTo({ top: root.offsetTop + rest * unit, behavior: still ? 'auto' : 'smooth' }); };
+  btns.forEach((b, i) => { b.onclick = () => go(i + 1); }); prev.onclick = () => go(v.i - 1); next.onclick = () => go(v.i + 1);
+  side.addEventListener('keydown', (e) => { const d = { ArrowLeft: -1, ArrowRight: 1 }[e.key]; if (d) { e.preventDefault(); go(v.i + d); } });
+  $('[data-skip]').onclick = () => $('#why').scrollIntoView({ behavior: still ? 'auto' : 'smooth' });
+  parts.forEach((p) => hover(p, () => '<b>' + TIPS[p.dataset.k][0] + '</b>' + TIPS[p.dataset.k][1], () => { stage.dataset.on = ''; p.classList.add('is'); }, () => { delete stage.dataset.on; p.classList.remove('is'); }));
+}
+
+/* ---------- looping comparison: one timeline, simulated once, scrubbable by phase ---------- */
+{
+  const PH = [['Down', 2.4, 'The reader scrolls in and both animations move.'], ['Stop', 2, 'The reader stops halfway. The tween keeps running on its own timer.'], ['Back', 2.4, 'The reader scrolls back. The tween has already finished and cannot follow.'], ['Jump', 2, 'The reader jumps to 30%. The tween cannot rewind to match.']];
+  const T0 = PH.map((_, i) => PH.slice(0, i).reduce((a, p) => a + p[1], 0)), CYC = PH.reduce((a, p) => a + p[1], 0);
+  const scroll = (t) => t < T0[1] ? .55 * smooth(seg(t, 0, T0[1])) : t < T0[2] ? .55 : t < T0[3] ? lerp(.55, .12, smooth(seg(t, T0[2], T0[3]))) : lerp(.12, .3, smooth(seg(t, T0[3], T0[3] + .3)));
+  const goal = (t) => seg(scroll(t), .1, .9);
+  let hit = 0; while (scroll(hit) < .25) hit += .01;                            // when the tween's trigger point is crossed
+  const tween = (t) => smooth(seg(t, hit, hit + 1.6));
+  const fig = $('#cmp'), svg = $('svg', fig), say = $('.say', fig), play = $('[data-play]', fig);
+  const rowSvg = (y, name, sub, k) => '<text class="nm" x="0" y="' + y + '">' + name + '</text><text x="' + (name.length * 8.4) + '" y="' + y + '">' + sub + '</text>' +
+    '<rect x="5" y="' + (y + 19) + '" width="220" height="44" rx="6" fill="var(--shade)"/><rect x="0" y="' + (y + 14) + '" width="220" height="44" rx="6" fill="var(--card)" stroke="var(--hair)"/><path d="M16 ' + (y + 36) + 'H204" stroke="var(--line)" stroke-width="3"/>' +
+    '<path d="M228 ' + (y + 36) + 'H282m-6 -4l6 4l-6 4" fill="none" stroke="var(--ink-3)"/>' +
+    '<rect x="295" y="' + (y + 19) + '" width="300" height="44" rx="6" fill="var(--shade)"/><rect x="290" y="' + (y + 14) + '" width="300" height="44" rx="6" fill="var(--card)" stroke="' + k + '"/><path d="M306 ' + (y + 36) + 'H574" stroke="var(--line)" stroke-width="3"/>';
+  const dots = (y, n) => '<rect class="th" data-n="' + n + '" y="' + (y + 27) + '" width="8" height="18" rx="2" fill="var(--ink)"/><circle class="gh" data-n="' + n + '" cy="' + (y + 36) + '" r="7" fill="none" stroke="var(--ink-3)" stroke-dasharray="2 2"/><circle class="dt" data-n="' + n + '" cy="' + (y + 36) + '" r="4.5"/><text class="dr" data-n="' + n + '" x="720" y="' + (y + 40) + '" text-anchor="end"></text>';
+  svg.innerHTML = rowSvg(14, 'TRIGGERED', 'A TIMER STARTS AT 25%', 'var(--hair)') + '<path d="M0 98H720" stroke="var(--line)" stroke-dasharray="2 4"/>' + rowSvg(128, 'SCRUBBED', 'A FUNCTION OF SCROLL', 'color-mix(in srgb, var(--violet) 60%, var(--bg))') + dots(14, 0) + dots(128, 1);
+  $('.phases', fig).innerHTML = PH.map((p) => '<button aria-pressed="false"><i><u></u></i>' + p[0] + '</button>').join('');
+  const bs = $$('.phases button', fig), us = $$('.phases u', fig), get = (c) => $$('.' + c, svg), th = get('th'), gh = get('gh'), dt = get('dt'), dr = get('dr');
+  let t = still ? 4.2 : 0, on = !still, vis = false, last = 0, raf = 0, ph = -1;
+  function show() {
+    const s = scroll(t), want = goal(t), val = [tween(t), want], p = T0.findLastIndex((x) => x <= t);
+    [0, 1].forEach((i) => {
+      const drift = Math.round(Math.abs(val[i] - want) * 100), col = drift > 10 ? 'var(--pink)' : 'var(--green)';
+      th[i].setAttribute('x', 12 + s * 184); gh[i].setAttribute('cx', 306 + want * 268); dt[i].setAttribute('cx', 306 + val[i] * 268);
+      dt[i].style.fill = col; dr[i].style.fill = col; dr[i].textContent = 'DRIFT ' + drift + '%';
+    });
+    us.forEach((u, i) => { u.style.width = (i < p ? 100 : i > p ? 0 : seg(t, T0[p], T0[p] + PH[p][1]) * 100) + '%'; });
+    if (p !== ph) { ph = p; say.textContent = PH[p][2]; bs.forEach((b, i) => b.setAttribute('aria-pressed', i === p)); }
+  }
+  function tick(now) { raf = 0; t = (t + Math.min(.1, (now - last) / 1000)) % CYC; last = now; show(); run(); }
+  const run = () => { if (on && vis && !raf) raf = requestAnimationFrame(tick); };
+  const setOn = (x) => { on = x; play.textContent = on ? 'Pause' : 'Play'; last = performance.now(); run(); };
+  play.onclick = () => setOn(!on); bs.forEach((b, i) => { b.onclick = () => { t = T0[i] + PH[i][1] * .7; setOn(false); show(); }; });
+  whileVisible(fig, (x) => { vis = x; last = performance.now(); run(); }); setOn(on); show();
+}
+
+/* ---------- prose-linked strip ---------- */
+{
+  const strip = $('.strip'), groups = $$('div', strip), terms = $$('.term'), dot = $('em', strip);
+  groups.forEach((g) => { const n = +g.style.getPropertyValue('--n'); g.innerHTML = '<span>' + '<i></i>'.repeat(n) + '</span><small><b>' + g.dataset.part.toUpperCase() + '</b>' + n * 4 + '%</small>'; g.tabIndex = 0; });
+  [...groups, ...terms].forEach((e) => { e.setAttribute('role', 'button'); e.setAttribute('aria-pressed', 'false'); });
+  const cellsS = $$('i', strip); let pin = null;
+  const light = (p) => { p ? strip.dataset.on = p : delete strip.dataset.on; [...groups, ...terms].forEach((e) => e.classList.toggle('on', e.dataset.part === p)); };
+  [...groups, ...terms].forEach((e) => {
+    const p = e.dataset.part, flip = () => { pin = pin === p ? null : p; light(pin); [...groups, ...terms].forEach((x) => x.setAttribute('aria-pressed', x.dataset.part === pin)); };
+    e.addEventListener('pointerenter', (ev) => ev.pointerType === 'mouse' && light(p)); e.addEventListener('pointerleave', () => light(pin));
+    e.addEventListener('click', flip); e.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); flip(); } });
+  });
+  let vis = false, raf = 0, hot = null;
+  function move(now) {
+    raf = 0; const u = (now / 6000) % 1 * cellsS.length, c = cellsS[Math.floor(u)];
+    dot.style.transform = 'translateX(' + (c.offsetLeft + c.offsetWidth * (u % 1)).toFixed(1) + 'px)';
+    if (c !== hot) { hot?.classList.remove('hot'); c.classList.add('hot'); hot = c; }
+    if (vis) raf = requestAnimationFrame(move);
+  }
+  if (still) dot.remove(); else whileVisible(strip, (x) => { vis = x; if (x && !raf) raf = requestAnimationFrame(move); });
+}
+
+/* ---------- chart ---------- */
+{
+  const bezier = (x1, y1, x2, y2) => (x) => { let lo = 0, hi = 1; for (let i = 0; i < 24; i++) { const m = (lo + hi) / 2; 3 * (1 - m) ** 2 * m * x1 + 3 * (1 - m) * m * m * x2 + m ** 3 < x ? lo = m : hi = m; } const m = lo; return 3 * (1 - m) ** 2 * m * y1 + 3 * (1 - m) * m * m * y2 + m ** 3; };
+  const lag = (half) => (x) => 1 - 2 ** (-x * 600 / half);
+  const TABS = {
+    lag: { cap: 'Share of a jump covered over time. Bars show the time to reach 95%.', unit: (x) => Math.round(x * 600) + ' ms', ticks: ['0', '150', '300', '450', '600 ms'], series: [['115 ms half-life', 'orange', lag(115)], ['63 ms, used here', 'violet', lag(63)], ['35 ms', 'blue', lag(35)]], bars: [115, 63, 35].map((h, i) => [h + ' ms', ['orange', 'violet', 'blue'][i], h * Math.log2(20)]) },
+    ease: { cap: 'Output over normalised time. Bars show the three interface durations.', unit: (x) => Math.round(x * 100) + '% of time', ticks: ['0', '25', '50', '75', '100%'], series: [['Linear', 'ink-3', (x) => x], ['Smoothstep, scrubbed', 'blue', smooth], ['Ease-out, interface', 'violet', bezier(.22, 1, .36, 1)]], bars: [['Hover, focus', 'violet', 160], ['State change', 'violet', 320], ['Chart reveal', 'violet', 620]] },
+  };
+  const fig = $('#chart'), plot = $('.plot', fig), N = 48, B = { l: 42, r: 10, t: 10, b: 30, h: 260 };
+  let tab = 'lag', at = null, geo, seen = false;
+  function draw() {
+    const T = TABS[tab], w = Math.max(280, plot.clientWidth), x = (u) => B.l + u * (w - B.l - B.r), y = (q) => B.t + (1 - q) * (B.h - B.t - B.b);
+    geo = { w, x, y };
+    plot.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + B.h + '" role="img" aria-label="Response curves">' + [0, .25, .5, .75, 1].map((q, i) => '<path class="gr" d="M' + B.l + ' ' + y(q) + 'H' + (w - B.r) + '"/><text x="' + (B.l - 8) + '" y="' + (y(q) + 4) + '" text-anchor="end">' + q * 100 + '%</text><text x="' + x(q) + '" y="' + (B.h - 6) + '" text-anchor="' + (i === 4 ? 'end' : 'middle') + '">' + T.ticks[i] + '</text>').join('') +
+      T.series.map(([, c, f]) => '<path class="ln" pathLength="1" stroke="var(--' + c + ')" d="M' + Array.from({ length: N + 1 }, (_, i) => x(i / N).toFixed(1) + ' ' + y(f(i / N)).toFixed(1)).join('L') + '"/>').join('') + '<g></g></svg>';
+    $('.leg', fig).innerHTML = T.series.map(([n, c]) => '<span style="--k:var(--' + c + ')">' + n + '</span>').join('');
+    const max = Math.max(...T.bars.map((b) => b[2]));
+    $('.meter', fig).innerHTML = T.bars.map(([n, c, ms], i) => '<div>' + n + '</div><span><i style="--i:' + i + ';--k:var(--' + c + ');--w:' + (ms / max * 100).toFixed(1) + '%"></i></span><em>' + Math.round(ms) + ' ms</em>').join('');
+    $('figcaption', fig).textContent = T.cap; reveal();
+  }
+  function reveal() { [plot, $('.meter', fig)].forEach((e) => { e.classList.remove('in'); if (seen) { void e.offsetWidth; e.classList.add('in'); } }); }
+  function mark(px, py) {
+    const g = $('svg g', plot); if (at === null) { g.innerHTML = ''; tip.hide(); return; }
+    const T = TABS[tab], u = at / N;
+    g.innerHTML = '<path d="M' + geo.x(u) + ' ' + B.t + 'V' + (B.h - B.b) + '" stroke="var(--ink-3)" stroke-dasharray="2 3"/>' + T.series.map(([, c, f]) => '<circle cx="' + geo.x(u) + '" cy="' + geo.y(f(u)) + '" r="4.5" fill="var(--' + c + ')" stroke="var(--bg)" stroke-width="2"/>').join('');
+    tip.at('<b>' + T.unit(u) + '</b>' + T.series.map(([n, c, f]) => '<div><i style="background:var(--' + c + ')"></i>' + n + '<em>' + Math.round(f(u) * 100) + '%</em></div>').join(''), px, py);
+  }
+  const clear = () => { at = null; mark(); };
+  const inspect = (e) => { const left = plot.getBoundingClientRect().left + B.l; at = Math.round(clamp((e.clientX - left) / (geo.x(1) - geo.x(0))) * N); mark(e.clientX, e.clientY); };
+  plot.addEventListener('pointerdown', inspect); plot.addEventListener('pointermove', inspect);
+  plot.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') clear(); }); plot.addEventListener('blur', clear);
+  addEventListener('pointerdown', (e) => { if (at !== null && !plot.contains(e.target)) clear(); });
+  plot.addEventListener('keydown', (e) => { const d = { ArrowLeft: -1, ArrowRight: 1 }[e.key]; if (!d) return; e.preventDefault(); at = clamp((at ?? -1) + d, 0, N); const r = plot.getBoundingClientRect(); mark(r.left + geo.x(at / N), r.top + 40); $('.sr', fig).textContent = TABS[tab].unit(at / N) + ': ' + TABS[tab].series.map(([n, , f]) => n + ' ' + Math.round(f(at / N) * 100) + '%').join(', '); });
+  $$('[data-tab]', fig).forEach((b) => { b.onclick = () => { tab = b.dataset.tab; $$('[data-tab]', fig).forEach((o) => o.setAttribute('aria-pressed', o === b)); at = null; draw(); }; });
+  const io = new IntersectionObserver((e) => { if (e.at(-1).isIntersecting) { seen = true; io.disconnect(); reveal(); } }, { threshold: .2 }); io.observe(plot);
+  let w0 = 0; new ResizeObserver(() => { if (plot.clientWidth !== w0) { w0 = plot.clientWidth; draw(); } }).observe(plot);
+}
+
+/* ---------- rules: one source for the list and the prompt ---------- */
+const RULES = [
+  ['Colour', 'One hue, one meaning, held across every figure and both themes. Violet is the active or looping thing.'],
+  ['Type', 'Mono throughout. Tracked capitals for labels, sentence case for anything longer than five words.'],
+  ['Figures', 'No card around charts. Diagram boxes get a 1.2px hairline and a flat 5px offset shadow.'],
+  ['Focus', 'Dim what a step does not name to 40%. Never remove it.'],
+  ['Clock', 'The drawing is scrubbed by scroll. Time drives only charts, ambient loops and short interface fades.'],
+  ['Escape', 'Step rail, Prev, Next, arrow keys and Skip. Scrolling is never the only way through.'],
+  ['Idle', 'Stop loops when off screen or caught up. Cache attribute writes.'],
+  ['Access', 'Focusable parts, HTML labels 11px or larger, 4.5:1 text contrast before dimming, a full reduced-motion path.'],
+  ['Small', 'Under 820px the panel becomes a bottom sheet. Ignore address-bar resizes.'],
+];
+$('.rules').innerHTML = RULES.map(([a, b]) => '<li><b>' + a + '</b>' + b + '</li>').join('');
+$('#copy').onclick = (e) => copy(e.target, 'Build a single-file HTML explainer in this style.\n\n' + ['light', 'dark'].map((t) => 'Palette, ' + t + (t === 'light' ? ' (default)' : '') + ': ' + paletteOf(t, ['bg', ...SWATCHES.map(([n]) => n)]) + '.').join('\n') + '\nColour jobs: ' + SWATCHES.map(([n, u]) => n + ' = ' + u.toLowerCase()).join('; ') + '.\nFonts: Kode Mono for labels, IBM Plex Mono for sentences, ui-monospace fallback.\nMotion: ' + 'cubic-bezier(.22, 1, .36, 1) at 160, 320 and 620 ms; smoothstep for scrubbed movement; lag filter with a 63 ms half-life.\n\n' + RULES.map(([a, b]) => '- ' + a + ': ' + b).join('\n') + '\n', (s) => { e.target.textContent = s || 'Copy as prompt'; });
+</script>
+</body>
+</html>

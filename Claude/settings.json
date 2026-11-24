@@ -701,7 +701,7 @@
     "clangd-lsp@claude-plugins-official": true,
     "frontend-design@claude-code-plugins": false,
     "gopls-lsp@claude-plugins-official": true,
-    "impeccable@impeccable": true,
+    "impeccable@impeccable": false,
     "playground@claude-plugins-official": false,
     "playwright-skill@playwright-skill": false,
     "pyright-lsp@claude-plugins-official": true,
@@ -836,6 +836,7 @@
         "*.youtu.be",
         "*.hf.co",
         "*.googlevideo.com",
+        "*.claude.com",
         "ghcr.io",
         "google.com.au",
         "google.com",
@@ -966,6 +967,9 @@
   "maxEffortLevel": "xhigh",
   "modelSettings": {
     "claude-opus-5-5": {
+      "effortLevel": "high"
+    },
+    "claude-fable-5-2": {
       "effortLevel": "high"
     }
   },

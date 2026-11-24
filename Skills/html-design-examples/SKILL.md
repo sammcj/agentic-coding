@@ -1,8 +1,6 @@
 ---
 name: html-design-examples
 description: Reference gallery of polished single-file HTML artifacts demonstrating effective ways to communicate ideas through HTML. Use when the user wants to explain, showcase, demo, plan, review, or present an idea within an HTML file.
-metadata:
-  source: Adapted from https://x.com/trq212/status/2052809885763747935
 ---
 
 # HTML Design Examples
@@ -48,6 +46,7 @@ Files live in `resources/`. Open `resources/index.html` for the rendered gallery
 ### Illustrations & Diagrams
 - `10-svg-illustrations.html` - inline SVG figure sheet suitable for a blog post.
 - `13-flowchart-diagram.html` - annotated flowchart with click-to-reveal step detail.
+- For an animated diagram, see `21-scroll-walkthrough.html` (scroll-driven) or `22-looping-diagram.html` (always moving) under Research & Learning.
 
 ### Decks
 - `09-slide-deck.html` - arrow-key navigable slides as one HTML file, no build step.
@@ -55,6 +54,8 @@ Files live in `resources/`. Open `resources/index.html` for the rendered gallery
 ### Research & Learning
 - `14-research-feature-explainer.html` - TL;DR, collapsible request-path steps, tabbed config snippets, FAQ.
 - `15-research-concept-explainer.html` - interactive demo, comparison table, hover-linked glossary.
+- `21-scroll-walkthrough.html` - monospaced technical explainer, light by default with a dark toggle, built around a pinned diagram that scroll drives (camera, dimming, step rail, live read-out). Also has a looping comparison with a phase scrubber, a prose-linked strip, draw-in charts and a canvas dropcap. Use it when a system has an order to walk through. About 16k tokens, so skip step 2 and read the `<style>` block, the HTML body and the `helpers` script block, then only the `/* ---------- name` blocks you need.
+- `22-looping-diagram.html` - same style and themes, always animated with no scrolling. A simulated job queue plays on a loop with no visible restart (phase rail, pause, speed, draggable timeline, live counts), plus three small loops (cycle, fan-out, hit or miss). Use it when a system runs continuously or has many things in flight.
 
 ### Reports
 - `11-status-report.html` - weekly status: what shipped, what slipped, small chart.
@@ -72,6 +73,7 @@ Files live in `resources/`. Open `resources/index.html` for the rendered gallery
 - Serif display headings paired with a sans-serif body is the recurring typographic pattern.
 - Any interactivity is vanilla JS in a single `<script>` tag.
 - Calm, editorial aesthetic: paper tones, restrained accent colour, generous whitespace (But not a narrow column of information. Use the available screen real estate wisely).
+- `21-scroll-walkthrough.html` and `22-looping-diagram.html` are the deliberate exceptions to the type, palette and stylesheet rules above: mono throughout, light and dark themes from one set of tokens, one Google Fonts link each with a `ui-monospace` fallback. Take their style whole rather than mixing it with the paper look.
 - Interactive surfaces export their state - a "copy as JSON" or "copy as prompt" button is the closing affordance.
 
 ## Aesthetic consistency

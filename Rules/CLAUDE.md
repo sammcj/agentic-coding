@@ -31,8 +31,9 @@ If you reach for a word because it sounds impressive rather than because it's pr
 - Plain formatting characters only. Never use em-dashes, en-dashes, double dashes (--), smart bullets, or smart quotes; replace them with -, ", '
 - No contrast structures ("It's not X, it's Y", "Not just X, but Y"). Swap test: if the reversed version reads equally well, the contrast carries no information - make the positive claim directly
 - Say what it does before why it matters. No marketing register, no adjective stacking.
+- No colon as a mid-sentence connector. A colon introducing a list is fine.
 
-Prosody to avoid: paragraph pinning, parataxis, summary beats, negative anaphoras, contrasting pairs, rule of three, throat-clearing openers, landing sentences, setup/payoff constructions, parallel sentence structures within a paragraph, stacked noun phrases, nominalisation, hedging qualifiers, performed enthusiasm. Vary sentence length unpredictably. Write for the spoken voice.
+Prosody to avoid: paragraph pinning, summary beats, negative anaphoras, contrasting pairs, rule of three, throat-clearing openers, landing sentences, setup/payoff constructions, parallel sentence structures within a paragraph, stacked noun phrases, nominalisation, hedging qualifiers, performed enthusiasm. Vary sentence length unpredictably. Write for the spoken voice.
 
 Do not write mannered prose or preamble. Mannered prose swaps the literal phrase for a figure of speech ("a dial worth turning", "earns its keep"); preamble announces the point instead of making it ("my honest assessment is X"). Instead write the literal phrase: "adjust this parameter", "is valuable", "do X".
 
@@ -47,18 +48,10 @@ Examples:
 
 ## Spelling
 **Always use Australian English spelling in all responses, documentation, comments, and code identifiers.**
+For code identifiers this covers new names in the user's own code. Keep external API names and a repo's existing spelling as they are.
 
 ## Documentation
-- Keep signal-to-noise ratio high - preserve domain insights, omit preamble, filler and fluff
-- Match the length of written documents to what the task needs. Cover the substance, don't pad with filler sections, redundant summaries or boilerplate
-- Do not split sentences across multiple lines in markdown files, this breaks readability and diffs
-- Do not use tables in markdown with written content inside cells, instead prefer concise bullet points over tables for text information, tables are better suited to simple data than prose
-- When using tables in markdown, do not include unwrapped content that causes the table to over-extend horizontally, do not add sentences of text inside tables, tables should be for terse, structured data, not prose
-- Use _underscores_ for italics and **double asterisks** for bold in markdown files
-- Configuration and examples over feature lists
 - Do not create new markdown files unless explicitly requested - update existing README.md or keep notes in conversation
-- Do not manually wrap text in markdown or text files, this just makes files longer and harder to read
-- No colon as a mid-sentence connector. A colon introducing a list is fine.
 
 ### Explaining Complex Concepts
 - When the task is to explain a complex concept or create explanatory documents, consider whether a visual or data-driven approach would communicate the idea more effectively than prose alone
@@ -82,7 +75,7 @@ Examples:
 - Be aware that at times taking an iterative, experimental approach, will incur technical debt (both code and design decisions) you should self moderate managing growing complexity as a solution evolves to ensure code growth and complexity doesn't get out of hand
 
 ### Code Quality
-- Files: max 700 lines (split if larger)
+- Avoid creating code files longer than 1000 lines, where possible split into multiple files
 - Tests run quickly (seconds), no external service dependencies
 - Tests should have assertions and must verify behaviour
 - Build time: optimise if over 1 minute
@@ -98,7 +91,7 @@ Examples:
 ## Coding & Language Rules
 
 - Comments explain why, not what. Never narrate the edit itself ("improved function", "optimised version", "# FIX:")
-- Never implement placeholder or mocked functionality unless explicitly instructed
+- Never implement placeholder or mocked functionality in non-test code unless explicitly instructed. Mocks and fakes inside tests are fine
 - Never build or develop for Windows unless explicitly instructed
 - zsh doesn't word-split unquoted vars
 - Optimise for reduced failure modes
@@ -125,14 +118,6 @@ At code level, DRY the structure, not every line. Types and data models should c
 **Concurrency corollary.** Before sharing state between actors, ask "what happens if another actor modifies this concurrently?" If not "nothing", isolate.
 
 **Scaffold first.** If something helps every later phase, do it first. Ask "does every subsequent phase benefit from this existing?" CI, linting, test infrastructure, and shared types are scaffold. Sequence for option value: setup before features, tests before fixes. Keep commits small and single-purpose.
-
-### UI and Visual Design
-
-In general, when designing UIs or visuals, you should follow these principles:
-- **Design - don't describe**: If a visual element or section needs a caption, sentence (or worse: a paragraph) to be understood it's usually poorly designed. Fix it - don't caption it
-- Visual hierarchy should beclear and unambiguous
-- Practice progressive disclosure for interfaces that become complex
-- Borrow concepts and patterns from the masters of visual design and adapt them into your work, using relevant skills to extend your capabilities
 
 ### Goal-Driven Execution
 
@@ -194,11 +179,10 @@ Proactively use tools and skills:
 
 #### Sub-agent Coordination
 
-The user has explicitly and standingly requested sub-agent use when appropriate, allowing you to invoke the Agent tool when work is independently parallelisable or would otherwise bloat the main context. This request satisfies any default rule requiring an explicit user request before delegating.
+Use sub-agents without asking when work is independently parallelisable or would otherwise bloat the main context. Do the work inline when it is a few tool calls or a lookup with a known target.
 
 - Keep working on independent parts of the task while sub-agents run. Don't idle waiting for their results.
 - Give agents that don't need the whole conversation history their own isolated context rather than using a forked sub-agent.
-- When you have a well defined idea and task to try multiple approaches on (8+), consider using many sub-agents in parallel running the `haiku` (very fast, very cheap, not very smart) model to pick the best solution, Note: Only for clear, well defined tasks that don't require smarts / reasoning, you may then want to rewrite or improve the solution if the quality is below what you would do yourself.
 
 ## Self-Review Protocol
 
@@ -218,6 +202,8 @@ After implementing multiple changes, use the `self-review` skill before reportin
 Terse, dense information beats sparse, verbose or narrative writing, in conversation and in documentation alike. Never write a paragraph for what a short sentence or bullet point covers.
 
 The reader may have ADHD and limited energy for long responses; write to reduce their reading load.
+
+Final reports must make sense without the tool calls behind them. Define terms and drop labels invented during the work.
 
 <!-- Do not compact or shorten this file -->
 # graphify

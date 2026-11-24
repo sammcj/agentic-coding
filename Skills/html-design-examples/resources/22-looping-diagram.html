@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en-AU" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A diagram that never stops moving</title>
+<!-- The only external request in the file. Without it the stacks fall back to ui-monospace and the page still works. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Kode+Mono:wght@400;500;600;700&display=swap">
+<style>
+  /* light is the default, the toggle sets data-theme on <html>; everything else is derived from these tokens */
+  :root, [data-theme="light"] {
+    color-scheme: light;
+    --bg: #f7f4ec; --card: #fffdf8; --ink: #211e19; --ink-2: #544f46; --ink-3: #6a645a; --body-ink: #2b2822;
+    --violet: #5a43c8; --orange: #a9421a; --blue: #1c5fae; --green: #0b6e4c; --pink: #b32560;
+    --shade: rgba(33,30,25,.075); --drop: rgba(33,30,25,.28);
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0f1012; --card: #17181a; --ink: #e9dfc9; --ink-2: #aaa495; --ink-3: #8c877b; --body-ink: #eceef1;
+    --violet: #b7aafa; --orange: #f08a5d; --blue: #5b9df0; --green: #4fd0a0; --pink: #f277a6;
+    --shade: rgba(233,223,201,.055); --drop: rgba(0,0,0,.52);
+  }
+  :root {
+    --line: color-mix(in srgb, var(--ink) 16%, transparent); --hair: color-mix(in srgb, var(--ink) 32%, transparent);
+    --lab: "Kode Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --body: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --ease: cubic-bezier(.22, 1, .36, 1); --fast: 160ms; --med: 320ms;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body { margin: 0; color: var(--body-ink); font: 400 15px/1.75 var(--body); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+  .wide { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  p { margin: 0 0 18px; text-wrap: pretty; }
+  b { font-weight: 500; }
+  h1 { margin: 0 0 20px; padding-top: 72px; font: 500 clamp(30px, 5vw, 42px)/1.14 var(--lab); letter-spacing: -.01em; color: var(--ink); text-wrap: balance; }
+  h2 { margin: 76px 0 14px; font: 500 15px/1.6 var(--body); }
+  h2::before { content: "# "; color: var(--ink-3); }
+  :focus-visible { outline: 1px solid var(--violet); outline-offset: 3px; }
+
+  .fig { margin: 34px 0 40px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-bottom: 18px; }
+  .btn { appearance: none; cursor: pointer; background: none; color: var(--ink-2); border: 1px solid color-mix(in srgb, var(--ink) 24%, transparent); border-radius: 0; font: 500 11px/1 var(--lab); letter-spacing: .1em; text-transform: uppercase; padding: 9px 12px; transition: color var(--fast) var(--ease), background-color var(--fast) var(--ease), border-color var(--fast) var(--ease); }
+  .btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .btn[data-play] { min-width: 76px; color: var(--ink); }
+  .speed { display: flex; gap: 4px; }
+  @media (hover: hover) { .btn:not([aria-pressed="true"]):hover { color: var(--ink); border-color: color-mix(in srgb, var(--ink) 55%, transparent); } }
+  @media (pointer: coarse) { .btn { min-height: 40px; } }
+  .theme { position: absolute; top: 20px; right: 20px; z-index: 25; background: var(--bg); }
+  @media (min-width: 1340px) { .theme { position: fixed; } }
+  .phases { flex: 1 1 320px; display: flex; gap: 4px; }
+  .phases button { appearance: none; min-width: 0; background: none; border: 0; padding: 8px 0; text-align: left; cursor: pointer; font: 500 11px/1 var(--lab); letter-spacing: .08em; color: var(--ink-3); transition: color var(--fast) var(--ease); }
+  .phases i { display: block; height: 2px; margin-bottom: 7px; background: var(--line); }
+  .phases u { display: block; height: 100%; width: 0; background: var(--k); }
+  .phases [aria-pressed="true"] { color: var(--k); }
+
+  .scroll-x { overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--ink-3) transparent; padding-bottom: 6px; }
+  #flow { display: block; width: 100%; min-width: 760px; height: auto; }
+  #flow text { font: 500 11px var(--lab); letter-spacing: .1em; fill: var(--ink-3); }
+  #flow text.hd { fill: var(--ink); }
+  .bx { fill: var(--card); stroke: var(--hair); stroke-width: 1.2; transition: stroke var(--med) var(--ease), fill var(--med) var(--ease); }
+  .pt { cursor: help; transition: opacity var(--med) var(--ease); }
+  #flow[data-on] .pt { opacity: .35; }
+  #flow[data-on] .pt.is { opacity: 1; }
+  .pt:focus-visible { outline: none; }
+  .pt:focus-visible .bx { stroke: var(--violet); stroke-dasharray: 3 3; }
+  .pt.down .bx { stroke: var(--pink); fill: color-mix(in srgb, var(--pink) 12%, var(--bg)); }
+  .lane { fill: none; stroke: color-mix(in srgb, var(--ink) 42%, transparent); stroke-dasharray: 3 5; }
+  .lane.loop { stroke: color-mix(in srgb, var(--violet) 75%, var(--bg)); }
+
+  .say { min-height: 3.4em; margin: 10px 0 0; font: 400 13.5px/1.6 var(--body); color: var(--ink-2); }
+  .say b { color: var(--k); font: 600 11px/1 var(--lab); letter-spacing: .12em; margin-right: 10px; }
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; margin: 14px 0 20px; background: var(--line); border: 1px solid var(--line); box-shadow: 6px 6px 0 var(--shade); }
+  .stats div { padding: 10px 12px; background: var(--card); font: 500 11px/1.5 var(--lab); letter-spacing: .06em; color: var(--ink-3); }
+  .stats b { display: block; font: 600 20px/1.3 var(--lab); color: var(--k, var(--ink)); font-variant-numeric: tabular-nums; }
+  .track { touch-action: pan-y; cursor: ew-resize; }
+  .track svg { display: block; width: 100%; height: 96px; overflow: visible; }
+  .cap { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 10px 0 0; font: 400 12px/1.6 var(--lab); color: var(--ink-2); }
+  .cap span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--k); margin-right: 7px; }
+
+  .motifs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; }
+  .motifs svg { display: block; width: 100%; height: auto; border-top: 1px solid var(--line); }
+  .motifs text { font: 500 10.5px var(--lab); letter-spacing: .08em; fill: var(--ink-2); }
+  .motifs p { margin: 8px 0 0; font-size: 13px; line-height: 1.6; color: var(--ink-2); }
+  .motifs p b { display: block; font: 500 11px/2 var(--lab); letter-spacing: .1em; color: var(--ink); text-transform: uppercase; }
+  .rules { list-style: none; margin: 0 0 24px; padding: 0; }
+  .rules li { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.6; color: var(--ink-2); }
+  .rules b { font: 500 11px/2 var(--lab); letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
+  footer { margin: 70px 0 60px; font: 400 12px/1.6 var(--lab); color: var(--ink-3); }
+  @media (max-width: 620px) { .rules li { grid-template-columns: 1fr; gap: 0; } .stats { grid-template-columns: 1fr 1fr; } .stats div:last-child { grid-column: 1 / -1; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<button class="btn theme"></button>
+<main>
+<section class="wrap">
+  <h1>A diagram that never stops moving</h1>
+  <p>Some systems have no first step. Queues, retries and caches run all the time, and their behaviour shows in how many things move at once. This figure plays on its own and loops without a visible join. It shows a job queue riding out a five-second outage.</p>
+</section>
+<section class="wide">
+  <figure class="fig" id="main">
+    <div class="bar"><button class="btn" data-play>Pause</button><div class="speed" role="group" aria-label="Speed"><button class="btn" data-speed=".5" aria-pressed="false">.5x</button><button class="btn" data-speed="1" aria-pressed="true">1x</button><button class="btn" data-speed="2" aria-pressed="false">2x</button></div><div class="phases" role="group" aria-label="Jump to a phase"></div></div>
+    <div class="scroll-x"><svg id="flow" viewBox="0 0 1000 372" role="group" aria-label="Jobs flow from clients into a queue, to three workers and an API. While the API is down, jobs fail and travel a retry loop back to the queue."></svg></div>
+    <p class="say"></p>
+    <div class="stats"></div>
+    <div class="track" tabindex="0" role="slider" aria-label="Position in the loop, seconds" aria-valuemin="0" aria-valuemax="24"><svg preserveAspectRatio="none" viewBox="0 0 1000 96" aria-hidden="true"></svg></div>
+    <div class="cap"><span style="--k:var(--ink)">Queued</span><span style="--k:var(--violet)">Waiting to retry</span><span style="--k:var(--pink)">API down</span> Drag the chart to move through the loop.</div>
+  </figure>
+</section>
+<section class="wide">
+  <h2>Three smaller loops</h2>
+  <div class="motifs"></div>
+</section>
+<section class="wrap">
+  <h2>Rules to carry over</h2>
+  <ul class="rules"></ul>
+  <button class="btn" id="copy">Copy as prompt</button>
+  <footer>After DrHB, "What a 26B looped transformer actually does inside its loop" (drhb.github.io). The dark palette, type and interaction patterns follow that post.</footer>
+</section>
+</main>
+<script>
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), lerp = (a, b, u) => a + (b - a) * u;
+const seg = (t, a, b) => clamp((t - a) / (b - a)), smooth = (u) => u * u * (3 - 2 * u);
+const mixPt = (p, q, u) => [lerp(p[0], q[0], u), lerp(p[1], q[1], u)];
+const rect = (x, y, w, h, a = '') => '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" ' + a + '/>';
+const box = (x, y, w, h) => rect(x + 5, y + 5, w, h, 'rx="6" fill="var(--shade)"') + rect(x, y, w, h, 'rx="6" class="bx"');
+const text = (x, y, s, a = '') => '<text x="' + x + '" y="' + y + '" ' + a + '>' + s + '</text>';
+const MID = 'text-anchor="middle"';
+
+/* ---------- theme: light by default ---------- */
+{
+  const b = $('.theme'), root = document.documentElement;
+  const name = () => { const to = root.dataset.theme === 'dark' ? 'light' : 'dark'; b.textContent = to; b.setAttribute('aria-label', 'Switch to ' + to + ' theme'); return to; };
+  b.onclick = () => { root.dataset.theme = name(); name(); };
+  name();
+}
+
+/* ---------- simulation: every job's whole life is worked out once, up front ---------- */
+const CYCLE = 24, EVERY = .6, SERVICE = 1, TIMEOUT = 2, BACKOFF = [2, 4], IN = .7, OUT = 1.2, DOWN = [4, 9];   // seconds
+const isDown = (t) => t % CYCLE >= DOWN[0] && t % CYCLE < DOWN[1];
+function simulate(cycles) {
+  const jobs = [], waiting = [], free = [0, 0, 0], due = [];                  // due: future arrivals and retries, in time order
+  // each job prefers a home worker, set by its place in the cycle, so a quiet system always settles into the same pattern and the loop joins up
+  for (let i = 0; i < Math.round(cycles * CYCLE / EVERY); i++) { const job = { tries: 0, home: i % Math.round(CYCLE / EVERY) % 3, stays: [{ at: 'in', a: i * EVERY, b: i * EVERY + IN }] }; jobs.push(job); due.push({ t: i * EVERY + IN, job }); }
+  while (due.length || waiting.length) {
+    const head = waiting[0]?.stays.at(-1).a ?? Infinity, home = waiting[0]?.home ?? 0, idle = free[home] <= head + 1e-9 ? home : free.findIndex((f) => f <= head + 1e-9), w = idle < 0 ? free.indexOf(Math.min(...free)) : idle;
+    if (due.length && due[0].t <= Math.max(head, free[w])) { const { t, job } = due.shift(); job.stays.push({ at: 'queue', a: t, b: Infinity }); waiting.push(job); continue; }
+    const job = waiting.shift(), q = job.stays.at(-1), start = Math.max(q.a, free[w]), fail = isDown(start) || isDown(start + TIMEOUT), end = start + (fail ? TIMEOUT : SERVICE);
+    // the second test fails a call that is still in flight when the API drops, so nothing green crosses a pink box
+    q.b = start; free[w] = end; job.stays.push({ at: 'work', a: start, b: end, w, fail });
+    if (!fail) { job.stays.push({ at: 'out', a: end, b: end + OUT, w }); continue; }
+    const back = end + BACKOFF[Math.min(job.tries++, BACKOFF.length - 1)];
+    job.stays.push({ at: 'retry', a: end, b: back, w }); due.push({ t: back, job }); due.sort((x, y) => x.t - y.t);
+  }
+  return jobs;
+}
+
+/* ---------- clock: one loop time for every figure on the page ----------
+   Drawing is a function of t alone, so pausing, seeking and changing speed cannot desynchronise anything. */
+const clock = (() => {
+  let t = still ? 10.5 : 0, on = !still, speed = 1, id = 0, prev = null;       // 10.5 s is a still worth reading: outage over, backlog draining
+  const figures = [], seen = new Set();
+  const paint = () => figures.forEach((f) => { if (seen.has(f)) f.draw(t); });
+  function tick(now) {
+    id = 0;
+    if (prev !== null) t = (t + Math.min(.1, (now - prev) / 1000) * speed) % CYCLE;   // cap the step so a background tab does not skip ahead
+    prev = now; paint(); run();
+  }
+  function run() { if (on && seen.size && !id) id = requestAnimationFrame(tick); if (!on || !seen.size) prev = null; }
+  return {
+    add(el, draw) { const f = { draw }; figures.push(f); draw(t); new IntersectionObserver((e) => { e.at(-1).isIntersecting ? seen.add(f) : seen.delete(f); prev = null; paint(); run(); }).observe(el); },
+    seek(x) { t = ((x % CYCLE) + CYCLE) % CYCLE; paint(); },
+    set playing(v) { on = v; prev = null; run(); }, get playing() { return on; }, set speed(v) { speed = v; }, get t() { return t; },
+  };
+})();
+
+/* ---------- main figure ---------- */
+{
+  const JOBS = simulate(3), C = CYCLE, EPS = 1e-6;                             // the middle cycle is shown: warm at the start, settled at the end
+  const QUEUED = JOBS.flatMap((j) => j.stays.filter((s) => s.at === 'queue')).sort((p, q) => p.a - q.a);
+  const count = (t, at) => JOBS.reduce((n, j) => n + j.stays.filter((s) => s.at === at && s.a <= t && t < s.b).length, 0);
+  const SAMPLES = Array.from({ length: 241 }, (_, i) => [i / 10, count(C + i / 10 + EPS, 'queue'), count(C + i / 10 + EPS, 'retry')]);
+  const clear = SAMPLES.findLast(([, q, r]) => q + r > 0)[0] + .1;
+  const PHASES = [
+    { n: 'STEADY', a: 0, k: 'ink', s: 'A job arrives every 0.6 s and takes 1 s. Three workers have room to spare, so the queue stays close to empty.' },
+    { n: 'OUTAGE', a: DOWN[0], k: 'pink', s: 'The API is down. Each attempt holds a worker for 2 s before it times out, so capacity drops below the arrival rate.' },
+    { n: 'DRAIN', a: DOWN[1], k: 'violet', s: 'The API is back, but new arrivals, retries and the backlog all want the same three workers.' },
+    { n: 'CLEAR', a: clear, k: 'green', s: 'The backlog has gone. The loop ends in the state it started in, which is why the restart does not show.' },
+  ].map((p, i, all) => ({ ...p, b: all[i + 1]?.a ?? CYCLE }));
+  const ABOUT = {
+    clients: 'Clients send one job every 0.6 s. They do not slow down during the outage.', queue: 'First in, first out. Retried jobs rejoin at the back.',
+    workers: 'Each worker handles one job. The bar is progress on the current attempt.', api: 'Down from 4 s to 9 s in every loop.',
+    retry: 'A failed job waits ' + BACKOFF.join(' s, then ') + ' s. It travels the same path each time, so a slower dot is a longer wait.',
+  };
+
+  // Geometry
+  const MIDY = 152, EDGE = [204, MIDY], SLOTS = 12, slot = (k) => [446 - k * 20, MIDY], WY = [76, 152, 228], wpos = (w) => [566, WY[w]], GUT = 740, FLOOR = 326;
+  const railPts = (w) => [wpos(w), [GUT, WY[w]], [GUT, FLOOR], [180, FLOOR], [180, MIDY], EDGE];
+  const HANDOFF = .5;
+  function along(pts, u) {
+    const d = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
+    let left = u * d.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < d.length; i++) { if (left <= d[i]) return mixPt(pts[i], pts[i + 1], d[i] ? left / d[i] : 1); left -= d[i]; }
+    return pts.at(-1);
+  }
+
+  const svg = $('#flow');
+  const pt = (k, inner) => '<g class="pt" data-k="' + k + '" tabindex="0" role="img" aria-label="' + ABOUT[k] + '">' + inner + '</g>';
+  svg.innerHTML =
+    rect(162, 26, 602, 330, 'rx="14" fill="color-mix(in srgb, var(--violet) 8%, var(--bg))"') + rect(156, 20, 602, 330, 'rx="14" fill="color-mix(in srgb, var(--violet) 4%, var(--bg))" stroke="color-mix(in srgb, var(--violet) 45%, var(--bg))"') +
+    '<path class="lane" d="M130 152H200M462 152H500M500 76V228M500 76H540M500 152H540M500 228H540M690 76H790M690 152H790M690 228H790M910 152H985"/>' +
+    pt('retry', '<path class="lane loop" d="M' + GUT + ' 76V' + FLOOR + 'H180V152H200"/><path d="M' + GUT + ' 76V' + FLOOR + 'H180V152H200" fill="none" stroke="transparent" stroke-width="18"/>' + text(460, 308, 'RETRY AFTER ' + BACKOFF.join(', ') + ' S', MID + ' style="fill:var(--violet)"')) +
+    pt('clients', box(20, 120, 110, 64) + text(75, 150, 'CLIENTS', MID + ' class="hd"') + text(75, 167, 'EVERY 0.6 S', MID)) +
+    pt('queue', box(204, 122, 258, 60) + text(204, 110, 'QUEUE', 'class="hd"') + Array.from({ length: SLOTS }, (_, k) => rect(slot(k)[0] - 8, MIDY - 8, 16, 16, 'rx="2" fill="none" stroke="var(--line)"')).join('')) +
+    pt('workers', text(540, 42, 'WORKERS', 'class="hd"') + WY.map((y) => box(540, y - 26, 150, 52) + rect(588, y - 2, 86, 4, 'fill="color-mix(in srgb, var(--ink) 10%, transparent)"') + rect(588, y - 2, 0, 4, 'class="prog"')).join('')) +
+    pt('api', box(790, 50, 120, 204) + text(836, 150, 'API', MID + ' class="hd"') + text(836, 168, 'UP', MID + ' id="up"')) +
+    text(985, 138, 'DONE', 'text-anchor="end" style="fill:var(--green)"') +
+    '<g id="dots" pointer-events="none">' + '<circle r="6" opacity="0" stroke="var(--bg)" stroke-width="2"/>'.repeat(20) + '</g>';
+  const dots = $$('#dots circle'), bars = $$('.prog', svg), api = $('[data-k=api]', svg), lanes = $$('.lane', svg), up = $('#up');
+
+  // Where a job is. Places in the queue are counted from the jobs still ahead, so the line closes up smoothly.
+  function queuePos(s, t) {
+    let ahead = 0;
+    for (const q of QUEUED) { if (q === s || q.a > s.a) break; if (q.b + .3 > t) ahead += q.b > t ? 1 : 1 - smooth(seg(t, q.b, q.b + .3)); }
+    return mixPt(EDGE, slot(Math.min(ahead, SLOTS - 1)), smooth(seg(t, s.a, s.a + .45)));
+  }
+  const failing = (s, t) => s.fail && (isDown(t) || isDown(s.a));             // a doomed call looks normal until the API drops
+  function place(job, s, t) {
+    const u = seg(t, s.a, s.b);
+    if (s.at === 'in') return [mixPt([130, MIDY], EDGE, u), 'ink'];
+    if (s.at === 'queue') return [queuePos(s, t), job.stays.indexOf(s) > 1 ? 'violet' : 'ink'];
+    if (s.at === 'work') { const from = job.stays[job.stays.indexOf(s) - 1]; return [along([queuePos(from, s.a), [500, MIDY], [500, WY[s.w]], wpos(s.w)], smooth(seg(t, s.a, s.a + HANDOFF))), failing(s, t) && u > .8 ? 'pink' : job.stays.indexOf(s) > 2 ? 'violet' : 'ink']; }
+    if (s.at === 'retry') return [along(railPts(s.w), u), u < .12 ? 'pink' : 'violet'];
+    return [along([wpos(s.w), [892, WY[s.w]], [892, MIDY], [985, MIDY]], u), 'green', 1 - seg(u, .9, 1)];
+  }
+
+  // Panels
+  const STATS = [['Queued', 'ink', (t) => count(t, 'queue')], ['Retrying', 'violet', (t) => count(t, 'retry')],
+    ['Timed out', 'pink', (t) => JOBS.reduce((n, j) => n + j.stays.filter((s) => s.fail && s.b >= C && s.b <= t).length, 0)],
+    ['Done', 'green', (t) => JOBS.reduce((n, j) => n + j.stays.filter((s) => s.at === 'out' && s.a >= C && s.a <= t).length, 0)],
+    ['Oldest job', 'ink', (t) => { const live = JOBS.filter((j) => j.stays[0].a <= t && j.stays.at(-1).a > t); return (live.length ? t - Math.min(...live.map((j) => j.stays[0].a)) : 0).toFixed(1) + ' s'; }]];
+  $('.stats').innerHTML = STATS.map(([n, k]) => '<div style="--k:var(--' + k + ')"><b></b>' + n + '</div>').join('');
+  $('.phases').innerHTML = PHASES.map((p) => '<button aria-pressed="false" style="--k:var(--' + p.k + ');flex:' + (p.b - p.a) + ' 1 0"><i><u></u></i>' + p.n + '</button>').join('');
+  const outs = $$('.stats b'), btns = $$('.phases button'), fills = $$('.phases u'), say = $('.say'), play = $('[data-play]'), track = $('.track');
+  const X = (s) => s / CYCLE * 1000, Yc = (n) => 90 - n * 11, line = (i) => SAMPLES.map((r) => X(r[0]).toFixed(1) + ' ' + Yc(r[i]).toFixed(1)).join('L');
+  $('svg', track).innerHTML = [0, 4, 8].map((n) => '<path d="M0 ' + Yc(n) + 'H1000" stroke="color-mix(in srgb, var(--ink) 11%, transparent)" vector-effect="non-scaling-stroke"/>').join('') + rect(X(DOWN[0]), 0, X(DOWN[1] - DOWN[0]), 90, 'fill="var(--pink)" opacity=".12"') +
+    '<path d="M0 90L' + line(1) + 'L1000 90Z" fill="var(--ink)" opacity=".16"/><path d="M' + line(1) + '" fill="none" stroke="var(--ink)" stroke-width="2" vector-effect="non-scaling-stroke"/><path d="M' + line(2) + '" fill="none" stroke="var(--violet)" stroke-width="2" vector-effect="non-scaling-stroke"/><path id="head" d="M0 -4V94" stroke="var(--ink)" vector-effect="non-scaling-stroke"/>';
+  const head = $('#head'); let phase = -1, second = -1, held = null;
+  function caption() { const p = PHASES[phase]; say.style.setProperty('--k', 'var(--' + p.k + ')'); say.innerHTML = held ? '<b style="--k:var(--ink)">' + held.toUpperCase() + '</b>' + ABOUT[held] : '<b>' + p.n + '</b>' + p.s; }
+
+  function draw(loopT) {
+    const t = C + loopT; let n = 0; const load = [null, null, null];
+    for (const job of JOBS) {
+      const s = job.stays.find((x) => x.a <= t && t < x.b); if (!s) continue;
+      if (s.at === 'work') load[s.w] = [seg(t, s.a + HANDOFF, s.b), failing(s, t)];
+      const [[x, y], colour, alpha = 1] = place(job, s, t), d = dots[n++];
+      d.setAttribute('cx', x.toFixed(1)); d.setAttribute('cy', y.toFixed(1)); d.setAttribute('opacity', alpha.toFixed(2)); d.style.fill = 'var(--' + colour + ')';
+    }
+    for (; n < dots.length; n++) dots[n].setAttribute('opacity', 0);
+    bars.forEach((b, w) => { b.setAttribute('width', load[w] ? (86 * load[w][0]).toFixed(1) : 0); b.style.fill = 'var(--' + (load[w]?.[1] ? 'pink' : 'green') + ')'; });
+    const down = isDown(loopT); api.classList.toggle('down', down); up.textContent = down ? 'DOWN' : 'UP'; up.style.fill = 'var(--' + (down ? 'pink' : 'green') + ')';
+    lanes.forEach((l) => { l.style.strokeDashoffset = (-loopT * 20).toFixed(1); });   // 480 units per loop, a whole number of 8-unit dashes
+    STATS.forEach(([, , f], i) => { outs[i].textContent = f(t); });
+    const now = PHASES.findIndex((p) => loopT < p.b);
+    fills.forEach((f, i) => { f.style.width = seg(loopT, PHASES[i].a, PHASES[i].b) * 100 + '%'; });
+    if (now !== phase) { phase = now; btns.forEach((b, i) => b.setAttribute('aria-pressed', i === now)); caption(); }
+    head.setAttribute('transform', 'translate(' + X(loopT).toFixed(1) + ' 0)');
+    if (Math.floor(loopT) !== second) { second = Math.floor(loopT); track.setAttribute('aria-valuenow', second); track.setAttribute('aria-valuetext', PHASES[now].n.toLowerCase() + ', ' + second + ' seconds'); }
+  }
+  clock.add($('#main'), draw);
+
+  const label = () => { play.textContent = clock.playing ? 'Pause' : 'Play'; }; label();
+  play.onclick = () => { clock.playing = !clock.playing; label(); };
+  $$('[data-speed]').forEach((b) => { b.onclick = () => { clock.speed = +b.dataset.speed; $$('[data-speed]').forEach((o) => o.setAttribute('aria-pressed', o === b)); }; });
+  btns.forEach((b, i) => { b.onclick = () => { clock.seek(PHASES[i].a + .01); }; });
+  let resume = false;
+  const drag = (e) => { const r = track.getBoundingClientRect(); clock.seek(clamp((e.clientX - r.left) / r.width, 0, .9999) * CYCLE); };
+  track.addEventListener('pointerdown', (e) => { if (!e.isPrimary) return; track.setPointerCapture(e.pointerId); resume = clock.playing; clock.playing = false; drag(e); });
+  track.addEventListener('pointermove', (e) => { if (track.hasPointerCapture(e.pointerId)) drag(e); });
+  track.addEventListener('lostpointercapture', () => { clock.playing = resume; });
+  track.addEventListener('keydown', (e) => { const to = { ArrowLeft: clock.t - .5, ArrowDown: clock.t - .5, ArrowRight: clock.t + .5, ArrowUp: clock.t + .5, Home: 0, End: CYCLE - .01 }[e.key]; if (to !== undefined) { e.preventDefault(); clock.seek(to); } });
+  $$('.pt', svg).forEach((g) => {
+    const on = () => { $$('.is', svg).forEach((x) => x.classList.remove('is')); held = g.dataset.k; svg.dataset.on = ''; g.classList.add('is'); caption(); }, off = () => { if (held !== g.dataset.k) return; held = null; delete svg.dataset.on; g.classList.remove('is'); caption(); };
+    g.addEventListener('pointerenter', on); g.addEventListener('pointerleave', off); g.addEventListener('focus', on); g.addEventListener('blur', off);
+  });
+}
+
+/* ---------- small loops: each period divides the 24 s cycle, so they share the same join ---------- */
+{
+  const chip = (x, y, s, w = 64) => rect(x - w / 2 + 3, y - 11, w, 28, 'rx="4" fill="var(--shade)"') + rect(x - w / 2, y - 14, w, 28, 'rx="4" class="bx"') + text(x, y + 4, s, MID);
+  const dot = (n = 1) => '<circle r="5" stroke="var(--bg)" stroke-width="2"/>'.repeat(n);
+  const put = (c, [x, y], fill, o = 1) => { c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('opacity', o); c.style.fill = 'var(--' + fill + ')'; };
+  const RING = [['PLAN', 150, 36], ['ACT', 236, 90], ['CHECK', 150, 144], ['LEARN', 64, 90]];
+  const MOTIFS = [
+    { n: 'Cycle', s: 'For feedback loops. The dot rests at each stage so the stage can be read.', period: 8,
+      svg: '<path class="lane loop" d="M150 36L236 90L150 144L64 90Z"/>' + RING.map(([s, x, y]) => '<g class="st">' + chip(x, y, s) + '</g>').join('') + dot(),
+      draw(u, g) { const i = Math.floor(u * 4), f = u * 4 - i, a = RING[i], b = RING[(i + 1) % 4], m = smooth(seg(f, .45, 1)); $$('.st .bx', g).forEach((r, j) => { r.style.stroke = j === i && f < .5 ? 'var(--violet)' : ''; }); put($('circle', g), mixPt([a[1], a[2] - 14], [b[1], b[2] - 14], m), 'violet'); } },
+    { n: 'Fan out, join', s: 'For parallel work. The join waits for the slowest branch.', period: 4,
+      svg: '<path class="lane" d="M60 90H100M100 40V140M100 40H200M100 90H200M100 140H200M200 40V140M200 90H240"/>' + chip(40, 90, 'TASK', 52) + chip(260, 90, 'JOIN', 52) + dot(3),
+      draw(u, g) { const speed = [.5, .68, .34]; $$('circle', g).forEach((c, i) => { const y = [40, 90, 140][i], a = smooth(seg(u, .04, .16)), b = seg(u, .16, .16 + speed[i]), z = smooth(seg(u, .86, .96)); put(c, z > 0 ? mixPt([200, y], [234, 90], z) : b > 0 ? [lerp(100, 200, b), y] : mixPt([66, 90], [100, y], a), b >= 1 ? 'green' : 'ink', 1 - seg(u, .96, 1)); }); } },
+    { n: 'Hit or miss', s: 'For branching on state. Three requests in four turn back early.', period: 8,
+      svg: '<path class="lane" d="M66 80H120M176 80H234M234 100H66"/>' + chip(40, 90, 'APP', 52) + chip(148, 90, 'CACHE', 56) + chip(260, 90, 'STORE', 52) + '<text id="hm" x="148" y="140" text-anchor="middle"></text>' + dot(),
+      draw(u, g) { const k = Math.floor(u * 4), f = u * 4 - k, miss = k === 2, far = miss ? 234 : 120, out = seg(f, .05, .45), back = seg(f, .5, .9), colour = miss ? 'orange' : 'green'; put($('circle', g), back > 0 ? [lerp(far, 66, back), 100] : [lerp(66, far, out), 80], out < 1 ? 'ink' : colour, 1 - seg(f, .9, 1)); const l = $('#hm'); l.textContent = out < 1 ? '' : miss ? 'MISS' : 'HIT'; l.style.fill = 'var(--' + colour + ')'; } },
+  ];
+  $('.motifs').innerHTML = MOTIFS.map((m) => '<div><svg viewBox="0 0 300 180" role="img" aria-label="' + m.n + ' loop">' + m.svg + '</svg><p><b>' + m.n + '</b>' + m.s + '</p></div>').join('');
+  $$('.motifs svg').forEach((g, i) => { const m = MOTIFS[i], l = $$('.lane', g); clock.add(g, (t) => { m.draw(t % m.period / m.period, g); l.forEach((p) => { p.style.strokeDashoffset = (-t * 20).toFixed(1); }); }); });
+}
+
+/* ---------- rules: one source for the list and the prompt ---------- */
+const RULES = [
+  ['Choose', 'Loop a system that is always running or has many things in flight. Use a scroll walkthrough when the parts have an order.'],
+  ['Meaning', 'Everything that moves stands for something moving. Speed, colour and position carry data.'],
+  ['Clock', 'One loop time for the page. Drawing is a function of it. Small loops use periods that divide the main one.'],
+  ['Join', 'End in the state the loop started in. Work the events out up front and show a settled middle cycle.'],
+  ['Phases', 'Name the parts of the loop, caption each one and let the reader jump to it.'],
+  ['Control', 'Visible Pause, speed and a draggable timeline. Motion that cannot be stopped fails WCAG 2.2.2.'],
+  ['Idle', 'Stop off screen. Under reduced motion, start paused on a frame worth reading.'],
+];
+$('.rules').innerHTML = RULES.map(([a, b]) => '<li><b>' + a + '</b>' + b + '</li>').join('');
+const paletteOf = (theme, names) => { const d = document.createElement('div'); d.dataset.theme = theme; document.body.append(d); const s = getComputedStyle(d), out = names.map((n) => n + ' ' + s.getPropertyValue('--' + n).trim()).join(', '); d.remove(); return out; };
+$('#copy').onclick = async (e) => {
+  const b = e.target;
+  try { await navigator.clipboard.writeText('Build a single-file HTML figure that animates continuously.\n\n' + ['light', 'dark'].map((t) => 'Palette, ' + t + (t === 'light' ? ' (default)' : '') + ': ' + paletteOf(t, ['bg', 'card', 'ink', 'violet', 'pink', 'green']) + '.').join('\n') + '\nColour jobs: violet = loops, retries; pink = failed; green = done.\nFonts: Kode Mono for labels, IBM Plex Mono for sentences, ui-monospace fallback.\n\n' + RULES.map(([x, y]) => '- ' + x + ': ' + y).join('\n') + '\n'); b.textContent = 'Copied'; } catch { b.textContent = 'Copy blocked'; }
+  setTimeout(() => { b.textContent = 'Copy as prompt'; }, 1400);
+};
+</script>
+</body>
+</html>
