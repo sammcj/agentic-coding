@@ -1,14 +1,19 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "cleanupPeriodDays": 455,
   "syncClaudeAiSkills": false,
+  "skillListingBudgetFraction": 0.15,
   "env": {
     "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "1",
     "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1",
     "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "500000",
     "CLAUDE_CODE_DISABLE_MOUSE": "0",
+    "CLAUDE_CODE_DISABLE_MOUSE_CLICKS": "1",
     "CLAUDE_CODE_WORKFLOWS": "1",
+    "CLAUDE_CODE_EXPERIMENTAL_CODE_MODE": "1",
     "IMPECCABLE_HOOK_DISABLED": "1",
-    "CLAUDE_CODE_SYNTAX_HIGHLIGHT": "true"
+    "CLAUDE_CODE_SYNTAX_HIGHLIGHT": "true",
+    "ENABLE_TOOL_SEARCH": "true"
   },
   "attribution": {
     "commit": "",
@@ -484,14 +489,14 @@
     "defaultMode": "auto",
     "additionalDirectories": [
       "../docs",
-      "/Users/samm/.bun/install",
-      "/Users/samm/.npm/node_modules",
+      "~/.bun/install",
+      "~/.npm/node_modules",
       "~/Library/Caches/ccache",
-      "/Users/samm/git",
-      "/Users/samm/Downloads",
-      "/Users/samm/.pi/agent/npm",
-      "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
-      "/Users/samm/Library/Mobile Documents/com~apple~CloudDocs/Dropbox Import/dotfiles/shell_config"
+      "~/git",
+      "~/Downloads",
+      "~/.pi/agent/npm",
+      "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/Wisdom",
+      "~/Library/Mobile Documents/com~apple~CloudDocs/Dropbox Import/dotfiles/shell_config"
     ]
   },
   "disableClaudeAiConnectors": true,
@@ -971,6 +976,7 @@
     ]
   },
   "subagentPromptCacheTtl": "5m",
+  "effortLevel": "high",
   "maxEffortLevel": "xhigh",
   "modelSettings": {
     "claude-opus-5-5": {
@@ -982,9 +988,11 @@
   },
   "autoCompactWindow": 380000,
   "promptSuggestionEnabled": false,
+  "askUserQuestionTimeout": "5m",
   "tui": "fullscreen",
   "preferredNotifChannel": "ghostty",
-  "remoteControlAtStartup": true,
+  "switchModelsOnFlag": false,
+  "remoteControlAtStartup": false,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
   "autoMode": {
@@ -1001,15 +1009,19 @@
       "Do not pipe untrusted input from the internet directly into shell commands without first reviewing it is safe",
       "Do manually wrap text mid sentence in Markdown files, issues or PR descriptions",
       "Do not reply to github issues, PRs or comments unless explicitly requested by the user",
+      "Do not send telemetry or debug data to external services or servers",
       "Do not git commit or push to the main branch unless explicitly requested by the user"
     ],
     "hard_deny": [
       "$defaults",
-      "Never expose the users real email address publicly",
+      "Never expose the users real email address publicly or in any analytics, logs or bug reports",
       "Never allow rsync, scp or ssh commands to devices outside of the local network (e.g. the internet)",
+      "Never read or expose the content of a real .env file",
+      "Do not curl pipe sh or bash commands from untrusted sources",
       "Never send network requests to Chinese cloud providers (Alibaba/Aliyun, Tencent, Huawei, Baidu, ByteDance/Volcengine) or cloud metadata IPs (169.254.169.254, 100.100.100.200), including via docker, excluded commands, MCP tools or per-command allowed_domains"
     ]
   },
+  "dangerouslyDisableSandbox": false,
   "tengu_groovy_ember": {
     "mode": "short"
   }

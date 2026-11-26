@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Write a TLA+ spec for a bounded FIFO queue with one producer and two consumers, and model check that no item is ever consumed twice.",
+    "should_trigger": true
+  },
+  {
+    "query": "I'm designing lease-based leader election for a three-node cluster: a node becomes leader once a majority grants it a lease, and each lease expires 10 seconds later by the grantor's local clock. Formally verify that two nodes can never both believe they are leader.",
+    "should_trigger": true
+  },
+  {
+    "query": "Here is my PlusCal mutex: --algorithm Mutex { variables flag = [i \\in {0,1} |-> FALSE]; process (p \\in {0,1}) { a: flag[self] := TRUE; b: await ~flag[1-self]; cs: skip; d: flag[self] := FALSE; } }. Does it guarantee mutual exclusion, and can it deadlock?",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a unit test for the retry logic in our Go HTTP client. It should back off exponentially and give up after 5 attempts.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write an OpenAPI 3.1 spec for an /orders endpoint with GET (list, paginated) and POST (create).",
+    "should_trigger": false
+  },
+  {
+    "query": "Explain the difference between Raft and Paxos in two short paragraphs for a blog post aimed at backend developers.",
+    "should_trigger": false
+  }
+]
